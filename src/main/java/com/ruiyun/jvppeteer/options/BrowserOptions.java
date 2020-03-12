@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
-public class BrowserOptions {
+public class BrowserOptions extends ChromeArgOptions {
 
 	/**
 	 * 是否在导航期间忽略 HTTPS 错误. 默认是 false

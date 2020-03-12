@@ -1,6 +1,8 @@
 package com.ruiyun.jvppeteer.options;
 
 
+import java.util.List;
+
 import com.ruiyun.jvppeteer.Environment;
 
 public class LaunchOptions extends BrowserOptions {
@@ -24,12 +26,12 @@ public class LaunchOptions extends BrowserOptions {
 	 * Do not use `puppeteer.defaultArgs()` for launching Chromium.
 	 * @default false
 	 */
-	private boolean ignoreDefaultArgs;
+	private boolean ignoreAllDefaultArgs;
 	/**
 	 * 过滤掉给定的默认参数。
 	 * <br/>
 	 */
-	private String[] ignoreAllDefaultArgs;
+	private List<String> ignoreDefaultArgs;
 	
 	/**
 	 * Ctrl-C 关闭浏览器进程。默认是 true
@@ -90,23 +92,25 @@ public class LaunchOptions extends BrowserOptions {
 		this.executablePath = executablePath;
 	}
 
-	public boolean isIgnoreDefaultArgs() {
-		return ignoreDefaultArgs;
-	}
+	
 
-	public void setIgnoreDefaultArgs(boolean ignoreDefaultArgs) {
-		this.ignoreDefaultArgs = ignoreDefaultArgs;
-	}
-
-	public String[] getIgnoreAllDefaultArgs() {
+	public boolean getIgnoreAllDefaultArgs() {
 		return ignoreAllDefaultArgs;
 	}
 
-	public void setIgnoreAllDefaultArgs(String[] ignoreAllDefaultArgs) {
+	public void setIgnoreAllDefaultArgs(boolean ignoreAllDefaultArgs) {
 		this.ignoreAllDefaultArgs = ignoreAllDefaultArgs;
 	}
 
-	public boolean isHandleSIGINT() {
+	public List<String> getIgnoreDefaultArgs() {
+		return ignoreDefaultArgs;
+	}
+
+	public void setIgnoreDefaultArgs(List<String> ignoreDefaultArgs) {
+		this.ignoreDefaultArgs = ignoreDefaultArgs;
+	}
+
+	public boolean getHandleSIGINT() {
 		return handleSIGINT;
 	}
 
@@ -114,7 +118,7 @@ public class LaunchOptions extends BrowserOptions {
 		this.handleSIGINT = handleSIGINT;
 	}
 
-	public boolean isHandleSIGTERM() {
+	public boolean getHandleSIGTERM() {
 		return handleSIGTERM;
 	}
 
@@ -122,7 +126,7 @@ public class LaunchOptions extends BrowserOptions {
 		this.handleSIGTERM = handleSIGTERM;
 	}
 
-	public boolean isHandleSIGHUP() {
+	public boolean getHandleSIGHUP() {
 		return handleSIGHUP;
 	}
 
@@ -130,7 +134,7 @@ public class LaunchOptions extends BrowserOptions {
 		this.handleSIGHUP = handleSIGHUP;
 	}
 
-	public boolean isDumpio() {
+	public boolean getDumpio() {
 		return dumpio;
 	}
 
@@ -146,7 +150,7 @@ public class LaunchOptions extends BrowserOptions {
 		this.env = env;
 	}
 
-	public boolean isPipe() {
+	public boolean getPipe() {
 		return pipe;
 	}
 

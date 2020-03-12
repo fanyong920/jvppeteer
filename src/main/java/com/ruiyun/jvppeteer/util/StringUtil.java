@@ -1,5 +1,11 @@
 package com.ruiyun.jvppeteer.util;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+
 public class StringUtil {
 	
 	public static boolean isEmpty(String s) {
@@ -26,4 +32,14 @@ public class StringUtil {
 	public static boolean isNotBlank(String str) {
         return !StringUtil.isBlank(str);
     }
+	
+	
+	public static int getTimestamp() {
+		synchronized (StringUtil.class) {
+			int nano = LocalDateTime.now().getNano();
+			return nano;
+		}
+	}
+	
+	
 }

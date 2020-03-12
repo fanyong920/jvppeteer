@@ -18,7 +18,7 @@ public class Puppeteer implements Constant {
 	public static String _productName = null;
 
 	private Launcher launcher;
-
+	private Environment env = null;
 //	private String projectRoot;
 //
 //	private String preferredRevision;
@@ -52,6 +52,7 @@ public class Puppeteer implements Constant {
 	 */
 	public void adapterLauncher() {
 		if (StringUtil.isEmpty(_productName) && !isPuppeteerCore) {
+			env = System::getenv;
 			for (int i = 0; i < PRODUCT_ENV.length; i++) {
 				String envName = PRODUCT_ENV[i];
 				_productName = env.getEnv(envName);

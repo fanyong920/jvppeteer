@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.options;
 
+import java.util.List;
+
 public class ChromeArgOptions {
 	/**
 	 * 是否以 无头模式 运行浏览器。默认是 true，除非 devtools 选项是 true
@@ -16,7 +18,7 @@ public class ChromeArgOptions {
      * Additional arguments to pass to the browser instance.
      * The list of Chromium flags can be found here.
      */
-    private String[] args ;
+    private List<String> args ;
     /**
      * 用户数据目录 路径
      * <br/>
@@ -39,11 +41,11 @@ public class ChromeArgOptions {
 		this.headless = headless;
 	}
 	
-	public String[] getArgs() {
+	public List<String> getArgs() {
 		return args;
 	}
 	
-	public void setArgs(String[] args) {
+	public void setArgs(List<String> args) {
 		this.args = args;
 	}
 	
