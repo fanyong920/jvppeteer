@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.util;
 
-import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class FileUtil {
@@ -15,9 +15,8 @@ public class FileUtil {
 		
 	}
 	
-	public static boolean assertDir(String executablePath){
-		
-		return	Files.exists(Paths.get(executablePath));
-		
+	public static boolean assertFile(String executablePath){
+		Path path = Paths.get(executablePath);
+		return Files.isRegularFile(path) && Files.isReadable(path) && Files.isExecutable(path);
 	}
 }

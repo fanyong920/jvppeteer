@@ -1,7 +1,9 @@
 package com.ruiyun.jvppeteer.launch;
 
-import com.ruiyun.jvppeteer.Browser;
+import java.util.List;
+
 import com.ruiyun.jvppeteer.Launcher;
+import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 
 public class FirefoxLauncher implements Launcher {
@@ -19,6 +21,27 @@ public class FirefoxLauncher implements Launcher {
 
 	@Override
 	public Browser launch(LaunchOptions options) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public String defaultArgs(LaunchOptions options, List<String> chromeArguments) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public String resolveExecutablePath(String chromeExecutable) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Browser connect(Object object) {
 		// TODO Auto-generated method stub
 		return null;
 	}

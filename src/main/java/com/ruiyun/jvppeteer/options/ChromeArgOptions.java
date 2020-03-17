@@ -33,7 +33,7 @@ public class ChromeArgOptions {
      */
     private boolean devtools;
     
-	public boolean isHeadless() {
+	public boolean getHeadless() {
 		return headless;
 	}
 	
@@ -57,7 +57,7 @@ public class ChromeArgOptions {
 		this.userDataDir = userDataDir;
 	}
 	
-	public boolean isDevtools() {
+	public boolean getDevtools() {
 		return devtools;
 	}
 	
