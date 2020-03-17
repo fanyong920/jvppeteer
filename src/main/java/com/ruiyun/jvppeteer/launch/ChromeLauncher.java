@@ -36,15 +36,15 @@ public class ChromeLauncher implements Launcher {
 		boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 		
 		log.info("will try launch chrome process with arguments:"+chromeArguments);
-		
 		BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
 		try {
 			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
+			runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to launch the browser process:"+e.getMessage(),e);
 		}
 		
-//		runner.setUpConnection();
+		
 		return null;
 	}
 
@@ -86,9 +86,10 @@ public class ChromeLauncher implements Launcher {
 		}
 		
 		boolean isCustomUserDir = false;
+		boolean isCustomRemoteDebugger = false;
 		for (String arg : chromeArguments) {
 			if (arg.startsWith("--remote-debugging-")) {
-				chromeArguments.add(pipe ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
+				isCustomRemoteDebugger = true;
 			}
 			if (arg.startsWith("--user-data-dir")) {
 				isCustomUserDir = true;
@@ -97,6 +98,9 @@ public class ChromeLauncher implements Launcher {
 		if(!isCustomUserDir) {
 			temporaryUserDataDir = FileUtil.createProfileDir(PROFILE_PREFIX);
 			chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
+		}
+		if(!isCustomRemoteDebugger) {
+			chromeArguments.add(pipe ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
 		}
 		return temporaryUserDataDir;
 	}

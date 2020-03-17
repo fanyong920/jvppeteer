@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.options;
 
 import java.util.List;
 
-public class ChromeArgOptions {
+public class ChromeArgOptions extends Timeoutable {
 	/**
 	 * 是否以 无头模式 运行浏览器。默认是 true，除非 devtools 选项是 true
 	 * <br/>
