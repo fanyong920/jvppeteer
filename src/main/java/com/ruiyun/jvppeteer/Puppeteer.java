@@ -4,6 +4,7 @@ import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
+import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 /**
@@ -19,6 +20,7 @@ public class Puppeteer implements Constant {
 	public static String _productName = null;
 
 	private Launcher launcher;
+	
 	private Environment env = null;
 //	private String projectRoot;
 //
@@ -34,7 +36,15 @@ public class Puppeteer implements Constant {
 		super();
 		this.isPuppeteerCore = isPuppeteerCore;
 	}
-
+	
+	public Browser launch() {
+		return this.launch(true);
+	}
+	
+	public Browser launch(boolean headless) {
+		return this.launch(new OptionsBuilder().withHeadless(headless).build());
+	}
+	
 	/**
 	 * The method launches a browser instance with given arguments. The browser will
 	 * be closed when the parent java process is closed.

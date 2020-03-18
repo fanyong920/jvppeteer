@@ -19,7 +19,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 public class ChromeLauncher implements Launcher {
 
-	private static final Logger log = LoggerFactory.getLogger(ChromeLauncher.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ChromeLauncher.class);
 	
 	private boolean isPuppeteerCore;
 
@@ -35,7 +35,7 @@ public class ChromeLauncher implements Launcher {
 		String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
 		boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 		
-		log.info("will try launch chrome process with arguments:"+chromeArguments);
+		LOGGER.info("will try launch chrome process with arguments:"+chromeArguments);
 		BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
 		try {
 			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
@@ -43,7 +43,6 @@ public class ChromeLauncher implements Launcher {
 		} catch (IOException e) {
 			throw new RuntimeException("Failed to launch the browser process:"+e.getMessage(),e);
 		}
-		
 		
 		return null;
 	}
@@ -115,7 +114,7 @@ public class ChromeLauncher implements Launcher {
 		boolean puppeteerCore = getIsPuppeteerCore();
 		if (!puppeteerCore) {
 			if (StringUtil.isNotEmpty(chromeExecutable)) {
-				boolean assertDir = FileUtil.assertFile(chromeExecutable);
+				boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
 				if (!assertDir) {
 					throw new IllegalArgumentException("given chromeExecutable is not executable");
 				}
@@ -124,13 +123,24 @@ public class ChromeLauncher implements Launcher {
 				for (int i = 0; i < EXECUTABLE_ENV.length; i++) {
 					chromeExecutable = env.getEnv(EXECUTABLE_ENV[i]);
 					if (StringUtil.isNotEmpty(chromeExecutable)) {
-						boolean assertDir = FileUtil.assertFile(chromeExecutable);
+						boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
 						if (!assertDir) {
 							throw new IllegalArgumentException("given chromeExecutable is not is not executable");
 						}
 						return chromeExecutable;
 					}
 				}
+				
+				for (int i = 0; i < PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
+					chromeExecutable = PROBABLE_CHROME_EXECUTABLE_PATH[i];
+					if (StringUtil.isNotEmpty(chromeExecutable)) {
+						boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+						if (assertDir) {
+							return chromeExecutable;
+						}
+					}
+				}
+				
 				throw new RuntimeException(
 						"Tried to use PUPPETEER_EXECUTABLE_PATH env variable to launch browser but did not find any executable");
 			}

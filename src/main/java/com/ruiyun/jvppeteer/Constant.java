@@ -12,6 +12,17 @@ public interface Constant {
 	
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
 	
+	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
+		      new String[] {
+		        "/usr/bin/chromium",
+		        "/usr/bin/chromium-browser",
+		        "/usr/bin/google-chrome-stable",
+		        "/usr/bin/google-chrome",
+		        "/Applications/Chromium.app/Contents/MacOS/Chromium",
+		        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+		        "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
+		        "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+		      };
 	List<String> DEFAULT_ARGS = new ArrayList<String>() {
 		private static final long serialVersionUID = 1L;
 		{addAll(Arrays.asList( 

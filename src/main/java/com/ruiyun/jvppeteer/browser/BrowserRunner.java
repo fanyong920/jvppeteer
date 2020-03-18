@@ -23,7 +23,7 @@ import com.ruiyun.jvppeteer.util.StreamUtil;
 
 public class BrowserRunner {
 	
-	private static final Logger log = LoggerFactory.getLogger(BrowserRunner.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
 	
 	private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile( "^DevTools listening on (ws:\\/\\/.*)$");
 
@@ -67,11 +67,8 @@ public class BrowserRunner {
 		 List<String> arguments = new ArrayList<>();
 		 arguments.add(executablePath);
 		 arguments.addAll(processArguments);
-		 ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true).redirectOutput(Redirect.PIPE);
+		 ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
 		 /** connect by pipe  默认就是pipe管道连接*/
-//		 if(pipe) {
-//			 processBuilder.redirectOutput(Redirect.PIPE).redirectInput(Redirect.PIPE);
-//		 }
 		 process = processBuilder.start();
 		 //TODO 添加listener 
 	}
@@ -87,6 +84,12 @@ public class BrowserRunner {
 		}
 		return connection ;
 	}
+	/**
+	 * acquired browser ws 
+	 * @param timeout
+	 * @param preferredRevision
+	 * @return
+	 */
 	private String waitForWSEndpoint( int timeout, String preferredRevision) {
 		final StringBuilder ws = new StringBuilder();
 		final AtomicBoolean success = new AtomicBoolean(false);
@@ -103,10 +106,9 @@ public class BrowserRunner {
 	                String line;
 	                while ((line = reader.readLine()) != null) {
 	                  Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
-	                  System.out.println("line:"+line);
 	                  if (matcher.find()) {
-	                	ws.append(matcher.group());
-	                	log.info("ws:"+ws.toString());
+	                	ws.append(matcher.group(1));
+	                	LOGGER.info("ws:"+ws.toString());
 	                    success.set(true);
 	                    break;
 	                  }
@@ -118,10 +120,9 @@ public class BrowserRunner {
 	                  chromeOutput.set(chromeOutputBuilder.toString());
 	                }
 	              } catch (Exception e) {
-//	                log.error("Failed to launch the browser process!please see TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md:", e);
-	                e.printStackTrace();
+	            	  LOGGER.error("Failed to launch the browser process!please see TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md:", e);
 	              } finally {
-	            	  StreamUtil.closeQuietly(reader);
+	            	  StreamUtil.closeStream(reader);
 	              }
 	            });
 
@@ -141,7 +142,7 @@ public class BrowserRunner {
 	    } catch (InterruptedException e) {
 	    	StreamUtil.close(readLineThread);
 
-	      log.error("Interrupted while waiting for dev tools server.", e);
+	    	LOGGER.error("Interrupted while waiting for dev tools server.", e);
 	      throw new RuntimeException("Interrupted while waiting for dev tools server.", e);
 	    }
 

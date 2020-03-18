@@ -2,12 +2,14 @@ package com.ruiyun.jvppeteer.transport;
 
 public class WebSocketTransport implements ConnectionTransport {
 	
-	private String ws;
+	private String url;
 	
 	
-	public WebSocketTransport(String ws) {
+	public WebSocketTransport(String url) {
 		super();
-		this.ws = ws;
+		this.url = url;
+		//connect to websocket server
+		
 	}
 
 	@Override

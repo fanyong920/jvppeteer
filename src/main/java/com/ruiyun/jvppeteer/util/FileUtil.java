@@ -15,7 +15,7 @@ public class FileUtil {
 		
 	}
 	
-	public static boolean assertFile(String executablePath){
+	public static boolean assertExecutable(String executablePath){
 		Path path = Paths.get(executablePath);
 		return Files.isRegularFile(path) && Files.isReadable(path) && Files.isExecutable(path);
 	}
