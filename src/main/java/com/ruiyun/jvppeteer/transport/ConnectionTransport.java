@@ -1,12 +1,20 @@
 package com.ruiyun.jvppeteer.transport;
 
-public interface ConnectionTransport {
+import javax.websocket.Session;
+
+import com.ruiyun.jvppeteer.Constant;
+
+public interface ConnectionTransport extends Constant {
 	
 	void send(String message);
 	
-	void close();
+	boolean close();
 	
-	void onmessage(String mess);
+	void onMessage(String message);
 	
-	void onclose();
+	void onClose();
+	
+	void onOpen(Session session);
+	
+	void onError(Session session, Throwable error);
 }

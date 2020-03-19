@@ -1,7 +1,11 @@
 package com.ruiyun.jvppeteer;
 
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
-
+/**
+ * web socket client
+ * @author fff
+ *
+ */
 public class Connection {
 	
 	/**websoket url */

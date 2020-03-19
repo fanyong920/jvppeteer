@@ -16,8 +16,14 @@
 		<logback.version>1.2.3</logback.version>
 		<junit.version>4.12</junit.version>
 		<websocket.api.version>1.1</websocket.api.version>
+		<tyrus.version>1.13.1</tyrus.version>
 	</properties>
 	<dependencies>
+	<dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-client</artifactId>
+            <version>${tyrus.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>

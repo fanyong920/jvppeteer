@@ -2,7 +2,12 @@ package com.ruiyun.jvppeteer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+import com.ruiyun.jvppeteer.websocket.WebSocketClient;
 
 public interface Constant {
 	
@@ -11,6 +16,10 @@ public interface Constant {
 	String[] EXECUTABLE_ENV = {"PUPPETEER_EXECUTABLE_PATH","java_config_puppeteer_executable_path","java_package_config_puppeteer_executable_path"};
 	
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
+	
+	long DEFAULT_PAYLOAD  = 256 * 1024 * 1024;
+	
+	String INCOMING_BUFFER_SIZE_PROPERTY = "org.glassfish.tyrus.incomingBufferSize";
 	
 	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
 		      new String[] {
@@ -47,4 +56,6 @@ public interface Constant {
 	                "--password-store=basic",
 	                "--use-mock-keychain"));}
 	};
+	
+	Map<String,WebSocketTransport> WS_HASH_MAP = new HashMap<>();
 }

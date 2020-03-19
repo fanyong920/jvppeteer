@@ -1,39 +1,97 @@
 package com.ruiyun.jvppeteer.transport;
 
-public class WebSocketTransport implements ConnectionTransport {
+import java.nio.channels.SeekableByteChannel;
+import java.util.function.Consumer;
+
+import javax.websocket.ClientEndpoint;
+import javax.websocket.MessageHandler;
+import javax.websocket.OnClose;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.ruiyun.jvppeteer.websocket.WebSocketTransportFactory;
+
+/**
+ * websocket client 
+ * @author fff
+ *
+ */
+@ClientEndpoint
+public class WebSocketTransport implements ConnectionTransport,Consumer<String> {
 	
-	private String url;
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
 	
+	private Session session;
 	
-	public WebSocketTransport(String url) {
-		super();
-		this.url = url;
-		//connect to websocket server
+	public WebSocketTransport() {
+
+	}
+	
+	@Override
+	public void send(String message) {
+		session.getAsyncRemote().sendText(message);
+	}
+
+	@Override
+	public boolean close() {
+		return session == null || !session.isOpen();
+	}
+
+	@Override
+	public void onMessage(String message) {
+		
+	}
+	
+	@OnClose
+	@Override
+	public void onClose() {
+		LOGGER.info("websocket url" + session.getRequestURI() + "is close");
+	}
+	
+	@OnOpen
+	@Override
+	public void onOpen(Session session) {
+		System.out.println("websocket url:" + session.getRequestURI() + "is open");
+		this.session = session;
+//		System.err.println(session.getMaxTextMessageBufferSize());
+//		System.err.println(session.getMaxIdleTimeout());
+//		System.err.println(session.getContainer().getDefaultMaxSessionIdleTimeout());
+//		System.err.println(session.getContainer().getDefaultMaxTextMessageBufferSize());
+		WS_HASH_MAP.put(session.getId(), this);
+		addMessageHandler(this);
+		LOGGER.info("has connected to browser websocket sever:" + session.getRequestURI());
 		
 	}
 
 	@Override
-	public void send(String message) {
-		// TODO Auto-generated method stub
-
+	public void onError(Session session, Throwable error) {
+		LOGGER.error("websocket url" + session.getRequestURI() + "is onError");
 	}
 
 	@Override
-	public void close() {
-		// TODO Auto-generated method stub
-
+	public void accept(String t) {
+		onMessage(t);
 	}
 
-	@Override
-	public void onmessage(String mess) {
-		// TODO Auto-generated method stub
+	public void addMessageHandler(Consumer<String> consumer) {
+		if (session == null) {
+			throw new RuntimeException("You first must connect to ws server in order to receive messages.");
+		}
 
-	}
+		if (!session.getMessageHandlers().isEmpty()) {
+			throw new RuntimeException("You are already subscribed to this web socket service.");
+		}
 
-	@Override
-	public void onclose() {
-		// TODO Auto-generated method stub
-
+		session.addMessageHandler(new MessageHandler.Whole<String>() {
+			@Override
+			public void onMessage(String message) {
+				LOGGER.debug("Received message {} on {}", message, session.getRequestURI());
+				consumer.accept(message);
+			}
+		});
 	}
 
 }

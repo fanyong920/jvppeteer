@@ -12,6 +12,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.websocket.ContainerProvider;
+import javax.websocket.WebSocketContainer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,7 @@ import com.ruiyun.jvppeteer.exception.LaunchTimeOutException;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.util.StreamUtil;
+import com.ruiyun.jvppeteer.websocket.WebSocketTransportFactory;
 
 public class BrowserRunner {
 	
@@ -79,7 +83,7 @@ public class BrowserRunner {
 			
 		}else {/**websoket connection*/
 			String waitForWSEndpoint = waitForWSEndpoint(timeout,preferredRevision);
-			ConnectionTransport transport = new WebSocketTransport(waitForWSEndpoint);
+			WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
 			connection = new Connection(waitForWSEndpoint, transport , timeout);
 		}
 		return connection ;
@@ -108,7 +112,7 @@ public class BrowserRunner {
 	                  Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
 	                  if (matcher.find()) {
 	                	ws.append(matcher.group(1));
-	                	LOGGER.info("ws:"+ws.toString());
+	                	LOGGER.info("capture ws:"+ws.toString());
 	                    success.set(true);
 	                    break;
 	                  }
