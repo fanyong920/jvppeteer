@@ -17,6 +17,7 @@
 		<junit.version>4.12</junit.version>
 		<websocket.api.version>1.1</websocket.api.version>
 		<tyrus.version>1.13.1</tyrus.version>
+		<jackson.version>2.10.0</jackson.version>
 	</properties>
 	<dependencies>
 	<dependency>
@@ -47,6 +48,13 @@
 		    <version>${websocket.api.version}</version>
 		    <scope>provided</scope>
 		</dependency>
+		
+		<dependency>
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>${jackson.version}</version>
+		</dependency>
+		
 		
 	</dependencies>
 </project>

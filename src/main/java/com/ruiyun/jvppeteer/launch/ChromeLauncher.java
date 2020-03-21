@@ -7,7 +7,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ruiyun.jvppeteer.Launcher;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.browser.BrowserRunner;

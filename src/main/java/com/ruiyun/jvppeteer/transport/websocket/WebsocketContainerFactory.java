@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.websocket;
+package com.ruiyun.jvppeteer.transport.websocket;
 
 import javax.websocket.WebSocketContainer;
 

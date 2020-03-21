@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.websocket;
+package com.ruiyun.jvppeteer.transport.websocket;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,6 +14,11 @@ public class WebSocketTransportFactory implements Constant {
 	
 	public static WebSocketContainer WEB_SOCKET_CONTAINER = null;
 	
+	/**
+	 * create websocket client
+	 * @param url
+	 * @return
+	 */
 	public static WebSocketTransport create(String url) {
 		
 		if(WEB_SOCKET_CONTAINER == null) {

@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.transport;
 
+import java.util.function.Consumer;
+
 import javax.websocket.Session;
 
 import com.ruiyun.jvppeteer.Constant;
@@ -17,4 +19,6 @@ public interface ConnectionTransport extends Constant {
 	void onOpen(Session session);
 	
 	void onError(Session session, Throwable error);
+	
+	void addMessageHandler(Consumer<String> consumer);
 }

@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
+import com.ruiyun.jvppeteer.launch.Launcher;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;

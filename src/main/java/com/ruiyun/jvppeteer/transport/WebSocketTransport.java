@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.transport;
 
-import java.nio.channels.SeekableByteChannel;
 import java.util.function.Consumer;
 
 import javax.websocket.ClientEndpoint;
@@ -11,8 +10,6 @@ import javax.websocket.Session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ruiyun.jvppeteer.websocket.WebSocketTransportFactory;
 
 /**
  * websocket client 
@@ -54,14 +51,14 @@ public class WebSocketTransport implements ConnectionTransport,Consumer<String> 
 	@OnOpen
 	@Override
 	public void onOpen(Session session) {
-		System.out.println("websocket url:" + session.getRequestURI() + "is open");
+		System.out.println("has connected to browser websocket sever:" + session.getRequestURI());
 		this.session = session;
 //		System.err.println(session.getMaxTextMessageBufferSize());
 //		System.err.println(session.getMaxIdleTimeout());
 //		System.err.println(session.getContainer().getDefaultMaxSessionIdleTimeout());
 //		System.err.println(session.getContainer().getDefaultMaxTextMessageBufferSize());
 		WS_HASH_MAP.put(session.getId(), this);
-		addMessageHandler(this);
+		
 		LOGGER.info("has connected to browser websocket sever:" + session.getRequestURI());
 		
 	}
@@ -94,4 +91,13 @@ public class WebSocketTransport implements ConnectionTransport,Consumer<String> 
 		});
 	}
 
+	public Session getSession() {
+		return session;
+	}
+
+	public void setSession(Session session) {
+		this.session = session;
+	}
+	
+	
 }

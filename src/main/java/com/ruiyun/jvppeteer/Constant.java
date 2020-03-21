@@ -2,12 +2,16 @@ package com.ruiyun.jvppeteer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
-import com.ruiyun.jvppeteer.websocket.WebSocketClient;
 
 public interface Constant {
 	
@@ -57,5 +61,13 @@ public interface Constant {
 	                "--use-mock-keychain"));}
 	};
 	
-	Map<String,WebSocketTransport> WS_HASH_MAP = new HashMap<>();
+	Map<String,WebSocketTransport> WS_HASH_MAP = new ConcurrentHashMap<>();
+	
+	public static final ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
+	
+	String RECV_MESSAGE_METHOD_PROPERTY = "method";
+	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
+	String RECV_MESSAGE_ID_PROPERTY = "id";
+	String RECV_MESSAGE_TARGETINFO_PROPERTY = "targetInfo";
+	String RECV_MESSAGE_TYPE_PROPERTY = "type";
 }

@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.launch;
 
 import java.util.List;
 
-import com.ruiyun.jvppeteer.Launcher;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 

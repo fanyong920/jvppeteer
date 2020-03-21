@@ -3,27 +3,21 @@ package com.ruiyun.jvppeteer.browser;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.websocket.ContainerProvider;
-import javax.websocket.WebSocketContainer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ruiyun.jvppeteer.Connection;
 import com.ruiyun.jvppeteer.exception.LaunchTimeOutException;
-import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.StreamUtil;
-import com.ruiyun.jvppeteer.websocket.WebSocketTransportFactory;
 
 public class BrowserRunner {
 	
