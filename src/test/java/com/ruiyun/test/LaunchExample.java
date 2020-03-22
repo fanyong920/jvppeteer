@@ -14,7 +14,7 @@ public class LaunchExample {
 	public void test1() {
 		Puppeteer puppeteer  = new Puppeteer();
 		ArrayList<String> arrayList = new ArrayList<>();
-		LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Users\\10230\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe").build();
+		LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).build();
 		arrayList.add("--no-sandbox");
 		arrayList.add("--disable-setuid-sandbox");
 		puppeteer.launch(options);

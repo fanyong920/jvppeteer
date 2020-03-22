@@ -76,6 +76,7 @@ public class Connection implements Constant,Consumer<String> {
 		}
 		
 		LOGGER.info("◀ RECV "+message);
+		System.out.println("◀ RECV "+message);
 		try {
 			if(StringUtil.isNotEmpty(message)) {
 				JsonNode readTree = OBJECTMAPPER.readTree(message);
@@ -85,10 +86,16 @@ public class Connection implements Constant,Consumer<String> {
 					JsonNode paramsNode = methodNode.get(RECV_MESSAGE_PARAMS_PROPERTY);
 					JsonNode sessionId = paramsNode.get(RECV_MESSAGE_ID_PROPERTY);
 					JsonNode typeNode = paramsNode.get(RECV_MESSAGE_TARGETINFO_PROPERTY).get(RECV_MESSAGE_TYPE_PROPERTY);
-					CDPSession cdpSession = new CDPSession(typeNode.asText(), sessionId.asText());
+					CDPSession cdpSession = new CDPSession(this,typeNode.asText(), sessionId.asText());
 					_sessions.put(sessionId.asText(), cdpSession);
 				}else if("Target.detachedFromTarget".equals(method)) {
-					
+					JsonNode paramsNode = methodNode.get(RECV_MESSAGE_PARAMS_PROPERTY);
+					JsonNode sessionId = paramsNode.get(RECV_MESSAGE_ID_PROPERTY);
+					CDPSession cdpSession = _sessions.get(sessionId);
+					if(cdpSession != null){
+						cdpSession._onClosed();
+						_sessions.remove(sessionId);
+					}
 				}
 			}
 			
@@ -110,18 +117,27 @@ public class Connection implements Constant,Consumer<String> {
 	public void accept(String t) {
 		_onMessage(t);
 	}
-	class CDPSession{
-		
-		private String targetType;
-		
-		private String sessionId;
+	
+}
+class CDPSession{
+	
+	private String targetType;
+	
+	private String sessionId;
 
-		public CDPSession(String targetType, String sessionId) {
-			super();
-			this.targetType = targetType;
-			this.sessionId = sessionId;
-		}
-		
-		
+	private Connection connection;
+	
+	public CDPSession(Connection connection,String targetType, String sessionId) {
+		super();
+		this.targetType = targetType;
+		this.sessionId = sessionId;
+		this.connection = connection;
 	}
+
+	public void _onClosed() {
+		// TODO Auto-generated method stub
+		connection = null;
+	}
+	
+	
 }

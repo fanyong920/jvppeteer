@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.launch.Launcher;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
+import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 /**
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
@@ -69,6 +70,9 @@ public class Puppeteer implements Constant {
 				String envName = PRODUCT_ENV[i];
 				_productName = env.getEnv(envName);
 			}
+		}
+		if(StringUtil.isEmpty(_productName)){
+			_productName = "chrome";
 		}
 		switch (_productName) {
 		case "firefox":

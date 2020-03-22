@@ -15,7 +15,7 @@ public class BrowserOptions extends ChromeArgOptions {
 	 * <br/>
 	 * Sets a consistent viewport for each page. Defaults to an 800x600 viewport. null disables the default viewport.
 	 */
-	private DefaultViewport defaultViewport;
+	private DefaultViewport defaultViewport = new DefaultViewport();
 	/**
 	 *  将 Puppeteer 操作减少指定的毫秒数。这样你就可以看清发生了什么，这很有用
 	 *  <br/>
@@ -24,7 +24,7 @@ public class BrowserOptions extends ChromeArgOptions {
 	 */
 	private int slowMo;
 	  
-	public boolean isIgnoreHTTPSErrors() {
+	public boolean getIgnoreHTTPSErrors() {
 		return ignoreHTTPSErrors;
 	}
 	

@@ -12,6 +12,7 @@ import com.ruiyun.jvppeteer.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.browser.BrowserRunner;
 import com.ruiyun.jvppeteer.browser.RevisionInfo;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
+import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -38,12 +39,15 @@ public class ChromeLauncher implements Launcher {
 		BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
 		try {
 			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
-			runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
+			Connection connection = runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
+			runner.getProcess().destroyForcibly();
+			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getDefaultViewport(), runner);
+			browser.waitForTarget(t -> "page".equals(t.type()),options);
+			return browser;
 		} catch (IOException e) {
+			runner.kill();
 			throw new RuntimeException("Failed to launch the browser process:"+e.getMessage(),e);
 		}
-		
-		return null;
 	}
 
 	/**
@@ -104,7 +108,7 @@ public class ChromeLauncher implements Launcher {
 	}
 	
 	/**
-	 * Ñ°ÕÒ¿ÉÖ´ÐÐµÄchromeÂ·¾¶
+	 * Ñ°ï¿½Ò¿ï¿½Ö´ï¿½Ðµï¿½chromeÂ·ï¿½ï¿½
 	 * @param chromeExecutable
 	 * @return
 	 */

@@ -17,6 +17,7 @@ import com.ruiyun.jvppeteer.exception.LaunchTimeOutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
+import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 
 public class BrowserRunner {
@@ -69,6 +70,27 @@ public class BrowserRunner {
 		 /** connect by pipe  默认就是pipe管道连接*/
 		 process = processBuilder.start();
 		 //TODO 添加listener 
+		 
+	}
+	
+	public void kill(){
+		//kill chrome process
+		if(process != null && process.isAlive()){
+			try {
+				process.destroyForcibly();
+				process.waitFor();
+			} catch (Exception e) {
+				
+			}
+		}
+		
+		//delete user-data-dir
+		try {
+			FileUtil.removeFolder(tempDirectory);
+		} catch (Exception e) {
+			
+		}
+		
 	}
 	
 	public Connection setUpConnection(boolean usePipe,int timeout,int slowMo,String preferredRevision) {
@@ -147,4 +169,9 @@ public class BrowserRunner {
 	    return ws.toString();
 		
 	}
+	
+	public Process getProcess() {
+		return process;
+	}
+	
 }
