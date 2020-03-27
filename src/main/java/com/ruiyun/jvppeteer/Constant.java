@@ -68,6 +68,10 @@ public interface Constant {
 	String RECV_MESSAGE_METHOD_PROPERTY = "method";
 	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
 	String RECV_MESSAGE_ID_PROPERTY = "id";
+	String RECV_MESSAGE_SESSION_ID_PROPERTY = "sessionId";
 	String RECV_MESSAGE_TARGETINFO_PROPERTY = "targetInfo";
 	String RECV_MESSAGE_TYPE_PROPERTY = "type";
+	String RECV_MESSAGE_ERROR_PROPERTY = "error";
+	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
+	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
 }

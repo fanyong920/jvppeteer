@@ -40,7 +40,6 @@ public class ChromeLauncher implements Launcher {
 		try {
 			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
 			Connection connection = runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
-			runner.getProcess().destroyForcibly();
 			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getDefaultViewport(), runner);
 			browser.waitForTarget(t -> "page".equals(t.type()),options);
 			return browser;
