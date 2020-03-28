@@ -1,17 +1,17 @@
 package com.ruiyun.jvppeteer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Constant {
 	
@@ -22,9 +22,9 @@ public interface Constant {
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
 	
 	long DEFAULT_PAYLOAD  = 256 * 1024 * 1024;
-	
+
 	String INCOMING_BUFFER_SIZE_PROPERTY = "org.glassfish.tyrus.incomingBufferSize";
-	
+
 	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
 		      new String[] {
 		        "/usr/bin/chromium",
@@ -68,6 +68,7 @@ public interface Constant {
 	String RECV_MESSAGE_METHOD_PROPERTY = "method";
 	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
 	String RECV_MESSAGE_ID_PROPERTY = "id";
+	String RECV_MESSAGE_RESULT_PROPERTY = "result";
 	String RECV_MESSAGE_SESSION_ID_PROPERTY = "sessionId";
 	String RECV_MESSAGE_TARGETINFO_PROPERTY = "targetInfo";
 	String RECV_MESSAGE_TYPE_PROPERTY = "type";

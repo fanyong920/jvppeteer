@@ -11,4 +11,10 @@ public class ValidateUtil {
 	public static boolean isNotEmpty(Collection<?> c) {
 		return !ValidateUtil.isEmpty(c);
 	}
+
+	public static void notNull(Object object, String message) {
+		if (object == null) {
+			throw new IllegalArgumentException(message);
+		}
+	}
 }
