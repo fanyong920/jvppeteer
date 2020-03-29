@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.browser;
 
+import com.ruiyun.jvppeteer.page.Page;
 import com.ruiyun.jvppeteer.transport.Connection;
 
 public class BrowserContext {
@@ -42,6 +43,9 @@ public class BrowserContext {
 	public void setContextId(String contextId) {
 		this.contextId = contextId;
 	}
-	
+
+	public Page newPage(){
+		return browser.createPageInContext(this.contextId);
+	}
 	
 }

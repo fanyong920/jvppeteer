@@ -1,6 +1,6 @@
-package com.ruiyun.jvppeteer.events.impl;
+package com.ruiyun.jvppeteer.events.browser.impl;
 
-import com.ruiyun.jvppeteer.events.definition.BrowserEventPublisher;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 
 public class DefaultBrowserPublisher implements BrowserEventPublisher {
 

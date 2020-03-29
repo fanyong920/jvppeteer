@@ -3,11 +3,11 @@ package com.ruiyun.jvppeteer.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.definition.BrowserEvent;
-import com.ruiyun.jvppeteer.events.definition.BrowserEventPublisher;
-import com.ruiyun.jvppeteer.events.definition.BrowserListener;
-import com.ruiyun.jvppeteer.events.definition.Events;
-import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.browser.definition.Events;
+import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -49,7 +49,7 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 	
 	private Map<String,CDPSession> sessions = new HashMap<>();
 
-	private Map<String, Set<DefaultBrowserListener>> listenerMap = new HashMap<>();
+	private Map<String, Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
 
 	public Connection( String url,ConnectionTransport transport, int delay) {
 		super();
@@ -168,7 +168,8 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 
 		if(ValidateUtil.isNotEmpty(browserListeners)){
 			try {
-				BrowserEvent event = (BrowserEvent)readJsonObject(browserListeners.iterator().next().getResolveType(), params);
+				Class<?> resolveType = browserListeners.stream().findFirst().get().getResolveType();
+				BrowserEvent event = (BrowserEvent)readJsonObject(resolveType, params);
 				publishEvent(method,event);
 			}catch (IOException e){
 				LOGGER.error("publish event error:",e);

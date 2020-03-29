@@ -1,7 +1,8 @@
-package com.ruiyun.jvppeteer.events.impl;
+package com.ruiyun.jvppeteer.events.browser.impl;
 
-import com.ruiyun.jvppeteer.events.definition.BrowserEvent;
-import com.ruiyun.jvppeteer.events.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
 
 public  class DefaultBrowserListener implements BrowserListener<BrowserEvent> {
 	
@@ -12,6 +13,8 @@ public  class DefaultBrowserListener implements BrowserListener<BrowserEvent> {
 	public Class<?> getResolveType() {
 		return resolveType;
 	}
+
+	private EventHandler handler;
 
 	public void setResolveType(Class<?> resolveType) {
 		this.resolveType = resolveType;
@@ -25,9 +28,17 @@ public  class DefaultBrowserListener implements BrowserListener<BrowserEvent> {
 		this.mothod = mothod;
 	}
 
+	public EventHandler getHandler() {
+		return handler;
+	}
+
+	public void setHandler(EventHandler handler) {
+		this.handler = handler;
+	}
 
 	@Override
 	public void onBrowserEvent(BrowserEvent event) {
-
+		getHandler().onEvent(event);
 	}
+
 }

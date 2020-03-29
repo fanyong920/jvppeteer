@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ruiyun.jvppeteer.events.application.definition.ApplicationEvent;
+import com.ruiyun.jvppeteer.events.application.impl.DefaultApplicationListener;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 
 public interface Constant {
 	
@@ -75,4 +75,21 @@ public interface Constant {
 	String RECV_MESSAGE_ERROR_PROPERTY = "error";
 	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
 	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
+
+	Map<String, Set<Consumer<ApplicationEvent>>> LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<ApplicationEvent>>>();
+
+	Map<String, Set<Consumer<ApplicationEvent>>> ONCE_LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<ApplicationEvent>>>();
+
+	ThreadPoolExecutor executor = getThreadPoolExecutor();
+
+	static ThreadPoolExecutor getThreadPoolExecutor() {
+		Runtime runtime = Runtime.getRuntime();
+
+		int processorNum = runtime.availableProcessors();
+
+		if(processorNum < 3){
+			processorNum = 3;
+		}
+		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
+	}
 }

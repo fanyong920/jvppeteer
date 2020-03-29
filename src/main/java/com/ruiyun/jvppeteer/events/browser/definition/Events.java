@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.events.definition;
+package com.ruiyun.jvppeteer.events.browser.definition;
 
 public enum Events {
     PAGE_CLOSE("close"),
