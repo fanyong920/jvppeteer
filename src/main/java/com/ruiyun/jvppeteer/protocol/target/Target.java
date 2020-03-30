@@ -2,9 +2,12 @@ package com.ruiyun.jvppeteer.protocol.target;
 
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserContext;
+import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.options.DefaultViewport;
 import com.ruiyun.jvppeteer.page.Page;
 import com.ruiyun.jvppeteer.page.TaskQueue;
+import com.ruiyun.jvppeteer.transport.SessionFactory;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,22 +37,33 @@ public class Target {
 	private Callable isClosedPromise;
 
 	private boolean isInitialized;
+
 	private Page page;
 
-	public Target(TargetInfo targetInfo, BrowserContext browserContext, boolean ignoreHTTPSErrors, DefaultViewport defaultViewport, TaskQueue<?> screenshotTaskQueue) {
+	private SessionFactory sessionFactory;
+
+	public Target(TargetInfo targetInfo, BrowserContext browserContext, SessionFactory sessionFactory, boolean ignoreHTTPSErrors, DefaultViewport defaultViewport, TaskQueue<?> screenshotTaskQueue) {
 		this.targetInfo = targetInfo;
 		this.browserContext = browserContext;
 		this.targetId = targetInfo.getTargetId();
+		this.sessionFactory = sessionFactory;
 		this.ignoreHTTPSErrors = ignoreHTTPSErrors;
 		this.defaultViewport = defaultViewport;
 		this.screenshotTaskQueue = screenshotTaskQueue;
 		this.pagePromise = null;
 		this.workerPromise = null;
 
-
 		isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
 		if(isInitialized){//初始化
 
+		}
+	}
+
+	public Page page(){
+		String type = null;
+		if (("page".equals(type = this.targetInfo.getType()) || "background_page".equals(type)) && this.pagePromise == null) {
+			CDPSession cdpSession = this.sessionFactory.create();
+			Page.create(cdpSession, this, this.ignoreHTTPSErrors, this.defaultViewport, this.screenshotTaskQueue)
 		}
 	}
 
@@ -72,6 +86,10 @@ public class Target {
 		executorService.shutdown();
 		try {
 			Page page = future.get();
+			if(page.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
+				return true;
+			}
+			this.page();
 			return true;
 		} catch (InterruptedException e) {
 			LOGGER.error("initializad target fail:",e);

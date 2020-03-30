@@ -4,6 +4,7 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.application.definition.ApplicationEvent;
 import com.ruiyun.jvppeteer.events.application.definition.ApplicationListener;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
@@ -13,6 +14,7 @@ public class DefaultApplicationListener<E extends ApplicationEvent> implements A
 
     @Override
     public void on(String name, Consumer function) {
+
         addListener(name,function,false);
     }
 
