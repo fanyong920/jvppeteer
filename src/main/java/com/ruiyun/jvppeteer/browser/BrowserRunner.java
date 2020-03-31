@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ruiyun.jvppeteer.exception.LaunchTimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
@@ -47,7 +47,7 @@ public class BrowserRunner {
 		this.tempDirectory = tempDirectory;
 	}
 	/**
-	 * Æô¶¯ä¯ÀÀÆ÷ ,Ä¬ÈÏÒÑ¾­ÊÇÊ¹ÓÃÏµÍ³»·¾³±äÁ¿
+	 * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ,Ä¬ï¿½ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ÏµÍ³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	 * <br/>
 	 * Start your browser
 	 * @param handleSIGINT
@@ -67,9 +67,9 @@ public class BrowserRunner {
 		 arguments.add(executablePath);
 		 arguments.addAll(processArguments);
 		 ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
-		 /** connect by pipe  Ä¬ÈÏ¾ÍÊÇpipe¹ÜµÀÁ¬½Ó*/
+		 /** connect by pipe  Ä¬ï¿½Ï¾ï¿½ï¿½ï¿½pipeï¿½Üµï¿½ï¿½ï¿½ï¿½ï¿½*/
 		 process = processBuilder.start();
-		 //TODO Ìí¼Ólistener 
+		 //TODO ï¿½ï¿½ï¿½listener 
 		 
 	}
 	
@@ -154,7 +154,7 @@ public class BrowserRunner {
 	      if (!success.get()) {
 	    	  StreamUtil.close(readLineThread);
 
-	        throw new LaunchTimeOutException(
+	        throw new TimeOutException(
 	            "Timed out after "+timeout+" ms while trying to connect to the browser!"
 	                + "Chrome output: "
 	                + chromeOutput.get());

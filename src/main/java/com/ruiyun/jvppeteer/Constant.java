@@ -76,9 +76,6 @@ public interface Constant {
 	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
 	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
 
-	Map<String, Set<Consumer<ApplicationEvent>>> LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<ApplicationEvent>>>();
-
-	Map<String, Set<Consumer<ApplicationEvent>>> ONCE_LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<ApplicationEvent>>>();
 
 	ThreadPoolExecutor executor = getThreadPoolExecutor();
 

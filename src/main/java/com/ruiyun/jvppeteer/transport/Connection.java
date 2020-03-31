@@ -52,7 +52,7 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 
 	private Map<String, Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
 
-	public Connection( String url,ConnectionTransport transport, int delay) {
+	public Connection(String url,ConnectionTransport transport, int delay) {
 		super();
 		this.url = url;
 		this.transport = transport;
@@ -66,13 +66,18 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 		message.setParams(params);
 		try {
 			long id = rawSend(message);
-			if( id >= 0){
-				callbacks.putIfAbsent(id, message);
-				message.getSemaphore().tryAcquire(30,TimeUnit.SECONDS);
-				return callbacks.remove(id).getResult();
+			if(id >= 0){
+				if("Target.targetCreated".equals(method)){
+
+				}else{
+					callbacks.putIfAbsent(id, message);
+					message.getSemaphore().tryAcquire(30,TimeUnit.SECONDS);
+					return callbacks.remove(id).getResult();
+				}
+
 			}
 		} catch (InterruptedException e) {
-			LOGGER.error("waiting message is interrupted,will not recevie any message about on this send ");
+			LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
 		}
 		return null;
 	}

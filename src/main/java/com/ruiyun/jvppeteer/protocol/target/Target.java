@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.target;
 
+import com.ruiyun.jvppeteer.protocol.promise.Promise;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserContext;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
@@ -7,16 +8,10 @@ import com.ruiyun.jvppeteer.options.DefaultViewport;
 import com.ruiyun.jvppeteer.page.Page;
 import com.ruiyun.jvppeteer.page.TaskQueue;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
-import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.*;
 
 public class Target {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(Target.class);
 
 	private TargetInfo targetInfo;
 
@@ -30,11 +25,11 @@ public class Target {
 
 	private String targetId;
 
-	private Callable<Page> pagePromise;
+	private Page pagePromise;
 
-	private Callable<?> workerPromise;
+	private Promise<?> workerPromise;
 
-	private Callable isClosedPromise;
+	private Promise<Object> isClosedPromise;
 
 	private boolean isInitialized;
 
@@ -52,23 +47,28 @@ public class Target {
 		this.screenshotTaskQueue = screenshotTaskQueue;
 		this.pagePromise = null;
 		this.workerPromise = null;
+        //TODO isClosedPromise
 
 		isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
 		if(isInitialized){//初始化
-
+            this.initializedCallback(true);
 		}
 	}
 
 	public Page page(){
-		String type = null;
+		String type ;
 		if (("page".equals(type = this.targetInfo.getType()) || "background_page".equals(type)) && this.pagePromise == null) {
-			CDPSession cdpSession = this.sessionFactory.create();
-			Page.create(cdpSession, this, this.ignoreHTTPSErrors, this.defaultViewport, this.screenshotTaskQueue)
-		}
+             this.pagePromise = Page.create(this.sessionFactory.create(), this, this.ignoreHTTPSErrors, this.defaultViewport, this.screenshotTaskQueue);
+        }
+		return this.pagePromise;
 	}
 
 	public String type(){
-		return null;
+        String type = this.targetInfo.getType();
+        if("page".equals(type) || "background_page".equals(type) || "service_worker".equals(type) || "shared_worker".equals(type) ||"browser".equals(type)){
+            return type;
+        }
+        return "other";
 		
 		
 	}
@@ -81,27 +81,16 @@ public class Target {
 		if(opener == null || opener.getPagePromise() == null || "page".equals(this.type())){
 			return true;
 		}
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		Future<Page> future = executorService.submit(opener.getPagePromise());
-		executorService.shutdown();
-		try {
-			Page page = future.get();
-			if(page.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
-				return true;
-			}
-			this.page();
-			return true;
-		} catch (InterruptedException e) {
-			LOGGER.error("initializad target fail:",e);
-		} catch (ExecutionException e) {
-			LOGGER.error("initializad target fail:",e);
-		}
-		//TODO
+        Page openerPage = opener.getPagePromise();
+        if(openerPage.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
+            return true;
+        }
+        Page pupopPage = this.page();
+        pupopPage.emit(Events.PAGE_POPUP.getName(),pupopPage);
 		return true;
-
 	}
 
-	public Target opener(){
+	private Target opener(){
 		String openerId = this.targetInfo.getOpenerId();
 		if(StringUtil.isEmpty(openerId)){
 			return null;
@@ -113,19 +102,29 @@ public class Target {
 		return this.browserContext.getBrowser();
 	}
 
-	public Callable<Page> getPagePromise() {
+	public Page getPagePromise() {
 		return pagePromise;
 	}
 
-	public void setPagePromise(Callable<Page> pagePromise) {
+	public void setPagePromise(Page pagePromise) {
 		this.pagePromise = pagePromise;
 	}
 
-	public Callable<?> getWorkerPromise() {
+	public Promise<?> getWorkerPromise() {
 		return workerPromise;
 	}
 
-	public void setWorkerPromise(Callable<?> workerPromise) {
+	public void setWorkerPromise(Promise<?> workerPromise) {
 		this.workerPromise = workerPromise;
 	}
+
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
+    }
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+
 }

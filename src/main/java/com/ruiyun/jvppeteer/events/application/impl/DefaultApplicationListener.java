@@ -4,29 +4,27 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.application.definition.ApplicationEvent;
 import com.ruiyun.jvppeteer.events.application.definition.ApplicationListener;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 
-public class DefaultApplicationListener<E extends ApplicationEvent> implements ApplicationListener, Constant {
+public class DefaultApplicationListener implements ApplicationListener,Constant {
 
 
     @Override
-    public void on(String name, Consumer function) {
-
+    public void on(String name, Consumer<?> function) {
         addListener(name,function,false);
     }
 
     @Override
-    public void once(String name, Consumer function) {
+    public void once(String name, Consumer<?> function) {
         addListener(name,function,true);
     }
 
     @Override
-    public void addListener(String name, Consumer function, boolean isOnce) {
+    public void addListener(String name, Consumer<?> function, boolean isOnce) {
         if(isOnce){
-            ONCE_LISTNERS_MAP.computeIfAbsent(name,this::getSynchrnizedSet).add(function);
+            ONCE_LISTNERS_MAP.computeIfAbsent(name,this::getSynchronizedSet).add(function);
         }else{
             LISTNERS_MAP.computeIfAbsent(name,this::getConcurrentSet).add(function);
         }
@@ -39,7 +37,7 @@ public class DefaultApplicationListener<E extends ApplicationEvent> implements A
 
     @Override
     public void removeListener(String name) {
-        Map<String, Set<Consumer< ApplicationEvent>>> listnerMap = getListnerMap(name);
+        Map<String, Set<Consumer<?>>> listnerMap = getListnerMap(name);
         listnerMap.remove(name);
     }
 
@@ -55,11 +53,11 @@ public class DefaultApplicationListener<E extends ApplicationEvent> implements A
 
 
     @Override
-    public boolean emit(String name, ApplicationEvent event) {
-        Map<String, Set<Consumer<ApplicationEvent>>> listnerMap = getListnerMap(name);
+    public boolean emit(String name, Object event) {
+        Map<String, Set<Consumer<?>>> listnerMap = getListnerMap(name);
         if(listnerMap != null && listnerMap.size() > 0){
-            Set<Consumer<ApplicationEvent>> consumers = listnerMap.get(name);
-            for (Consumer<ApplicationEvent> consumer : consumers) {
+            Set<Consumer<?>> consumers = listnerMap.get(name);
+            for (Consumer consumer : consumers) {
                 executor.execute(() -> {
                     consumer.accept(event);
                 });
@@ -71,13 +69,13 @@ public class DefaultApplicationListener<E extends ApplicationEvent> implements A
     }
 
     public int getListenerCount(String name) {
-        Map<String, Set<Consumer<ApplicationEvent>>> listnerMap = getListnerMap(name);
+        Map<String, Set<Consumer<?>>> listnerMap = getListnerMap(name);
         if(listnerMap != null && listnerMap.size() > 0){
             return listnerMap.size();
         }
         return 0;
     }
-    public Map<String, Set<Consumer<ApplicationEvent>>>  getListnerMap(String name){
+    public Map<String, Set<Consumer<?>>>  getListnerMap(String name){
         if(LISTNERS_MAP.containsKey(name)){
             return LISTNERS_MAP;
         }else if(ONCE_LISTNERS_MAP.containsKey(name)){
@@ -85,11 +83,22 @@ public class DefaultApplicationListener<E extends ApplicationEvent> implements A
         }
         return null;
     }
-    private Set<Consumer<ApplicationEvent>> getSynchrnizedSet(String s) {
+
+    /**
+     * create synchronized set
+     * @param s
+     * @return
+     */
+    private Set<Consumer<?>> getSynchronizedSet(String s) {
         return Collections.synchronizedSet(new HashSet<>());
     }
 
-    private Set<Consumer<ApplicationEvent>> getConcurrentSet(String s) {
+    /**
+     * create thread safe set
+     * @param s
+     * @return
+     */
+    private Set<Consumer<?>> getConcurrentSet(String s) {
         return new CopyOnWriteArraySet<>();
     }
 }

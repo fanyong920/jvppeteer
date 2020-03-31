@@ -53,10 +53,6 @@ public class WebSocketTransport implements ConnectionTransport,Consumer<String> 
 	public void onOpen(Session session) {
 		System.out.println("has connected to browser websocket sever:" + session.getRequestURI());
 		this.session = session;
-//		System.err.println(session.getMaxTextMessageBufferSize());
-//		System.err.println(session.getMaxIdleTimeout());
-//		System.err.println(session.getContainer().getDefaultMaxSessionIdleTimeout());
-//		System.err.println(session.getContainer().getDefaultMaxTextMessageBufferSize());
 		WS_HASH_MAP.put(session.getId(), this);
 		
 		LOGGER.info("has connected to browser websocket sever:" + session.getRequestURI());

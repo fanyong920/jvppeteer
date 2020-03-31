@@ -18,7 +18,7 @@ public class SendMsg {
 	
 	private String method;
 
-	private Semaphore semaphore = new Semaphore(1);
+	private Semaphore semaphore = new Semaphore(0);
 
 	private JsonNode result;//本次发送消息返回的结果
 

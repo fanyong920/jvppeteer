@@ -71,6 +71,7 @@ public class Browser {
 		}
 		return null;
 	}
+
 	public Target find(List<Target> targets,Predicate<Target> predicate){
 		if(ValidateUtil.isNotEmpty(targets)){
 			for (Target target : targets) {
@@ -95,7 +96,6 @@ public class Browser {
 		if(recevie != null){
 			targetId = (String)recevie;
 			Target target = this.targets.get(targetId);
-
 		}
 		return null;
 	}

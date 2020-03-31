@@ -7,7 +7,6 @@ import com.ruiyun.jvppeteer.launch.Launcher;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 /**
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
@@ -19,7 +18,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
  */
 public class Puppeteer implements Constant {
 
-	public static String _productName = null;
+	public String productName = null;
 
 	private Launcher launcher;
 	
@@ -34,53 +33,111 @@ public class Puppeteer implements Constant {
 
 	}
 
-	public Puppeteer(boolean isPuppeteerCore) {
-		super();
-		this.isPuppeteerCore = isPuppeteerCore;
+	/**
+	 * 以默认参数启动浏览器
+	 * <br/>
+	 * launch Browser by default options
+	 * @return
+	 */
+	public static Browser launch(){
+		return Puppeteer.rawLaunch();
+	}
+
+	public static  Browser launch(boolean headless) {
+		return Puppeteer.rawLaunch(headless);
+	}
+
+	public static  Browser launch(LaunchOptions options) {
+		Puppeteer puppeteer = new Puppeteer();
+		return Puppeteer.rawLaunch(options,puppeteer);
+	}
+
+	private static Browser rawLaunch() {
+		return Puppeteer.rawLaunch(true);
 	}
 	
-	public Browser launch() {
-		return this.launch(true);
-	}
-	
-	public Browser launch(boolean headless) {
-		return this.launch(new OptionsBuilder().withHeadless(headless).build());
+	private static Browser rawLaunch(boolean headless) {
+		Puppeteer puppeteer = new Puppeteer();
+		return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(),puppeteer);
 	}
 	
 	/**
 	 * The method launches a browser instance with given arguments. The browser will
 	 * be closed when the parent java process is closed.
 	 */
-	public Browser launch(LaunchOptions options) {
-		if (_productName == null && !StringUtil.isNotBlank(options.getProduct())) {
-			_productName = options.getProduct();
+	private static Browser rawLaunch(LaunchOptions options,Puppeteer puppeteer) {
+		if (!StringUtil.isNotBlank(options.getProduct())) {
+			puppeteer.setProductName(options.getProduct()) ;
 		}
-		adapterLauncher();
-		Browser browser = launcher.launch(options);
+		adapterLauncher(puppeteer);
+		Browser browser = puppeteer.getLauncher().launch(options);
 		return browser;
 	}
 	
 	/**
 	 * 适配chrome or firefox 浏览器
 	 */
-	public void adapterLauncher() {
-		if (StringUtil.isEmpty(_productName) && !isPuppeteerCore) {
-			env = System::getenv;
+	public static void adapterLauncher(Puppeteer puppeteer) {
+		String productName = null;
+		Launcher launcher = null;
+		Environment env;
+		if (StringUtil.isEmpty(productName = puppeteer.getProductName()) && !puppeteer.getIsPuppeteerCore()) {
+
+			if((env = puppeteer.getEnv()) == null){
+				puppeteer.setEnv(env = System::getenv);
+			}
 			for (int i = 0; i < PRODUCT_ENV.length; i++) {
-				String envName = PRODUCT_ENV[i];
-				_productName = env.getEnv(envName);
+				String envProductName = PRODUCT_ENV[i];
+				productName = env.getEnv(envProductName);
+				if(StringUtil.isNotEmpty(productName)){
+					puppeteer.setProductName(productName);
+					break;
+				}
 			}
 		}
-		if(StringUtil.isEmpty(_productName)){
-			_productName = "chrome";
+		if(StringUtil.isEmpty(productName)){
+			productName = "chrome";
+			puppeteer.setProductName(productName);
 		}
-		switch (_productName) {
+		switch (productName) {
 		case "firefox":
-			launcher = new FirefoxLauncher(isPuppeteerCore);
+			launcher = new FirefoxLauncher(puppeteer.getIsPuppeteerCore());
 		case "chrome":
 		default:
-			launcher = new ChromeLauncher(isPuppeteerCore);
+			launcher = new ChromeLauncher(puppeteer.getIsPuppeteerCore());
 		}
+		puppeteer.setLauncher(launcher);
 	}
 
+	public  String getProductName() {
+		return productName;
+	}
+
+	public  void setProductName(String productName) {
+		this.productName = productName;
+	}
+
+	public boolean getIsPuppeteerCore() {
+		return isPuppeteerCore;
+	}
+
+	public void setIsPuppeteerCore(boolean puppeteerCore) {
+		isPuppeteerCore = puppeteerCore;
+	}
+
+	public Launcher getLauncher() {
+		return launcher;
+	}
+
+	public void setLauncher(Launcher launcher) {
+		this.launcher = launcher;
+	}
+
+	public Environment getEnv() {
+		return env;
+	}
+
+	public void setEnv(Environment env) {
+		this.env = env;
+	}
 }

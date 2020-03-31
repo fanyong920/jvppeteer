@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ruiyun.jvppeteer.exception.LaunchException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,7 @@ public class ChromeLauncher implements Launcher {
 			return browser;
 		} catch (IOException e) {
 			runner.kill();
-			throw new RuntimeException("Failed to launch the browser process:"+e.getMessage(),e);
+			throw new LaunchException("Failed to launch the browser process:"+e.getMessage(),e);
 		}
 	}
 
