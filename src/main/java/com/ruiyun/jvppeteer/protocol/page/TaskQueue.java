@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.page;
+package com.ruiyun.jvppeteer.protocol.page;
 
 import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 
@@ -9,6 +9,9 @@ import java.util.function.BiFunction;
  * @param <R>
  */
 public class TaskQueue<R> {
+
+    public TaskQueue() {
+    }
 
     private BiFunction<String,ScreenshotOptions,R> function;
 

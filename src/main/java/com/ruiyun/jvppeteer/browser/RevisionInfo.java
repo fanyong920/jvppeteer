@@ -12,6 +12,20 @@ public class RevisionInfo {
 	
 	private String url;
 
+	private String product;
+
+	public RevisionInfo() {
+	}
+
+	public RevisionInfo(String revision, String executablePath, String folderPath, boolean local, String url, String product) {
+		this.revision = revision;
+		this.executablePath = executablePath;
+		this.folderPath = folderPath;
+		this.local = local;
+		this.url = url;
+		this.product = product;
+	}
+
 	public String getRevision() {
 		return revision;
 	}
@@ -51,5 +65,12 @@ public class RevisionInfo {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	
+
+	public String getProduct() {
+		return product;
+	}
+
+	public void setProduct(String product) {
+		this.product = product;
+	}
 }

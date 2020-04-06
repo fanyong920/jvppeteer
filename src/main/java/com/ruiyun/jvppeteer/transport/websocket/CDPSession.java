@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class CDPSession implements BrowserEventPublisher, Constant {
@@ -34,7 +37,7 @@ public class CDPSession implements BrowserEventPublisher, Constant {
         this.connection = connection;
     }
 
-    public void onClosed() {
+    public void onClosed() throws ExecutionException {
         for (SendMsg callback : callbacks.values()){
             LOGGER.error("Protocol error ("+callback.getMethod()+"): Target closed.");
         }
@@ -51,10 +54,15 @@ public class CDPSession implements BrowserEventPublisher, Constant {
         SendMsg  message = new SendMsg();
         message.setMethod(method);
         message.setParams(params);
-        long id = this.connection.rawSend(message);
-        this.callbacks.putIfAbsent(id,message);
         try {
-            message.getSemaphore().tryAcquire(30, TimeUnit.SECONDS);
+            CountDownLatch latch = new CountDownLatch(1);
+            message.setCountDownLatch(latch);
+            long id = this.connection.rawSend(message);
+            this.callbacks.putIfAbsent(id,message);
+            boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+            if(!hasResult){
+                throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+            }
             return callbacks.remove(id).getResult();
         } catch (InterruptedException e) {
             LOGGER.error("wait message result is interrupted:",e);
@@ -71,24 +79,28 @@ public class CDPSession implements BrowserEventPublisher, Constant {
         }
         Map<String,Object> params = new HashMap<>();
         params.put("sessionId",this.sessionId);
-        this.connection.send("Target.detachFromTarget",params);
+        this.connection.send("Target.detachFromTarget",params,false);
     }
 
-    public void onMessage(JsonNode node) {
+    public void onMessage(JsonNode node) throws ExecutionException {
         JsonNode id = node.get(RECV_MESSAGE_ID_PROPERTY);
         if(id != null) {
             Long idLong = id.asLong();
             SendMsg callback = this.callbacks.get(idLong);
-            if (idLong != null && callback != null) {
+            if (callback != null) {
                 JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
-                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
-                if (errNode != null && errorMsg != null) {
-                    callback.getSemaphore().release(1);
+//                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
+                if (errNode != null) {
+                    if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
+                        callback.getCountDownLatch().countDown();
+                    }
                     throw new ProtocolException(Helper.createProtocolError(node));
                 }else {
                     JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
                     callback.setResult(result);
-                    callback.getSemaphore().release(1);
+                    if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
+                        callback.getCountDownLatch().countDown();
+                    }
                 }
             } else {
                 JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);

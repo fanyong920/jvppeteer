@@ -9,7 +9,7 @@ import com.ruiyun.jvppeteer.Constant;
 
 public class WebsocketContainerFactory implements Constant {
 
-	public static WebSocketContainer create() {
+	public static ClientManager create() {
 		ClientManager client = ClientManager.createClient(GrizzlyClientContainer.class.getCanonicalName());
 		client.getProperties().put(INCOMING_BUFFER_SIZE_PROPERTY, DEFAULT_PAYLOAD);
 		return client;

@@ -1,13 +1,16 @@
 package com.ruiyun.jvppeteer.transport;
 
+import java.net.URI;
+import java.util.Map;
 import java.util.function.Consumer;
 
-import javax.websocket.ClientEndpoint;
-import javax.websocket.MessageHandler;
-import javax.websocket.OnClose;
-import javax.websocket.OnOpen;
 import javax.websocket.Session;
 
+import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,84 +19,53 @@ import org.slf4j.LoggerFactory;
  * @author fff
  *
  */
-@ClientEndpoint
-public class WebSocketTransport implements ConnectionTransport,Consumer<String> {
+
+public class WebSocketTransport extends ConnectionTransport {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
-	
-	private Session session;
-	
-	public WebSocketTransport() {
 
-	}
-	
-	@Override
-	public void send(String message) {
-		session.getAsyncRemote().sendText(message);
+	private Consumer<String> messageConsumer = null;
+
+	public WebSocketTransport(URI serverUri, Draft draft) {
+		super(serverUri, draft);
 	}
 
-	@Override
-	public boolean close() {
-		return session == null || !session.isOpen();
+	public WebSocketTransport(URI serverURI) {
+		super( serverURI );
+	}
+
+	public WebSocketTransport( URI serverUri, Map<String, String> httpHeaders) {
+		super(serverUri, httpHeaders);
 	}
 
 	@Override
 	public void onMessage(String message) {
-		
-	}
-	
-	@OnClose
-	@Override
-	public void onClose() {
-		LOGGER.info("websocket url" + session.getRequestURI() + "is close");
-	}
-	
-	@OnOpen
-	@Override
-	public void onOpen(Session session) {
-		System.out.println("has connected to browser websocket sever:" + session.getRequestURI());
-		this.session = session;
-		WS_HASH_MAP.put(session.getId(), this);
-		
-		LOGGER.info("has connected to browser websocket sever:" + session.getRequestURI());
-		
+		ValidateUtil.notNull(this.messageConsumer,"MessageConsumer must be initialized");
+		messageConsumer.accept(message);
 	}
 
 	@Override
-	public void onError(Session session, Throwable error) {
-		LOGGER.error("websocket url" + session.getRequestURI() + "is onError");
+	public void onClose( int code, String reason, boolean remote ) {
+		LOGGER.info("Connection closed by " + ( remote ? "remote peer" : "us" ) + " Code: " + code + " Reason: " + reason );
+		// The codecodes are documented in class org.java_websocket.framing.CloseFrame
+		System.out.println( "Connection closed by " + ( remote ? "remote peer" : "us" ) + " Code: " + code + " Reason: " + reason );
 	}
 
 	@Override
-	public void accept(String t) {
-		onMessage(t);
+	public void onError(Exception e) {
+
 	}
 
-	public void addMessageHandler(Consumer<String> consumer) {
-		if (session == null) {
-			throw new RuntimeException("You first must connect to ws server in order to receive messages.");
-		}
 
-		if (!session.getMessageHandlers().isEmpty()) {
-			throw new RuntimeException("You are already subscribed to this web socket service.");
-		}
 
-		session.addMessageHandler(new MessageHandler.Whole<String>() {
-			@Override
-			public void onMessage(String message) {
-				LOGGER.debug("Received message {} on {}", message, session.getRequestURI());
-				consumer.accept(message);
-			}
-		});
+	@Override
+	public void onOpen(ServerHandshake ServerHandshake) {
+
 	}
 
-	public Session getSession() {
-		return session;
+
+	public void addMessageConsumer(Consumer<String> consumer) {
+		this.messageConsumer = consumer;
 	}
 
-	public void setSession(Session session) {
-		this.session = session;
-	}
-	
-	
 }

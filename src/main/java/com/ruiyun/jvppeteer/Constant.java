@@ -63,7 +63,7 @@ public interface Constant {
 	
 	Map<String,WebSocketTransport> WS_HASH_MAP = new ConcurrentHashMap<>();
 	
-	public static final ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
+	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
 	
 	String RECV_MESSAGE_METHOD_PROPERTY = "method";
 	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
@@ -75,6 +75,7 @@ public interface Constant {
 	String RECV_MESSAGE_ERROR_PROPERTY = "error";
 	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
 	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
+	String RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY = "targetId";
 
 
 	ThreadPoolExecutor executor = getThreadPoolExecutor();
@@ -89,4 +90,6 @@ public interface Constant {
 		}
 		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
 	}
+
+	int DEFAULT_TIMEOUT = 30000;
 }

@@ -1,9 +1,12 @@
 package com.ruiyun.jvppeteer.transport.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * message that send to browser
@@ -18,7 +21,8 @@ public class SendMsg {
 	
 	private String method;
 
-	private Semaphore semaphore = new Semaphore(0);
+	@JsonIgnore
+	private CountDownLatch countDownLatch ;
 
 	private JsonNode result;//本次发送消息返回的结果
 
@@ -46,12 +50,12 @@ public class SendMsg {
 		this.method = method;
 	}
 
-	public Semaphore getSemaphore() {
-		return semaphore;
+	public CountDownLatch getCountDownLatch() {
+		return countDownLatch;
 	}
 
-	public void setSemaphore(Semaphore semaphore) {
-		this.semaphore = semaphore;
+	public void setCountDownLatch(CountDownLatch countDownLatch) {
+		this.countDownLatch = countDownLatch;
 	}
 
 	public JsonNode getResult() {
@@ -60,5 +64,16 @@ public class SendMsg {
 
 	public void setResult(JsonNode result) {
 		this.result = result;
+	}
+
+	public boolean waitForResult(long timeout, TimeUnit timeUnit) throws InterruptedException {
+		if(countDownLatch != null){
+			if(timeout == 0){
+				countDownLatch.await();
+				return true;
+			}
+			return countDownLatch.await(timeout,timeUnit);
+		}
+		return false;
 	}
 }

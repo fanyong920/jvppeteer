@@ -5,11 +5,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.ruiyun.jvppeteer.exception.LaunchException;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,7 @@ import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 
-public class BrowserRunner {
+public class BrowserRunner implements AutoCloseable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
 	
@@ -35,16 +38,21 @@ public class BrowserRunner {
 	private Process process;
 	
 	private Connection connection;
-	
-	private boolean closed; 
+
+	private boolean closed;
 	
 	private List<String> listeners;
+
+	private static final List<BrowserRunner> runners = new ArrayList<>();
+
+	private static boolean isRegisterShutdownHook = false;
 
 	public BrowserRunner(String executablePath, List<String> processArguments, String tempDirectory) {
 		super();
 		this.executablePath = executablePath;
 		this.processArguments = processArguments;
 		this.tempDirectory = tempDirectory;
+		this.closed = true;
 	}
 	/**
 	 * ��������� ,Ĭ���Ѿ���ʹ��ϵͳ��������
@@ -54,7 +62,6 @@ public class BrowserRunner {
 	 * @param handleSIGTERM
 	 * @param handleSIGHUP
 	 * @param dumpio
-	 * @param env
 	 * @param pipe
 	 * @throws IOException 
 	 */
@@ -69,6 +76,25 @@ public class BrowserRunner {
 		 ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
 		 /** connect by pipe  Ĭ�Ͼ���pipe�ܵ�����*/
 		 process = processBuilder.start();
+		 this.closed = false;
+
+
+		runners.add(this);
+		if(!this.isRegisterShutdownHook){
+			synchronized (BrowserRunner.class){
+				if((!this.isRegisterShutdownHook)){
+					RuntimeShutdownHookRegistry hook = new RuntimeShutdownHookRegistry();
+						hook.register(new Thread(() -> {
+							try {
+								this.close();
+							} catch (Exception e) {
+								LOGGER.error("process shudownhoot thread fail",e);
+							}
+						}));
+
+				}
+			}
+		}
 		 //TODO ���listener 
 		 
 	}
@@ -86,21 +112,23 @@ public class BrowserRunner {
 		
 		//delete user-data-dir
 		try {
-			FileUtil.removeFolder(tempDirectory);
+			if(StringUtil.isNotEmpty(tempDirectory)){
+				FileUtil.removeFolder(tempDirectory);
+			}
 		} catch (Exception e) {
 			
 		}
 		
 	}
 	
-	public Connection setUpConnection(boolean usePipe,int timeout,int slowMo,String preferredRevision) {
+	public Connection setUpConnection(boolean usePipe,int timeout,int slowMo,String preferredRevision) throws InterruptedException {
 		Connection connection = null;
 		if(usePipe) {/** pipe connection*/
 			
 		}else {/**websoket connection*/
 			String waitForWSEndpoint = waitForWSEndpoint(timeout,preferredRevision);
 			WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
-			connection = new Connection(waitForWSEndpoint, transport , timeout);
+			connection = new Connection(waitForWSEndpoint, transport , slowMo);
 		}
 		return connection ;
 	}
@@ -114,7 +142,6 @@ public class BrowserRunner {
 		final StringBuilder ws = new StringBuilder();
 		final AtomicBoolean success = new AtomicBoolean(false);
 		final AtomicReference<String> chromeOutput = new AtomicReference<>("");
-
 	    Thread readLineThread =
 	        new Thread(
 	            () -> {
@@ -122,7 +149,6 @@ public class BrowserRunner {
 	              BufferedReader reader = null;
 	              try {
 	                reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
 	                String line;
 	                while ((line = reader.readLine()) != null) {
 	                  Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
@@ -153,7 +179,6 @@ public class BrowserRunner {
 
 	      if (!success.get()) {
 	    	  StreamUtil.close(readLineThread);
-
 	        throw new TimeOutException(
 	            "Timed out after "+timeout+" ms while trying to connect to the browser!"
 	                + "Chrome output: "
@@ -161,17 +186,76 @@ public class BrowserRunner {
 	      }
 	    } catch (InterruptedException e) {
 	    	StreamUtil.close(readLineThread);
-
-	    	LOGGER.error("Interrupted while waiting for dev tools server.", e);
 	      throw new RuntimeException("Interrupted while waiting for dev tools server.", e);
 	    }
-
-	    return ws.toString();
-		
+		String url = ws.toString();
+	    if(StringUtil.isEmpty(url)){
+			throw new LaunchException("Can't get WSEndpoint");
+		}
+		return url;
 	}
-	
 	public Process getProcess() {
 		return process;
 	}
-	
+
+	@Override
+	public void close() throws Exception {
+		for (int i = 0; i < runners.size(); i++) {
+			BrowserRunner browserRunner = runners.get(i);
+			if(browserRunner.getClosed()){
+				return;
+			}
+			if(StringUtil.isNotEmpty(browserRunner.getTempDirectory())){
+				browserRunner.kill();
+			}else if(browserRunner.getConnection() != null){
+				try {
+					browserRunner.getConnection().send("Browser.close",null,true);
+				} catch (Exception e) {
+					browserRunner.kill();
+				}
+			}
+
+		}
+	}
+
+	public interface ShutdownHookRegistry {
+		/**
+		 * Registers a new shutdown hook thread.
+		 *
+		 * @param thread Thread.
+		 */
+		default void register(Thread thread) {
+			Runtime.getRuntime().addShutdownHook(thread);
+		}
+
+		/**
+		 * Removes a shutdown thread.
+		 *
+		 * @param thread Thread.
+		 */
+		default void remove(Thread thread) {
+			Runtime.getRuntime().removeShutdownHook(thread);
+		}
+	}
+
+	/** Runtime based shutdown hook. */
+	public static class RuntimeShutdownHookRegistry implements ShutdownHookRegistry {}
+
+	public boolean getClosed() {
+		return closed;
+	}
+
+	public String getTempDirectory() {
+		return tempDirectory;
+	}
+
+	public void setTempDirectory(String tempDirectory) {
+		this.tempDirectory = tempDirectory;
+	}
+
+	public Connection getConnection() {
+		return connection;
+	}
 }
+
+

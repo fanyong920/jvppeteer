@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.browser;
 
-import com.ruiyun.jvppeteer.page.Page;
+import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.transport.Connection;
 
 public class BrowserContext {

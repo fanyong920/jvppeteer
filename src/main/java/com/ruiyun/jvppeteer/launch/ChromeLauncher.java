@@ -1,28 +1,38 @@
 package com.ruiyun.jvppeteer.launch;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.ruiyun.jvppeteer.exception.LaunchException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.browser.BrowserRunner;
 import com.ruiyun.jvppeteer.browser.RevisionInfo;
+import com.ruiyun.jvppeteer.exception.LaunchException;
+import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ChromeLauncher implements Launcher {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ChromeLauncher.class);
 	
 	private boolean isPuppeteerCore;
+
+	private String projectRoot;
+
+	private String preferredRevision;
+
+	public ChromeLauncher(String projectRoot, String preferredRevision) {
+		this.projectRoot = projectRoot;
+		this.preferredRevision = preferredRevision;
+	}
 
 	public ChromeLauncher(boolean isPuppeteerCore) {
 		super();
@@ -36,15 +46,15 @@ public class ChromeLauncher implements Launcher {
 		String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
 		boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 		
-		LOGGER.info("will try launch chrome process with arguments:"+chromeArguments);
+		LOGGER.info("Calling "+chromeExecutable+String.join(" ",chromeArguments));
 		BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
 		try {
 			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
 			Connection connection = runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
-			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getDefaultViewport(), runner);
+			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner,options.getTimeout());
 			browser.waitForTarget(t -> "page".equals(t.type()),options);
 			return browser;
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException | ExecutionException e) {
 			runner.kill();
 			throw new LaunchException("Failed to launch the browser process:"+e.getMessage(),e);
 		}
@@ -53,8 +63,6 @@ public class ChromeLauncher implements Launcher {
 	/**
 	 * @param options
 	 * @param chromeArguments
-	 * @param pipe
-	 * @param temporaryUserDataDir
 	 * @return
 	 */
 	@Override
@@ -119,7 +127,7 @@ public class ChromeLauncher implements Launcher {
 			if (StringUtil.isNotEmpty(chromeExecutable)) {
 				boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
 				if (!assertDir) {
-					throw new IllegalArgumentException("given chromeExecutable is not executable");
+					throw new IllegalArgumentException("given chromeExecutable \""+chromeExecutable+"\" is not executable");
 				}
 				return chromeExecutable;
 			} else {
@@ -133,7 +141,7 @@ public class ChromeLauncher implements Launcher {
 						return chromeExecutable;
 					}
 				}
-				
+
 				for (int i = 0; i < PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
 					chromeExecutable = PROBABLE_CHROME_EXECUTABLE_PATH[i];
 					if (StringUtil.isNotEmpty(chromeExecutable)) {
@@ -143,13 +151,14 @@ public class ChromeLauncher implements Launcher {
 						}
 					}
 				}
-				
+
 				throw new RuntimeException(
 						"Tried to use PUPPETEER_EXECUTABLE_PATH env variable to launch browser but did not find any executable");
 			}
 		}
-
-		BrowserFetcher browserFetcher = new BrowserFetcher();
+		FetcherOptions fetcherOptions = new FetcherOptions();
+		fetcherOptions.setProduct(this.product());
+		BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot,fetcherOptions);
 		String revision = env.getEnv(PUPPETEER_CHROMIUM_REVISION_ENV);
 		if (StringUtil.isNotEmpty(revision)) {
 			RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
@@ -179,5 +188,10 @@ public class ChromeLauncher implements Launcher {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	public String product(){
+		return "chrome";
+	}
+
 
 }

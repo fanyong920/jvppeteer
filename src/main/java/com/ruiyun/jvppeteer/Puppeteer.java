@@ -9,9 +9,9 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 /**
- * Puppeteer Ò²¿ÉÒÔÓÃÀ´¿ØÖÆ Chrome ä¯ÀÀÆ÷£¬ µ«ËüÓë°ó¶¨µÄ Chromium
- * °æ±¾ÔÚÒ»ÆğÊ¹ÓÃĞ§¹û×îºÃ¡£²»ÄÜ±£Ö¤Ëü¿ÉÒÔÓëÈÎºÎÆäËû°æ±¾Ò»ÆğÊ¹ÓÃ¡£½÷É÷µØÊ¹ÓÃ executablePath Ñ¡Ïî¡£ Èç¹û Google
- * Chrome£¨¶ø²»ÊÇChromium£©ÊÇÊ×Ñ¡£¬Ò»¸ö Chrome Canary »ò Dev Channel °æ±¾ÊÇ½¨ÒéµÄ
+ * Puppeteer ä¹Ÿå¯ä»¥ç”¨æ¥æ§åˆ¶ Chrome æµè§ˆå™¨ï¼Œ ä½†å®ƒä¸ç»‘å®šçš„ Chromium
+ * ç‰ˆæœ¬åœ¨ä¸€èµ·ä½¿ç”¨æ•ˆæœæœ€å¥½ã€‚ä¸èƒ½ä¿è¯å®ƒå¯ä»¥ä¸ä»»ä½•å…¶ä»–ç‰ˆæœ¬ä¸€èµ·ä½¿ç”¨ã€‚è°¨æ…åœ°ä½¿ç”¨ executablePath é€‰é¡¹ã€‚ å¦‚æœ Google
+ * Chromeï¼ˆè€Œä¸æ˜¯Chromiumï¼‰æ˜¯é¦–é€‰ï¼Œä¸€ä¸ª Chrome Canary æˆ– Dev Channel ç‰ˆæœ¬æ˜¯å»ºè®®çš„
  * 
  * @author fff
  *
@@ -34,7 +34,7 @@ public class Puppeteer implements Constant {
 	}
 
 	/**
-	 * ÒÔÄ¬ÈÏ²ÎÊıÆô¶¯ä¯ÀÀÆ÷
+	 * ä»¥é»˜è®¤å‚æ•°å¯åŠ¨æµè§ˆå™¨
 	 * <br/>
 	 * launch Browser by default options
 	 * @return
@@ -75,7 +75,7 @@ public class Puppeteer implements Constant {
 	}
 	
 	/**
-	 * ÊÊÅächrome or firefox ä¯ÀÀÆ÷
+	 * é€‚é…chrome or firefox æµè§ˆå™¨
 	 */
 	public static void adapterLauncher(Puppeteer puppeteer) {
 		String productName = null;

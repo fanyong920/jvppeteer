@@ -4,21 +4,31 @@ import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
 import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
 
-public  class DefaultBrowserListener implements BrowserListener<BrowserEvent> {
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+
+public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 	
 	private String mothod;
 
 	private Class<?> resolveType;
 
-	public Class<?> getResolveType() {
-		return resolveType;
-	}
-
 	private EventHandler handler;
+
+	private Object target;
+
+	private boolean isOnce;
 
 	public void setResolveType(Class<?> resolveType) {
 		this.resolveType = resolveType;
 	}
+
+	public Class<?> getResolveType() {
+		return resolveType;
+}
 
 	public String getMothod() {
 		return mothod;
@@ -36,9 +46,21 @@ public  class DefaultBrowserListener implements BrowserListener<BrowserEvent> {
 		this.handler = handler;
 	}
 
-	@Override
-	public void onBrowserEvent(BrowserEvent event) {
-		getHandler().onEvent(event);
+
+	public boolean isOnce() {
+		return isOnce;
+	}
+
+	public void setOnce(boolean once) {
+		isOnce = once;
+	}
+
+	public Object getTarget() {
+		return target;
+	}
+
+	public void setTarget(Object target) {
+		this.target = target;
 	}
 
 }

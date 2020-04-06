@@ -67,8 +67,8 @@ public class OptionsBuilder {
 		return this;
 	}
 	
-	public OptionsBuilder withDefaultViewport(DefaultViewport defaultViewport) {
-		options.setDefaultViewport(defaultViewport);
+	public OptionsBuilder withViewport(Viewport viewport) {
+		options.setViewport(viewport);
 		return this;
 	}
 	

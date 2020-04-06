@@ -4,17 +4,23 @@ import java.util.Collection;
 
 public class ValidateUtil {
 	
-	public static boolean isEmpty(Collection<?> c) {
+	public static final boolean isEmpty(Collection<?> c) {
 		return c == null || c.isEmpty();
 	}
 	
-	public static boolean isNotEmpty(Collection<?> c) {
+	public static final boolean isNotEmpty(Collection<?> c) {
 		return !ValidateUtil.isEmpty(c);
 	}
 
-	public static void notNull(Object object, String message) {
+	public static final void notNull(Object object, String message) {
 		if (object == null) {
 			throw new IllegalArgumentException(message);
 		}
 	}
+
+	public static final void assertBoolean(boolean condition, String errorText) {
+		if (!condition)
+			throw new RuntimeException(errorText);
+	}
+
 }

@@ -5,11 +5,11 @@ import java.util.EventListener;
  * listener event then handler it
  * @author fff
  *
- * @param <E>
+ * @param <T>
  */
 
 @FunctionalInterface
-public interface BrowserListener  <E extends BrowserEvent> extends EventListener {
+public interface BrowserListener<T> extends EventListener {
 
-	void onBrowserEvent(E event);
+	void onBrowserEvent(T event);
 }

@@ -8,9 +8,13 @@ import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserPublisher;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.ruiyun.jvppeteer.util.Factory;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -22,8 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 /**
@@ -31,7 +34,7 @@ import java.util.function.Consumer;
  * @author fff
  *
  */
-public class Connection implements Constant,Consumer<String>,BrowserEventPublisher{
+public class Connection implements Constant,Consumer<String>{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 	
@@ -50,31 +53,41 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 	
 	private Map<String, CDPSession> sessions = new HashMap<>();
 
-	private Map<String, Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
+
+
+	private BlockingQueue responseQueue = new LinkedBlockingQueue();//接受消息的堵塞队列
+
+	private int port;
 
 	public Connection(String url,ConnectionTransport transport, int delay) {
 		super();
 		this.url = url;
 		this.transport = transport;
 		this.delay = delay;
-		this.transport.addMessageHandler(this);
+		this.transport.addMessageConsumer(this);
+
+		int start  = url.lastIndexOf(":");
+		int end = url.indexOf("/",start);
+		this.port = Integer.parseInt(url.substring(start + 1 ,end));
 	}
 	
-	public Object send(String method,Map<String, Object> params)  {
+	public Object send(String method,Map<String, Object> params,boolean isWait)  {
 		SendMsg  message = new SendMsg();
 		message.setMethod(method);
 		message.setParams(params);
 		try {
 			long id = rawSend(message);
 			if(id >= 0){
-				if("Target.targetCreated".equals(method)){
-
-				}else{
-					callbacks.putIfAbsent(id, message);
-					message.getSemaphore().tryAcquire(30,TimeUnit.SECONDS);
-					return callbacks.remove(id).getResult();
+				callbacks.putIfAbsent(id, message);
+				if(isWait){
+					CountDownLatch latch = new CountDownLatch(1);
+					message.setCountDownLatch(latch);
+					boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+					if(!hasResult){
+						throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+					}
 				}
-
+				return callbacks.remove(id).getResult();
 			}
 		} catch (InterruptedException e) {
 			LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
@@ -87,7 +100,8 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 		message.setId(id);
 		try {
 			String sendMsg = OBJECTMAPPER.writeValueAsString(message);
-			LOGGER.info("SEND ► "+sendMsg);
+			LOGGER.info("SEND -> "+sendMsg);
+			System.out.println("SEND -> "+sendMsg);
 			transport.send(sendMsg);
 			return id;
 		}catch (JsonProcessingException e){
@@ -108,13 +122,16 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 			}
 		}
 		
-		LOGGER.info("◀ RECV "+message);
-		System.out.println("◀ RECV "+message);
+		LOGGER.info("<- RECV "+message);
+		System.out.println("<- RECV "+message);
 		try {
 			if(StringUtil.isNotEmpty(message)) {
 				JsonNode readTree = OBJECTMAPPER.readTree(message);
 				JsonNode methodNode = readTree.get(RECV_MESSAGE_METHOD_PROPERTY);
-				String method = methodNode.asText();
+				String method = null;
+				if(methodNode != null){
+					method = methodNode.asText();
+				}
 				if("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
 					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
 					JsonNode sessionId = paramsNode.get(RECV_MESSAGE_SESSION_ID_PROPERTY);
@@ -143,14 +160,19 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 					SendMsg sendMsg = this.callbacks.get(objectId.asLong());
 					JsonNode error = readTree.get(RECV_MESSAGE_ERROR_PROPERTY);
 					if(error != null){
-						sendMsg.getSemaphore().release(1);
+						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
+							sendMsg.getCountDownLatch().countDown();
+						}
 						throw new ProtocolException(Helper.createProtocolError(readTree));
 					}else{
 						JsonNode result = readTree.get(RECV_MESSAGE_RESULT_PROPERTY);
 						sendMsg.setResult(result);
-						sendMsg.getSemaphore().release(1);
+						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
+							sendMsg.getCountDownLatch().countDown();
+						}
 					}
 				}else{//是我们监听的事件，把它事件
+
 					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
 					publishEvent(method,paramsNode);
 				}
@@ -168,37 +190,30 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 	 * @param params
 	 */
 
-	protected void publishEvent(String method, JsonNode params){
-		ValidateUtil.notNull(method, "method must not be null");
-		Set<DefaultBrowserListener> browserListeners = listenerMap.get(method);
-
-		if(ValidateUtil.isNotEmpty(browserListeners)){
-			try {
-				Class<?> resolveType = browserListeners.stream().findFirst().get().getResolveType();
-				BrowserEvent event = (BrowserEvent)readJsonObject(resolveType, params);
-				publishEvent(method,event);
-			}catch (IOException e){
-				LOGGER.error("publish event error:",e);
-			}
-		}
+	public void publishEvent(String method, JsonNode params) throws ExecutionException {
+		Factory.get(DefaultBrowserPublisher.class.getSimpleName()+this.port,DefaultBrowserPublisher.class).publishEvent2(method,params);
 	}
 
-	private <T> T readJsonObject(Class<T> clazz, JsonNode jsonNode) throws IOException {
-		if (jsonNode == null) {
-			throw new IllegalArgumentException(
-					"Failed converting null response to clazz " + clazz.getName());
-		}
-		return OBJECTMAPPER.readerFor(clazz).readValue(jsonNode);
+	public CDPSession createSession(TargetInfo targetInfo){
+		Map<String, Object> params = new HashMap<>();
+		params.put("targetId",targetInfo.getTargetId());
+		params.put("flatten",true);
+		this.send("Target.attachToTarget", params,false);
+
+		//TODO 监听
+		return this.sessions.get("");
 	}
 
-	public void invokeListener(BrowserListener listener,Object event){
-			listener.onBrowserEvent((BrowserEvent) event);
-	}
+
 
 	public String url() {
 		 return this.url;
 	}
-	
+
+	public String getUrl() {
+		return url;
+	}
+
 	public CDPSession session(String sessionId) {
 	    return sessions.get(sessionId);
 	 }
@@ -209,16 +224,10 @@ public class Connection implements Constant,Consumer<String>,BrowserEventPublish
 	}
 
 
-	@Override
-	public void publishEvent(String method, Object event) {
-		Set<DefaultBrowserListener> browserListeners = listenerMap.get(method);
-		synchronized (transport){
-			browserListeners = new LinkedHashSet(browserListeners);
-		}
-		for (DefaultBrowserListener listener : browserListeners) {
-			executor.execute(() -> invokeListener(listener, event));
-		}
-
+	public int getPort() {
+		return port;
 	}
+
+
 }
 
