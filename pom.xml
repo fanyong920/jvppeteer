@@ -28,7 +28,7 @@
         <java.webSocket.version>1.4.1</java.webSocket.version>
         <httpclient.version>4.5.12</httpclient.version>
         <guava.version>28.2-jre</guava.version>
-        <commons.compress.version>1.18</commons.compress.version>
+        <commons.compress.version>1.19</commons.compress.version>
     </properties>
     <dependencies>
         <dependency>
