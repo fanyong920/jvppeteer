@@ -3,12 +3,24 @@ package com.ruiyun.jvppeteer.browser;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.transport.Connection;
 
+/**
+ * 浏览器上下文
+ */
 public class BrowserContext {
-	
+
+	/**
+	 *  浏览器对应的websocket client包装类，用于发送和接受消息
+	 */
 	private Connection connection;
-	
+
+	/**
+	 * 浏览器上下文对应的浏览器，一个上下文只有一个浏览器，但是一个浏览器可能有多个上下文
+	 */
 	private Browser browser;
-	
+
+	/**
+	 *浏览器上下文id
+	 */
 	private String contextId;
 	
 	

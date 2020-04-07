@@ -47,13 +47,20 @@ public class CDPSession implements BrowserEventPublisher, Constant {
         connection.publishEvent(Events.CDPSESSION_DISCONNECTED.getName(),null);
     }
 
-    public Object send(String method,Map<String, Object> params)  {
+    /**
+     * cdpsession send message
+     * @param method 方法
+     * @param params 参数
+     * @return result
+     */
+    public JsonNode send(String method,Map<String, Object> params)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
         SendMsg  message = new SendMsg();
         message.setMethod(method);
         message.setParams(params);
+        message.setSessionId(this.sessionId);
         try {
             CountDownLatch latch = new CountDownLatch(1);
             message.setCountDownLatch(latch);
@@ -116,5 +123,13 @@ public class CDPSession implements BrowserEventPublisher, Constant {
     @Override
     public void publishEvent(String method, Object event) {
 
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
     }
 }

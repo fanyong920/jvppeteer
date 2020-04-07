@@ -5,26 +5,45 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ruiyun.jvppeteer.events.application.definition.ApplicationEvent;
-import com.ruiyun.jvppeteer.events.application.impl.DefaultApplicationListener;
-import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * 存放所用到的常量
+ */
 public interface Constant {
-	
+
+	/**
+	 * 把产品存放到环境变量的所有可用字段
+	 */
 	String[] PRODUCT_ENV = {"PUPPETEER_PRODUCT","java_config_puppeteer_product","java_package_config_puppeteer_product"};
-	
+
+	/**
+	 * 把浏览器执行路径存放到环境变量的所有可用字段
+	 */
 	String[] EXECUTABLE_ENV = {"PUPPETEER_EXECUTABLE_PATH","java_config_puppeteer_executable_path","java_package_config_puppeteer_executable_path"};
-	
+
+	/**
+	 * 把浏览器版本存放到环境变量的字段
+	 */
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
-	
+
+	/**
+	 * websocket clinet 传输数据的最大荷载，但是目前没有设置进去，使用了默认值
+	 */
 	long DEFAULT_PAYLOAD  = 256 * 1024 * 1024;
 
+	/**
+	 * 如果websoket使用tyrus的话，就能用到这个字段，与{@link Constant#DEFAULT_PAYLOAD} 一起配合使用
+	 */
 	String INCOMING_BUFFER_SIZE_PROPERTY = "org.glassfish.tyrus.incomingBufferSize";
 
+	/**
+	 * 启动浏览器时，如果没有指定路径，那么会从以下路径搜索可执行的路径
+	 */
 	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
 		      new String[] {
 		        "/usr/bin/chromium",
@@ -36,6 +55,9 @@ public interface Constant {
 		        "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
 		        "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
 		      };
+	/**
+	 * 谷歌浏览器默认启动参数
+	 */
 	List<String> DEFAULT_ARGS = new ArrayList<String>() {
 		private static final long serialVersionUID = 1L;
 		{addAll(Arrays.asList( 
@@ -60,11 +82,15 @@ public interface Constant {
 	                "--password-store=basic",
 	                "--use-mock-keychain"));}
 	};
-	
-	Map<String,WebSocketTransport> WS_HASH_MAP = new ConcurrentHashMap<>();
-	
+
+	/**
+	 * fastjson的一个实例
+	 */
 	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
-	
+
+	/**
+	 * 从浏览器的websocket接受到消息中有以下这些字段，在处理消息用到这些字段
+	 */
 	String RECV_MESSAGE_METHOD_PROPERTY = "method";
 	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
 	String RECV_MESSAGE_ID_PROPERTY = "id";
@@ -76,8 +102,14 @@ public interface Constant {
 	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
 	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
 	String RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY = "targetId";
+	String RECV_MESSAGE_STREAM_PROPERTY = "stream";
+	String RECV_MESSAGE_STREAM_EOF_PROPERTY = "eof";
+	String RECV_MESSAGE_STREAM_DATA_PROPERTY = "data";
+	String RECV_MESSAGE_BASE64ENCODED_PROPERTY = "base64Encoded";
 
-
+	/**
+	 * 执行事件监听的线程池
+	 */
 	ThreadPoolExecutor executor = getThreadPoolExecutor();
 
 	static ThreadPoolExecutor getThreadPoolExecutor() {
@@ -91,5 +123,28 @@ public interface Constant {
 		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
 	}
 
+	/**
+	 * 默认的超时时间：启动浏览器实例超时，websocket接受消息超时等
+	 */
 	int DEFAULT_TIMEOUT = 30000;
+
+	/**
+	 * 追踪信息的默认分类
+	 */
+	Set<String> DEFAULTCATEGORIES = new LinkedHashSet<String>(){
+		{
+			add("-*");
+			add("devtools.timeline");
+			add("v8.execute");
+			add("disabled-by-default-devtools.timeline");
+			add("disabled-by-default-devtools.timeline.frame");
+			add("toplevel");
+			add("blink.console");
+			add("blink.user_timing");
+			add("latencyInfo");
+			add("disabled-by-default-devtools.timeline.stack");
+			add("disabled-by-default-v8.cpu_profiler");
+			add("disabled-by-default-v8.cpu_profiler.hires");
+		}
+	};
 }

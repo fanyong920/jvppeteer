@@ -7,6 +7,9 @@ import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserPublisher;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * 简单工厂：创建消息发布者
+ */
 public class Factory {
 
     private static final LoadingCache<String, Object> cache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, Object>(){

@@ -26,6 +26,8 @@ public class SendMsg {
 
 	private JsonNode result;//本次发送消息返回的结果
 
+	private String sessionId;
+
 	public long getId() {
 		return id;
 	}
@@ -64,6 +66,14 @@ public class SendMsg {
 
 	public void setResult(JsonNode result) {
 		this.result = result;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 	public boolean waitForResult(long timeout, TimeUnit timeUnit) throws InterruptedException {

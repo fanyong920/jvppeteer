@@ -3,6 +3,9 @@ package com.ruiyun.jvppeteer.util;
 import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * 操作流的工具
+ */
 public class StreamUtil {
 	
 	public static void closeStream(Closeable closeable) {

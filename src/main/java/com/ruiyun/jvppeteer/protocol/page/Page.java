@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
 import com.ruiyun.jvppeteer.EmulationManager;
-import com.ruiyun.jvppeteer.Tracing;
+import com.ruiyun.jvppeteer.protocol.page.trace.Tracing;
 import com.ruiyun.jvppeteer.events.application.impl.DefaultApplicationListener;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;

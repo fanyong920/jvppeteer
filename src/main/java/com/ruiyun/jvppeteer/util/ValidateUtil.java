@@ -2,6 +2,9 @@ package com.ruiyun.jvppeteer.util;
 
 import java.util.Collection;
 
+/**
+ * 验证类工具
+ */
 public class ValidateUtil {
 	
 	public static final boolean isEmpty(Collection<?> c) {

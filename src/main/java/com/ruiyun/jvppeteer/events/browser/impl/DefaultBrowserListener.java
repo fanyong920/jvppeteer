@@ -10,19 +10,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
+
 public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 	
 	private String mothod;
 
-	private Class<?> resolveType;
+	private Class<T> resolveType;
 
-	private EventHandler handler;
+	private EventHandler<T> handler;
 
 	private Object target;
 
 	private boolean isOnce;
 
-	public void setResolveType(Class<?> resolveType) {
+	public void setResolveType(Class<T> resolveType) {
 		this.resolveType = resolveType;
 	}
 
@@ -45,7 +46,6 @@ public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 	public void setHandler(EventHandler handler) {
 		this.handler = handler;
 	}
-
 
 	public boolean isOnce() {
 		return isOnce;

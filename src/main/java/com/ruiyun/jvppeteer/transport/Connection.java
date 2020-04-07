@@ -71,7 +71,7 @@ public class Connection implements Constant,Consumer<String>{
 		this.port = Integer.parseInt(url.substring(start + 1 ,end));
 	}
 	
-	public Object send(String method,Map<String, Object> params,boolean isWait)  {
+	public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
 		SendMsg  message = new SendMsg();
 		message.setMethod(method);
 		message.setParams(params);
@@ -100,7 +100,8 @@ public class Connection implements Constant,Consumer<String>{
 		message.setId(id);
 		try {
 			String sendMsg = OBJECTMAPPER.writeValueAsString(message);
-			LOGGER.info("SEND -> "+sendMsg);
+			if(LOGGER.isDebugEnabled())
+				LOGGER.debug("SEND -> "+sendMsg);
 			System.out.println("SEND -> "+sendMsg);
 			transport.send(sendMsg);
 			return id;

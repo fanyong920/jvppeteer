@@ -2,17 +2,19 @@ package com.ruiyun.jvppeteer.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import sun.misc.BASE64Decoder;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
+/**
+ * 一些公共方法
+ */
 public class Helper implements Constant {
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(RECV_MESSAGE_METHOD_PROPERTY);
@@ -116,6 +118,53 @@ public class Helper implements Constant {
 
     public static final String  join(String root,String...args){
        return  Paths.get(root,args).toString().toString();
+    }
+
+    /**
+     * read stream from protocol : example -> tracing  file
+     * @param client CDPSession
+     * @param handler 发送给websocket的参数
+     * @param path 文件存放的路径
+     */
+    public static final void readProtocolStream(CDPSession client, JsonNode handler,String path) throws IOException {
+        boolean eof = false;
+        File file = null;
+        BufferedOutputStream writer = null;
+        if(StringUtil.isNotEmpty(path)){
+            file = new File(path);
+        }else{
+            throw new IllegalArgumentException("Path can't be null");
+        }
+        Map<String,Object>  params = new HashMap<>();
+        Iterator<String> fieldNames = handler.fieldNames();
+        while (fieldNames.hasNext()){
+            String name = fieldNames.next();
+            params.put(name,handler.get(name).asText());
+        }
+        try {
+            writer = new BufferedOutputStream(new FileOutputStream(file));
+            BASE64Decoder decoder = new BASE64Decoder();
+            while (!eof){
+                JsonNode response = client.send("IO.read", params);
+                JsonNode eofNode = response.get(RECV_MESSAGE_STREAM_EOF_PROPERTY);
+                JsonNode base64EncodedNode = response.get(RECV_MESSAGE_BASE64ENCODED_PROPERTY);
+                JsonNode dataNode = response.get(RECV_MESSAGE_STREAM_DATA_PROPERTY);
+                if(dataNode != null){
+                    byte[] bytes;
+                    if(base64EncodedNode != null){
+                        bytes = decoder.decodeBuffer(dataNode.asText());
+                    }else {
+                        bytes = dataNode.asText().getBytes();
+                    }
+                    writer.write(bytes);
+                }
+                eof = eofNode.asBoolean();
+            }
+            writer.flush();
+            client.send("IO.close", params);
+        } finally {
+            StreamUtil.closeStream(writer);
+        }
     }
 
 
