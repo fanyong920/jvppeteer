@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
@@ -34,7 +35,7 @@ import java.util.function.Consumer;
  * @author fff
  *
  */
-public class Connection implements Constant,Consumer<String>{
+public class Connection extends EventEmitter implements Constant,Consumer<String>{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 	
@@ -122,7 +123,6 @@ public class Connection implements Constant,Consumer<String>{
 				LOGGER.error("slowMo browser Fail:",e);
 			}
 		}
-		
 		LOGGER.info("<- RECV "+message);
 		System.out.println("<- RECV "+message);
 		try {
@@ -173,9 +173,8 @@ public class Connection implements Constant,Consumer<String>{
 						}
 					}
 				}else{//是我们监听的事件，把它事件
-
 					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
-					publishEvent(method,paramsNode);
+					this.emit(method,paramsNode);
 				}
 			}
 		} catch (Exception e) {
@@ -195,6 +194,19 @@ public class Connection implements Constant,Consumer<String>{
 		Factory.get(DefaultBrowserPublisher.class.getSimpleName()+this.port,DefaultBrowserPublisher.class).publishEvent2(method,params);
 	}
 
+	/**
+	 * 从{@link CDPSession}中拿到对应的{@link Connection}
+	 * @param client
+	 * @return
+	 */
+	public static Connection fromSession(CDPSession client){
+		return client.getConnection();
+	}
+	/**
+	 * 创建一个{@link CDPSession}
+	 * @param targetInfo
+	 * @return CDPSession
+	 */
 	public CDPSession createSession(TargetInfo targetInfo){
 		Map<String, Object> params = new HashMap<>();
 		params.put("targetId",targetInfo.getTargetId());

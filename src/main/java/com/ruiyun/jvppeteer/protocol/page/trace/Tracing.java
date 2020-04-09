@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.util.Factory;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -56,7 +57,7 @@ public class Tracing implements Constant {
         Map<String, Object> params = new HashMap<>();
         params.put("transferMode","ReturnAsStream");
         params.put("categories",String.join(",",categories));
-        this.client.send("Tracing.start", params);
+        this.client.send("Tracing.start", params,true);
     }
 
     /**
@@ -73,22 +74,14 @@ public class Tracing implements Constant {
                 try {
                     tracing = (Tracing)this.getTarget();
                     Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY),tracing.getPath());
-                } finally {
-                    if(tracing != null && this.isOnce()){
-                        try {
-                            Factory.get(DefaultBrowserPublisher.class.getSimpleName()+tracing.getClient().getConnection().getPort(),DefaultBrowserPublisher.class).removeListener(this.getMothod(),this);
-                        } catch (ExecutionException e) {
-                            throw new RuntimeException("Remove listener["+this.getMothod()+":"+this+"] fail:",e);
-                        }
-                    }
+                } catch (IOException e) {
                 }
             }
         };
         traceListener.setTarget(this);
-        traceListener.setOnce(true);
         traceListener.setMothod("Tracing.tracingComplete");
-        Factory.get(DefaultBrowserPublisher.class.getSimpleName()+this.client.getConnection().getPort(),DefaultBrowserPublisher.class).addListener(traceListener.getMothod(),traceListener);
-        this.client.send("Tracing.end",null);
+        this.client.once(traceListener.getMothod(),traceListener);
+        this.client.send("Tracing.end",null,true);
         this.recording = false;
     }
 

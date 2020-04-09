@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 
-public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
+public abstract class DefaultBrowserListener<T> implements BrowserListener<T> {
 	
 	private String mothod;
 
@@ -22,6 +22,8 @@ public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 	private Object target;
 
 	private boolean isOnce;
+
+	private boolean isAvaliable = true;
 
 	public void setResolveType(Class<T> resolveType) {
 		this.resolveType = resolveType;
@@ -47,12 +49,12 @@ public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 		this.handler = handler;
 	}
 
-	public boolean isOnce() {
+	public boolean getIsOnce() {
 		return isOnce;
 	}
 
-	public void setOnce(boolean once) {
-		isOnce = once;
+	public void setIsOnce(boolean isOnce) {
+		isOnce = isOnce;
 	}
 
 	public Object getTarget() {
@@ -63,4 +65,11 @@ public abstract  class DefaultBrowserListener<T> implements BrowserListener<T> {
 		this.target = target;
 	}
 
+	public boolean getIsAvaliable() {
+		return isAvaliable;
+	}
+
+	public void setIsAvaliable(boolean isAvaliable) {
+		isAvaliable = isAvaliable;
+	}
 }

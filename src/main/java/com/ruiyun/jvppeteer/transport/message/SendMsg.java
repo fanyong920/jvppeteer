@@ -84,6 +84,6 @@ public class SendMsg {
 			}
 			return countDownLatch.await(timeout,timeUnit);
 		}
-		return false;
+		return true;
 	}
 }

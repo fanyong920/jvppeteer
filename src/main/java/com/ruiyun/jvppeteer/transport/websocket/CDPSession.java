@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.transport.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -18,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class CDPSession implements BrowserEventPublisher, Constant {
+public class CDPSession extends EventEmitter implements Constant {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
 
@@ -53,7 +54,7 @@ public class CDPSession implements BrowserEventPublisher, Constant {
      * @param params 参数
      * @return result
      */
-    public JsonNode send(String method,Map<String, Object> params)  {
+    public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
@@ -62,8 +63,10 @@ public class CDPSession implements BrowserEventPublisher, Constant {
         message.setParams(params);
         message.setSessionId(this.sessionId);
         try {
-            CountDownLatch latch = new CountDownLatch(1);
-            message.setCountDownLatch(latch);
+            if(isWait){
+                CountDownLatch latch = new CountDownLatch(1);
+                message.setCountDownLatch(latch);
+            }
             long id = this.connection.rawSend(message);
             this.callbacks.putIfAbsent(id,message);
             boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
@@ -112,7 +115,8 @@ public class CDPSession implements BrowserEventPublisher, Constant {
             } else {
                 JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);
                 JsonNode method = node.get(RECV_MESSAGE_METHOD_PROPERTY);
-                connection.publishEvent(method.asText(),paramsNode);
+                if(method != null)
+                this.emit(method.asText(),paramsNode);
             }
         }else {
             throw new RuntimeException("recv message id property is null");
@@ -120,16 +124,12 @@ public class CDPSession implements BrowserEventPublisher, Constant {
 
     }
 
-    @Override
-    public void publishEvent(String method, Object event) {
-
-    }
 
     public Connection getConnection() {
         return connection;
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    public String getSessionId() {
+        return sessionId;
     }
 }

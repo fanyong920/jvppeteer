@@ -54,7 +54,7 @@ public class ChromeLauncher implements Launcher {
 			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner,options.getTimeout());
 			browser.waitForTarget(t -> "page".equals(t.type()),options);
 			return browser;
-		} catch (IOException | InterruptedException | ExecutionException e) {
+		} catch (IOException | InterruptedException e) {
 			runner.kill();
 			throw new LaunchException("Failed to launch the browser process:"+e.getMessage(),e);
 		}

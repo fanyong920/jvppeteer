@@ -2,6 +2,8 @@ package com.ruiyun.jvppeteer.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 
@@ -11,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * 一些公共方法
@@ -145,7 +148,7 @@ public class Helper implements Constant {
             writer = new BufferedOutputStream(new FileOutputStream(file));
             BASE64Decoder decoder = new BASE64Decoder();
             while (!eof){
-                JsonNode response = client.send("IO.read", params);
+                JsonNode response = client.send("IO.read", params,true);
                 JsonNode eofNode = response.get(RECV_MESSAGE_STREAM_EOF_PROPERTY);
                 JsonNode base64EncodedNode = response.get(RECV_MESSAGE_BASE64ENCODED_PROPERTY);
                 JsonNode dataNode = response.get(RECV_MESSAGE_STREAM_DATA_PROPERTY);
@@ -161,11 +164,18 @@ public class Helper implements Constant {
                 eof = eofNode.asBoolean();
             }
             writer.flush();
-            client.send("IO.close", params);
+            client.send("IO.close", params,false);
         } finally {
             StreamUtil.closeStream(writer);
         }
     }
 
 
+    public static String getExceptionMessage(ExceptionDetails exceptionDetails) {
+        return  null;
+    }
+
+    public static final Set<DefaultBrowserListener> getConcurrentSet() {
+        return new CopyOnWriteArraySet<DefaultBrowserListener>();
+    }
 }

@@ -92,7 +92,7 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 					ParameterizedType parameterizedType = (ParameterizedType)genericSuperclass;
 					Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
 					if(actualTypeArguments.length == 1){
-						resolveType = actualTypeArguments[0].getClass();
+						resolveType = (Class)actualTypeArguments[0];
 					}
 				}else{
 					resolveType = listener.getResolveType();

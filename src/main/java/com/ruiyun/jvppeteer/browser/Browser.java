@@ -3,16 +3,14 @@ package com.ruiyun.jvppeteer.browser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserPublisher;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.TaskQueue;
-import com.ruiyun.jvppeteer.protocol.page.frame.Target;
+import com.ruiyun.jvppeteer.protocol.target.Target;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.Connection;
-import com.ruiyun.jvppeteer.util.Factory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -122,7 +120,7 @@ public class Browser implements Constant {
 	 * @throws InterruptedException 等待消息完成过程中可能被断而发生的异常
 	 * @throws ExecutionException 增加事件监听可能发生的异常
 	 */
-	public static Browser create(Connection connection,List<String> contextIds,boolean ignoreHTTPSErrors,Viewport viewport,BrowserRunner runner,int timeout) throws InterruptedException, ExecutionException {
+	public static Browser create(Connection connection,List<String> contextIds,boolean ignoreHTTPSErrors,Viewport viewport,BrowserRunner runner,int timeout) throws InterruptedException {
 		Browser browser = new Browser(connection,contextIds,ignoreHTTPSErrors,viewport,runner);
 		Map<String,Object> params = new HashMap<>();
 		addBrowserListener(browser);
@@ -139,7 +137,7 @@ public class Browser implements Constant {
 	 * @param browser 当前浏览器
 	 * @throws ExecutionException 发布事件可能产生的异常
 	 */
-	private static void addBrowserListener(Browser browser) throws ExecutionException {
+	private static void addBrowserListener(Browser browser) {
 		//先存发布者，再发送消息
 		DefaultBrowserListener<Target> defaultBrowserListener = new DefaultBrowserListener<Target>() {
 			@Override
@@ -158,13 +156,12 @@ public class Browser implements Constant {
 						brow.getDownLatch().countDown();
 					}
 				}
-
 			}
 		};
 		defaultBrowserListener.setTarget(browser);
 		defaultBrowserListener.setMothod("Target.targetCreated");
 		defaultBrowserListener.setResolveType(Target.class);
-		Factory.get(DefaultBrowserPublisher.class.getSimpleName()+browser.getPort(),DefaultBrowserPublisher.class).addListener(defaultBrowserListener.getMothod(),defaultBrowserListener);
+		browser.getConnection().emit(defaultBrowserListener.getMothod(),defaultBrowserListener);
 	}
 
 	/**
@@ -184,7 +181,6 @@ public class Browser implements Constant {
 		if(this.getTargets().get(targetInfo.getTargetId()) != null){
 			throw new RuntimeException("Target should not exist before targetCreated");
 		}
-		System.out.println("put:"+targetInfo.getTargetId()+"target"+target);
 		this.getTargets().putIfAbsent(targetInfo.getTargetId(),target);
 	}
 

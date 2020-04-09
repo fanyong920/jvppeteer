@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.protocol.page.frame;
+package com.ruiyun.jvppeteer.protocol.target;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ruiyun.jvppeteer.browser.Browser;
@@ -8,7 +8,6 @@ import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.TaskQueue;
 import com.ruiyun.jvppeteer.protocol.promise.Promise;
-import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
@@ -48,6 +47,7 @@ public class Target {
 	@JsonIgnore
 	private SessionFactory sessionFactory;
 
+	private String sessionId;
 
 	public Target() {
 
@@ -212,5 +212,13 @@ public class Target {
 
 	public void setPage(Page page) {
 		this.page = page;
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 }
