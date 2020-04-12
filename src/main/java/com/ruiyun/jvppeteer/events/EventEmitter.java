@@ -83,23 +83,29 @@ public class EventEmitter implements Event, Constant {
                 listenerCount.decrementAndGet();
             }
             try {
-                Class<?> resolveType = null;
-                Type genericSuperclass = listener.getClass().getGenericSuperclass();
-                if(genericSuperclass instanceof ParameterizedType){
-                    ParameterizedType parameterizedType = (ParameterizedType)genericSuperclass;
-                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                    if(actualTypeArguments.length == 1){
-                        resolveType = (Class)actualTypeArguments[0];
+                Object event ;
+                if(params != null){
+                    Class<?> resolveType = null;
+                    Type genericSuperclass = listener.getClass().getGenericSuperclass();
+                    if(genericSuperclass instanceof ParameterizedType){
+                        ParameterizedType parameterizedType = (ParameterizedType)genericSuperclass;
+                        Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                        if(actualTypeArguments.length == 1){
+                            resolveType = (Class)actualTypeArguments[0];
+                        }
+                    }else{
+                        resolveType = listener.getResolveType();
+                    }
+
+                    if(JsonNode.class.isAssignableFrom(params.getClass())){
+                        event = readJsonObject(resolveType, (JsonNode)params);
+                    }else{
+                        event = params;
                     }
                 }else{
-                    resolveType = listener.getResolveType();
+                    event = null;
                 }
-                Object event;
-                if(JsonNode.class.isAssignableFrom(params.getClass())){
-                    event = readJsonObject(resolveType, (JsonNode)params);
-                }else{
-                    event = params;
-                }
+
                 executor.execute(() -> invokeListener(listener, event));
             } catch (IOException e) {
                 LOGGER.error("publish event error:", e);
@@ -149,7 +155,7 @@ public class EventEmitter implements Event, Constant {
         if(JsonNode.class.isAssignableFrom(clazz)){
             return (T)jsonNode;
         }
-        return OBJECTMAPPER.readerFor(clazz).readValue(jsonNode);
+        return OBJECTMAPPER.treeToValue(jsonNode,clazz);
     }
 
     public int getListenerCount(String mothod){

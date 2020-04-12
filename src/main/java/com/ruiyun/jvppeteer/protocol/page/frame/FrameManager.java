@@ -269,4 +269,36 @@ public class FrameManager extends EventEmitter {
         this.frames.remove(childFrame);
         this.emit(Events.FRAMEMANAGER_FRAMEDETACHED.getName(), childFrame);
     }
+
+    public CDPSession getClient() {
+        return client;
+    }
+
+    public Page getPage() {
+        return page;
+    }
+
+    public TimeoutSettings getTimeoutSettings() {
+        return timeoutSettings;
+    }
+
+    public NetworkManager getNetworkManager() {
+        return networkManager;
+    }
+
+    public Map<String, Frame> getFrames() {
+        return frames;
+    }
+
+    public Map<Integer, ExecutionContext> getContextIdToContext() {
+        return contextIdToContext;
+    }
+
+    public Set<String> getIsolatedWorlds() {
+        return isolatedWorlds;
+    }
+
+    public Frame getMainFrame() {
+        return mainFrame;
+    }
 }

@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.EmulationManager;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
@@ -9,6 +10,9 @@ import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;
 import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
 import com.ruiyun.jvppeteer.protocol.page.frame.*;
+import com.ruiyun.jvppeteer.protocol.page.network.NetworkManager;
+import com.ruiyun.jvppeteer.protocol.page.network.Response;
+import com.ruiyun.jvppeteer.protocol.page.payload.*;
 import com.ruiyun.jvppeteer.protocol.page.trace.Tracing;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
@@ -20,14 +24,15 @@ import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 import java.util.function.Function;
 
 public class Page extends EventEmitter {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Page.class);
+
+    private Set<Object> fileChooserInterceptors;
 
     private boolean closed = true;
 
@@ -128,7 +133,7 @@ public class Page extends EventEmitter {
         detachedListener.setMothod("Target.detachedFromTarget");
         detachedListener.setTarget(this);
         detachedListener.setResolveType(Target.class);
-        this.client.on(attachedListener.getMothod(),attachedListener);
+        this.client.on(detachedListener.getMothod(),detachedListener);
 
         DefaultBrowserListener<Object> frameAttachedListener = new DefaultBrowserListener<Object>(){
             @Override
@@ -161,8 +166,190 @@ public class Page extends EventEmitter {
         };
         frameNavigatedListener.setMothod(Events.FRAMEMANAGER_FRAMENAVIGATED.getName());
         frameNavigatedListener.setTarget(this);
-        this.frameManager.on(frameDetachedListener.getMothod(),frameNavigatedListener);
-        //TODO
+        this.frameManager.on(frameNavigatedListener.getMothod(),frameNavigatedListener);
+
+        NetworkManager networkManager = this.frameManager.getNetworkManager();
+
+        DefaultBrowserListener<Request> requestLis = new DefaultBrowserListener<Request>() {
+            @Override
+            public void onBrowserEvent(Request event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_REQUEST.getName(),event);
+            }
+        };
+        requestLis.setMothod(Events.NETWORKMANAGER_REQUEST.getName());
+        requestLis.setTarget(this);
+        networkManager.on(requestLis.getMothod(),requestLis);
+
+        DefaultBrowserListener<Response> responseLis = new DefaultBrowserListener<Response>() {
+            @Override
+            public void onBrowserEvent(Response event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_RESPONSE.getName(),event);
+            }
+        };
+        responseLis.setMothod(Events.NETWORKMANAGER_RESPONSE.getName());
+        responseLis.setTarget(this);
+        networkManager.on(responseLis.getMothod(),responseLis);
+
+        DefaultBrowserListener<Request> requestFailedLis = new DefaultBrowserListener<Request>() {
+            @Override
+            public void onBrowserEvent(Request event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_REQUESTFAILED.getName(),event);
+            }
+        };
+        requestFailedLis.setMothod(Events.NETWORKMANAGER_REQUESTFAILED.getName());
+        requestFailedLis.setTarget(this);
+        networkManager.on(requestFailedLis.getMothod(),requestFailedLis);
+
+        DefaultBrowserListener<Request> requestFinishedLis = new DefaultBrowserListener<Request>() {
+            @Override
+            public void onBrowserEvent(Request event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_REQUESTFINISHED.getName(),event);
+            }
+        };
+        requestFinishedLis.setMothod(Events.NETWORKMANAGER_REQUESTFINISHED.getName());
+        requestFinishedLis.setTarget(this);
+        networkManager.on(requestFinishedLis.getMothod(),requestFinishedLis);
+
+        //TODO ${fileChooserInterceptors}
+        this.fileChooserInterceptors = new HashSet<>();
+
+        DefaultBrowserListener<Object> domContentEventFiredLis = new DefaultBrowserListener<Object>() {
+            @Override
+            public void onBrowserEvent(Object event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_DOMContentLoaded.getName(),event);
+            }
+        };
+        domContentEventFiredLis.setMothod("Page.domContentEventFired");
+        domContentEventFiredLis.setTarget(this);
+        this.client.on(domContentEventFiredLis.getMothod(),domContentEventFiredLis);
+
+        DefaultBrowserListener<Object> loadEventFiredLis = new DefaultBrowserListener<Object>() {
+            @Override
+            public void onBrowserEvent(Object event) {
+                Page page = (Page)this.getTarget();
+                page.emit(Events.PAGE_LOAD.getName(),event);
+            }
+        };
+        loadEventFiredLis.setMothod("Page.loadEventFired");
+        loadEventFiredLis.setTarget(this);
+        this.client.on(loadEventFiredLis.getMothod(),loadEventFiredLis);
+
+        DefaultBrowserListener<ConsoleAPICalledPayload> consoleAPICalledLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
+            @Override
+            public void onBrowserEvent(ConsoleAPICalledPayload event) {
+                Page page = (Page)this.getTarget();
+                page.onConsoleAPI(event);
+            }
+        };
+        consoleAPICalledLis.setMothod("Runtime.consoleAPICalled");
+        consoleAPICalledLis.setTarget(this);
+        this.client.on(consoleAPICalledLis.getMothod(),consoleAPICalledLis);
+
+        DefaultBrowserListener<BindingCalledPayload> bindingCalledLis = new DefaultBrowserListener<BindingCalledPayload>() {
+            @Override
+            public void onBrowserEvent(BindingCalledPayload event) {
+                Page page = (Page)this.getTarget();
+                page.onBindingCalled(event);
+            }
+        };
+        bindingCalledLis.setMothod("Runtime.bindingCalled");
+        bindingCalledLis.setTarget(this);
+        this.client.on(bindingCalledLis.getMothod(),bindingCalledLis);
+
+        DefaultBrowserListener<JavascriptDialogOpeningPayload> javascriptDialogOpeningLis = new DefaultBrowserListener<JavascriptDialogOpeningPayload>() {
+            @Override
+            public void onBrowserEvent(JavascriptDialogOpeningPayload event) {
+                Page page = (Page)this.getTarget();
+                page.onDialog(event);
+            }
+        };
+        javascriptDialogOpeningLis.setMothod("Page.javascriptDialogOpening");
+        javascriptDialogOpeningLis.setTarget(this);
+        this.client.on(javascriptDialogOpeningLis.getMothod(),javascriptDialogOpeningLis);
+
+        DefaultBrowserListener<JsonNode> exceptionThrownLis = new DefaultBrowserListener<JsonNode>() {
+            @Override
+            public void onBrowserEvent(JsonNode event) {
+                Page page = (Page)this.getTarget();
+                JsonNode exceptionDetails = event.get("exceptionDetails");
+                try {
+                    if (exceptionDetails == null) {
+                        return;
+                    }
+                    ExceptionDetails value = OBJECTMAPPER.treeToValue(exceptionDetails,ExceptionDetails.class);
+                    page.handleException(value);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+        exceptionThrownLis.setMothod("Runtime.exceptionThrown");
+        exceptionThrownLis.setTarget(this);
+        this.client.on(exceptionThrownLis.getMothod(),exceptionThrownLis);
+
+        DefaultBrowserListener<Object> targetCrashedLis = new DefaultBrowserListener<Object>() {
+            @Override
+            public void onBrowserEvent(Object event) {
+                Page page = (Page)this.getTarget();
+                page.onTargetCrashed();
+            }
+        };
+        targetCrashedLis.setMothod("Inspector.targetCrashed");
+        targetCrashedLis.setTarget(this);
+        this.client.on(targetCrashedLis.getMothod(),targetCrashedLis);
+
+        DefaultBrowserListener<MetricsPayload> metricsLis = new DefaultBrowserListener<MetricsPayload>() {
+            @Override
+            public void onBrowserEvent(MetricsPayload event) {
+                Page page = (Page)this.getTarget();
+                page.emitMetrics(event);
+            }
+        };
+        metricsLis.setMothod("Inspector.targetCrashed");
+        metricsLis.setTarget(this);
+        this.client.on(metricsLis.getMothod(),metricsLis);
+
+        DefaultBrowserListener<EntryAddedPayload> entryAddedLis = new DefaultBrowserListener<EntryAddedPayload>() {
+            @Override
+            public void onBrowserEvent(EntryAddedPayload event) {
+                Page page = (Page)this.getTarget();
+                page.onLogEntryAdded(event);
+            }
+        };
+        entryAddedLis.setMothod("Log.entryAdded");
+        entryAddedLis.setTarget(this);
+        this.client.on(entryAddedLis.getMothod(),entryAddedLis);
+
+        DefaultBrowserListener<FileChooserOpenedPayload> fileChooserOpenedLis = new DefaultBrowserListener<FileChooserOpenedPayload>() {
+            @Override
+            public void onBrowserEvent(FileChooserOpenedPayload event) {
+                Page page = (Page)this.getTarget();
+                page.onFileChooser(event);
+            }
+        };
+        fileChooserOpenedLis.setMothod("Page.fileChooserOpened");
+        fileChooserOpenedLis.setTarget(this);
+        this.client.on(fileChooserOpenedLis.getMothod(),fileChooserOpenedLis);
+
+    }
+
+    private void onFileChooser(FileChooserOpenedPayload event){
+
+    }
+    private void onLogEntryAdded(EntryAddedPayload event){}
+
+    private void emitMetrics(MetricsPayload event){
+
+    }
+    private void onTargetCrashed() {
+
     }
 
     public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport,TaskQueue screenshotTaskQueue){
@@ -174,6 +361,17 @@ public class Page extends EventEmitter {
         return page;
     }
 
+
+    private void onDialog(JavascriptDialogOpeningPayload event){
+
+    }
+    private void onConsoleAPI(ConsoleAPICalledPayload event){
+
+    }
+
+    private void onBindingCalled(BindingCalledPayload event){
+
+    }
     private void setViewport(Viewport viewport) {
 
     }
@@ -210,5 +408,13 @@ public class Page extends EventEmitter {
 
     public Map<String, Worker> getWorkers() {
         return workers;
+    }
+
+    public boolean getClosed() {
+        return closed;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
     }
 }

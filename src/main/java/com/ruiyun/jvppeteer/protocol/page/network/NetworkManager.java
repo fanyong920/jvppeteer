@@ -1,9 +1,10 @@
 package com.ruiyun.jvppeteer.protocol.page.network;
 
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
-public class NetworkManager {
+public class NetworkManager extends EventEmitter {
 
     /**
      * cdpsession

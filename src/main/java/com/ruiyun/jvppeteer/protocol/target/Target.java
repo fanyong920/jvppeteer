@@ -71,6 +71,10 @@ public class Target {
 		}
 	}
 
+	private void closedCallback(Page page){
+		page.emit(Events.PAGE_CLOSE.getName(),null);
+		page.setClosed(true);
+	}
 	public Page page(){
 		String type ;
 		if (("page".equals(type = this.targetInfo.getType()) || "background_page".equals(type)) && this.pagePromise == null) {
