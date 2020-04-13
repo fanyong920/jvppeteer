@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.page.frame;
 
+import com.ruiyun.jvppeteer.options.PageOptions;
+import com.ruiyun.jvppeteer.protocol.page.network.Response;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.List;
@@ -46,8 +48,10 @@ public class Frame {
      */
     private String unreachableUrl;
 
-    public Frame(FrameManager frameManager, CDPSession client, Frame parentFrame, String frameId) {
+    private FrameManager frameManager;
 
+    public Frame(FrameManager frameManager, CDPSession client, Frame parentFrame, String frameId) {
+        this.frameManager = frameManager;
     }
 
     public String getId() {
@@ -139,5 +143,9 @@ public class Frame {
     }
 
     public void onLoadingStopped() {
+    }
+
+    public Response go2(String url, PageOptions options) {
+       return this.frameManager.navigateFrame(this,url,options);
     }
 }

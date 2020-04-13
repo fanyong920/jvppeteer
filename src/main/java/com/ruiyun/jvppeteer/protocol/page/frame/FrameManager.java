@@ -3,10 +3,12 @@ package com.ruiyun.jvppeteer.protocol.page.frame;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.options.PageOptions;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContextDescription;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.network.NetworkManager;
+import com.ruiyun.jvppeteer.protocol.page.network.Response;
 import com.ruiyun.jvppeteer.protocol.page.payload.*;
 import com.ruiyun.jvppeteer.protocol.target.TimeoutSettings;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
@@ -174,7 +176,7 @@ public class FrameManager extends EventEmitter {
         if (frame == null)
             return;
         frame.onLoadingStopped();
-        this.emit(Events.FRAMEMANAGER_LIFECYCLEEVENT.getName(), frame);
+        this.emit(Events.FRAME_MANAGER_LIFECYCLE_EVENT.getName(), frame);
     }
 
     /**
@@ -196,8 +198,8 @@ public class FrameManager extends EventEmitter {
             return;
         }
         frame.navigatedWithinDocument(url);
-        this.emit(Events.FRAMEMANAGER_FRAMENAVIGATEDWITHINDOCUMENT.getName(), frame);
-        this.emit(Events.FRAMEMANAGER_FRAMENAVIGATED.getName(), frame);
+        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED_WITHIN_DOCUMENT.getName(), frame);
+        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName(), frame);
     }
 
 
@@ -216,7 +218,7 @@ public class FrameManager extends EventEmitter {
         Frame parentFrame = this.frames.get(parentFrameId);
         Frame frame = new Frame(this, this.client, parentFrame, frameId);
         this.frames.put(frame.getId(), frame);
-        this.emit(Events.FRAMEMANAGER_FRAMEATTACHED.getName(), frame);
+        this.emit(Events.FRAME_MANAGER_FRAME_ATTACHED.getName(), frame);
     }
 
     /**
@@ -253,7 +255,7 @@ public class FrameManager extends EventEmitter {
         // Update frame payload.
         frame.navigated(framePayload);
 
-        this.emit(Events.FRAMEMANAGER_FRAMENAVIGATED.getName(), frame);
+        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName(), frame);
     }
 
     /**
@@ -267,7 +269,7 @@ public class FrameManager extends EventEmitter {
         }
         childFrame.detach();
         this.frames.remove(childFrame);
-        this.emit(Events.FRAMEMANAGER_FRAMEDETACHED.getName(), childFrame);
+        this.emit(Events.FRAME_MANAGER_FRAME_DETACHED.getName(), childFrame);
     }
 
     public CDPSession getClient() {
@@ -300,5 +302,13 @@ public class FrameManager extends EventEmitter {
 
     public Frame getMainFrame() {
         return mainFrame;
+    }
+
+    public Frame mainFrame() {
+        return mainFrame;
+    }
+
+    public Response navigateFrame(Frame frame, String url, PageOptions options) {
+        return null;
     }
 }

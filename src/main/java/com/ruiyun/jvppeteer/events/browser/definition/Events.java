@@ -29,18 +29,18 @@ public enum Events {
     BROWSERCONTEXT_TARGETDESTROYED ("targetdestroyed"),
     BrowserContext_TargetChanged ("targetchanged"),
 
-    NETWORKMANAGER_REQUEST("Events.NetworkManager.Request"),
-    NETWORKMANAGER_RESPONSE("Events.NetworkManager.Response"),
-    NETWORKMANAGER_REQUESTFAILED("Events.NetworkManager.RequestFailed"),
-    NETWORKMANAGER_REQUESTFINISHED("Events.NetworkManager.RequestFinished"),
+    NETWORK_MANAGER_REQUEST("Events.NetworkManager.Request"),
+    NETWORK_MANAGER_RESPONSE("Events.NetworkManager.Response"),
+    NETWORK_MANAGER_REQUEST_FAILED("Events.NetworkManager.RequestFailed"),
+    NETWORK_MANAGER_REQUEST_FINISHED("Events.NetworkManager.RequestFinished"),
 
-    FRAMEMANAGER_FRAMEATTACHED("Events.FrameManager.FrameAttached"),
-    FRAMEMANAGER_FRAMENAVIGATED("Events.FrameManager.FrameNavigated"),
-    FRAMEMANAGER_FRAMEDETACHED("Events.FrameManager.FrameDetached"),
-    FRAMEMANAGER_LIFECYCLEEVENT("Events.FrameManager.LifecycleEvent"),
-    FRAMEMANAGER_FRAMENAVIGATEDWITHINDOCUMENT("Events.FrameManager.FrameNavigatedWithinDocument"),
-    FRAMEMANAGER_EXECUTIONCONTEXTCREATED("Events.FrameManager.ExecutionContextCreated"),
-    FRAMEMANAGER_EXECUTIONCONTEXTDESTROYED("Events.FrameManager.ExecutionContextDestroyed"),
+    FRAME_MANAGER_FRAME_ATTACHED("Events.FrameManager.FrameAttached"),
+    FRAME_MANAGER_FRAME_NAVIGATED("Events.FrameManager.FrameNavigated"),
+    FRAME_MANAGER_FRAME_DETACHED("Events.FrameManager.FrameDetached"),
+    FRAME_MANAGER_LIFECYCLE_EVENT("Events.FrameManager.LifecycleEvent"),
+    FRAME_MANAGER_FRAME_NAVIGATED_WITHIN_DOCUMENT("Events.FrameManager.FrameNavigatedWithinDocument"),
+    FRAME_MANAGER_EXECUTION_CONTEXTCREATED("Events.FrameManager.ExecutionContextCreated"),
+    FRAME_MANAGER_EXECUTION_CONTEXTDESTROYED("Events.FrameManager.ExecutionContextDestroyed"),
 
     CONNECTION_DISCONNECTED("Events.Connection.Disconnected"),
     CDPSESSION_DISCONNECTED("Events.CDPSession.Disconnected");
@@ -48,6 +48,7 @@ public enum Events {
     private String name;
 
     Events(String name) {
+        this.name = name;
     }
 
     public String getName() {

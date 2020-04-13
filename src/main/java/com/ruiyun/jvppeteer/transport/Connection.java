@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  * @author fff
  *
  */
-public class Connection extends EventEmitter implements Constant,Consumer<String>{
+public class Connection extends EventEmitter implements Consumer<String>{
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 	
@@ -72,7 +72,7 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 		this.port = Integer.parseInt(url.substring(start + 1 ,end));
 	}
 	
-	public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
+	public JsonNode send(String method,Map<String, Object> params,boolean isLock)  {
 		SendMsg  message = new SendMsg();
 		message.setMethod(method);
 		message.setParams(params);
@@ -80,12 +80,12 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 			long id = rawSend(message);
 			if(id >= 0){
 				callbacks.putIfAbsent(id, message);
-				if(isWait){
+				if(isLock){
 					CountDownLatch latch = new CountDownLatch(1);
 					message.setCountDownLatch(latch);
-					boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+					boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
 					if(!hasResult){
-						throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+						throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 					}
 				}
 				return callbacks.remove(id).getResult();
@@ -100,7 +100,7 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 		long id = adder.incrementAndGet();
 		message.setId(id);
 		try {
-			String sendMsg = OBJECTMAPPER.writeValueAsString(message);
+			String sendMsg = Constant.OBJECTMAPPER.writeValueAsString(message);
 			if(LOGGER.isDebugEnabled())
 				LOGGER.debug("SEND -> "+sendMsg);
 			System.out.println("SEND -> "+sendMsg);
@@ -127,21 +127,21 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 		System.out.println("<- RECV "+message);
 		try {
 			if(StringUtil.isNotEmpty(message)) {
-				JsonNode readTree = OBJECTMAPPER.readTree(message);
-				JsonNode methodNode = readTree.get(RECV_MESSAGE_METHOD_PROPERTY);
+				JsonNode readTree = Constant.OBJECTMAPPER.readTree(message);
+				JsonNode methodNode = readTree.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
 				String method = null;
 				if(methodNode != null){
 					method = methodNode.asText();
 				}
 				if("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
-					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
-					JsonNode sessionId = paramsNode.get(RECV_MESSAGE_SESSION_ID_PROPERTY);
-					JsonNode typeNode = paramsNode.get(RECV_MESSAGE_TARGETINFO_PROPERTY).get(RECV_MESSAGE_TYPE_PROPERTY);
+					JsonNode paramsNode = readTree.get(Constant.RECV_MESSAGE_PARAMS_PROPERTY);
+					JsonNode sessionId = paramsNode.get(Constant.RECV_MESSAGE_SESSION_ID_PROPERTY);
+					JsonNode typeNode = paramsNode.get(Constant.RECV_MESSAGE_TARGETINFO_PROPERTY).get(Constant.RECV_MESSAGE_TYPE_PROPERTY);
 					CDPSession cdpSession = new CDPSession(this,typeNode.asText(), sessionId.asText());
 					sessions.put(sessionId.asText(), cdpSession);
 				}else if("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
-					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
-					JsonNode sessionId = paramsNode.get(RECV_MESSAGE_SESSION_ID_PROPERTY);
+					JsonNode paramsNode = readTree.get(Constant.RECV_MESSAGE_PARAMS_PROPERTY);
+					JsonNode sessionId = paramsNode.get(Constant.RECV_MESSAGE_SESSION_ID_PROPERTY);
 					String sessionIdString = sessionId.asText();
 					CDPSession cdpSession = sessions.get(sessionIdString);
 					if(cdpSession != null){
@@ -149,8 +149,8 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 						sessions.remove(sessionIdString);
 					}
 				}
-				JsonNode objectSessionId = readTree.get(RECV_MESSAGE_SESSION_ID_PROPERTY);
-				JsonNode objectId = readTree.get(RECV_MESSAGE_ID_PROPERTY);
+				JsonNode objectSessionId = readTree.get(Constant.RECV_MESSAGE_SESSION_ID_PROPERTY);
+				JsonNode objectId = readTree.get(Constant.RECV_MESSAGE_ID_PROPERTY);
 				if(objectSessionId != null) {//cdpsession消息，当然cdpsession来处理
 					String objectSessionIdString = objectSessionId.asText();
 					CDPSession cdpSession = this.sessions.get(objectSessionIdString);
@@ -159,21 +159,21 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 					}
 				}else if(objectId != null) {//long类型的id,说明属于这次发送消息后接受的回应
 					SendMsg sendMsg = this.callbacks.get(objectId.asLong());
-					JsonNode error = readTree.get(RECV_MESSAGE_ERROR_PROPERTY);
+					JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
 					if(error != null){
 						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
 							sendMsg.getCountDownLatch().countDown();
 						}
 						throw new ProtocolException(Helper.createProtocolError(readTree));
 					}else{
-						JsonNode result = readTree.get(RECV_MESSAGE_RESULT_PROPERTY);
+						JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
 						sendMsg.setResult(result);
 						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
 							sendMsg.getCountDownLatch().countDown();
 						}
 					}
 				}else{//是我们监听的事件，把它事件
-					JsonNode paramsNode = readTree.get(RECV_MESSAGE_PARAMS_PROPERTY);
+					JsonNode paramsNode = readTree.get(Constant.RECV_MESSAGE_PARAMS_PROPERTY);
 					this.emit(method,paramsNode);
 				}
 			}
@@ -211,10 +211,8 @@ public class Connection extends EventEmitter implements Constant,Consumer<String
 		Map<String, Object> params = new HashMap<>();
 		params.put("targetId",targetInfo.getTargetId());
 		params.put("flatten",true);
-		this.send("Target.attachToTarget", params,false);
-
-		//TODO 监听
-		return this.sessions.get("");
+		JsonNode result = this.send("Target.attachToTarget", params, true);
+		return this.sessions.get(result.get(Constant.RECV_MESSAGE_SESSION_ID_PROPERTY).asText());
 	}
 
 

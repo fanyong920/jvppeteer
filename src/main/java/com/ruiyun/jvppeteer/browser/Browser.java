@@ -161,7 +161,7 @@ public class Browser implements Constant {
 		defaultBrowserListener.setTarget(browser);
 		defaultBrowserListener.setMothod("Target.targetCreated");
 		defaultBrowserListener.setResolveType(Target.class);
-		browser.getConnection().emit(defaultBrowserListener.getMothod(),defaultBrowserListener);
+		browser.getConnection().on(defaultBrowserListener.getMothod(),defaultBrowserListener);
 	}
 
 	/**

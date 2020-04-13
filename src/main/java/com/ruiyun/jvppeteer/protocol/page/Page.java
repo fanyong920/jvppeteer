@@ -1,10 +1,13 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.EmulationManager;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.options.PageOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;
 import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
@@ -36,28 +39,37 @@ public class Page extends EventEmitter {
 
     private boolean closed = true;
 
+    @JsonIgnore
     private CDPSession client;
 
     private Target target;
 
+    @JsonIgnore
     private Keyboard keyboard;
 
+    @JsonIgnore
     private Mouse mouse;
 
     private TimeoutSettings timeoutSettings;
 
+    @JsonIgnore
     private Touchscreen touchscreen;
 
+    @JsonIgnore
     private Accessibility accessibility;
 
+    @JsonIgnore
     private FrameManager frameManager;
 
+    @JsonIgnore
     private EmulationManager emulationManager;
 
+    @JsonIgnore
     private Tracing tracing;
 
     private Map<String, Function> pageBindings;
 
+    @JsonIgnore
     private Coverage coverage;
 
     private  boolean javascriptEnabled;
@@ -68,10 +80,7 @@ public class Page extends EventEmitter {
 
     private Map<String, Worker> workers;
 
-
     public  static final String  ABOUT_BLANK = "about:blank".intern();
-
-
 
     public Page(CDPSession client, Target target, boolean ignoreHTTPSErrors, TaskQueue screenshotTaskQueue) {
         super();
@@ -142,8 +151,10 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_FRAMEATTACHED.getName(),event);
             }
         };
-        frameAttachedListener.setMothod(Events.FRAMEMANAGER_FRAMEATTACHED.getName());
+        System.out.println("Events.FRAMEMANAGER_FRAMEATTACHED.getName()"+Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
+        frameAttachedListener.setMothod(Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
         frameAttachedListener.setTarget(this);
+        System.out.println("frameAttachedListener.getMothod()="+frameAttachedListener.getMothod());
         this.frameManager.on(frameAttachedListener.getMothod(),frameAttachedListener);
 
         DefaultBrowserListener<Object> frameDetachedListener = new DefaultBrowserListener<Object>(){
@@ -153,7 +164,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_FRAMEDETACHED.getName(),event);
             }
         };
-        frameDetachedListener.setMothod(Events.FRAMEMANAGER_FRAMEDETACHED.getName());
+        frameDetachedListener.setMothod(Events.FRAME_MANAGER_FRAME_DETACHED.getName());
         frameDetachedListener.setTarget(this);
         this.frameManager.on(frameDetachedListener.getMothod(),frameDetachedListener);
 
@@ -164,7 +175,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_FRAMENAVIGATED.getName(),event);
             }
         };
-        frameNavigatedListener.setMothod(Events.FRAMEMANAGER_FRAMENAVIGATED.getName());
+        frameNavigatedListener.setMothod(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName());
         frameNavigatedListener.setTarget(this);
         this.frameManager.on(frameNavigatedListener.getMothod(),frameNavigatedListener);
 
@@ -177,7 +188,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_REQUEST.getName(),event);
             }
         };
-        requestLis.setMothod(Events.NETWORKMANAGER_REQUEST.getName());
+        requestLis.setMothod(Events.NETWORK_MANAGER_REQUEST.getName());
         requestLis.setTarget(this);
         networkManager.on(requestLis.getMothod(),requestLis);
 
@@ -188,7 +199,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_RESPONSE.getName(),event);
             }
         };
-        responseLis.setMothod(Events.NETWORKMANAGER_RESPONSE.getName());
+        responseLis.setMothod(Events.NETWORK_MANAGER_RESPONSE.getName());
         responseLis.setTarget(this);
         networkManager.on(responseLis.getMothod(),responseLis);
 
@@ -199,7 +210,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_REQUESTFAILED.getName(),event);
             }
         };
-        requestFailedLis.setMothod(Events.NETWORKMANAGER_REQUESTFAILED.getName());
+        requestFailedLis.setMothod(Events.NETWORK_MANAGER_REQUEST_FAILED.getName());
         requestFailedLis.setTarget(this);
         networkManager.on(requestFailedLis.getMothod(),requestFailedLis);
 
@@ -210,7 +221,7 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_REQUESTFINISHED.getName(),event);
             }
         };
-        requestFinishedLis.setMothod(Events.NETWORKMANAGER_REQUESTFINISHED.getName());
+        requestFinishedLis.setMothod(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName());
         requestFinishedLis.setTarget(this);
         networkManager.on(requestFinishedLis.getMothod(),requestFinishedLis);
 
@@ -281,7 +292,7 @@ public class Page extends EventEmitter {
                     if (exceptionDetails == null) {
                         return;
                     }
-                    ExceptionDetails value = OBJECTMAPPER.treeToValue(exceptionDetails,ExceptionDetails.class);
+                    ExceptionDetails value = Constant.OBJECTMAPPER.treeToValue(exceptionDetails,ExceptionDetails.class);
                     page.handleException(value);
 
                 } catch (IOException e) {
@@ -396,6 +407,23 @@ public class Page extends EventEmitter {
     private void handleException(ExceptionDetails exceptionDetails) {
         String  message = Helper.getExceptionMessage(exceptionDetails);
 
+    }
+
+    /**
+     * 本来是要使用goto作为方法名的，但是goto是Java的关键字，所以改成了go2。
+     * 跳转到具体页面
+     * 以下情况此方法将报错：
+     *
+     * 发生了 SSL 错误 (比如有些自签名的https证书).
+     * 目标地址无效
+     * 超时
+     * 主页面不能加载
+     * the main resource failed to load.
+     * @param url 要跳转的地址
+     * @return Response
+     */
+    public Response go2(String url, PageOptions options) {
+        return  this.frameManager.mainFrame().go2(url, options);
     }
 
     public CDPSession getClient() {

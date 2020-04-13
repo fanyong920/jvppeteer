@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.events;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
@@ -22,13 +23,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 事件发布，事件监听，模仿nodejs的EventEmitter
  */
-public class EventEmitter implements Event, Constant {
+public class EventEmitter implements Event {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventEmitter.class);
 
+    @JsonIgnore
     private Map<String,Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
 
+    @JsonIgnore
     private AtomicInteger listenerCount = new AtomicInteger(0);
+
     @Override
     public Event addListener(String method, BrowserListener<?> listener, boolean isOnce) {
         DefaultBrowserListener defaultBrowserListener = (DefaultBrowserListener)listener;
@@ -106,7 +110,7 @@ public class EventEmitter implements Event, Constant {
                     event = null;
                 }
 
-                executor.execute(() -> invokeListener(listener, event));
+                Constant.executor.execute(() -> invokeListener(listener, event));
             } catch (IOException e) {
                 LOGGER.error("publish event error:", e);
                 return false;
@@ -155,7 +159,7 @@ public class EventEmitter implements Event, Constant {
         if(JsonNode.class.isAssignableFrom(clazz)){
             return (T)jsonNode;
         }
-        return OBJECTMAPPER.treeToValue(jsonNode,clazz);
+        return Constant.OBJECTMAPPER.treeToValue(jsonNode,clazz);
     }
 
     public int getListenerCount(String mothod){
