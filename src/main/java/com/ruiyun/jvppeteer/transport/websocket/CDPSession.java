@@ -54,7 +54,7 @@ public class CDPSession extends EventEmitter implements Constant {
      * @param params 参数
      * @return result
      */
-    public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
+    public JsonNode send(String method,Map<String, Object> params,boolean isLock,CountDownLatch outLatch,int timeout)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
@@ -63,7 +63,42 @@ public class CDPSession extends EventEmitter implements Constant {
         message.setParams(params);
         message.setSessionId(this.sessionId);
         try {
-            if(isWait){
+            if(isLock){
+                if(outLatch != null){
+                    message.setCountDownLatch(outLatch);
+                }else {
+                    CountDownLatch latch = new CountDownLatch(1);
+                    message.setCountDownLatch(latch);
+                }
+            }
+            long id = this.connection.rawSend(message);
+            this.callbacks.putIfAbsent(id,message);
+            boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+            if(!hasResult){
+                throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+            }
+            return callbacks.remove(id).getResult();
+        } catch (InterruptedException e) {
+            LOGGER.error("wait message result is interrupted:",e);
+        }
+        return null;
+    }
+    /**
+     * cdpsession send message
+     * @param method 方法
+     * @param params 参数
+     * @return result
+     */
+    public JsonNode send(String method,Map<String, Object> params,boolean isLock)  {
+        if(connection == null){
+            throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
+        }
+        SendMsg  message = new SendMsg();
+        message.setMethod(method);
+        message.setParams(params);
+        message.setSessionId(this.sessionId);
+        try {
+            if(isLock){
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
             }

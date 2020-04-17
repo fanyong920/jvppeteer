@@ -17,7 +17,7 @@ public class ValidateUtil {
 
 	public static final void notNull(Object object, String message) {
 		if (object == null) {
-			throw new IllegalArgumentException(message);
+			throw new NullPointerException(message);
 		}
 	}
 

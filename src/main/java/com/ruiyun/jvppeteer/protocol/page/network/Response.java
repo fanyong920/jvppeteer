@@ -1,100 +1,133 @@
 package com.ruiyun.jvppeteer.protocol.page.network;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.protocol.page.frame.Request;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import sun.misc.BASE64Decoder;
+
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
-/**
- * HTTP response data.
- */
 public class Response {
 
-    /**
-     * Response URL. This URL can be different from CachedResource.url in case of redirect.
-     */
-    private String url;
-    /**
-     * HTTP response status code.
-     */
+    private CDPSession client;
+
+    private Request request;
+
+    private Response response;
+
+    private byte[] contentPromise;
+
+    private RemoteAddress remoteAddress;
+
     private int status;
-    /**
-     * HTTP response status text.
-     */
+
     private String statusText;
-    /**
-     * HTTP response headers.
-     */
-    private Map<String, Object> headers;
-    /**
-     * HTTP response headers text.
-     */
-    private String headersText;
-    /**
-     * Resource mimeType as determined by the browser.
-     */
-    private String mimeType;
-    /**
-     * Refined HTTP request headers that were actually transmitted over the network.
-     */
-    private Map<String, Object> requestHeaders;
-    /**
-     * HTTP request headers text.
-     */
-    private String requestHeadersText;
-    /**
-     * Specifies whether physical connection was actually reused for this request.
-     */
-    private boolean connectionReused;
-    /**
-     * Physical connection id that was actually used for this request.
-     */
-    private int connectionId;
-    /**
-     * Remote IP address.
-     */
-    private String remoteIPAddress;
-    /**
-     * Remote port.
-     */
-    private int remotePort;
-    /**
-     * Specifies that the request was served from the disk cache.
-     */
+
+    private String url;
+
     private boolean fromDiskCache;
-    /**
-     * Specifies that the request was served from the ServiceWorker.
-     */
+
     private boolean fromServiceWorker;
-    /**
-     * Specifies that the request was served from the prefetch cache.
-     */
-    private boolean fromPrefetchCache;
-    /**
-     * Total number of bytes received for this request so far.
-     */
-    private int encodedDataLength;
-    /**
-     * Timing information for the given request.
-     */
-    private ResourceTiming timing;
-    /**
-     * Protocol used to fetch this request.
-     */
-    private String protocol;
-    /**
-     * Security state of the request resource.
-     * "unknown"|"neutral"|"insecure"|"secure"|"info"|"insecure-broken"
-     */
-    private String securityState;
-    /**
-     * Security details for the request.
-     */
+
+    private Map<String,Object> headers;
+
     private SecurityDetails securityDetails;
 
-    public String getUrl() {
-        return url;
+    private byte[] bodyLoadedPromise;
+    public Response() {
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public Response(CDPSession client, Request request, ResponsePayload responsePayload) {
+        this.client = client;
+        this.request = request;
+        this.response = response;
+        this.contentPromise = null;
+
+        this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(),responsePayload.getRemotePort());
+        this.status = responsePayload.getStatus();
+        this.statusText = responsePayload.getStatusText();
+        this.url = request.getUrl();
+        this.fromDiskCache = responsePayload.getFromDiskCache();
+        this.fromServiceWorker = responsePayload.getFromServiceWorker();
+        this.headers = new HashMap<>();
+
+        Map<String, Object> headers = responsePayload.getHeaders();
+        if(headers != null && headers.size() > 0){
+            for(Map.Entry<String,Object> entry : headers.entrySet()){
+                this.headers.put(entry.getKey().toLowerCase(),entry.getValue());
+            }
+        }
+        this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()): null;
+    }
+
+    public void bodyLoadedPromiseFulfill(Exception e){
+
+    }
+
+    public boolean ok() {
+        return this.status == 0 || (this.status >= 200 && this.status <= 299);
+    }
+    public byte[] buffer() throws IOException {
+        if (this.contentPromise == null) {
+            synchronized (contentPromise){
+                if(this.contentPromise == null){
+                    Map<String,Object> params = new HashMap<>();
+                    params.put("requestId",this.request.getRequestId());
+                    JsonNode response =  this.client.send("Network.getResponseBody",params,true);
+                    BASE64Decoder decoder = new BASE64Decoder();
+                    JsonNode charsetNode = response.get("base64Encoded") ;
+                    if(charsetNode != null ) {
+                        this.contentPromise = this.bodyLoadedPromise = decoder.decodeBuffer(response.get("data").toString());
+                    }else {
+                        this.contentPromise = this.bodyLoadedPromise = response.get("data").toString().getBytes("utf-8");
+                    }
+                }
+            }
+
+        }
+        return this.contentPromise;
+    }
+
+    public CDPSession getClient() {
+        return client;
+    }
+
+    public void setClient(CDPSession client) {
+        this.client = client;
+    }
+
+    public Request getRequest() {
+        return request;
+    }
+
+    public void setRequest(Request request) {
+        this.request = request;
+    }
+
+    public Response getResponse() {
+        return response;
+    }
+
+    public void setResponse(Response response) {
+        this.response = response;
+    }
+
+    public byte[] getContentPromise() {
+        return contentPromise;
+    }
+
+    public void setContentPromise(byte[] contentPromise) {
+        this.contentPromise = contentPromise;
+    }
+
+    public RemoteAddress getRemoteAddress() {
+        return remoteAddress;
+    }
+
+    public void setRemoteAddress(RemoteAddress remoteAddress) {
+        this.remoteAddress = remoteAddress;
     }
 
     public int getStatus() {
@@ -113,79 +146,15 @@ public class Response {
         this.statusText = statusText;
     }
 
-    public Map<String, Object> getHeaders() {
-        return headers;
+    public String getUrl() {
+        return url;
     }
 
-    public void setHeaders(Map<String, Object> headers) {
-        this.headers = headers;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
-    public String getHeadersText() {
-        return headersText;
-    }
-
-    public void setHeadersText(String headersText) {
-        this.headersText = headersText;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public Map<String, Object> getRequestHeaders() {
-        return requestHeaders;
-    }
-
-    public void setRequestHeaders(Map<String, Object> requestHeaders) {
-        this.requestHeaders = requestHeaders;
-    }
-
-    public String getRequestHeadersText() {
-        return requestHeadersText;
-    }
-
-    public void setRequestHeadersText(String requestHeadersText) {
-        this.requestHeadersText = requestHeadersText;
-    }
-
-    public boolean getConnectionReused() {
-        return connectionReused;
-    }
-
-    public void setConnectionReused(boolean connectionReused) {
-        this.connectionReused = connectionReused;
-    }
-
-    public int getConnectionId() {
-        return connectionId;
-    }
-
-    public void setConnectionId(int connectionId) {
-        this.connectionId = connectionId;
-    }
-
-    public String getRemoteIPAddress() {
-        return remoteIPAddress;
-    }
-
-    public void setRemoteIPAddress(String remoteIPAddress) {
-        this.remoteIPAddress = remoteIPAddress;
-    }
-
-    public int getRemotePort() {
-        return remotePort;
-    }
-
-    public void setRemotePort(int remotePort) {
-        this.remotePort = remotePort;
-    }
-
-    public boolean getFromDiskCache() {
+    public boolean getIsFromDiskCache() {
         return fromDiskCache;
     }
 
@@ -193,7 +162,7 @@ public class Response {
         this.fromDiskCache = fromDiskCache;
     }
 
-    public boolean getFromServiceWorker() {
+    public boolean getIsFromServiceWorker() {
         return fromServiceWorker;
     }
 
@@ -201,44 +170,12 @@ public class Response {
         this.fromServiceWorker = fromServiceWorker;
     }
 
-    public boolean getFromPrefetchCache() {
-        return fromPrefetchCache;
+    public Map<String, Object> getHeaders() {
+        return headers;
     }
 
-    public void setFromPrefetchCache(boolean fromPrefetchCache) {
-        this.fromPrefetchCache = fromPrefetchCache;
-    }
-
-    public int getEncodedDataLength() {
-        return encodedDataLength;
-    }
-
-    public void setEncodedDataLength(int encodedDataLength) {
-        this.encodedDataLength = encodedDataLength;
-    }
-
-    public ResourceTiming getTiming() {
-        return timing;
-    }
-
-    public void setTiming(ResourceTiming timing) {
-        this.timing = timing;
-    }
-
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public String getSecurityState() {
-        return securityState;
-    }
-
-    public void setSecurityState(String securityState) {
-        this.securityState = securityState;
+    public void setHeaders(Map<String, Object> headers) {
+        this.headers = headers;
     }
 
     public SecurityDetails getSecurityDetails() {

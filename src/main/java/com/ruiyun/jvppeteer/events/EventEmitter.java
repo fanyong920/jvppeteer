@@ -162,8 +162,16 @@ public class EventEmitter implements Event {
         return Constant.OBJECTMAPPER.treeToValue(jsonNode,clazz);
     }
 
-    public int getListenerCount(String mothod){
-        return this.listenerCount.get();
+    public int getListenerCount(String method){
+        Set<DefaultBrowserListener> defaultBrowserListeners = this.listenerMap.get(method);
+        int i = 0;
+        for (DefaultBrowserListener listener : defaultBrowserListeners) {
+            if(!listener.getIsAvaliable()){
+                continue;
+            }
+            i++;
+        }
+        return i;
     }
 
 

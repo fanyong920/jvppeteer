@@ -2,12 +2,17 @@ package com.ruiyun.jvppeteer.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -155,9 +160,9 @@ public class Helper implements Constant {
                 if(dataNode != null){
                     byte[] bytes;
                     if(base64EncodedNode != null){
-                        bytes = decoder.decodeBuffer(dataNode.asText());
+                        bytes = decoder.decodeBuffer(dataNode.toString());
                     }else {
-                        bytes = dataNode.asText().getBytes();
+                        bytes = dataNode.toString().getBytes();
                     }
                     writer.write(bytes);
                 }
@@ -177,5 +182,21 @@ public class Helper implements Constant {
 
     public static final Set<DefaultBrowserListener> getConcurrentSet() {
         return new CopyOnWriteArraySet<DefaultBrowserListener>();
+    }
+
+    public static final <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler){
+        emitter.on(eventName,handler);
+        return new BrowserListenerWrapper<T>(emitter,eventName,handler);
+    }
+
+    public static final void removeEventListeners(List<BrowserListenerWrapper> eventListeners) {
+       if(ValidateUtil.isEmpty(eventListeners)){
+           return;
+        }
+
+        for (int i = 0; i < eventListeners.size(); i++) {
+            BrowserListenerWrapper wrapper = eventListeners.get(i);
+            wrapper.getEmitter().removeListener(wrapper.getEventName(),wrapper.getHandler());
+        }
     }
 }

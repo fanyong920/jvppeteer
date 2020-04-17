@@ -393,10 +393,9 @@ public class Page extends EventEmitter {
         params.put("autoAttach",true);
         params.put("waitForDebuggerOnStart",false);
         params.put("flatten",true);
-        this.client.send("Target.setAutoAttach",params,true);
-        this.client.send("Target.setAutoAttach",params,true);
+        this.client.send("Target.setAutoAttach",params,false);
         params.clear();
-        this.client.send("Performance.enable",params,true);
+        this.client.send("Performance.enable",params,false);
         this.client.send("Log.enable",params,true);
     }
 
@@ -410,7 +409,7 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 本来是要使用goto作为方法名的，但是goto是Java的关键字，所以改成了go2。
+     * 本来是要使用goto作为方法名的，但是goto是Java的关键字，所以改成了goTo。
      * 跳转到具体页面
      * 以下情况此方法将报错：
      *
@@ -422,7 +421,7 @@ public class Page extends EventEmitter {
      * @param url 要跳转的地址
      * @return Response
      */
-    public Response go2(String url, PageOptions options) {
+    public Response goTo(String url, PageOptions options) {
         return  this.frameManager.mainFrame().go2(url, options);
     }
 

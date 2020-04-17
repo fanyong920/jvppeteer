@@ -1,11 +1,15 @@
 package com.ruiyun.jvppeteer.protocol.page.frame;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.exception.NavigateException;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.options.PageOptions;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContextDescription;
+import com.ruiyun.jvppeteer.protocol.page.LifecycleWatcher;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.network.NetworkManager;
 import com.ruiyun.jvppeteer.protocol.page.network.Response;
@@ -15,10 +19,8 @@ import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class FrameManager extends EventEmitter {
 
@@ -37,6 +39,17 @@ public class FrameManager extends EventEmitter {
     private Set<String> isolatedWorlds;
 
     private Frame mainFrame;
+
+    /**
+     * 给导航到新的网页用
+     */
+    private CountDownLatch latch;
+
+    /**
+     * 导航到新的网页的结果
+     * "success" "timeout" "termination"
+     */
+    private String navigateResult;
 
     public FrameManager(CDPSession client, Page page, boolean ignoreHTTPSErrors, TimeoutSettings timeoutSettings) {
         super();
@@ -308,7 +321,71 @@ public class FrameManager extends EventEmitter {
         return mainFrame;
     }
 
-    public Response navigateFrame(Frame frame, String url, PageOptions options) {
-        return null;
+    public Response navigateFrame(Frame frame, String url, PageOptions options) throws InterruptedException {
+        String referer = StringUtil.isEmpty(options.getReferer()) ? this.networkManager.extraHTTPHeaders().get("referer") : options.getReferer();
+        List<String> waitUntil = options.getWaitUntil();
+         if(ValidateUtil.isEmpty(waitUntil)) {
+             waitUntil = new ArrayList<String>();
+             waitUntil.add("load");
+         };
+        int timeout ;
+         if((timeout = options.getTimeout()) <= 0) {
+             timeout = this.timeoutSettings.navigationTimeout();
+         }
+
+        this.latch = new CountDownLatch(1);
+         LifecycleWatcher watcher = new LifecycleWatcher(this,frame,waitUntil,timeout);
+         boolean ensureNewDocumentNavigation = false;
+        ensureNewDocumentNavigation = navigate(this.client,url,referer,frame.getId(),timeout);
+
+         if("success".equals(navigateResult)){
+             watcher.dispose();
+             return watcher.navigationResponse();
+         }else if("timeout".equals(navigateResult)){
+             throw new TimeOutException("Navigation timeout of " + timeout + " ms exceeded");
+         }else if("termination".equals(navigateResult)){
+             throw new NavigateException("Navigating frame was detached");
+         }else {
+             throw new NavigateException("UnNokwn result "+navigateResult);
+         }
     }
+
+    private boolean navigate(CDPSession client, String url, String referer, String frameId,int timeout) {
+        Map<String,Object> params = new HashMap<>();
+        params.put("url",url);
+        params.put("referer",referer);
+        params.put("frameId",frameId);
+        try {
+            JsonNode response = client.send("Page.navigate", params, true, latch, timeout);
+            if(response != null && response.get("loaderId") != null){
+                return true;
+            }
+            if(response.get("errorText") != null){
+                throw new NavigateException(response.get("errorText").toString());
+            }
+        } catch (TimeOutException e) {
+            this.setNavigateResult("timeout");
+        }
+        this.setNavigateResult("success");
+        return false;
+    }
+
+
+    public CountDownLatch getLatch() {
+        return latch;
+    }
+
+    public void setLatch(CountDownLatch latch) {
+        this.latch = latch;
+    }
+
+    public String getNavigateResult() {
+        return navigateResult;
+    }
+
+    public void setNavigateResult(String navigateResult) {
+        this.navigateResult = navigateResult;
+    }
+
+
 }

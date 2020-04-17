@@ -26,4 +26,28 @@ public class PageOptions {
      * networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
      */
     private List<String> waitUntil;
+
+    public String getReferer() {
+        return referer;
+    }
+
+    public void setReferer(String referer) {
+        this.referer = referer;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public List<String> getWaitUntil() {
+        return waitUntil;
+    }
+
+    public void setWaitUntil(List<String> waitUntil) {
+        this.waitUntil = waitUntil;
+    }
 }
