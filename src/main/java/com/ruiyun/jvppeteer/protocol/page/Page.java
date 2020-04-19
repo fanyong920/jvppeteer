@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.EmulationManager;
@@ -151,10 +152,8 @@ public class Page extends EventEmitter {
                 page.emit(Events.PAGE_FRAMEATTACHED.getName(),event);
             }
         };
-        System.out.println("Events.FRAMEMANAGER_FRAMEATTACHED.getName()"+Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
         frameAttachedListener.setMothod(Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
         frameAttachedListener.setTarget(this);
-        System.out.println("frameAttachedListener.getMothod()="+frameAttachedListener.getMothod());
         this.frameManager.on(frameAttachedListener.getMothod(),frameAttachedListener);
 
         DefaultBrowserListener<Object> frameDetachedListener = new DefaultBrowserListener<Object>(){
@@ -365,7 +364,11 @@ public class Page extends EventEmitter {
 
     public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport,TaskQueue screenshotTaskQueue){
         Page page = new Page(client,target,ignoreHTTPSErrors,screenshotTaskQueue);
-        page.initialize();
+        try {
+            page.initialize();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Create new Page fail: ",e);
+        }
         if(viewport != null){
             page.setViewport(viewport);
         }
@@ -387,7 +390,7 @@ public class Page extends EventEmitter {
 
     }
 
-    public void initialize(){
+    public void initialize() throws JsonProcessingException {
         frameManager.initialize();
         Map<String,Object> params = new HashMap<>();
         params.put("autoAttach",true);
@@ -409,6 +412,14 @@ public class Page extends EventEmitter {
     }
 
     /**
+     * 获取该页面所有内容
+     * @return 页面内容字符串
+     */
+    public String content() {
+        return  this.frameManager.getMainFrame().content();
+    }
+
+    /**
      * 本来是要使用goto作为方法名的，但是goto是Java的关键字，所以改成了goTo。
      * 跳转到具体页面
      * 以下情况此方法将报错：
@@ -421,10 +432,13 @@ public class Page extends EventEmitter {
      * @param url 要跳转的地址
      * @return Response
      */
-    public Response goTo(String url, PageOptions options) {
-        return  this.frameManager.mainFrame().go2(url, options);
+    public Response goTo(String url, PageOptions options) throws InterruptedException {
+        return  this.frameManager.getMainFrame().goTo(url, options);
     }
 
+    public Response goTo(String url) throws InterruptedException {
+        return  this.frameManager.getMainFrame().goTo(url, null);
+    }
     public CDPSession getClient() {
         return client;
     }

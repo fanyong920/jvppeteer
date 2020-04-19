@@ -9,13 +9,13 @@ public class FrameNavigatedPayload {
     /**
      * Frame object.
      */
-    private Frame frame;
+    private FramePayload frame;
 
-    public Frame getFrame() {
+    public FramePayload getFrame() {
         return frame;
     }
 
-    public void setFrame(Frame frame) {
+    public void setFrame(FramePayload frame) {
         this.frame = frame;
     }
 }

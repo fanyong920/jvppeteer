@@ -2,8 +2,6 @@ package com.ruiyun.jvppeteer.protocol.page.payload;
 
 import com.ruiyun.jvppeteer.protocol.page.frame.Request;
 import com.ruiyun.jvppeteer.protocol.page.network.Initiator;
-import com.ruiyun.jvppeteer.protocol.page.network.Response;
-import jdk.management.resource.ResourceType;
 
 /**
  * Fired when page is about to send HTTP request.
@@ -41,7 +39,7 @@ public class RequestWillBeSentPayload {
     /**
      * Redirect response data.
      */
-    private Response redirectResponse;
+    private ResponsePayload redirectResponse;
     /**
      * Type of this resource.
      * "Document"|"Stylesheet"|"Image"|"Media"|"Font"|"Script"|"TextTrack"|"XHR"|"Fetch"|"EventSource"|"WebSocket"|"Manifest"|"SignedExchange"|"Ping"|"CSPViolationReport"|"Other";
@@ -112,11 +110,11 @@ public class RequestWillBeSentPayload {
         this.initiator = initiator;
     }
 
-    public Response getRedirectResponse() {
+    public ResponsePayload getRedirectResponse() {
         return redirectResponse;
     }
 
-    public void setRedirectResponse(Response redirectResponse) {
+    public void setRedirectResponse(ResponsePayload redirectResponse) {
         this.redirectResponse = redirectResponse;
     }
 

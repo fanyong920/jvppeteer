@@ -15,7 +15,7 @@ import com.ruiyun.jvppeteer.protocol.page.Page;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
-public class CreatNewPageTest {
+public class CreatNewPageExample {
 
     public static void main(String[] args) throws UnsupportedEncodingException, InterruptedException, JsonProcessingException {
 //        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"GBK");

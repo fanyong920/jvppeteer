@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.protocol.page.network;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.protocol.page.frame.Request;
+import com.ruiyun.jvppeteer.protocol.page.payload.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 

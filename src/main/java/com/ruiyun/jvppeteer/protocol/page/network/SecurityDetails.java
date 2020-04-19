@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.page.network;
 
+import com.ruiyun.jvppeteer.protocol.page.payload.SecurityDetailsPayload;
+
 public class SecurityDetails {
 
     private String subjectName;

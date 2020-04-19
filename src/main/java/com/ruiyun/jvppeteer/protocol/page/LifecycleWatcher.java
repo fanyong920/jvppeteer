@@ -49,6 +49,8 @@ public class LifecycleWatcher {
                 return "networkIdle";
             }else if("networkidle2".equals(value)){
                 return "networkAlmostIdle";
+            }else if("load".equals(value)){
+                return "load";
             }
             throw new IllegalArgumentException("Unknown value for options.waitUntil: "+value);
         } );

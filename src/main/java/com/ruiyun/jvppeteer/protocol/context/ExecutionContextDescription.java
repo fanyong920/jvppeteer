@@ -21,7 +21,7 @@ public class ExecutionContextDescription {
     /**
      * Embedder-specific auxiliary data.
      */
-    private Object auxData;
+    private AuxData auxData;
 
     public int getId() {
         return id;
@@ -47,11 +47,11 @@ public class ExecutionContextDescription {
         this.name = name;
     }
 
-    public Object getAuxData() {
+    public AuxData getAuxData() {
         return auxData;
     }
 
-    public void setAuxData(Object auxData) {
+    public void setAuxData(AuxData auxData) {
         this.auxData = auxData;
     }
 }

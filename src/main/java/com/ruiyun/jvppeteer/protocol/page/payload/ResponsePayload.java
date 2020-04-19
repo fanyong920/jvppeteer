@@ -1,4 +1,6 @@
-package com.ruiyun.jvppeteer.protocol.page.network;
+package com.ruiyun.jvppeteer.protocol.page.payload;
+
+import com.ruiyun.jvppeteer.protocol.page.network.ResourceTiming;
 
 import java.util.Map;
 
