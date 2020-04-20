@@ -1,7 +1,14 @@
 package com.ruiyun.jvppeteer.protocol.page.frame;
 
-import com.ruiyun.jvppeteer.options.PageOptions;
+import com.ruiyun.jvppeteer.options.ClickOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.ScriptTagOptions;
+import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
+import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
+import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
+import com.ruiyun.jvppeteer.protocol.js.JSHandle;
 import com.ruiyun.jvppeteer.protocol.page.network.Response;
 import com.ruiyun.jvppeteer.protocol.page.payload.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
@@ -69,10 +76,62 @@ public class Frame {
     public void navigatedWithinDocument(String url) {
     }
 
+    public Response waitForNavigation(PageNavigateOptions options){
+        return this.frameManager.waitForFrameNavigation(this,options);
+    }
+
+    public ExecutionContext executionContext(){
+        return this.mainWorld.executionContext();
+    }
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+        return this.mainWorld.evaluateHandle(pageFunction,type,args);
+    }
+
+    public Object evaluate(String pageFunction,PageEvaluateType type, Object... args) {
+        return this.mainWorld.evaluate(pageFunction, type,args);
+    }
+
+    public ElementHandle $(String selector) {
+        return this.mainWorld.$(selector);
+    }
+
+    public List<ElementHandle> $x(String expression) {
+        return this.mainWorld.$x(expression);
+    }
+
+    public Object  $eval(String selector,String pageFunction,PageEvaluateType type,Object... args) {
+        return this.mainWorld.$eval(selector,pageFunction,type,args);
+    }
+
+    public Object $$eval(String selector,String pageFunction,PageEvaluateType type,Object... args) {
+        return this.mainWorld.$$eval(selector, pageFunction,type,args);
+    }
+
+    public ElementHandle $$(String selector) {
+        return this.mainWorld.$$(selector);
+    }
+
+    public ElementHandle addScriptTag(ScriptTagOptions options) {
+        return this.mainWorld.addScriptTag(options);
+    }
+
+    public ElementHandle addStyleTag(StyleTagOptions options) {
+        return this.mainWorld.addStyleTag(options);
+    }
+
+    public void click(String selector, ClickOptions options) {
+         this.secondaryWorld.click(selector, options);
+    }
+
+    public void focus(String selector) {
+        this.secondaryWorld.focus(selector);
+    }
+
+    //TODO 还有很多方法要实现
     public void onLoadingStopped() {
     }
 
-    public Response goTo(String url, PageOptions options) throws InterruptedException {
+    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
        return this.frameManager.navigateFrame(this,url,options);
     }
 
@@ -94,6 +153,10 @@ public class Frame {
 
     public String content() {
         return this.secondaryWorld.content();
+    }
+
+    public void setContent(String html, PageNavigateOptions options) {
+         this.secondaryWorld.setContent(html, options);
     }
 
     public FrameManager getFrameManager() {
@@ -162,5 +225,8 @@ public class Frame {
 
     public void setChildFrames(Set<Frame> childFrames) {
         this.childFrames = childFrames;
+    }
+
+    public void onLifecycleEvent(String loaderId, String name) {
     }
 }

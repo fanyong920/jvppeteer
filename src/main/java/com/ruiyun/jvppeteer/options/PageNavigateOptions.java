@@ -3,10 +3,10 @@ package com.ruiyun.jvppeteer.options;
 import java.util.List;
 
 /**
- * 页面${@link com.ruiyun.jvppeteer.protocol.page.Page#go2}用到
+ * 页面${@link com.ruiyun.jvppeteer.protocol.page.Page#goTo}用到
  * 跳转到具体页面时可选择的参数
  */
-public class PageOptions {
+public class PageNavigateOptions {
 
     /**
      * Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
