@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 /**

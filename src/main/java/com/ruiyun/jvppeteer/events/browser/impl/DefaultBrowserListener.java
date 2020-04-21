@@ -1,14 +1,7 @@
 package com.ruiyun.jvppeteer.events.browser.impl;
 
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
 import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
-
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 
 
 public abstract class DefaultBrowserListener<T> implements BrowserListener<T> {
@@ -54,7 +47,7 @@ public abstract class DefaultBrowserListener<T> implements BrowserListener<T> {
 	}
 
 	public void setIsOnce(boolean isOnce) {
-		isOnce = isOnce;
+		this.isOnce = isOnce;
 	}
 
 	public Object getTarget() {

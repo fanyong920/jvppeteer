@@ -2,11 +2,7 @@ package com.ruiyun.jvppeteer.events.browser.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserEvent;
 import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
-import com.ruiyun.jvppeteer.transport.Connection;
-import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +33,7 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	@Override
 	public void publishEvent(String method, Object event) {
 		Set<DefaultBrowserListener> browserListeners = listenerMap.get(method);
-		synchronized (listenerMap){
+		synchronized (DefaultBrowserPublisher.class){
 			browserListeners = new LinkedHashSet(browserListeners);
 		}
 		for (DefaultBrowserListener listener : browserListeners) {
@@ -125,7 +121,7 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	private Set<DefaultBrowserListener> getConcurrentSet() {
-		return new CopyOnWriteArraySet<DefaultBrowserListener>();
+		return new CopyOnWriteArraySet<>();
 	}
 
 	/**

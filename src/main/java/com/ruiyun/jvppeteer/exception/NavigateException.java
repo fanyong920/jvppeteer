@@ -5,6 +5,8 @@ package com.ruiyun.jvppeteer.exception;
  */
 public class NavigateException extends RuntimeException {
 
+    private static final long serialVersionUID = -7452898441991494166L;
+
     public NavigateException() {
         super();
     }

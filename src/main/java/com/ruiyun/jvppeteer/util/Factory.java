@@ -14,7 +14,7 @@ public class Factory {
 
     private static final LoadingCache<String, Object> cache = CacheBuilder.newBuilder().maximumSize(100).build(new CacheLoader<String, Object>(){
         @Override
-        public Object load(String key) throws Exception {
+        public Object load(String key) {
             if(key.contains(DefaultBrowserPublisher.class.getSimpleName())){
                 DefaultBrowserPublisher publisher = new DefaultBrowserPublisher();
                 return publisher;

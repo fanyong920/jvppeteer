@@ -19,7 +19,7 @@ public class Mouse {
         this.keyboard = keyboard;
         this.x = 0;
         this.y = 0;
-        /** @type {'none'|'left'|'right'|'middle'} */
+        /* @type {'none'|'left'|'right'|'middle'} */
         this.button = "none";
     }
 }

@@ -142,7 +142,7 @@ public class ChatClient extends JFrame implements ActionListener {
         String location;
         if( args.length != 0 ) {
             location = args[ 0 ];
-            System.out.println( "Default server url specified: \'" + location + "\'" );
+            System.out.println("Default server url specified: '" + location + "\'" );
         } else {
             location = "ws://localhost:8887";
             System.out.println( "Default server url not specified: defaulting to \'" + location + "\'" );

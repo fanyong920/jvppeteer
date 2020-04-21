@@ -3,7 +3,6 @@ package com.ruiyun.jvppeteer.transport.websocket;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserEventPublisher;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeOutException;
@@ -23,7 +22,7 @@ public class CDPSession extends EventEmitter implements Constant {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
 
-    private Map<Long, SendMsg> callbacks = new HashMap<Long, SendMsg>();
+    private Map<Long, SendMsg> callbacks = new HashMap<>();
 
     private String targetType;
 
@@ -45,7 +44,7 @@ public class CDPSession extends EventEmitter implements Constant {
         connection = null;
         callbacks.clear();
         //TODO
-        connection.publishEvent(Events.CDPSESSION_DISCONNECTED.getName(),null);
+        connection.emit(Events.CDPSESSION_DISCONNECTED.getName(),null);
     }
 
     /**
@@ -127,7 +126,7 @@ public class CDPSession extends EventEmitter implements Constant {
         this.connection.send("Target.detachFromTarget",params,false);
     }
 
-    public void onMessage(JsonNode node) throws ExecutionException {
+    public void onMessage(JsonNode node) {
         JsonNode id = node.get(RECV_MESSAGE_ID_PROPERTY);
         if(id != null) {
             Long idLong = id.asLong();

@@ -132,6 +132,8 @@ public interface Constant {
 	 * 追踪信息的默认分类
 	 */
 	Set<String> DEFAULTCATEGORIES = new LinkedHashSet<String>(){
+		private static final long serialVersionUID = -5224857570151968464L;
+
 		{
 			add("-*");
 			add("devtools.timeline");

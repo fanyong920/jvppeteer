@@ -37,7 +37,7 @@ public class ParameterTest {
         String typeName = genericSuperclass1.getTypeName();
         ParameterizedType genericType =  (ParameterizedType)genericSuperclass1;
         Type[] actualTypeArguments = genericType.getActualTypeArguments();
-        System.out.println((Class)actualTypeArguments[0]);
+        System.out.println(actualTypeArguments[0]);
         System.out.println("typeName:"+typeName);
     }
 }

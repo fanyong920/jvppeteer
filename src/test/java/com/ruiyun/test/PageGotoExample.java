@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class PageGotoExample {
 
-    public static void main(String[] args) throws UnsupportedEncodingException, InterruptedException, JsonProcessingException {
+    public static void main(String[] args) throws InterruptedException {
 //        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"GBK");
         ArrayList<String> arrayList = new ArrayList<>();
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).build();

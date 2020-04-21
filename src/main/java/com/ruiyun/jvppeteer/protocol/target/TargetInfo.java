@@ -1,7 +1,5 @@
 package com.ruiyun.jvppeteer.protocol.target;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public class TargetInfo {
 
 	private String targetId;

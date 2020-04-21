@@ -1,15 +1,12 @@
 package com.ruiyun.jvppeteer.transport;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import javax.websocket.Session;
-
 import com.ruiyun.jvppeteer.Constant;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
-import org.java_websocket.handshake.ServerHandshake;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public abstract class ConnectionTransport extends WebSocketClient implements Constant {
 

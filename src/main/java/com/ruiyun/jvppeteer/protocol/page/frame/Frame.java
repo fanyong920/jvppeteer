@@ -1,9 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.page.frame;
 
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.options.ScriptTagOptions;
-import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
@@ -42,6 +39,10 @@ public class Frame {
 
     private Set<Frame> childFrames;
 
+    private String name;
+
+    private String navigationURL;
+
     public Frame(FrameManager frameManager, CDPSession client, Frame parentFrame, String frameId) {
         this.frameManager = frameManager;
         this.client = client;
@@ -60,20 +61,22 @@ public class Frame {
 
 
 
-   public List<Frame> getChildFrames() {
-        return null;
+   public Set<Frame> getChildFrames() {
+        return this.childFrames;
     }
 
     public void detach() {
+        this.detached = true;
+        this.mainWorld.detach();
+        this.secondaryWorld.detach();
+        if (this.parentFrame != null)
+            this.parentFrame.childFrames.remove(this);
+        this.parentFrame = null;
     }
 
-    /**
-     * @param {!Protocol.Page.Frame} framePayload
-     */
-    public void navigated(FramePayload framePayload) {
-    }
 
     public void navigatedWithinDocument(String url) {
+        this.url = url;
     }
 
     public Response waitForNavigation(PageNavigateOptions options){
@@ -127,8 +130,82 @@ public class Frame {
         this.secondaryWorld.focus(selector);
     }
 
-    //TODO 还有很多方法要实现
+    public void hover(String selector) {
+         this.secondaryWorld.hover(selector);
+    }
+    public List<String> select(String selector, String... values){
+        return this.secondaryWorld.select(selector, values);
+    }
+
+    public void tap(String selector) {
+        this.secondaryWorld.tap(selector);
+    }
+
+    public void type(String selector, String text, int delay) {
+        this.mainWorld.type(selector, text, delay);
+    }
+
+    /**
+     *
+     * @param selectorOrFunctionOrTimeout 不能于nodejs保持一致，就加了个参数type
+     * @param type
+     * @return
+     */
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) {
+            String xPathPattern = "//";
+
+        if (type.equals(PageEvaluateType.STRING)) {
+      /** @type {string} */
+            String  string =selectorOrFunctionOrTimeout;
+            if (string.startsWith(xPathPattern))
+                return this.waitForXPath(string, options);
+            return this.waitForSelector(string, options);
+        }
+        if (type.equals(PageEvaluateType.NUMBER))//TODO
+//            return new Promise(fulfill => setTimeout(fulfill, /** @type {number} */ (selectorOrFunctionOrTimeout)));
+            return null;
+        if (type.equals(PageEvaluateType.FUNCTION))
+        return this.waitForFunction(selectorOrFunctionOrTimeout, options,args);
+         throw new RuntimeException("Unsupported target type: " + selectorOrFunctionOrTimeout);
+    }
+
+    public ElementHandle waitForSelector(String selector, WaitForOptions options) {
+        ElementHandle handle =  this.secondaryWorld.waitForSelector(selector, options);
+        if (handle == null)
+            return null;
+        ExecutionContext mainExecutionContext =  this.mainWorld.executionContext();
+        ElementHandle result =  mainExecutionContext.adoptElementHandle(handle);
+        handle.dispose();
+        return result;
+    }
+
+    private JSHandle waitForFunction(String pageFunction, WaitForOptions options, Object[] args) {
+        return this.mainWorld.waitForFunction(pageFunction, options, args);
+    }
+
+    public String title(){
+        return this.secondaryWorld.title();
+    }
+
+    public void navigated(FramePayload framePayload) {
+        this.name = framePayload.getName();
+        // TODO(lushnikov): remove this once requestInterception has loaderId exposed.
+        this.navigationURL = framePayload.getUrl();
+        this.url = framePayload.getUrl();
+    }
+    private JSHandle waitForXPath(String xpath, WaitForOptions options) {
+        ElementHandle handle =  this.secondaryWorld.waitForXPath(xpath, options);
+        if (handle == null)
+            return null;
+        ExecutionContext mainExecutionContext =  this.mainWorld.executionContext();
+        ElementHandle result =  mainExecutionContext.adoptElementHandle(handle);
+        handle.dispose();
+        return result;
+    }
+
     public void onLoadingStopped() {
+        this.lifecycleEvents.add("DOMContentLoaded");
+        this.lifecycleEvents.add("load");
     }
 
     public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
@@ -228,5 +305,10 @@ public class Frame {
     }
 
     public void onLifecycleEvent(String loaderId, String name) {
+        if("init".equals(name)){
+            this.loaderId = loaderId;
+            this.lifecycleEvents.clear();
+        }
+        this.lifecycleEvents.add(name);
     }
 }

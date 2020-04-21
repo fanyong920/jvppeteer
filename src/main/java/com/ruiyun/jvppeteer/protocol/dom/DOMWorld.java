@@ -1,9 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.dom;
 
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.options.ScriptTagOptions;
-import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
@@ -131,6 +128,38 @@ public class DOMWorld {
     }
 
     public void focus(String selector) {
+    }
+
+    public void hover(String selector) {
+    }
+
+    public List<String> select(String selector, String[] values) {
+        return null;
+    }
+
+    public void tap(String selector) {
+    }
+
+    public void type(String selector, String text, int delay) {
+    }
+
+    public ElementHandle waitForSelector(String selector, WaitForOptions options) {
+        return null;
+    }
+
+    public ElementHandle waitForXPath(String xpath, WaitForOptions options) {
+        return null;
+    }
+
+    public String title() {
+        return null;
+    }
+
+    public JSHandle waitForFunction(String pageFunction, WaitForOptions options, Object[] args) {
+        return null;
+    }
+
+    public void detach() {
     }
 
 

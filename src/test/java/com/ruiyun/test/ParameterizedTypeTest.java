@@ -2,7 +2,6 @@ package com.ruiyun.test;
 
 import org.junit.Test;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.function.Consumer;
 
 public class ParameterizedTypeTest {

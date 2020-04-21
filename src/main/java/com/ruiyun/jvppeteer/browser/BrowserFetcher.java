@@ -34,8 +34,12 @@ public class BrowserFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserFetcher.class);
 
     public static final Map<String, Map<String, String>> downloadURLs = new HashMap() {
+        private static final long serialVersionUID = -6918778699407093058L;
+
         {
             put("chrome", new HashMap<String, String>() {
+                private static final long serialVersionUID = 3441562966233820720L;
+
                 {
                     put("host", "https://storage.googleapis.com");
                     put("linux", "%s/chromium-browser-snapshots/Linux_x64/%s/%s.zip");
@@ -45,6 +49,8 @@ public class BrowserFetcher {
                 }
             });
             put("firefox", new HashMap<String, String>() {
+                private static final long serialVersionUID = 2053771138227029401L;
+
                 {
                     put("host", "https://github.com/puppeteer/juggler/releases");
                     put("linux", "%s/download/%s/%s.zip");
@@ -98,7 +104,7 @@ public class BrowserFetcher {
 	 * 检测对应的浏览器版本是否可以下载
 	 * @param revision 浏览器版本
 	 * @param proxy cant be null
-	 * @return
+	 * @return boolean
 	 */
     public boolean canDownload(String revision, Proxy proxy) {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
@@ -110,13 +116,13 @@ public class BrowserFetcher {
 	 * @param proxy 代理
 	 * @param url 请求的url
 	 * @param method 请求方法 get post head
-	 * @return
+	 * @return boolean
 	 */
     private boolean httpRequest(Proxy proxy, String url, String method) {
         HttpURLConnection conn = null;
         try {
             URL urlSend = new URL(url);
-            if (proxy == null) {
+            if (proxy != null) {
                 conn = (HttpURLConnection) urlSend.openConnection(proxy);
             } else {
                 conn = (HttpURLConnection) urlSend.openConnection();
@@ -146,9 +152,9 @@ public class BrowserFetcher {
 	 * 下载浏览器
 	 * @param revision 浏览器版本
 	 * @param progressCallback 下载回调
-	 * @return
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @return RevisionInfo
+	 * @throws IOException 异常
+	 * @throws InterruptedException 异常
 	 */
     public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
@@ -173,12 +179,12 @@ public class BrowserFetcher {
 
 	/**
 	 * 本地存在的浏览器版本
-	 * @return
-	 * @throws IOException
+	 * @return Set<String>
+	 * @throws IOException 异常
 	 */
 	public Set<String> localRevisions() throws IOException {
         if (!existsAsync(this.downloadsFolder))
-            return Collections.EMPTY_SET;
+            return new HashSet<>();
         Path path = Paths.get(this.downloadsFolder);
         Stream<Path> fileNames = this.readdirAsync(path);
         return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(entry -> entry.getRevision()).collect(Collectors.toSet());
@@ -186,8 +192,8 @@ public class BrowserFetcher {
 
 	/**
 	 * 删除指定版本的浏览器文件
-	 * @param revision
-	 * @throws IOException
+	 * @param revision 版本
+	 * @throws IOException 异常
 	 */
 	public void remove(String revision) throws IOException {
         String folderPath = this.getFolderPath(revision);
@@ -198,8 +204,8 @@ public class BrowserFetcher {
 	/**
 	 * 根据给定的浏览器产品以及文件夹解析浏览器版本和平台
 	 * @param product win linux mac
-	 * @param folderPath
-	 * @return
+	 * @param folderPath 文件夹路径
+	 * @return RevisionEntry RevisionEntry
 	 */
 	private RevisionEntry parseFolderPath(String product, Path folderPath) {
         Path fileName = folderPath.getFileName();
@@ -254,14 +260,13 @@ public class BrowserFetcher {
 
 	/**
 	 * 获取文件夹下所有项目，深度：一级
-	 * @param downloadsFolder
-	 * @return
-	 * @throws IOException
+	 * @param downloadsFolder 下载文件夹
+	 * @return Stream<Path> Stream<Path>
+	 * @throws IOException 异常
 	 */
 	private Stream<Path> readdirAsync(Path downloadsFolder) throws IOException {
         ValidateUtil.assertBoolean(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder.toString() + " is not Directory");
-        Stream<Path> fileNames = Files.list(downloadsFolder);
-        return fileNames;
+        return Files.list(downloadsFolder);
     }
 
 	/**
@@ -346,7 +351,7 @@ public class BrowserFetcher {
 			throw new RuntimeException("Could not find volume path in [" + stringWriter.toString() + "]");
 		}
 		Optional<Path> optionl = this.readdirAsync(Paths.get(mountPath)).filter(item -> item.toString().endsWith(".app")).findFirst();
-		if (optionl != null && optionl.isPresent()) {
+		if (optionl.isPresent()) {
 			try {
 				Path path = optionl.get();
 				String copyPath = path.toString();
@@ -441,11 +446,11 @@ public class BrowserFetcher {
         TarArchiveInputStream tarArchiveInputStream = null;
         try {
             tarArchiveInputStream = new TarArchiveInputStream(new FileInputStream(archivePath));
-            ArchiveEntry nextEntry = tarArchiveInputStream.getNextEntry();
-            String name = nextEntry.getName();
-            Path path = Paths.get(folderPath, name);
-            File file = path.toFile();
-            while (nextEntry != null) {
+            ArchiveEntry nextEntry ;
+            while ((nextEntry = tarArchiveInputStream.getNextEntry()) != null) {
+                String name = nextEntry.getName();
+                Path path = Paths.get(folderPath, name);
+                File file = path.toFile();
                 if (nextEntry.isDirectory()) {
                     file.mkdirs();
                 } else {
@@ -465,7 +470,6 @@ public class BrowserFetcher {
             StreamUtil.closeStream(wirter);
             StreamUtil.closeStream(reader);
             StreamUtil.closeStream(tarArchiveInputStream);
-
         }
     }
 
@@ -622,8 +626,7 @@ public class BrowserFetcher {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
         boolean local = this.existsAsync(folderPath);
         LOGGER.info("revision:{}，executablePath:{}，folderPath:{}，local:{}，url:{}，product:{}", revision, executablePath, folderPath, local, url, this.product);
-        RevisionInfo revisionInfo = new RevisionInfo(revision, executablePath, folderPath, local, url, this.product);
-        return revisionInfo;
+        return new RevisionInfo(revision, executablePath, folderPath, local, url, this.product);
     }
 
 	/**
@@ -672,8 +675,7 @@ public class BrowserFetcher {
 	 * @return
 	 */
     public String downloadURL(String product, String platform, String host, String revision) {
-        String url = String.format(downloadURLs.get(product).get(platform), host, revision, archiveName(product, platform, revision));
-        return url;
+        return String.format(downloadURLs.get(product).get(platform), host, revision, archiveName(product, platform, revision));
     }
 
     public String getDownloadHost() {

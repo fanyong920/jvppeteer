@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.protocol.context;
 
 
 import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
+import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.regex.Pattern;
@@ -24,5 +25,9 @@ public class ExecutionContext {
 
     public void setWorld(DOMWorld world) {
         this.world = world;
+    }
+
+    public ElementHandle adoptElementHandle(ElementHandle handle) {
+        return null;
     }
 }

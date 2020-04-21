@@ -13,7 +13,7 @@ public abstract class BrowserEvent extends EventObject {
 	
 	/**
 	 * 
-	 * @param source
+	 * @param source ÊÂ¼þÔ´
 	 */
 	public BrowserEvent(Object source) {
 		super(source);

@@ -150,20 +150,17 @@ public class HttpClienUtil implements Constant {
                     .build();
             httpget.setConfig(requestConfig);
             HttpHost httpHost = new HttpHost(host,port);
-            CloseableHttpResponse response = httpclient.execute(httpHost,httpget);
-            try {
-                StatusLine statusLine = response.getStatusLine();
-                if(200 == statusLine.getStatusCode()){
-                    return OBJECTMAPPER.readValue(EntityUtils.toString(response.getEntity()),clazz);
-                }
-                String message =
-                        MessageFormat.format(
-                                "Request {0} Unexpected response status:{1}",
-                                url, statusLine);
-                throw new ClientProtocolException(message);
-            } finally {
-                response.close();
+        try (org.apache.http.client.methods.CloseableHttpResponse response = httpclient.execute(httpHost, httpget)) {
+            org.apache.http.StatusLine statusLine = response.getStatusLine();
+            if (200 == statusLine.getStatusCode()) {
+                return OBJECTMAPPER.readValue(org.apache.http.util.EntityUtils.toString(response.getEntity()), clazz);
             }
+            String message =
+                    java.text.MessageFormat.format(
+                            "Request {0} Unexpected response status:{1}",
+                            url, statusLine);
+            throw new org.apache.http.client.ClientProtocolException(message);
+        }
     }
 
     public final static <T> T request(String url, TypeReference<T> valueTypeRef,String host,int port) throws IOException {
@@ -177,21 +174,18 @@ public class HttpClienUtil implements Constant {
                 .build();
         httpget.setConfig(requestConfig);
         HttpHost httpHost = new HttpHost(host,port);
-        CloseableHttpResponse response = httpclient.execute(httpHost,httpget);
-        try {
-            StatusLine statusLine = response.getStatusLine();
-            if(200 == statusLine.getStatusCode()){
-                String s = EntityUtils.toString(response.getEntity());
+        try (org.apache.http.client.methods.CloseableHttpResponse response = httpclient.execute(httpHost, httpget)) {
+            org.apache.http.StatusLine statusLine = response.getStatusLine();
+            if (200 == statusLine.getStatusCode()) {
+                String s = org.apache.http.util.EntityUtils.toString(response.getEntity());
                 System.out.println(s);
-                return OBJECTMAPPER.readValue(s,valueTypeRef);
+                return OBJECTMAPPER.readValue(s, valueTypeRef);
             }
             String message =
-                    MessageFormat.format(
+                    java.text.MessageFormat.format(
                             "Request {0} Unexpected response status:{1}",
                             url, statusLine);
-            throw new ClientProtocolException(message);
-        } finally {
-            response.close();
+            throw new org.apache.http.client.ClientProtocolException(message);
         }
     }
     //TypeReference valueTypeRef

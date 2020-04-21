@@ -9,9 +9,9 @@ import java.util.function.Consumer;
 
 public interface ApplicationListener extends EventListener {
 
-    Map<String, Set<Consumer<?>>> LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<?>>>();
+    Map<String, Set<Consumer<?>>> LISTENERS_MAP = new ConcurrentHashMap<>();
 
-    Map<String, Set<Consumer<?>>> ONCE_LISTNERS_MAP = new ConcurrentHashMap<String, Set<Consumer<?>>>();
+    Map<String, Set<Consumer<?>>> ONCE_LISTNERS_MAP = new ConcurrentHashMap<>();
 
     void on(String name, Consumer<?> function);
 

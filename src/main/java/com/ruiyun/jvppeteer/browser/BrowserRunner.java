@@ -1,33 +1,31 @@
 package com.ruiyun.jvppeteer.browser;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.ruiyun.jvppeteer.exception.LaunchException;
-import com.ruiyun.jvppeteer.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StreamUtil;
+import com.ruiyun.jvppeteer.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BrowserRunner implements AutoCloseable {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
 	
-	private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile( "^DevTools listening on (ws:\\/\\/.*)$");
+	private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile( "^DevTools listening on (ws://.*)$");
 
 	private String executablePath; 
 	
@@ -74,8 +72,7 @@ public class BrowserRunner implements AutoCloseable {
 		 arguments.add(executablePath);
 		 arguments.addAll(processArguments);
 		 ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
-		 /** connect by pipe  Ĭ�Ͼ���pipe�ܵ�����*/
-		 process = processBuilder.start();
+		process = processBuilder.start();
 		 this.closed = false;
 
 
@@ -99,14 +96,14 @@ public class BrowserRunner implements AutoCloseable {
 		 
 	}
 	
-	public void kill(){
+	public void kill() {
 		//kill chrome process
 		if(process != null && process.isAlive()){
+			process.destroyForcibly();
 			try {
-				process.destroyForcibly();
 				process.waitFor();
-			} catch (Exception e) {
-				
+			} catch (InterruptedException e) {
+
 			}
 		}
 		
@@ -116,16 +113,16 @@ public class BrowserRunner implements AutoCloseable {
 				FileUtil.removeFolder(tempDirectory);
 			}
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 		
 	}
 	
 	public Connection setUpConnection(boolean usePipe,int timeout,int slowMo,String preferredRevision) throws InterruptedException {
 		Connection connection = null;
-		if(usePipe) {/** pipe connection*/
+		if(usePipe) {/* pipe connection*/
 			
-		}else {/**websoket connection*/
+		}else {/*websoket connection*/
 			String waitForWSEndpoint = waitForWSEndpoint(timeout,preferredRevision);
 			WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
 			connection = new Connection(waitForWSEndpoint, transport , slowMo);
@@ -199,7 +196,7 @@ public class BrowserRunner implements AutoCloseable {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws InterruptedException {
 		for (int i = 0; i < runners.size(); i++) {
 			BrowserRunner browserRunner = runners.get(i);
 			if(browserRunner.getClosed()){

@@ -221,7 +221,7 @@ public class FrameManager extends EventEmitter {
         }
         if (contextPayload.getAuxData() != null && "isolated".equals(contextPayload.getAuxData().getType()))
             this.isolatedWorlds.add(contextPayload.getName());
-        /**  ${@link ExecutionContext} */
+        /*  ${@link ExecutionContext} */
         ExecutionContext context = new ExecutionContext(this.client, contextPayload, world);
         if (world != null)
             world.setContext(context);
@@ -267,7 +267,7 @@ public class FrameManager extends EventEmitter {
     public void initialize() throws JsonProcessingException {
 
         this.client.send("Page.enable", null, false);
-        /** @type Protocol.Page.getFrameTreeReturnValue*/
+        /* @type Protocol.Page.getFrameTreeReturnValue*/
         JsonNode result = this.client.send("Page.getFrameTree", null, true);
 
         FrameTree frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTree.class);
@@ -368,7 +368,7 @@ public class FrameManager extends EventEmitter {
 
     public Collection<Frame> frames() {
         if (this.frames.isEmpty()) {
-            return new ArrayList<Frame>();
+            return new ArrayList<>();
         }
         return new ArrayList<>(this.frames.values());
     }
@@ -420,13 +420,13 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options) throws InterruptedException {
+    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options) {
         String referer;
         List<String> waitUntil;
         int timeout;
         if (options == null) {
             referer = this.networkManager.extraHTTPHeaders().get("referer");
-            waitUntil = new ArrayList<String>();
+            waitUntil = new ArrayList<>();
             waitUntil.add("load");
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
@@ -434,14 +434,15 @@ public class FrameManager extends EventEmitter {
                 referer = this.networkManager.extraHTTPHeaders().get("referer");
             }
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
-                waitUntil = new ArrayList<String>();
+                waitUntil = new ArrayList<>();
                 waitUntil.add("load");
             }
             if ((timeout = options.getTimeout()) <= 0) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
+            assertNoLegacyNavigationOptions(options);
         }
-        assertNoLegacyNavigationOptions(options);
+
         this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
         boolean ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
@@ -512,7 +513,7 @@ public class FrameManager extends EventEmitter {
         int timeout;
         if (options == null) {
             referer = this.networkManager.extraHTTPHeaders().get("referer");
-            waitUntil = new ArrayList<String>();
+            waitUntil = new ArrayList<>();
             waitUntil.add("load");
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
@@ -520,14 +521,15 @@ public class FrameManager extends EventEmitter {
                 referer = this.networkManager.extraHTTPHeaders().get("referer");
             }
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
-                waitUntil = new ArrayList<String>();
+                waitUntil = new ArrayList<>();
                 waitUntil.add("load");
             }
             if ((timeout = options.getTimeout()) <= 0) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
+            assertNoLegacyNavigationOptions(options);
         }
-        assertNoLegacyNavigationOptions(options);
+
         this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
         try {

@@ -15,7 +15,7 @@ import java.util.zip.ZipFile;
 public class ZipTest {
 
     public static void main(String[] args) throws IOException {
-        extractZip(new String("F:\\Shadowsocks-4.1.7.1.zip"),"D:\\");
+        extractZip("F:\\Shadowsocks-4.1.7.1.zip","D:\\");
     }
     private static void extractZip(String archivePath, String folderPath) throws IOException {
         BufferedOutputStream wirter = null;

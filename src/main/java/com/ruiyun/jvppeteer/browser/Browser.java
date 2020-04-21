@@ -117,8 +117,6 @@ public class Browser implements Constant {
 	 * @param runner 浏览器启动类
 	 * @param timeout 启动超时时间
 	 * @return 浏览器
-	 * @throws InterruptedException 等待消息完成过程中可能被断而发生的异常
-	 * @throws ExecutionException 增加事件监听可能发生的异常
 	 */
 	public static Browser create(Connection connection,List<String> contextIds,boolean ignoreHTTPSErrors,Viewport viewport,BrowserRunner runner,int timeout) throws InterruptedException {
 		Browser browser = new Browser(connection,contextIds,ignoreHTTPSErrors,viewport,runner);

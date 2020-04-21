@@ -38,10 +38,7 @@ public class Helper implements Constant {
 
     public static final boolean isWin64(){
         String arch = System.getProperty("os.arch");
-        if(arch.contains("64")){
-            return true;
-        }
-        return false;
+        return arch.contains("64");
     }
 
     public static final String paltform(){
@@ -125,7 +122,7 @@ public class Helper implements Constant {
     }
 
     public static final String  join(String root,String...args){
-       return  Paths.get(root,args).toString().toString();
+       return java.nio.file.Paths.get(root,args).toString();
     }
 
     /**
@@ -181,12 +178,12 @@ public class Helper implements Constant {
     }
 
     public static final Set<DefaultBrowserListener> getConcurrentSet() {
-        return new CopyOnWriteArraySet<DefaultBrowserListener>();
+        return new CopyOnWriteArraySet<>();
     }
 
     public static final <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler){
         emitter.on(eventName,handler);
-        return new BrowserListenerWrapper<T>(emitter,eventName,handler);
+        return new BrowserListenerWrapper<>(emitter, eventName, handler);
     }
 
     public static final void removeEventListeners(List<BrowserListenerWrapper> eventListeners) {
@@ -198,5 +195,14 @@ public class Helper implements Constant {
             BrowserListenerWrapper wrapper = eventListeners.get(i);
             wrapper.getEmitter().removeListener(wrapper.getEventName(),wrapper.getHandler());
         }
+    }
+
+    public static final boolean isString(Object value) {
+        if( value == null)
+            return false;
+        if (value.getClass().equals(String.class)){
+            return true;
+        }
+        return false;
     }
 }

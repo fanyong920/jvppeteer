@@ -1,11 +1,8 @@
 package com.ruiyun.jvppeteer.transport.websocket;
 
-import javax.websocket.WebSocketContainer;
-
+import com.ruiyun.jvppeteer.Constant;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
-
-import com.ruiyun.jvppeteer.Constant;
 
 public class WebsocketContainerFactory implements Constant {
 

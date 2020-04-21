@@ -1,18 +1,14 @@
 package com.ruiyun.jvppeteer.transport;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import javax.websocket.Session;
-
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * websocket client 

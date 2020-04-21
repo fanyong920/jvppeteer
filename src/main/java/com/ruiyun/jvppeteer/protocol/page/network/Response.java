@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,7 +73,7 @@ public class Response {
     }
     public byte[] buffer() throws IOException {
         if (this.contentPromise == null) {
-            synchronized (contentPromise){
+            synchronized (Response.class){
                 if(this.contentPromise == null){
                     Map<String,Object> params = new HashMap<>();
                     params.put("requestId",this.request.getRequestId());
@@ -82,7 +83,7 @@ public class Response {
                     if(charsetNode != null ) {
                         this.contentPromise = this.bodyLoadedPromise = decoder.decodeBuffer(response.get("data").toString());
                     }else {
-                        this.contentPromise = this.bodyLoadedPromise = response.get("data").toString().getBytes("utf-8");
+                        this.contentPromise = this.bodyLoadedPromise = response.get("data").toString().getBytes(StandardCharsets.UTF_8);
                     }
                 }
             }

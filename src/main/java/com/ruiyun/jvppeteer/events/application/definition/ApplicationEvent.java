@@ -13,7 +13,7 @@ public abstract class ApplicationEvent extends EventObject {
 
 	/**
 	 *
-	 * @param source
+	 * @param source ÊÂ¼þÔ´
 	 */
 	public ApplicationEvent(Object source) {
 		super(source);

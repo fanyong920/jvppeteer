@@ -108,12 +108,12 @@ public class ClassTest {
             }
 
             @Override
-            public void serialize(JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            public void serialize(JsonGenerator jsonGenerator, SerializerProvider serializerProvider) {
 
             }
 
             @Override
-            public void serializeWithType(JsonGenerator jsonGenerator, SerializerProvider serializerProvider, TypeSerializer typeSerializer) throws IOException {
+            public void serializeWithType(JsonGenerator jsonGenerator, SerializerProvider serializerProvider, TypeSerializer typeSerializer) {
 
             }
         };
@@ -128,7 +128,7 @@ public class ClassTest {
         readJsonObject(jsonNode.getClass(),jsonNode);
     }
 
-    private static <T> T readJsonObject(Class<T> clazz, JsonNode jsonNode) throws IOException {
+    private static <T> T readJsonObject(Class<T> clazz, JsonNode jsonNode) {
         if (jsonNode == null) {
             throw new IllegalArgumentException(
                     "Failed converting null response to clazz " + clazz.getName());

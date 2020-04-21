@@ -2,6 +2,8 @@ package com.ruiyun.jvppeteer.exception;
 
 public class TerminateException extends RuntimeException {
 
+    private static final long serialVersionUID = -4407392184588405652L;
+
     public TerminateException() {
         super();
     }

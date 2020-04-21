@@ -8,15 +8,24 @@ import com.ruiyun.jvppeteer.EmulationManager;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.options.PageOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;
 import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
-import com.ruiyun.jvppeteer.protocol.page.frame.*;
+import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
+import com.ruiyun.jvppeteer.protocol.page.frame.Keyboard;
+import com.ruiyun.jvppeteer.protocol.page.frame.Mouse;
+import com.ruiyun.jvppeteer.protocol.page.frame.Request;
+import com.ruiyun.jvppeteer.protocol.page.frame.Touchscreen;
 import com.ruiyun.jvppeteer.protocol.page.network.NetworkManager;
 import com.ruiyun.jvppeteer.protocol.page.network.Response;
-import com.ruiyun.jvppeteer.protocol.page.payload.*;
+import com.ruiyun.jvppeteer.protocol.page.payload.BindingCalledPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.ConsoleAPICalledPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.EntryAddedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.JavascriptDialogOpeningPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.MetricsPayload;
 import com.ruiyun.jvppeteer.protocol.page.trace.Tracing;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
@@ -29,7 +38,11 @@ import com.ruiyun.jvppeteer.util.Helper;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 public class Page extends EventEmitter {
@@ -81,7 +94,7 @@ public class Page extends EventEmitter {
 
     private Map<String, Worker> workers;
 
-    public  static final String  ABOUT_BLANK = "about:blank".intern();
+    public  static final String  ABOUT_BLANK = "about:blank";
 
     public Page(CDPSession client, Target target, boolean ignoreHTTPSErrors, TaskQueue screenshotTaskQueue) {
         super();
@@ -111,8 +124,8 @@ public class Page extends EventEmitter {
                     if(!"worker".equals(event.getTargetInfo().getType())){
                         Map<String,Object> params= new HashMap<>();
                         params.put("sessionId",event.getSessionId());
-                        /**
-                         * If we don't detach from service workers, they will never die
+                        /*
+                          If we don't detach from service workers, they will never die
                          */
                         client.send("Target.detachFromTarget",params,false);
                         return;
@@ -432,7 +445,7 @@ public class Page extends EventEmitter {
      * @param url 要跳转的地址
      * @return Response
      */
-    public Response goTo(String url, PageOptions options) throws InterruptedException {
+    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
         return  this.frameManager.getMainFrame().goTo(url, options);
     }
 

@@ -3,15 +3,14 @@ package com.ruiyun.jvppeteer.protocol.page.trace;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserPublisher;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
-import com.ruiyun.jvppeteer.util.Factory;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * You can use [`tracing.start`](#tracingstartoptions) and [`tracing.stop`](#tracingstop) to create a trace file which can be opened in Chrome DevTools or [timeline viewer](https://chromedevtools.github.io/timeline-viewer/)
@@ -63,7 +62,7 @@ public class Tracing implements Constant {
     /**
      * stop tracing
      */
-    public void stop() throws ExecutionException {
+    public void stop() {
 //        this.client.once('Tracing.tracingComplete', event => {
 //                helper.readProtocolStream(this._client, event.stream, this._path).then(fulfill);
 //    });
@@ -74,7 +73,7 @@ public class Tracing implements Constant {
                 try {
                     tracing = (Tracing)this.getTarget();
                     Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY),tracing.getPath());
-                } catch (IOException e) {
+                } catch (IOException ignored) {
                 }
             }
         };

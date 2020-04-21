@@ -8,14 +8,25 @@ import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.protocol.page.frame.Frame;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.protocol.page.frame.Request;
-import com.ruiyun.jvppeteer.protocol.page.payload.*;
+import com.ruiyun.jvppeteer.protocol.page.payload.AuthRequiredPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.LoadingFailedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.LoadingFinishedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.RequestPausedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.RequestServedFromCachePayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.RequestWillBeSentPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.ResponsePayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.ResponseReceivedPayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.springframework.web.reactive.HandlerResultHandler;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class NetworkManager extends EventEmitter {
 
@@ -147,7 +158,7 @@ public class NetworkManager extends EventEmitter {
         this.extraHTTPHeaders = new HashMap<>();
         for(Map.Entry<String,Object> entry:extraHTTPHeaders.entrySet()){
 
-      Object value = entry.getValue();
+            Object value = entry.getValue();
             ValidateUtil.assertBoolean(Helper.isString(value), "Expected value of header "+entry.getKey()+" to be String, but "+value.getClass().getCanonicalName()+" is found.");
             this.extraHTTPHeaders.put(entry.getKey(),(String)value);
         }
@@ -203,7 +214,7 @@ public class NetworkManager extends EventEmitter {
     }
     private void updateProtocolCacheDisabled() {
         Map<String,Object> params = new HashMap<>();
-        boolean cacheDisabled = (this.userCacheDisabled || this.protocolRequestInterceptionEnabled) ? true : false;
+        boolean cacheDisabled = this.userCacheDisabled || this.protocolRequestInterceptionEnabled;
         params.put("cacheDisabled",cacheDisabled);
         this.client.send("Network.setCacheDisabled", params,false);
     }
@@ -222,7 +233,7 @@ public class NetworkManager extends EventEmitter {
             params.put("handleAuthRequests",true);
             List<String> patterns = new ArrayList<>();
             patterns.add("{urlPattern: \"*\"}");
-            params.put("patterns",params);
+            params.put("patterns",patterns);
             this.client.send("Fetch.enable", params,true);
         } else {
             this.updateProtocolCacheDisabled();
@@ -246,7 +257,7 @@ public class NetworkManager extends EventEmitter {
     }
 
     public void onAuthRequired(AuthRequiredPayload event) {
-        /** @type {"Default"|"CancelAuth"|"ProvideCredentials"} */
+        /* @type {"Default"|"CancelAuth"|"ProvideCredentials"} */
         String  response = "Default";
         if (this.attemptedAuthentications.contains(event.getRequestId())) {
             response = "CancelAuth";
