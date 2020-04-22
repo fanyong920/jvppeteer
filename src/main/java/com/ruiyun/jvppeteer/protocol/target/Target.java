@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.target;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserContext;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
@@ -11,7 +12,14 @@ import com.ruiyun.jvppeteer.protocol.promise.Promise;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public class Target {
+
+	private  Boolean initializedPromise;
+
+	private CountDownLatch initializedCountDown;
 
 	private TargetInfo targetInfo;
 
@@ -42,9 +50,6 @@ public class Target {
 	private boolean isInitialized;
 
 	@JsonIgnore
-	private Page page;
-
-	@JsonIgnore
 	private SessionFactory sessionFactory;
 
 	private String sessionId;
@@ -65,15 +70,17 @@ public class Target {
 		this.workerPromise = null;
         //TODO isClosedPromise
 
-		isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
+		this.isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
 		if(isInitialized){//初始化
-            this.initializedCallback(true);
+			this.initializedPromise = this.initializedCallback(true);
 		}
 	}
 
-	private void closedCallback(Page page){
-		page.emit(Events.PAGE_CLOSE.getName(),null);
-		page.setClosed(true);
+	public void closedCallback(){
+		if(pagePromise != null){
+			this.pagePromise.emit(Events.PAGE_CLOSE.getName(),null);
+			this.pagePromise.setClosed(true);
+		}
 	}
 	public Page page(){
 		String type ;
@@ -94,22 +101,44 @@ public class Target {
 	}
 
 	public boolean initializedCallback(boolean success){
-		if(!success){
-			return false;
-		}
-		Target opener = this.opener();
-		if(opener == null || opener.getPagePromise() == null || "page".equals(this.type())){
+		try {
+			if(!success){
+				initializedPromise = false;
+				return false;
+			}
+			Target opener = this.opener();
+			if(opener == null || opener.getPagePromise() == null || "page".equals(this.type())){
+				initializedPromise = true;
+				return true;
+			}
+			Page openerPage = opener.getPagePromise();
+			if(openerPage.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
+				initializedPromise = true;
+				return true;
+			}
+			Page pupopPage = this.page();
+			pupopPage.emit(Events.PAGE_POPUP.getName(),pupopPage);
+			initializedPromise = true;
 			return true;
+		} finally {
+			if(initializedCountDown != null && initializedCountDown.getCount() > 0){
+				initializedCountDown.countDown();
+				initializedCountDown = null;
+			}
 		}
-        Page openerPage = opener.getPagePromise();
-        if(openerPage.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
-            return true;
-        }
-        Page pupopPage = this.page();
-        pupopPage.emit(Events.PAGE_POPUP.getName(),pupopPage);
-		return true;
 	}
 
+	public boolean waitInitializedPromise() {
+		if(initializedPromise == null){
+			this.initializedCountDown = new CountDownLatch(1);
+			try {
+				initializedCountDown.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				throw new RuntimeException("Wait for InitializedPromise fail:",e);
+			}
+		}
+		return this.initializedPromise;
+	}
 	private Target opener(){
 		String openerId = this.targetInfo.getOpenerId();
 		if(StringUtil.isEmpty(openerId)){
@@ -118,6 +147,9 @@ public class Target {
 		return this.browser().getTargets().get(openerId);
 	}
 
+	public String url() {
+		return this.targetInfo.getUrl();
+	}
 	private Browser browser() {
 		return this.browserContext.getBrowser();
 	}
@@ -162,7 +194,7 @@ public class Target {
 		this.targetInfo = targetInfo;
 	}
 
-	public BrowserContext getBrowserContext() {
+	public BrowserContext browserContext() {
 		return browserContext;
 	}
 
@@ -202,20 +234,12 @@ public class Target {
 		this.isClosedPromise = isClosedPromise;
 	}
 
-	public boolean isInitialized() {
+	public boolean getIsInitialized() {
 		return isInitialized;
 	}
 
 	public void setInitialized(boolean initialized) {
 		isInitialized = initialized;
-	}
-
-	public Page getPage() {
-		return page;
-	}
-
-	public void setPage(Page page) {
-		this.page = page;
 	}
 
 	public String getSessionId() {
@@ -224,5 +248,8 @@ public class Target {
 
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
+	}
+
+	public void targetInfoChanged(TargetInfo targetInfo) {
 	}
 }

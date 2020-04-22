@@ -27,7 +27,7 @@ public enum Events {
 
     BROWSERCONTEXT_TARGETCREATED ("targetcreated"),
     BROWSERCONTEXT_TARGETDESTROYED ("targetdestroyed"),
-    BrowserContext_TargetChanged ("targetchanged"),
+    BROWSERCONTEXT_TARGETCHANGED ("targetchanged"),
 
     NETWORK_MANAGER_REQUEST("Events.NetworkManager.Request"),
     NETWORK_MANAGER_RESPONSE("Events.NetworkManager.Response"),

@@ -311,4 +311,16 @@ public class Frame {
         }
         this.lifecycleEvents.add(name);
     }
+
+    public String getName() {
+        if(this.name == null){
+            return "";
+        }
+        return this.name;
+    }
+
+    public boolean isDetached() {
+        return this.detached;
+    }
+
 }

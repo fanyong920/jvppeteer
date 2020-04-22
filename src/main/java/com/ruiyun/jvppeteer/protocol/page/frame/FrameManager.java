@@ -550,7 +550,7 @@ public class FrameManager extends EventEmitter {
 
     }
 
-    public void assertNoLegacyNavigationOptions(PageNavigateOptions options){
+    private void assertNoLegacyNavigationOptions(PageNavigateOptions options){
         ValidateUtil.assertBoolean(!"networkidle".equals(options.getWaitUntil()),"ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 }

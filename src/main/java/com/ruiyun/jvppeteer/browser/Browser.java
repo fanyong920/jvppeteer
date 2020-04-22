@@ -2,12 +2,17 @@ package com.ruiyun.jvppeteer.browser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.EventEmitter;
+import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.TaskQueue;
+import com.ruiyun.jvppeteer.protocol.page.payload.TargetCreatedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.TargetDestroyedPayload;
+import com.ruiyun.jvppeteer.protocol.page.payload.TargetInfoChangedPayload;
 import com.ruiyun.jvppeteer.protocol.target.Target;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.Connection;
@@ -18,15 +23,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
  * 浏览器实例
  */
-public class Browser implements Constant {
+public class Browser extends EventEmitter {
 
 	/**
 	 * 浏览器对应的websocket client包装类，用于发送和接受消息
@@ -39,11 +44,6 @@ public class Browser implements Constant {
 	private int port ;
 
 	/**
-	 * 当前浏览器的上下文id集合
-	 */
-	private List<String> contextIds;
-
-	/**
 	 * 是否忽略https错误
 	 */
 	private boolean ignoreHTTPSErrors;
@@ -53,10 +53,6 @@ public class Browser implements Constant {
 	 */
 	private Viewport viewport;
 
-	/**
-	 * 启动浏览器的操作者
-	 */
-	private BrowserRunner runner;
 
 	/**
 	 * 当前浏览器内的所有页面，也包括浏览器自己，{@link Page}和 {@link Browser} 都属于target
@@ -73,31 +69,101 @@ public class Browser implements Constant {
 	 */
 	private Map<String,BrowserContext> contexts;
 
+	private Process process;
+
 	private TaskQueue screenshotTaskQueue;
 
-	/**
-	 * 初始化浏览器实例时用到的downLatch
-	 */
-	private CountDownLatch downLatch = new CountDownLatch(2);
+	private Function closeCallback;
+
 	
 	public Browser(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors,
-			Viewport defaultViewport, BrowserRunner runner) {
+				   Viewport defaultViewport, Process process, Function closeCallback) {
 		super();
-		this.connection = connection;
-		this.contextIds = contextIds;
 		this.ignoreHTTPSErrors = ignoreHTTPSErrors;
 		this.viewport = defaultViewport;
-		this.runner = runner;
+		this.process = process;
 		this.screenshotTaskQueue = new TaskQueue();
-		defaultContext = new BrowserContext(connection,this,null);
-		contexts = new HashMap<>();
+		this.connection = connection;
+		this.closeCallback = closeCallback;
+		this.defaultContext = new BrowserContext(connection,this,null);
+		this.contexts = new HashMap<>();
 		if(ValidateUtil.isNotEmpty(contextIds)){
 			for (String contextId : contextIds) {
 				contexts.putIfAbsent(contextId, new BrowserContext(this.connection,this,contextId));
 			}
 		}
 		this.port = this.connection.getPort();
-		targets = new HashMap<>();
+		targets = new ConcurrentHashMap<>();
+		DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
+			@Override
+			public void onBrowserEvent(Object event) {
+				Browser browser = (Browser) this.getTarget();
+				browser.emit(Events.BROWSER_DISCONNECTED.getName(),null);
+			}
+		};
+		disconnectedLis.setTarget(this);
+		disconnectedLis.setMothod(Events.CONNECTION_DISCONNECTED.getName());
+		this.connection.on(disconnectedLis.getMothod(),disconnectedLis);
+
+		DefaultBrowserListener<TargetCreatedPayload> targetCreatedLis = new DefaultBrowserListener<TargetCreatedPayload>() {
+			@Override
+			public void onBrowserEvent(TargetCreatedPayload event) {
+				Browser browser = (Browser) this.getTarget();
+				browser.targetCreated(event);
+			}
+		};
+		targetCreatedLis.setTarget(this);
+		targetCreatedLis.setMothod("Target.targetCreated");
+		this.connection.on(targetCreatedLis.getMothod(),targetCreatedLis);
+
+		DefaultBrowserListener<TargetDestroyedPayload> targetDestroyedLis = new DefaultBrowserListener<TargetDestroyedPayload>() {
+			@Override
+			public void onBrowserEvent(TargetDestroyedPayload event) {
+				Browser browser = (Browser) this.getTarget();
+				browser.targetDestroyed(event);
+			}
+		};
+		targetDestroyedLis.setTarget(this);
+		targetDestroyedLis.setMothod("Target.targetDestroyed");
+		this.connection.on(targetDestroyedLis.getMothod(),targetDestroyedLis);
+
+		DefaultBrowserListener<TargetInfoChangedPayload> targetInfoChangedLis = new DefaultBrowserListener<TargetInfoChangedPayload>() {
+			@Override
+			public void onBrowserEvent(TargetInfoChangedPayload event) {
+				Browser browser = (Browser) this.getTarget();
+				browser.targetInfoChanged(event);
+			}
+		};
+		targetInfoChangedLis.setTarget(this);
+		targetInfoChangedLis.setMothod("Target.targetInfoChanged");
+		this.connection.on(targetInfoChangedLis.getMothod(),targetInfoChangedLis);
+	}
+
+	private void targetDestroyed(TargetDestroyedPayload event) {
+		Target target = this.targets.remove(event.getTargetId());
+		target.initializedCallback(false);
+		target.closedCallback();
+		if(target.waitInitializedPromise()){
+			this.emit(Events.BROWSER_TARGETDESTROYED.getName(),target);
+			target.browserContext().emit(Events.BROWSER_TARGETDESTROYED.getName(),target);
+		}
+
+	}
+
+	private void targetInfoChanged(TargetInfoChangedPayload event) {
+		Target target = this.targets.get(event.getTargetInfo().getTargetId());
+		ValidateUtil.assertBoolean(target != null,"target should exist before targetInfoChanged");
+		String previousURL = target.url();
+		boolean wasInitialized = target.getIsInitialized();
+		target.targetInfoChanged(event.getTargetInfo());
+		if (wasInitialized && !previousURL.equals(target.url())) {
+			this.emit(Events.BROWSER_TARGETCHANGED.getName(), target);
+			target.browserContext().emit(Events.BROWSERCONTEXT_TARGETCHANGED.getName(), target);
+		}
+	}
+
+	public String wsEndpoint() {
+		return this.connection.url();
 	}
 
 	/**
@@ -114,18 +180,16 @@ public class Browser implements Constant {
 	 * @param contextIds 上下文id集合
 	 * @param ignoreHTTPSErrors 是否忽略https错误
 	 * @param viewport 视图
-	 * @param runner 浏览器启动类
 	 * @param timeout 启动超时时间
 	 * @return 浏览器
 	 */
-	public static Browser create(Connection connection,List<String> contextIds,boolean ignoreHTTPSErrors,Viewport viewport,BrowserRunner runner,int timeout) throws InterruptedException {
-		Browser browser = new Browser(connection,contextIds,ignoreHTTPSErrors,viewport,runner);
+	public static Browser create(Connection connection,List<String> contextIds,boolean ignoreHTTPSErrors,Viewport viewport,Process process,Function closeCallback,int timeout) throws InterruptedException {
+		Browser browser = new Browser(connection,contextIds,ignoreHTTPSErrors,viewport,process,closeCallback);
 		Map<String,Object> params = new HashMap<>();
-		addBrowserListener(browser);
+//		addBrowserListener(browser);
 		//send
 		params.put("discover",true);
-		connection.send("Target.setDiscoverTargets",params,false);
-		browser.getDownLatch().await(timeout, TimeUnit.MILLISECONDS);
+		connection.send("Target.setDiscoverTargets",params,true);
 		System.out.println("浏览器完成");
 		return browser;
 	}
@@ -135,39 +199,40 @@ public class Browser implements Constant {
 	 * @param browser 当前浏览器
 	 * @throws ExecutionException 发布事件可能产生的异常
 	 */
-	private static void addBrowserListener(Browser browser) {
-		//先存发布者，再发送消息
-		DefaultBrowserListener<Target> defaultBrowserListener = new DefaultBrowserListener<Target>() {
-			@Override
-			public void onBrowserEvent(Target event) {
-				if("browser".equals(event.getTargetInfo().getType()) && event.getTargetInfo().getAttached()){
-					Browser brow = (Browser)this.getTarget();
-					brow.targetCreated(event.getTargetInfo());
-					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
-						brow.getDownLatch().countDown();
-					}
-				}
-				if("page".equals(event.getTargetInfo().getType()) && !event.getTargetInfo().getAttached()  && Page.ABOUT_BLANK.equals(event.getTargetInfo().getUrl())){
-					Browser brow = (Browser)this.getTarget();
-					brow.targetCreated(event.getTargetInfo());
-					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
-						brow.getDownLatch().countDown();
-					}
-				}
-			}
-		};
-		defaultBrowserListener.setTarget(browser);
-		defaultBrowserListener.setMothod("Target.targetCreated");
-		defaultBrowserListener.setResolveType(Target.class);
-		browser.getConnection().on(defaultBrowserListener.getMothod(),defaultBrowserListener);
-	}
+//	private static void addBrowserListener(Browser browser) {
+//		//先存发布者，再发送消息
+//		DefaultBrowserListener<Target> defaultBrowserListener = new DefaultBrowserListener<Target>() {
+//			@Override
+//			public void onBrowserEvent(Target event) {
+//				if("browser".equals(event.getTargetInfo().getType()) && event.getTargetInfo().getAttached()){
+//					Browser brow = (Browser)this.getTarget();
+//					brow.targetCreated(event.getTargetInfo());
+//					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
+//						brow.getDownLatch().countDown();
+//					}
+//				}
+//				if("page".equals(event.getTargetInfo().getType()) && !event.getTargetInfo().getAttached()  && Page.ABOUT_BLANK.equals(event.getTargetInfo().getUrl())){
+//					Browser brow = (Browser)this.getTarget();
+//					brow.targetCreated(event.getTargetInfo());
+//					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
+//						brow.getDownLatch().countDown();
+//					}
+//				}
+//			}
+//		};
+//		defaultBrowserListener.setTarget(browser);
+//		defaultBrowserListener.setMothod("Target.targetCreated");
+//		defaultBrowserListener.setResolveType(Target.class);
+//		browser.getConnection().on(defaultBrowserListener.getMothod(),defaultBrowserListener);
+//	}
 
 	/**
 	 * 当前浏览器有target创建时会调用的方法
-	 * @param targetInfo 创建的target具体信息
+	 * @param event 创建的target具体信息
 	 */
-	public void targetCreated(TargetInfo targetInfo){
+	public void targetCreated(TargetCreatedPayload event){
 		BrowserContext context = null;
+		TargetInfo targetInfo = event.getTargetInfo();
 		if(StringUtil.isNotEmpty( targetInfo.getBrowserContextId())){
 			if( this.getContexts().containsKey(targetInfo.getBrowserContextId())){
 				context = this.getContexts().get(targetInfo.getBrowserContextId());
@@ -180,6 +245,10 @@ public class Browser implements Constant {
 			throw new RuntimeException("Target should not exist before targetCreated");
 		}
 		this.getTargets().putIfAbsent(targetInfo.getTargetId(),target);
+		if (target.waitInitializedPromise()) {
+			this.emit(Events.BROWSER_TARGETCREATED.getName(), target);
+			context.emit(Events.BROWSERCONTEXT_TARGETCREATED.getName(), target);
+		}
 	}
 
 	/**
@@ -227,7 +296,8 @@ public class Browser implements Constant {
 		params.put("browserContextId",contextId);
 		JsonNode recevie = this.connection.send("Target.createTarget", params,true);
 		if(recevie != null){
-			Target target = this.targets.get(recevie.get(RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
+			Target target = this.targets.get(recevie.get(Constant.RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
+			ValidateUtil.assertBoolean(target.waitInitializedPromise(),"Failed to create target for page");
 			return target.page();
 		}
 		throw new RuntimeException("can't create new page ,bacause recevie message is null");
@@ -243,10 +313,6 @@ public class Browser implements Constant {
 
 	public int getPort() {
 		return this.port;
-	}
-
-	public CountDownLatch getDownLatch() {
-		return downLatch;
 	}
 
 	public Map<String, BrowserContext> getContexts() {
@@ -287,14 +353,6 @@ public class Browser implements Constant {
 
 	public void setViewport(Viewport viewport) {
 		this.viewport = viewport;
-	}
-
-	public BrowserRunner getRunner() {
-		return runner;
-	}
-
-	public void setRunner(BrowserRunner runner) {
-		this.runner = runner;
 	}
 
 	public TaskQueue getScreenshotTaskQueue() {

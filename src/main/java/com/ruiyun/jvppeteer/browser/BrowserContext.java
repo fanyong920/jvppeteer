@@ -1,12 +1,13 @@
 package com.ruiyun.jvppeteer.browser;
 
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.transport.Connection;
 
 /**
  * 浏览器上下文
  */
-public class BrowserContext {
+public class BrowserContext extends EventEmitter {
 
 	/**
 	 *  浏览器对应的websocket client包装类，用于发送和接受消息

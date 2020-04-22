@@ -152,14 +152,14 @@ public class Connection extends EventEmitter implements Consumer<String>{
 					SendMsg sendMsg = this.callbacks.get(objectId.asLong());
 					JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
 					if(error != null){
-						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
+						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0){
 							sendMsg.getCountDownLatch().countDown();
 						}
 						throw new ProtocolException(Helper.createProtocolError(readTree));
 					}else{
 						JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
 						sendMsg.setResult(result);
-						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() >0){
+						if(sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0){
 							sendMsg.getCountDownLatch().countDown();
 						}
 					}
