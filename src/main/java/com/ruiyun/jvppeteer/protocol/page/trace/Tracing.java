@@ -18,17 +18,17 @@ import java.util.Set;
 public class Tracing implements Constant {
 
     /**
-     * µ±Ç°ÒªtraceµÄ chrome devtools protocol session
+     * å½“å‰è¦traceçš„ chrome devtools protocol session
      */
     private  CDPSession client;
 
     /**
-     * ÅĞ¶ÏÊÇ·ñÒÑ¾­ÔÚ×·×ÙÖĞ
+     * åˆ¤æ–­æ˜¯å¦å·²ç»åœ¨è¿½è¸ªä¸­
      */
     private  boolean recording;
 
     /**
-     * ×·×Ùµ½µÄĞÅÏ¢Òª±£´æµÄÎÄ¼şÂ·¾¶
+     * è¿½è¸ªåˆ°çš„ä¿¡æ¯è¦ä¿å­˜çš„æ–‡ä»¶è·¯å¾„
      */
     private  String path;
 

@@ -37,7 +37,7 @@ public class CDPSession extends EventEmitter implements Constant {
         this.connection = connection;
     }
 
-    public void onClosed() throws ExecutionException {
+    public void onClosed() {
         for (SendMsg callback : callbacks.values()){
             LOGGER.error("Protocol error ("+callback.getMethod()+"): Target closed.");
         }
@@ -88,7 +88,7 @@ public class CDPSession extends EventEmitter implements Constant {
      * @param params 参数
      * @return result
      */
-    public JsonNode send(String method,Map<String, Object> params,boolean isLock)  {
+    public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
@@ -97,7 +97,7 @@ public class CDPSession extends EventEmitter implements Constant {
         message.setParams(params);
         message.setSessionId(this.sessionId);
         try {
-            if(isLock){
+            if(isWait){
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
             }

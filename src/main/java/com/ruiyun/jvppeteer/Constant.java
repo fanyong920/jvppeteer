@@ -12,37 +12,37 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ´æ·ÅËùÓÃµ½µÄ³£Á¿
+ * å­˜æ”¾æ‰€ç”¨åˆ°çš„å¸¸é‡
  */
 public interface Constant {
 
 	/**
-	 * °Ñ²úÆ·´æ·Åµ½»·¾³±äÁ¿µÄËùÓĞ¿ÉÓÃ×Ö¶Î
+	 * æŠŠäº§å“å­˜æ”¾åˆ°ç¯å¢ƒå˜é‡çš„æ‰€æœ‰å¯ç”¨å­—æ®µ
 	 */
 	String[] PRODUCT_ENV = {"PUPPETEER_PRODUCT","java_config_puppeteer_product","java_package_config_puppeteer_product"};
 
 	/**
-	 * °Ñä¯ÀÀÆ÷Ö´ĞĞÂ·¾¶´æ·Åµ½»·¾³±äÁ¿µÄËùÓĞ¿ÉÓÃ×Ö¶Î
+	 * æŠŠæµè§ˆå™¨æ‰§è¡Œè·¯å¾„å­˜æ”¾åˆ°ç¯å¢ƒå˜é‡çš„æ‰€æœ‰å¯ç”¨å­—æ®µ
 	 */
 	String[] EXECUTABLE_ENV = {"PUPPETEER_EXECUTABLE_PATH","java_config_puppeteer_executable_path","java_package_config_puppeteer_executable_path"};
 
 	/**
-	 * °Ñä¯ÀÀÆ÷°æ±¾´æ·Åµ½»·¾³±äÁ¿µÄ×Ö¶Î
+	 * æŠŠæµè§ˆå™¨ç‰ˆæœ¬å­˜æ”¾åˆ°ç¯å¢ƒå˜é‡çš„å­—æ®µ
 	 */
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
 
 	/**
-	 * websocket clinet ´«ÊäÊı¾İµÄ×î´óºÉÔØ£¬µ«ÊÇÄ¿Ç°Ã»ÓĞÉèÖÃ½øÈ¥£¬Ê¹ÓÃÁËÄ¬ÈÏÖµ
+	 * websocket clinet ä¼ è¾“æ•°æ®çš„æœ€å¤§è·è½½ï¼Œä½†æ˜¯ç›®å‰æ²¡æœ‰è®¾ç½®è¿›å»ï¼Œä½¿ç”¨äº†é»˜è®¤å€¼
 	 */
 	long DEFAULT_PAYLOAD  = 256 * 1024 * 1024;
 
 	/**
-	 * Èç¹ûwebsoketÊ¹ÓÃtyrusµÄ»°£¬¾ÍÄÜÓÃµ½Õâ¸ö×Ö¶Î£¬Óë{@link Constant#DEFAULT_PAYLOAD} Ò»ÆğÅäºÏÊ¹ÓÃ
+	 * å¦‚æœwebsoketä½¿ç”¨tyrusçš„è¯ï¼Œå°±èƒ½ç”¨åˆ°è¿™ä¸ªå­—æ®µï¼Œä¸{@link Constant#DEFAULT_PAYLOAD} ä¸€èµ·é…åˆä½¿ç”¨
 	 */
 	String INCOMING_BUFFER_SIZE_PROPERTY = "org.glassfish.tyrus.incomingBufferSize";
 
 	/**
-	 * Æô¶¯ä¯ÀÀÆ÷Ê±£¬Èç¹ûÃ»ÓĞÖ¸¶¨Â·¾¶£¬ÄÇÃ´»á´ÓÒÔÏÂÂ·¾¶ËÑË÷¿ÉÖ´ĞĞµÄÂ·¾¶
+	 * å¯åŠ¨æµè§ˆå™¨æ—¶ï¼Œå¦‚æœæ²¡æœ‰æŒ‡å®šè·¯å¾„ï¼Œé‚£ä¹ˆä¼šä»ä»¥ä¸‹è·¯å¾„æœç´¢å¯æ‰§è¡Œçš„è·¯å¾„
 	 */
 	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
 		      new String[] {
@@ -56,7 +56,7 @@ public interface Constant {
 		        "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
 		      };
 	/**
-	 * ¹È¸èä¯ÀÀÆ÷Ä¬ÈÏÆô¶¯²ÎÊı
+	 * è°·æ­Œæµè§ˆå™¨é»˜è®¤å¯åŠ¨å‚æ•°
 	 */
 	List<String> DEFAULT_ARGS = new ArrayList<String>() {
 		private static final long serialVersionUID = 1L;
@@ -84,12 +84,12 @@ public interface Constant {
 	};
 
 	/**
-	 * fastjsonµÄÒ»¸öÊµÀı
+	 * fastjsonçš„ä¸€ä¸ªå®ä¾‹
 	 */
 	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
 
 	/**
-	 * ´Óä¯ÀÀÆ÷µÄwebsocket½ÓÊÜµ½ÏûÏ¢ÖĞÓĞÒÔÏÂÕâĞ©×Ö¶Î£¬ÔÚ´¦ÀíÏûÏ¢ÓÃµ½ÕâĞ©×Ö¶Î
+	 * ä»æµè§ˆå™¨çš„websocketæ¥å—åˆ°æ¶ˆæ¯ä¸­æœ‰ä»¥ä¸‹è¿™äº›å­—æ®µï¼Œåœ¨å¤„ç†æ¶ˆæ¯ç”¨åˆ°è¿™äº›å­—æ®µ
 	 */
 	String RECV_MESSAGE_METHOD_PROPERTY = "method";
 	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
@@ -108,7 +108,7 @@ public interface Constant {
 	String RECV_MESSAGE_BASE64ENCODED_PROPERTY = "base64Encoded";
 
 	/**
-	 * Ö´ĞĞÊÂ¼ş¼àÌıµÄÏß³Ì³Ø
+	 * æ‰§è¡Œäº‹ä»¶ç›‘å¬çš„çº¿ç¨‹æ± 
 	 */
 	ThreadPoolExecutor executor = getThreadPoolExecutor();
 
@@ -124,12 +124,12 @@ public interface Constant {
 	}
 
 	/**
-	 * Ä¬ÈÏµÄ³¬Ê±Ê±¼ä£ºÆô¶¯ä¯ÀÀÆ÷ÊµÀı³¬Ê±£¬websocket½ÓÊÜÏûÏ¢³¬Ê±µÈ
+	 * é»˜è®¤çš„è¶…æ—¶æ—¶é—´ï¼šå¯åŠ¨æµè§ˆå™¨å®ä¾‹è¶…æ—¶ï¼Œwebsocketæ¥å—æ¶ˆæ¯è¶…æ—¶ç­‰
 	 */
 	int DEFAULT_TIMEOUT = 30000;
 
 	/**
-	 * ×·×ÙĞÅÏ¢µÄÄ¬ÈÏ·ÖÀà
+	 * è¿½è¸ªä¿¡æ¯çš„é»˜è®¤åˆ†ç±»
 	 */
 	Set<String> DEFAULTCATEGORIES = new LinkedHashSet<String>(){
 		private static final long serialVersionUID = -5224857570151968464L;

@@ -53,7 +53,7 @@ public class BrowserRunner implements AutoCloseable {
 		this.closed = true;
 	}
 	/**
-	 * ��������� ,Ĭ���Ѿ���ʹ��ϵͳ��������
+	 * 启动浏览器进程
 	 * <br/>
 	 * Start your browser
 	 * @param handleSIGINT
@@ -92,7 +92,7 @@ public class BrowserRunner implements AutoCloseable {
 				}
 			}
 		}
-		 //TODO ���listener 
+		 //TODO listener
 		 
 	}
 	

@@ -47,12 +47,12 @@ public class FrameManager extends EventEmitter {
     private Frame mainFrame;
 
     /**
-     * ¸øµ¼º½µ½ÐÂµÄÍøÒ³ÓÃ
+     * ç»™å¯¼èˆªåˆ°æ–°çš„ç½‘é¡µç”¨
      */
     private CountDownLatch latch;
 
     /**
-     * µ¼º½µ½ÐÂµÄÍøÒ³µÄ½á¹û
+     * å¯¼èˆªåˆ°æ–°çš„ç½‘é¡µçš„ç»“æžœ
      * "success" "timeout" "termination"
      */
     private String navigateResult;

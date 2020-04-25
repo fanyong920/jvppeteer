@@ -3,45 +3,57 @@ package com.ruiyun.jvppeteer.options;
 public class Viewport {
 	
 	/**
-	 * Ò³Ãæ¿í¶ÈÏñËØ
+	 * é¡µé¢å®½åº¦åƒç´ 
 	 * <br/>
      * page width in pixels.
      */
     private Double width = 800.00;
     /**
-     * Ò³Ãæ¸ß¶ÈÏñËØ
+     * é¡µé¢é«˜åº¦åƒç´ 
      * <br/>
      * page height in pixels.
      */
     private Double height = 600.00;
     /**
-     * ÉèÖÃÉè±¸µÄËõ·Å£¨¿ÉÒÔÈÏÎªÊÇ dpr£©¡£Ä¬ÈÏÊÇ 1
+     * è®¾ç½®è®¾å¤‡çš„ç¼©æ”¾ï¼ˆå¯ä»¥è®¤ä¸ºæ˜¯ dprï¼‰ã€‚é»˜è®¤æ˜¯ 1
      * <br/>
      * Specify device scale factor (can be thought of as dpr).
      * @default 1
      */
     private Double deviceScaleFactor = 1.00;
     /**
-     * ÊÇ·ñÔÚÒ³ÃæÖĞÉèÖÃÁË meta viewport ±êÇ©¡£Ä¬ÈÏÊÇ false
+     * æ˜¯å¦åœ¨é¡µé¢ä¸­è®¾ç½®äº† meta viewport æ ‡ç­¾ã€‚é»˜è®¤æ˜¯ false
      * Whether the meta viewport tag is taken into account.
      * @default false
      */
     private boolean isMobile;
     /**
-     * Ö¸¶¨viewportÊÇ·ñÖ§³Ö´¥ÃşÊÂ¼ş¡£Ä¬ÈÏÊÇ false¡£
+     * æŒ‡å®šviewportæ˜¯å¦æ”¯æŒè§¦æ‘¸äº‹ä»¶ã€‚é»˜è®¤æ˜¯ falseã€‚
      * <br/>
      * Specifies if viewport supports touch events.
      * @default false
      */
     private boolean hasTouch ;
     /**
-     * Ö¸¶¨ÊÓ¿ÚÊÇ·ñ´¦ÓÚºáÏòÄ£Ê½¡£Ä¬ÈÏÊÇ false¡£
+     * æŒ‡å®šè§†å£æ˜¯å¦å¤„äºæ¨ªå‘æ¨¡å¼ã€‚é»˜è®¤æ˜¯ falseã€‚
      * <br/>
      * Specifies if viewport is in landscape mode.
      * @default false
      */
     private boolean isLandscape;
-    
+
+	public Viewport() {
+	}
+
+	public Viewport(Double width, Double height, Double deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
+		this.width = width;
+		this.height = height;
+		this.deviceScaleFactor = deviceScaleFactor;
+		this.isMobile = isMobile;
+		this.hasTouch = hasTouch;
+		this.isLandscape = isLandscape;
+	}
+
 	public Double getWidth() {
 		return width;
 	}

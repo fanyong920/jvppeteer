@@ -1,13 +1,13 @@
 package com.ruiyun.jvppeteer;
 
 /**
- * »·¾³±äÁ¿µÄ½Ó¿Ú:¿ÉÒÔÊ¹ÓÃSystem:getEnvÀ´ÊµÏÖ
+ * ç¯å¢ƒå˜é‡çš„æ¥å£:å¯ä»¥ä½¿ç”¨System:getEnvæ¥å®ç°
  */
 @FunctionalInterface
 public interface Environment {
 
 	/**
-	 * ¸ù¾İname»ñÈ¡»·¾³±äÁ¿ÖĞµÄÖµ
+	 * æ ¹æ®nameè·å–ç¯å¢ƒå˜é‡ä¸­çš„å€¼
 	 * @param name
 	 * @return
 	 */

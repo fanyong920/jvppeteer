@@ -7,12 +7,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * ²Ù×÷ÎÄ¼şµÄÒ»Ğ©¹«¸æ·½·¨
+ * æ“ä½œæ–‡ä»¶çš„ä¸€äº›å…¬å‘Šæ–¹æ³•
  */
 public class FileUtil {
 
 	/**
-	 * ¸ù¾İ¸ø¶¨µÄÇ°×º´´½¨ÁÙÊ±ÎÄ¼ş¼Ğ
+	 * æ ¹æ®ç»™å®šçš„å‰ç¼€åˆ›å»ºä¸´æ—¶æ–‡ä»¶å¤¹
 	 * @param prefix
 	 * @return
 	 */
@@ -26,7 +26,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * ¶ÏÑÔÂ·¾¶ÊÇ·ñÊÇ¿ÉÖ´ĞĞµÄexeÎÄ¼ş
+	 * æ–­è¨€è·¯å¾„æ˜¯å¦æ˜¯å¯æ‰§è¡Œçš„exeæ–‡ä»¶
 	 * @param executablePath
 	 * @return
 	 */
@@ -36,7 +36,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * ÒÆ³ıÎÄ¼ş
+	 * ç§»é™¤æ–‡ä»¶
 	 * @param path
 	 * @throws IOException
 	 */
@@ -45,7 +45,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * ´´½¨Ò»¸öÎÄ¼ş£¬Èç¹û¸ÃÎÄ¼şÉÏµÄÓĞĞ©ÎÄ¼ş¼ĞÂ·¾¶²»´æÔÚ£¬»á×Ô¶¯´´½¨ÎÄ¼ş¼Ğ¡£
+	 * åˆ›å»ºä¸€ä¸ªæ–‡ä»¶ï¼Œå¦‚æœè¯¥æ–‡ä»¶ä¸Šçš„æœ‰äº›æ–‡ä»¶å¤¹è·¯å¾„ä¸å­˜åœ¨ï¼Œä¼šè‡ªåŠ¨åˆ›å»ºæ–‡ä»¶å¤¹ã€‚
 	 * @param file
 	 * @throws IOException
 	 */
@@ -57,7 +57,7 @@ public class FileUtil {
 	}
 
 	/**
-	 * µİ¹é´´½¨ÎÄ¼ş¼Ğ
+	 * é€’å½’åˆ›å»ºæ–‡ä»¶å¤¹
 	 * @param parent
 	 */
 	public static final void mkdir(File parent){

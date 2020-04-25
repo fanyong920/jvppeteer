@@ -21,7 +21,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Ò»Ğ©¹«¹²·½·¨
+ * ä¸€äº›å…¬å…±æ–¹æ³•
  */
 public class Helper implements Constant {
     public static String createProtocolError(JsonNode node) {
@@ -128,8 +128,8 @@ public class Helper implements Constant {
     /**
      * read stream from protocol : example -> tracing  file
      * @param client CDPSession
-     * @param handler ·¢ËÍ¸øwebsocketµÄ²ÎÊı
-     * @param path ÎÄ¼ş´æ·ÅµÄÂ·¾¶
+     * @param handler å‘é€ç»™websocketçš„å‚æ•°
+     * @param path æ–‡ä»¶å­˜æ”¾çš„è·¯å¾„
      */
     public static final void readProtocolStream(CDPSession client, JsonNode handler,String path) throws IOException {
         boolean eof = false;

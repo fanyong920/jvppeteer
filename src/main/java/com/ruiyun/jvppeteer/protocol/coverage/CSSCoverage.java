@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.coverage;
 
+import com.ruiyun.jvppeteer.protocol.page.payload.CoverageEntry;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.ArrayList;
@@ -27,5 +28,12 @@ public class CSSCoverage {
         this.stylesheetSources = new HashMap();
         this.eventListeners = new ArrayList<>();
         this.resetOnNavigation = false;
+    }
+
+    public void start(boolean resetOnNavigation) {
+    }
+
+    public List<CoverageEntry> stop() {
+        return null;
     }
 }

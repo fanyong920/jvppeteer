@@ -4,23 +4,25 @@ import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.transport.Connection;
 
+import java.util.List;
+
 /**
- * 浏览器上下文
+ * 娴忚鍣ㄤ笂涓嬫枃
  */
 public class BrowserContext extends EventEmitter {
 
 	/**
-	 *  浏览器对应的websocket client包装类，用于发送和接受消息
+	 *  娴忚鍣ㄥ搴旂殑websocket client鍖呰绫伙紝鐢ㄤ簬鍙戦�佸拰鎺ュ彈娑堟伅
 	 */
 	private Connection connection;
 
 	/**
-	 * 浏览器上下文对应的浏览器，一个上下文只有一个浏览器，但是一个浏览器可能有多个上下文
+	 * 娴忚鍣ㄤ笂涓嬫枃瀵瑰簲鐨勬祻瑙堝櫒锛屼竴涓笂涓嬫枃鍙湁涓�涓祻瑙堝櫒锛屼絾鏄竴涓祻瑙堝櫒鍙兘鏈夊涓笂涓嬫枃
 	 */
 	private Browser browser;
 
 	/**
-	 *浏览器上下文id
+	 *娴忚鍣ㄤ笂涓嬫枃id
 	 */
 	private String contextId;
 	
@@ -32,7 +34,9 @@ public class BrowserContext extends EventEmitter {
 		this.browser = browser;
 		this.contextId = contextId;
 	}
-
+	public List<Page> pages(){
+		return null;
+	}
 	public Connection getConnection() {
 		return connection;
 	}

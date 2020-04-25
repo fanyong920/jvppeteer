@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.exception;
 
 /**
- * µ¼º½µ½ĞÂµÄÒ³Ãæ³ö´íÅÜ³öÀ´µÄÒì³£
+ * å¯¼èˆªåˆ°æ–°çš„é¡µé¢å‡ºé”™è·‘å‡ºæ¥çš„å¼‚å¸¸
  */
 public class NavigateException extends RuntimeException {
 

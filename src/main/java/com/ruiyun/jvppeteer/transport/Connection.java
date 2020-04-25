@@ -4,13 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserPublisher;
+import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
-import com.ruiyun.jvppeteer.util.Factory;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
@@ -45,25 +44,27 @@ public class Connection extends EventEmitter implements Consumer<String>{
 	
 	private Map<String, CDPSession> sessions = new HashMap<>();
 
-
+	private boolean closed;
 
 	private BlockingQueue responseQueue = new LinkedBlockingQueue();//接受消息的堵塞队列
 
 	private int port;
 
+	private int lastId;
+
 	public Connection(String url,ConnectionTransport transport, int delay) {
 		super();
 		this.url = url;
+		this.lastId = 0;
 		this.transport = transport;
 		this.delay = delay;
 		this.transport.addMessageConsumer(this);
-
 		int start  = url.lastIndexOf(":");
 		int end = url.indexOf("/",start);
 		this.port = Integer.parseInt(url.substring(start + 1 ,end));
 	}
 	
-	public JsonNode send(String method,Map<String, Object> params,boolean isLock)  {
+	public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
 		SendMsg  message = new SendMsg();
 		message.setMethod(method);
 		message.setParams(params);
@@ -71,7 +72,7 @@ public class Connection extends EventEmitter implements Consumer<String>{
 			long id = rawSend(message);
 			if(id >= 0){
 				callbacks.putIfAbsent(id, message);
-				if(isLock){
+				if(isWait){
 					CountDownLatch latch = new CountDownLatch(1);
 					message.setCountDownLatch(latch);
 					boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
@@ -114,7 +115,9 @@ public class Connection extends EventEmitter implements Consumer<String>{
 				LOGGER.error("slowMo browser Fail:",e);
 			}
 		}
-		LOGGER.info("<- RECV "+message);
+		if(LOGGER.isDebugEnabled()){
+			LOGGER.debug("<- RECV "+message);
+		}
 		System.out.println("<- RECV "+message);
 		try {
 			if(StringUtil.isNotEmpty(message)) {
@@ -171,19 +174,8 @@ public class Connection extends EventEmitter implements Consumer<String>{
 		} catch (Exception e) {
 			LOGGER.error("parse recv message fail:",e);
 		}
-		
-		
 	}
 
-	/**
-	 * publish event
-	 * @param method
-	 * @param params
-	 */
-
-	public void publishEvent(String method, JsonNode params) throws ExecutionException {
-		Factory.get(DefaultBrowserPublisher.class.getSimpleName()+this.port,DefaultBrowserPublisher.class).publishEvent2(method,params);
-	}
 
 	/**
 	 * 从{@link CDPSession}中拿到对应的{@link Connection}
@@ -231,5 +223,31 @@ public class Connection extends EventEmitter implements Consumer<String>{
 	}
 
 
+	public void dispose() {
+		this.onClose();
+		this.transport.close();
+	}
+
+	private void onClose() {
+		if (this.closed)
+			return;
+		this.closed = true;
+		for (SendMsg callback : this.callbacks.values())
+		LOGGER.error("Protocol error "+callback.getMethod()+" Target closed.");
+		this.callbacks.clear();
+		for (CDPSession session : this.sessions.values())
+		session.onClosed();
+		this.sessions.clear();
+		this.emit(Events.CONNECTION_DISCONNECTED.getName(),null);
+	}
+
+
+	public boolean getClosed() {
+		return closed;
+	}
+
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
 }
 

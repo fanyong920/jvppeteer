@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Ä¬ÈÏÊÂ¼ş·¢²¼Õâ£¬ÆäÎ¨Ò»ÊµÀı´æ·ÅÔÚ{@link com.ruiyun.jvppeteer.util.Factory}
+ * é»˜è®¤äº‹ä»¶å‘å¸ƒè¿™ï¼Œå…¶å”¯ä¸€å®ä¾‹å­˜æ”¾åœ¨{@link com.ruiyun.jvppeteer.util.Factory}
  */
 public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant {
 
@@ -26,9 +26,9 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	private Map<String, Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
 
 	/**
-	 * ·¢²¼ÊÂ¼ş
-	 * @param method ÊÂ¼ş¶ÔÓ¦µÄ·½·¨
-	 * @param event Òª·¢²¼µÄÊÂ¼ş
+	 * å‘å¸ƒäº‹ä»¶
+	 * @param method äº‹ä»¶å¯¹åº”çš„æ–¹æ³•
+	 * @param event è¦å‘å¸ƒçš„äº‹ä»¶
 	 */
 	@Override
 	public void publishEvent(String method, Object event) {
@@ -42,9 +42,9 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	/**
-	 * Ôö¼ÓÒ»¸ö¼àÌıÆ÷
-	 * @param method ¼àÌıÆ÷¶ÔÓ¦µÄ·½·¨
-	 * @param listener ÒªÔö¼ÓµÄ¼àÌıÆ÷
+	 * å¢åŠ ä¸€ä¸ªç›‘å¬å™¨
+	 * @param method ç›‘å¬å™¨å¯¹åº”çš„æ–¹æ³•
+	 * @param listener è¦å¢åŠ çš„ç›‘å¬å™¨
 	 */
 	public void addListener(String method,DefaultBrowserListener listener){
 		Set<DefaultBrowserListener> browserListeners = listenerMap.get(method);
@@ -59,9 +59,9 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	/**
-	 * Ö´ĞĞ¼àÌıÆ÷£¬Èç¹ûÊÇÓÃ»§µÄ¼àÌı£¬ÔòÓÃÓÃ»§µÄ´¦ÀíÆ÷È¥´¦Àí£¬²»È»Ö´ĞĞonBrowserEvent·½·¨
-	 * @param listener ¼àÌıÆ÷
-	 * @param event ÊÂ¼ş
+	 * æ‰§è¡Œç›‘å¬å™¨ï¼Œå¦‚æœæ˜¯ç”¨æˆ·çš„ç›‘å¬ï¼Œåˆ™ç”¨ç”¨æˆ·çš„å¤„ç†å™¨å»å¤„ç†ï¼Œä¸ç„¶æ‰§è¡ŒonBrowserEventæ–¹æ³•
+	 * @param listener ç›‘å¬å™¨
+	 * @param event äº‹ä»¶
 	 */
 	public void invokeListener(DefaultBrowserListener listener, Object event){
 		if(listener.getHandler() != null){
@@ -72,9 +72,9 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	/**
-	 * ·¢²¼ÊÂ¼ş
-	 * @param method ·½·¨
-	 * @param params ÊÂ¼ş event
+	 * å‘å¸ƒäº‹ä»¶
+	 * @param method æ–¹æ³•
+	 * @param params äº‹ä»¶ event
 	 */
 	public void publishEvent2(String method, JsonNode params) {
 		ValidateUtil.notNull(method, "method must not be null");
@@ -102,12 +102,12 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	/**
-	 * Èç¹ûclazzÊôÓÚJsonNode.classÔò²»ÓÃ×ª»»ÀàĞÍ£¬Èç¹û²»ÊÇ£¬Ôò½«jsonNode×ª»¯³ÉclazzÀàĞÍ¶ÔÏó
-	 * @param clazz Ä¿±êÀàĞÍ
+	 * å¦‚æœclazzå±äºJsonNode.classåˆ™ä¸ç”¨è½¬æ¢ç±»å‹ï¼Œå¦‚æœä¸æ˜¯ï¼Œåˆ™å°†jsonNodeè½¬åŒ–æˆclazzç±»å‹å¯¹è±¡
+	 * @param clazz ç›®æ ‡ç±»å‹
 	 * @param jsonNode event
-	 * @param <T>  ¾ßÌåÀàĞÍ
+	 * @param <T>  å…·ä½“ç±»å‹
 	 * @return T
-	 * @throws IOException ×ª»¯Ê§°ÜÅ×³öµÄÒì³£
+	 * @throws IOException è½¬åŒ–å¤±è´¥æŠ›å‡ºçš„å¼‚å¸¸
 	 */
 	private <T> T readJsonObject(Class<T> clazz, JsonNode jsonNode) throws IOException {
 		if (jsonNode == null) {
@@ -125,9 +125,9 @@ public class DefaultBrowserPublisher implements BrowserEventPublisher, Constant 
 	}
 
 	/**
-	 * ÒÆ³ı¾ßÌåÄ³¸ö¼àÌıÆ÷
-	 * @param mothod ¼àÌıÆ÷¶ÔÓ¦µÄ·½·¨
-	 * @param listener ÒªÒÆ³ıµÄ¼àÌıÆ÷
+	 * ç§»é™¤å…·ä½“æŸä¸ªç›‘å¬å™¨
+	 * @param mothod ç›‘å¬å™¨å¯¹åº”çš„æ–¹æ³•
+	 * @param listener è¦ç§»é™¤çš„ç›‘å¬å™¨
 	 */
 	public void  removeListener(String mothod ,DefaultBrowserListener listener){
 		Set<DefaultBrowserListener> defaultBrowserListeners = listenerMap.get(mothod);

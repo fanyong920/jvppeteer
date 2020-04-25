@@ -20,6 +20,8 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * 浏览器实例
@@ -84,6 +87,14 @@ public class Browser extends EventEmitter {
 		this.process = process;
 		this.screenshotTaskQueue = new TaskQueue();
 		this.connection = connection;
+		if(closeCallback == null){
+			closeCallback =  new Function() {
+				@Override
+				public Object apply(Object o) {
+					return null;
+				}
+			};
+		}
 		this.closeCallback = closeCallback;
 		this.defaultContext = new BrowserContext(connection,this,null);
 		this.contexts = new HashMap<>();
@@ -171,7 +182,26 @@ public class Browser extends EventEmitter {
 	 * @return 所有target
 	 */
 	public List<Target> targets(){
-		return new ArrayList<>(targets.values());
+		return targets.values().stream().filter(item -> item.getIsInitialized()).collect(Collectors.toList());
+	}
+
+	public Process process() {
+		return this.process;
+	}
+
+	public BrowserContext createIncognitoBrowserContext() {
+    	JsonNode reult = this.connection.send("Target.createBrowserContext",null,true);
+		String browserContextId = reult.get("browserContextId").asText();
+		BrowserContext context = new BrowserContext(this.connection, this,browserContextId );
+		this.contexts.put(browserContextId, context);
+		return context;
+	}
+
+	public void disposeContext(String contextId) {
+		Map<String,Object> params = new HashMap<>();
+		params.put("browserContextId",contextId);
+		 this.connection.send("Target.disposeBrowserContext", params,true);
+		this.contexts.remove(contextId);
 	}
 
 	/**
@@ -264,6 +294,59 @@ public class Browser extends EventEmitter {
 		}else{
 			throw  new LaunchException("Waiting for target failed: timeout "+options.getTimeout()+"ms exceeded");
 		}
+	}
+
+	/**
+	 * @return {!Target}
+	 */
+	public Target target() {
+		for (Target target : this.targets()) {
+			if("browser".equals( target.type()) ){
+				return target;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @return {!Array<!BrowserContext>}
+	 */
+	public Collection<BrowserContext> browserContexts() {
+		Collection<BrowserContext> contexts = new ArrayList<>();
+		contexts.add(this.getDefaultContext());
+		contexts.addAll(this.getContexts().values());
+ 		return contexts;
+	}
+
+	public List<Page> pages(){
+		 return  this.browserContexts().stream().flatMap(context -> context.pages().stream()).collect(Collectors.toList());
+	}
+
+	public String version() {
+		JsonNode version =  this.getVersion();
+		return version.get("product").asText();
+	}
+
+	public String userAgent() {
+		JsonNode version =  this.getVersion();
+		return version.get("userAgent").asText();
+	}
+
+	public void close() {
+		this.closeCallback.apply(null);
+		this.disconnect();
+	}
+
+	private void disconnect() {
+		this.connection.dispose();
+	}
+
+	private JsonNode getVersion() {
+		return this.connection.send("Browser.getVersion", null, true);
+	}
+
+	public boolean isConnected() {
+		return !this.connection.getClosed();
 	}
 
 	public Target find(List<Target> targets,Predicate<Target> predicate){
@@ -362,4 +445,5 @@ public class Browser extends EventEmitter {
 	public void setScreenshotTaskQueue(TaskQueue screenshotTaskQueue) {
 		this.screenshotTaskQueue = screenshotTaskQueue;
 	}
+
 }
