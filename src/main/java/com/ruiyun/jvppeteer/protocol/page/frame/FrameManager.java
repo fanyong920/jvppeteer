@@ -445,7 +445,7 @@ public class FrameManager extends EventEmitter {
 
         this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-        boolean ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
+        navigate(this.client, url, referer, frame.getId(), timeout);
         if ("success".equals(navigateResult)) {
             watcher.dispose();
             return watcher.navigationResponse();

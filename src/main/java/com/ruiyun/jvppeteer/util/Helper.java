@@ -17,19 +17,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * 一些公共方法
  */
-public class Helper implements Constant {
+public class Helper   {
     public static String createProtocolError(JsonNode node) {
-        JsonNode methodNode = node.get(RECV_MESSAGE_METHOD_PROPERTY);
-        JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
-        JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
+        JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
+        JsonNode errNode = node.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
+        JsonNode errorMsg = errNode.get(Constant.RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
         String message = "Protocol error "+methodNode.asText()+": "+errorMsg;
-        JsonNode dataNode = errNode.get(RECV_MESSAGE_ERROR_DATA_PROPERTY);
+        JsonNode dataNode = errNode.get(Constant.RECV_MESSAGE_ERROR_DATA_PROPERTY);
         if(dataNode != null) {
             message += " "+dataNode.asText();
         }
@@ -151,9 +156,9 @@ public class Helper implements Constant {
             BASE64Decoder decoder = new BASE64Decoder();
             while (!eof){
                 JsonNode response = client.send("IO.read", params,true);
-                JsonNode eofNode = response.get(RECV_MESSAGE_STREAM_EOF_PROPERTY);
-                JsonNode base64EncodedNode = response.get(RECV_MESSAGE_BASE64ENCODED_PROPERTY);
-                JsonNode dataNode = response.get(RECV_MESSAGE_STREAM_DATA_PROPERTY);
+                JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
+                JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
+                JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
                 if(dataNode != null){
                     byte[] bytes;
                     if(base64EncodedNode != null){

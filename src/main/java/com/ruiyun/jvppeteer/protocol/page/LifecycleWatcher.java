@@ -116,6 +116,12 @@ public class LifecycleWatcher {
 
         //TODO many promise
     }
+    public void lifecyclePromise() {
+
+    }
+    public void lifecycleCallback(){
+        setNavigateResult("success");
+    }
 
     private void onFrameDetached(Frame frame) {
         if (this.frame.equals(frame)) {
@@ -160,24 +166,17 @@ public class LifecycleWatcher {
         return this.navigationRequest != null ? this.navigationRequest.response() : null;
     }
 
-    /**
-     * 导航到了另外一个新页面了
-     */
+
     public void newDocumentNavigationPromise() {
         setNavigateResult("success");
     }
 
-    /**
-     * 同一个页面重新导航
-     */
+
     public void sameDocumentNavigationPromise() {
          setNavigateResult("success");
     }
 
-    /**
-     * 给导航到某个url的结果设置值
-     * @param result
-     */
+
     private void setNavigateResult(String result) {
         if (this.frameManager.getLatch() != null && this.frameManager.getLatch().getCount() > 0) {
             this.frameManager.setNavigateResult(result);

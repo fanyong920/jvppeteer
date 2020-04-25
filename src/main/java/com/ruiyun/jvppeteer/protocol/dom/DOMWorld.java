@@ -1,16 +1,25 @@
 package com.ruiyun.jvppeteer.protocol.dom;
 
+import com.ruiyun.jvppeteer.exception.NavigateException;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
+import com.ruiyun.jvppeteer.protocol.page.LifecycleWatcher;
 import com.ruiyun.jvppeteer.protocol.page.frame.Frame;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.protocol.target.TimeoutSettings;
+import com.ruiyun.jvppeteer.util.StringUtil;
+import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class DOMWorld {
 
@@ -39,13 +48,30 @@ public class DOMWorld {
         this.frameManager = frameManager;
         this.frame = frame;
         this.timeoutSettings = timeoutSettings;
+        this.documentPromise = null;
+        this.contextPromise = null;
+        this.setContext(null);
+        this.waitTasks = new HashSet<>();
         this.detached = false;
         this.hasContext = false;
     }
 
+    /**
+     * @return {!Puppeteer.Frame}
+     */
+    public Frame frame() {
+        return this.frame;
+    }
+
     public String content() {
-//        return  this.evaluate();
-        return null;
+        return  (String)this.evaluate("() => {\n" +
+                "      let retVal = '';\n" +
+                "      if (document.doctype)\n" +
+                "        retVal = new XMLSerializer().serializeToString(document.doctype);\n" +
+                "      if (document.documentElement)\n" +
+                "        retVal += document.documentElement.outerHTML;\n" +
+                "      return retVal;\n" +
+                "    }",PageEvaluateType.FUNCTION,null);
     }
 
 //    private Object evaluate(String pageFunction, PageEvaluateType type Object ...args) {
@@ -84,36 +110,94 @@ public class DOMWorld {
         return this.contextPromise;
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object[] args) {
-        return  null;
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+        ExecutionContext context =  this.executionContext();
+        return context.evaluateHandle(pageFunction, type,args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object[] args) {
-        return null;
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+        ExecutionContext context = this.executionContext();
+        return context.evaluate(pageFunction,type,args);
     }
 
     public ElementHandle $(String selector) {
-        return null;
+        ElementHandle document =  this.document();
+        ElementHandle value =  document.$(selector);
+        return value;
+    }
+
+    private ElementHandle document() {
+        if (this.documentPromise != null)
+            return this.documentPromise;
+        ExecutionContext context = this.executionContext();
+        JSHandle document =  context.evaluateHandle("document",PageEvaluateType.STRING,null);
+        this.documentPromise = document.asElement();
+        return this.documentPromise;
     }
 
     public List<ElementHandle> $x(String expression) {
-        return null;
+        ElementHandle document =  this.document();
+        return  document.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
-        return null;
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+        ElementHandle document = this.document();
+        return document.$eval(selector, pageFunction, type,args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
-        return null;
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+        ElementHandle document = this.document();
+        return  document.$$eval(selector, pageFunction, type,args);
     }
 
     public ElementHandle $$(String selector) {
-        return null;
+        ElementHandle document = this.document();
+        return document.$$(selector);
     }
 
     public void setContent(String html, PageNavigateOptions options) {
+        List<String> waitUntil;
+        int timeout;
+        if (options == null) {
+            waitUntil = new ArrayList<>();
+            waitUntil.add("load");
+            timeout = this.timeoutSettings.navigationTimeout();
+        } else {
+            if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
+                waitUntil = new ArrayList<>();
+                waitUntil.add("load");
+            }
+            if ((timeout = options.getTimeout()) <= 0) {
+                timeout = this.timeoutSettings.navigationTimeout();
+            }
+        }
 
+        this.evaluate("() => {\n" +
+                "      document.open();\n" +
+                "      document.write("+html+");\n" +
+                "      document.close();\n" +
+                "    }", PageEvaluateType.FUNCTION, html);
+        LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager,this.frame,waitUntil,timeout);
+        CountDownLatch latch = new CountDownLatch(1);
+        this.frameManager.setLatch(latch);
+        try {
+            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
+            if(await){
+                if ("success".equals(this.frameManager.getNavigateResult())) {
+                    watcher.dispose();
+                } else if ("timeout".equals(this.frameManager.getNavigateResult())) {
+                    throw new TimeOutException("setContent timeout :"+html);
+                } else if ("termination".equals(this.frameManager.getNavigateResult())) {
+                    throw new NavigateException("Navigating frame was detached");
+                } else {
+                    throw new NavigateException("UnNokwn result " + this.frameManager.getNavigateResult());
+                }
+            }else {
+                throw new TimeOutException("setContent timeout "+html);
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public ElementHandle addScriptTag(ScriptTagOptions options) {
@@ -160,6 +244,9 @@ public class DOMWorld {
     }
 
     public void detach() {
+        this.detached = true;
+        for (WaitTask waitTask : this.waitTasks)
+        waitTask.terminate(new RuntimeException("waitForFunction failed: frame got detached."));
     }
 
 

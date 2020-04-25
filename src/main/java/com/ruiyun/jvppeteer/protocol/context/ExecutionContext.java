@@ -1,8 +1,10 @@
 package com.ruiyun.jvppeteer.protocol.context;
 
 
+import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
 import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
+import com.ruiyun.jvppeteer.protocol.js.JSHandle;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.regex.Pattern;
@@ -29,5 +31,13 @@ public class ExecutionContext {
 
     public ElementHandle adoptElementHandle(ElementHandle handle) {
         return null;
+    }
+
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+        return null;
+    }
+
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+        return  null;
     }
 }
