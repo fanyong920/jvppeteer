@@ -1,5 +1,6 @@
 package com.ruiyun.test;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.junit.Test;
@@ -17,6 +18,15 @@ public class LaunchExample {
 		arrayList.add("--no-sandbox");
 		arrayList.add("--disable-setuid-sandbox");
 		Puppeteer.launch(options);
+	}
+
+	public static void main(String[] args) {
+		Method[] declaredMethods = LaunchExample.class.getDeclaredMethods();
+		for (Method declaredMethod : declaredMethods) {
+
+			System.out.println(declaredMethod.toGenericString());
+		}
+
 	}
 	
 }

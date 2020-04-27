@@ -6,4 +6,7 @@ public class JSHandle {
     public ElementHandle asElement() {
         return null;
     }
+
+    public void dispose() {
+    }
 }

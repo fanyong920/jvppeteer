@@ -215,6 +215,10 @@ public class BrowserRunner implements AutoCloseable {
 		}
 	}
 
+	public static Object closeBroser(Object o) {
+		return null;
+	}
+
 	public interface ShutdownHookRegistry {
 		/**
 		 * Registers a new shutdown hook thread.

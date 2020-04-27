@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.protocol.page.network.Response;
 import com.ruiyun.jvppeteer.protocol.page.payload.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,7 +115,7 @@ public class Frame {
         return this.mainWorld.$$(selector);
     }
 
-    public ElementHandle addScriptTag(ScriptTagOptions options) {
+    public ElementHandle addScriptTag(ScriptTagOptions options) throws IOException {
         return this.mainWorld.addScriptTag(options);
     }
 
@@ -147,7 +148,7 @@ public class Frame {
 
     /**
      *
-     * @param selectorOrFunctionOrTimeout 不能于nodejs保持一致，就加了个参数type
+     * @param selectorOrFunctionOrTimeout
      * @param type
      * @return
      */
@@ -165,7 +166,7 @@ public class Frame {
 //            return new Promise(fulfill => setTimeout(fulfill, /** @type {number} */ (selectorOrFunctionOrTimeout)));
             return null;
         if (type.equals(PageEvaluateType.FUNCTION))
-        return this.waitForFunction(selectorOrFunctionOrTimeout, options,args);
+        return this.waitForFunction(selectorOrFunctionOrTimeout,type, options,args);
          throw new RuntimeException("Unsupported target type: " + selectorOrFunctionOrTimeout);
     }
 
@@ -179,8 +180,8 @@ public class Frame {
         return result;
     }
 
-    private JSHandle waitForFunction(String pageFunction, WaitForOptions options, Object[] args) {
-        return this.mainWorld.waitForFunction(pageFunction, options, args);
+    private JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) {
+        return this.mainWorld.waitForFunction(pageFunction, type,options, args);
     }
 
     public String title(){

@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.coverage;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.protocol.page.payload.CoverageEntry;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
@@ -20,7 +21,7 @@ public class Coverage {
         this.jsCoverage.start(resetOnNavigation,reportAnonymousScripts);
     }
 
-    public List<CoverageEntry> stopJSCoverage() {
+    public List<CoverageEntry> stopJSCoverage() throws JsonProcessingException {
         return  this.jsCoverage.stop();
     }
 

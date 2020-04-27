@@ -321,8 +321,11 @@ public class DOMWorld {
             waitTask.terminate(new RuntimeException("waitForFunction failed: frame got detached."));
     }
 
+    public Set<WaitTask> getWaitTasks() {
+        return waitTasks;
+    }
 
-//
+    //
 //    public boolean hasContext() {
 //        return false;
 //    }

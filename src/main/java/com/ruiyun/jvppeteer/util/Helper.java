@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 一些公共方法
@@ -206,6 +208,15 @@ public class Helper   {
         if( value == null)
             return false;
         if (value.getClass().equals(String.class)){
+            return true;
+        }
+        return false;
+    }
+
+    public static final boolean isNumber(String s){
+        Pattern pattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
+        Matcher matcher = pattern.matcher(s);
+        if(matcher.matches()){
             return true;
         }
         return false;
