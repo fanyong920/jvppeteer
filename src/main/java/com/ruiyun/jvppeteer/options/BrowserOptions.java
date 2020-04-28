@@ -23,7 +23,11 @@ public class BrowserOptions extends ChromeArgOptions {
 	 *  Useful so that you can see what is going on.
 	 */
 	private int slowMo;
-	  
+
+	public BrowserOptions() {
+		super();
+	}
+
 	public boolean getIgnoreHTTPSErrors() {
 		return ignoreHTTPSErrors;
 	}

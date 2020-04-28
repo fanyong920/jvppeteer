@@ -1,196 +1,268 @@
 package com.ruiyun.jvppeteer.launch;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.browser.BrowserRunner;
 import com.ruiyun.jvppeteer.browser.RevisionInfo;
 import com.ruiyun.jvppeteer.exception.LaunchException;
+import com.ruiyun.jvppeteer.options.BrowserOptions;
+import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.util.FileUtil;
+import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class ChromeLauncher implements Launcher {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ChromeLauncher.class);
-	
-	private boolean isPuppeteerCore;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChromeLauncher.class);
 
-	private String projectRoot;
+    private boolean isPuppeteerCore;
 
-	private String preferredRevision;
+    private String projectRoot;
 
-	public ChromeLauncher(String projectRoot, String preferredRevision) {
-		this.projectRoot = projectRoot;
-		this.preferredRevision = preferredRevision;
-	}
+    private String preferredRevision;
 
-	public ChromeLauncher(boolean isPuppeteerCore) {
-		super();
-		this.isPuppeteerCore = isPuppeteerCore;
-	}
+    public ChromeLauncher(String projectRoot, String preferredRevision) {
+        this.projectRoot = projectRoot;
+        this.preferredRevision = preferredRevision;
+    }
 
-	@Override
-	public Browser launch(LaunchOptions options) {
-		List<String> chromeArguments = new ArrayList<>();
-		String temporaryUserDataDir = defaultArgs(options, chromeArguments);
-		String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
-		boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
-		
-		LOGGER.info("Calling "+chromeExecutable+String.join(" ",chromeArguments));
-		BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
+    public ChromeLauncher(boolean isPuppeteerCore) {
+        super();
+        this.isPuppeteerCore = isPuppeteerCore;
+    }
+
+    @Override
+    public Browser launch(LaunchOptions options) {
+        List<String> chromeArguments = new ArrayList<>();
+        String temporaryUserDataDir = defaultArgs(options, chromeArguments);
+        String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
+        boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
+
+        LOGGER.info("Calling " + chromeExecutable + String.join(" ", chromeArguments));
+        BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
+        try {
+            runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
+            Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), "");
+            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), BrowserRunner::closeBroser, options.getTimeout());
+            browser.waitForTarget(t -> "page".equals(t.type()), options);
+            return browser;
+        } catch (IOException | InterruptedException e) {
+            runner.kill();
+            throw new LaunchException("Failed to launch the browser process:" + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * @param options
+     * @param chromeArguments
+     * @return
+     */
+    @Override
+    public String defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
+        String temporaryUserDataDir = null;
+        boolean pipe = false;
+        LaunchOptions launchOptions = null;
+        if (options instanceof LaunchOptions) {
+            launchOptions = (LaunchOptions) options;
+            pipe = launchOptions.getPipe();
+            if (!launchOptions.getIgnoreAllDefaultArgs()) {
+                chromeArguments.addAll(DEFAULT_ARGS);
+            }
+        }
+
+        List<String> args = null;
+        if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
+            chromeArguments.add("about:blank");
+            chromeArguments.addAll(args);
+        }
+
+        boolean devtools = options.getDevtools();
+        boolean headless = options.getHeadless();
+        if (devtools) {
+            chromeArguments.add("--auto-open-devtools-for-tabs");
+            headless = false;
+        }
+
+        if (headless) {
+            chromeArguments.add("--headless");
+            chromeArguments.add("--hide-scrollbars");
+            chromeArguments.add("--mute-audio");
+        }
+        List<String> ignoreDefaultArgs = null;
+        if (launchOptions != null && ValidateUtil.isNotEmpty(ignoreDefaultArgs = launchOptions.getIgnoreDefaultArgs())) {
+            chromeArguments.removeAll(ignoreDefaultArgs);
+        }
+
+        boolean isCustomUserDir = false;
+        boolean isCustomRemoteDebugger = false;
+        for (String arg : chromeArguments) {
+            if (arg.startsWith("--remote-debugging-")) {
+                isCustomRemoteDebugger = true;
+            }
+            if (arg.startsWith("--user-data-dir")) {
+                isCustomUserDir = true;
+            }
+        }
+        if (!isCustomUserDir) {
+            temporaryUserDataDir = FileUtil.createProfileDir(PROFILE_PREFIX);
+            chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
+        }
+        if (!isCustomRemoteDebugger) {
+            chromeArguments.add(pipe ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
+        }
+        return temporaryUserDataDir;
+    }
+
+    /**
+     * 解析可执行的chrome路径
+     *
+     * @param chromeExecutable
+     * @return
+     */
+    @Override
+    public String resolveExecutablePath(String chromeExecutable) {
+        boolean puppeteerCore = getIsPuppeteerCore();
+        if (!puppeteerCore) {
+            if (StringUtil.isNotEmpty(chromeExecutable)) {
+                boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                if (!assertDir) {
+                    throw new IllegalArgumentException("given chromeExecutable \"" + chromeExecutable + "\" is not executable");
+                }
+                return chromeExecutable;
+            } else {
+                for (int i = 0; i < EXECUTABLE_ENV.length; i++) {
+                    chromeExecutable = env.getEnv(EXECUTABLE_ENV[i]);
+                    if (StringUtil.isNotEmpty(chromeExecutable)) {
+                        boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                        if (!assertDir) {
+                            throw new IllegalArgumentException("given chromeExecutable is not is not executable");
+                        }
+                        return chromeExecutable;
+                    }
+                }
+
+                for (int i = 0; i < PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
+                    chromeExecutable = PROBABLE_CHROME_EXECUTABLE_PATH[i];
+                    if (StringUtil.isNotEmpty(chromeExecutable)) {
+                        boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                        if (assertDir) {
+                            return chromeExecutable;
+                        }
+                    }
+                }
+
+                throw new RuntimeException(
+                        "Tried to use PUPPETEER_EXECUTABLE_PATH env variable to launch browser but did not find any executable");
+            }
+        }
+        FetcherOptions fetcherOptions = new FetcherOptions();
+        fetcherOptions.setProduct(this.product());
+        BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot, fetcherOptions);
+        String revision = env.getEnv(PUPPETEER_CHROMIUM_REVISION_ENV);
+        if (StringUtil.isNotEmpty(revision)) {
+            RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
+            if (!revisionInfo.getLocal()) {
+                throw new RuntimeException(
+                        "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
+                                + revisionInfo.getExecutablePath());
+            }
+            return revisionInfo.getExecutablePath();
+        } else {
+            throw new RuntimeException(
+                    "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable ");
+        }
+
+    }
+
+    @Override
+    public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
+
+        final Connection connection ;
 		try {
-			runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
-			Connection connection = runner.setUpConnection(usePipe,options.getTimeout(),options.getSlowMo(),"");
-			Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(),BrowserRunner::closeBroser,options.getTimeout());
-			browser.waitForTarget(t -> "page".equals(t.type()),options);
-			return browser;
-		} catch (IOException | InterruptedException e) {
-			runner.kill();
-			throw new LaunchException("Failed to launch the browser process:"+e.getMessage(),e);
+        if (transport != null) {
+            connection = new Connection("", transport, options.getSlowMo());
+        } else if (StringUtil.isNotEmpty(browserWSEndpoint)) {
+            WebSocketTransport connectionTransport = WebSocketTransport.create(browserWSEndpoint);
+            connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo());
+        } else if (StringUtil.isNotEmpty(browserURL)) {
+            String connectionURL = getWSEndpoint(browserURL);
+            WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
+            connection = new Connection(connectionURL, connectionTransport, options.getSlowMo());
+        }else {
+        	throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
 		}
-	}
+        JsonNode result = connection.send("Target.getBrowserContexts", null, true);
 
-	/**
-	 * @param options
-	 * @param chromeArguments
-	 * @return
-	 */
-	@Override
-	public String defaultArgs(LaunchOptions options, List<String> chromeArguments) {
-		boolean pipe = options.getPipe();
-		String temporaryUserDataDir = null;
-		if (!options.getIgnoreAllDefaultArgs()) {
-			chromeArguments.addAll(DEFAULT_ARGS);
-		}
-		List<String> args = null;
-		if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
-			chromeArguments.add("about:blank");
-			chromeArguments.addAll(args);
-		}
-		
-		boolean devtools = options.getDevtools();
-		boolean headless = options.getHeadless();
-		if (devtools) {
-			chromeArguments.add("--auto-open-devtools-for-tabs");
-			headless = false;
-		}
-		      
-		if(headless) {
-			chromeArguments.add("--headless");
-			chromeArguments.add("--hide-scrollbars");
-			chromeArguments.add("--mute-audio");
-		}
-		List<String> ignoreDefaultArgs = null;
-		if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
-			chromeArguments.removeAll(ignoreDefaultArgs);
-		}
-		
-		boolean isCustomUserDir = false;
-		boolean isCustomRemoteDebugger = false;
-		for (String arg : chromeArguments) {
-			if (arg.startsWith("--remote-debugging-")) {
-				isCustomRemoteDebugger = true;
-			}
-			if (arg.startsWith("--user-data-dir")) {
-				isCustomUserDir = true;
-			}
-		}
-		if(!isCustomUserDir) {
-			temporaryUserDataDir = FileUtil.createProfileDir(PROFILE_PREFIX);
-			chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
-		}
-		if(!isCustomRemoteDebugger) {
-			chromeArguments.add(pipe ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
-		}
-		return temporaryUserDataDir;
-	}
-	
-	/**
-	 * Ѱ�ҿ�ִ�е�chrome·��
-	 * @param chromeExecutable
-	 * @return
-	 */
-	@Override
-	public String resolveExecutablePath(String chromeExecutable) {
-		boolean puppeteerCore = getIsPuppeteerCore();
-		if (!puppeteerCore) {
-			if (StringUtil.isNotEmpty(chromeExecutable)) {
-				boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
-				if (!assertDir) {
-					throw new IllegalArgumentException("given chromeExecutable \""+chromeExecutable+"\" is not executable");
-				}
-				return chromeExecutable;
-			} else {
-				for (int i = 0; i < EXECUTABLE_ENV.length; i++) {
-					chromeExecutable = env.getEnv(EXECUTABLE_ENV[i]);
-					if (StringUtil.isNotEmpty(chromeExecutable)) {
-						boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
-						if (!assertDir) {
-							throw new IllegalArgumentException("given chromeExecutable is not is not executable");
-						}
-						return chromeExecutable;
-					}
-				}
+        JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
+        List<String> browserContextIds = null;
+        Function closeFunction = (t) -> {
+			connection.send("Browser.close",null,false);
+        	return null;
+        };
 
-				for (int i = 0; i < PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
-					chromeExecutable = PROBABLE_CHROME_EXECUTABLE_PATH[i];
-					if (StringUtil.isNotEmpty(chromeExecutable)) {
-						boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
-						if (assertDir) {
-							return chromeExecutable;
-						}
-					}
-				}
+            browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result);
+            return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction, options.getTimeout());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-				throw new RuntimeException(
-						"Tried to use PUPPETEER_EXECUTABLE_PATH env variable to launch browser but did not find any executable");
-			}
+    }
+
+    private String getWSEndpoint(String browserURL) throws IOException {
+		URI uri = URI.create(browserURL).resolve("/json/version");
+		URL url = uri.toURL();
+
+		HttpURLConnection conn =(HttpURLConnection)url.openConnection();
+		conn.setRequestMethod("GET");
+		conn.connect();
+		int responseCode = conn.getResponseCode();
+		if(responseCode != HttpURLConnection.HTTP_OK){
+			throw  new RuntimeException("browserURL: "+browserURL+",HTTP "+responseCode);
 		}
-		FetcherOptions fetcherOptions = new FetcherOptions();
-		fetcherOptions.setProduct(this.product());
-		BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot,fetcherOptions);
-		String revision = env.getEnv(PUPPETEER_CHROMIUM_REVISION_ENV);
-		if (StringUtil.isNotEmpty(revision)) {
-			RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
-			if (!revisionInfo.getLocal()) {
-				throw new RuntimeException(
-						"Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
-								+ revisionInfo.getExecutablePath());
-			}
-			return revisionInfo.getExecutablePath();
-		} else {
-			throw new RuntimeException(
-					"Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable ");
-		}
+        String result = StreamUtil.toString(conn.getInputStream());
+        JsonNode jsonNode = Constant.OBJECTMAPPER.readTree(result);
 
-	}
-	
-	public boolean getIsPuppeteerCore() {
-		return isPuppeteerCore;
-	}
+        return  jsonNode.get("webSocketDebuggerUrl").asText();
+    }
 
-	public void setIsPuppeteerCore(boolean isPuppeteerCore) {
-		this.isPuppeteerCore = isPuppeteerCore;
-	}
+    public boolean getIsPuppeteerCore() {
+        return isPuppeteerCore;
+    }
 
-	@Override
-	public Browser connect(Object object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    public void setIsPuppeteerCore(boolean isPuppeteerCore) {
+        this.isPuppeteerCore = isPuppeteerCore;
+    }
 
-	public String product(){
-		return "chrome";
-	}
+
+    @Override
+    public String executablePath() {
+        return resolveExecutablePath(null);
+    }
+
+    public String product() {
+        return "chrome";
+    }
 
 
 }

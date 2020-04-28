@@ -8,10 +8,10 @@ import com.ruiyun.jvppeteer.Environment;
 public class LaunchOptions extends BrowserOptions {
 
 	public LaunchOptions() {
-		
+		super();
 	}
 	/**
-	 * ¿ÉÔËĞĞ Chromium »ò Chrome ¿ÉÖ´ĞĞÎÄ¼şµÄÂ·¾¶£¬¶ø²»ÊÇ°ó¶¨µÄ Chromium¡£Èç¹û executablePath ÊÇÒ»¸öÏà¶ÔÂ·¾¶£¬ÄÇÃ´ËûÏà¶ÔÓÚ µ±Ç°¹¤×÷Â·¾¶ ½âÎö
+	 * è®¾ç½®chromeæµè§ˆå™¨çš„è·¯å¾„
 	 * <br/>
 	 * Path to a Chromium executable to run instead of bundled Chromium. If
 	 * executablePath is a relative path, then it is resolved relative to current
@@ -20,43 +20,33 @@ public class LaunchOptions extends BrowserOptions {
 	private String executablePath;
 	
 	/**
-	 * ºöÂÔËùÓĞµÄÄ¬ÈÏ²ÎÊı,Õâ¸öÑ¡ÏîÇë½÷É÷Ê¹ÓÃ¡£Ä¬ÈÏÎª false¡£
-	 * 
-	 * <br/>
-	 * Do not use `puppeteer.defaultArgs()` for launching Chromium.
 	 * @default false
 	 */
 	private boolean ignoreAllDefaultArgs;
-	/**
-	 * ¹ıÂËµô¸ø¶¨µÄÄ¬ÈÏ²ÎÊı¡£
-	 * <br/>
-	 */
+
 	private List<String> ignoreDefaultArgs;
 	
 	/**
-	 * Ctrl-C ¹Ø±Õä¯ÀÀÆ÷½ø³Ì¡£Ä¬ÈÏÊÇ true
+
 	 * Close chrome process on Ctrl-C.
 	 * @default true
 	 */
 	private boolean handleSIGINT = true;
 	
 	/**
-	 * ¹Ø±Õ SIGTERM ÉÏµÄä¯ÀÀÆ÷½ø³Ì¡£Ä¬ÈÏÊÇ true
 	 * Close chrome process on SIGTERM.
 	 * @default true
 	 */
 	private boolean handleSIGTERM = true;
 	
 	/**
-	 * ¹Ø±Õ SIGHUP ÉÏµÄä¯ÀÀÆ÷½ø³Ì¡£Ä¬ÈÏÊÇ true 
-	 * <br/>
 	 * Close chrome process on SIGHUP.
 	 * @default true
 	 */
 	private boolean handleSIGHUP = true;
 	
 	/**
-	 * ÊÇ·ñ½«ä¯ÀÀÆ÷½ø³Ì±ê×¼Êä³öºÍ±ê×¼´íÎóÊäÈëµ½ process.stdout ºÍ process.stderr ÖĞ¡£Ä¬ÈÏÊÇ false¡£
+	 * å°†cheomeçš„æ ‡å‡†è¾“å‡ºæµè¾“å…¥æµè½¬æ¢åˆ°javaç¨‹åºçš„æ ‡å‡†è¾“å…¥è¾“å‡º
 	 * <br/>
 	 * Whether to pipe browser process stdout and stderr into process.stdout and
 	 * process.stderr.
@@ -65,7 +55,7 @@ public class LaunchOptions extends BrowserOptions {
 	private boolean dumpio ;
 	  
 	 /**
-	  * Ö¸¶¨ä¯ÀÀÆ÷¿É¼ûµÄ»·¾³±äÁ¿¡£Ä¬ÈÏÊÇ System.getEnv()
+	  * Ö¸System.getEnv()
 	  * <br/>
 	  * Specify environment variables that will be visible to Chromium.
 	  * @default `process.env`.
@@ -73,16 +63,17 @@ public class LaunchOptions extends BrowserOptions {
 	private Environment env;
 	
 	/**
-	 * Í¨¹ı¹ÜµÀ¶ø²»ÊÇWebSocketÁ¬½Óµ½ä¯ÀÀÆ÷¡£Ä¬ÈÏÊÇ false
+	 * Í¨falseä»£è¡¨ä½¿ç”¨websocketé€šè®¯ï¼Œtrueä»£è¡¨ä½¿ç”¨websocketé€šè®¯
 	 * Connects to the browser over a pipe instead of a WebSocket.
 	 * @default false
 	 */
 	private boolean pipe;
 	
 	/**
-	 * Æô¶¯µÄ²úÆ·£ºchrome or firefox
+	 * chrome or firefox
 	 */
 	private String product;
+
 
 	public String getExecutablePath() {
 		return executablePath;

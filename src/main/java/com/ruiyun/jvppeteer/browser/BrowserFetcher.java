@@ -6,6 +6,7 @@ import com.sun.javafx.PlatformUtil;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +82,9 @@ public class BrowserFetcher {
 	 * 目前支持两种产品：chrome or firefix
 	 */
 	private String product;
+
+    public BrowserFetcher() {
+    }
 
     public BrowserFetcher(String projectRoot, FetcherOptions options) {
         this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chromium").toLowerCase();

@@ -1,12 +1,18 @@
 package com.ruiyun.jvppeteer;
 
 import com.ruiyun.jvppeteer.browser.Browser;
+import com.ruiyun.jvppeteer.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;
+import com.ruiyun.jvppeteer.options.ChromeArgOptions;
+import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
@@ -23,7 +29,7 @@ public class Puppeteer implements Constant {
 	private Launcher launcher;
 	
 	private Environment env = null;
-//	private String projectRoot;
+	private String projectRoot;
 //
 //	private String preferredRevision;
 
@@ -77,7 +83,7 @@ public class Puppeteer implements Constant {
 	/**
 	 * 适配chrome or firefox 浏览器
 	 */
-	public static void adapterLauncher(Puppeteer puppeteer) {
+	private static void adapterLauncher(Puppeteer puppeteer) {
 		String productName = null;
 		Launcher launcher = null;
 		Environment env;
@@ -109,35 +115,44 @@ public class Puppeteer implements Constant {
 		puppeteer.setLauncher(launcher);
 	}
 
-	public  String getProductName() {
+	public List<String> defaultArgs(ChromeArgOptions options) {
+		List<String> chromeArguments = new ArrayList<>();
+		 this.getLauncher().defaultArgs(options,chromeArguments);
+		return chromeArguments;
+	}
+
+	public String executablePath() {
+		return this.getLauncher().executablePath();
+	}
+	public BrowserFetcher createBrowserFetcher(FetcherOptions options){
+		return new BrowserFetcher(this.projectRoot,options);
+	}
+	private   String getProductName() {
 		return productName;
 	}
 
-	public  void setProductName(String productName) {
+	private   void setProductName(String productName) {
 		this.productName = productName;
 	}
 
-	public boolean getIsPuppeteerCore() {
+	private boolean getIsPuppeteerCore() {
 		return isPuppeteerCore;
 	}
 
-	public void setIsPuppeteerCore(boolean puppeteerCore) {
-		isPuppeteerCore = puppeteerCore;
-	}
 
-	public Launcher getLauncher() {
+	private Launcher getLauncher() {
 		return launcher;
 	}
 
-	public void setLauncher(Launcher launcher) {
+	private void setLauncher(Launcher launcher) {
 		this.launcher = launcher;
 	}
 
-	public Environment getEnv() {
+	private Environment getEnv() {
 		return env;
 	}
 
-	public void setEnv(Environment env) {
+	private void setEnv(Environment env) {
 		this.env = env;
 	}
 }

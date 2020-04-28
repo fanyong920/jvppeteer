@@ -8,7 +8,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public abstract class ConnectionTransport extends WebSocketClient implements Constant {
+public abstract class ConnectionTransport extends WebSocketClient {
 
 
 	public ConnectionTransport(URI serverUri) {

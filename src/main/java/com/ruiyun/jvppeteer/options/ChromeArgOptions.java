@@ -4,15 +4,14 @@ import java.util.List;
 
 public class ChromeArgOptions extends Timeoutable {
 	/**
-	 * ÊÇ·ñÒÔ ÎŞÍ·Ä£Ê½ ÔËĞĞä¯ÀÀÆ÷¡£Ä¬ÈÏÊÇ true£¬³ı·Ç devtools Ñ¡ÏîÊÇ true
+	 * æ˜¯å¦æ˜¯æ— å˜å¤´
 	 * <br/>
      * Whether to run browser in headless mode.
      * @default true unless the devtools option is true.
      */
     private boolean headless = true;
     /**
-     * 
-     *  ´«µİ¸øä¯ÀÀÆ÷ÊµÀıµÄÆäËû²ÎÊı  ¿ÉÒÔ¿´ÕâÀï£º
+     *å…¶ä»–å‚æ•°ï¼Œåœ¨ä¸‹é¢çš„è¿æ¥å¯ä»¥çœ‹åˆ°
      *  https://peter.sh/experiments/chromium-command-line-switches/
      * <br/>
      * Additional arguments to pass to the browser instance.
@@ -20,13 +19,13 @@ public class ChromeArgOptions extends Timeoutable {
      */
     private List<String> args ;
     /**
-     * ÓÃ»§Êı¾İÄ¿Â¼ Â·¾¶
+     * ç”¨æˆ·æ•°æ®å­˜å‚¨çš„ç›®å½•
      * <br/>
      * Path to a User Data Directory.
      */
     private String userDataDir;
     /**
-     * ÊÇ·ñÎªÃ¿¸öÑ¡Ïî¿¨×Ô¶¯´ò¿ªDevToolsÃæ°å¡£Èç¹ûÕâ¸öÑ¡ÏîÊÇ true£¬headless Ñ¡Ïî½«»áÉèÖÃ³É false¡£
+     * æ˜¯å¦æ‰“å¼€devtool,ä¹Ÿå°±æ˜¯F12æ‰“å¼€çš„å¼€å‘è€…å·¥å…·
      * <br/>
      * Whether to auto-open a DevTools panel for each tab.
      * If this option is true, the headless option will be set false.

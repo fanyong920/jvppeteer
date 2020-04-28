@@ -34,6 +34,10 @@ public class WebSocketTransport extends ConnectionTransport {
 		super(serverUri, httpHeaders);
 	}
 
+	public static WebSocketTransport create(String browserWSEndpoint) {
+		return null;
+	}
+
 	@Override
 	public void onMessage(String message) {
 		ValidateUtil.notNull(this.messageConsumer,"MessageConsumer must be initialized");
@@ -63,5 +67,7 @@ public class WebSocketTransport extends ConnectionTransport {
 	public void addMessageConsumer(Consumer<String> consumer) {
 		this.messageConsumer = consumer;
 	}
+
+
 
 }

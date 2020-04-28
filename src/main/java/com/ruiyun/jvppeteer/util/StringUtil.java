@@ -2,9 +2,6 @@ package com.ruiyun.jvppeteer.util;
 
 import java.time.LocalDateTime;
 
-/**
- * 操作字符串的工具
- */
 public class StringUtil {
 	
 	public static boolean isEmpty(String s) {

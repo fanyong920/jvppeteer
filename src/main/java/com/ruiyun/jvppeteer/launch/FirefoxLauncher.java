@@ -3,7 +3,10 @@ package com.ruiyun.jvppeteer.launch;
 import java.util.List;
 
 import com.ruiyun.jvppeteer.browser.Browser;
+import com.ruiyun.jvppeteer.options.BrowserOptions;
+import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 
 public class FirefoxLauncher implements Launcher {
 
@@ -24,10 +27,8 @@ public class FirefoxLauncher implements Launcher {
 		return null;
 	}
 
-
 	@Override
-	public String defaultArgs(LaunchOptions options, List<String> chromeArguments) {
-		// TODO Auto-generated method stub
+	public String defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
 		return null;
 	}
 
@@ -38,11 +39,15 @@ public class FirefoxLauncher implements Launcher {
 		return null;
 	}
 
-
 	@Override
-	public Browser connect(Object object) {
-		// TODO Auto-generated method stub
+	public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
 		return null;
 	}
+
+	@Override
+	public String executablePath() {
+		return null;
+	}
+
 
 }
