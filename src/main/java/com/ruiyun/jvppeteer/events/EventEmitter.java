@@ -131,11 +131,7 @@ public class EventEmitter implements Event {
      */
     private void invokeListener(DefaultBrowserListener listener, Object event){
         try {
-            if(listener.getHandler() != null){
-                listener.getHandler().onEvent(event);
-            }else{
-                listener.onBrowserEvent(event);
-            }
+            listener.onBrowserEvent(event);
         } finally {
             if(listener.getIsOnce()){
                 listener.setIsAvaliable(false);

@@ -2,7 +2,10 @@ package com.ruiyun.jvppeteer.browser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.events.Event;
 import com.ruiyun.jvppeteer.events.EventEmitter;
+import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
 import com.ruiyun.jvppeteer.events.browser.definition.Events;
 import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.exception.LaunchException;
@@ -267,7 +270,7 @@ public class Browser extends EventEmitter {
 			if( this.getContexts().containsKey(targetInfo.getBrowserContextId())){
 				context = this.getContexts().get(targetInfo.getBrowserContextId());
 			}else{
-				context = this.getDefaultContext();
+				context = this.defaultBrowserContext();
 			}
 		}
 		Target target = new Target(targetInfo,context,() -> this.getConnection().createSession(targetInfo),this.getIgnoreHTTPSErrors(),this.getViewport(),this.getScreenshotTaskQueue());
@@ -313,7 +316,7 @@ public class Browser extends EventEmitter {
 	 */
 	public Collection<BrowserContext> browserContexts() {
 		Collection<BrowserContext> contexts = new ArrayList<>();
-		contexts.add(this.getDefaultContext());
+		contexts.add(this.defaultBrowserContext());
 		contexts.addAll(this.getContexts().values());
  		return contexts;
 	}
@@ -386,6 +389,61 @@ public class Browser extends EventEmitter {
 		throw new RuntimeException("can't create new page ,bacause recevie message is null");
 	}
 
+	/**
+	 * <p>监听浏览器事件：disconnected<p/>
+	 * <p>浏览器一共有四种事件<p/>
+	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
+	 * @param handler
+	 * @return
+	 */
+	public void onDisconnected(EventHandler handler) {
+		System.out.println("我是浏览器事件监听，现在监听到 disconnected");
+		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		disListener.setHandler(handler);
+		this.on("disconnected",disListener);
+	}
+	/**
+	 * <p>监听浏览器事件：targetchanged<p/>
+	 * <p>浏览器一共有四种事件<p/>
+	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
+	 * @param handler
+	 * @return
+	 */
+	public void onTargetchanged(EventHandler<Target> handler) {
+		System.out.println("我是浏览器事件监听，现在监听到 targetchanged");
+		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		disListener.setHandler(handler);
+		this.on("disconnected",disListener);
+	}
+
+	/**
+	 * <p>监听浏览器事件：targetcreated<p/>
+	 * <p>浏览器一共有四种事件<p/>
+	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
+	 * @param handler
+	 * @return
+	 */
+	public void onTrgetcreated(EventHandler<Target> handler) {
+		System.out.println("我是浏览器事件监听，现在监听到 targetcreated");
+		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		disListener.setHandler(handler);
+		this.on("disconnected",disListener);
+	}
+
+	/**
+	 * <p>监听浏览器事件：targetcreated<p/>
+	 * <p>浏览器一共有四种事件<p/>
+	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
+	 * @param handler
+	 * @return
+	 */
+	public void onTargetdestroyed(EventHandler<Target> handler) {
+		System.out.println("我是浏览器事件监听，现在监听到 targetdestroyed");
+		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		disListener.setHandler(handler);
+		this.on("disconnected",disListener);
+	}
+
 	public Map<String, Target> getTargets() {
 		return targets;
 	}
@@ -406,7 +464,7 @@ public class Browser extends EventEmitter {
 		this.contexts = contexts;
 	}
 
-	public BrowserContext getDefaultContext() {
+	public BrowserContext defaultBrowserContext() {
 		return defaultContext;
 	}
 

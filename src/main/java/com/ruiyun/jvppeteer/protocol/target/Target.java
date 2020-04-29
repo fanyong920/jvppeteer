@@ -151,7 +151,7 @@ public class Target {
 		return this.targetInfo.getUrl();
 	}
 	private Browser browser() {
-		return this.browserContext.getBrowser();
+		return this.browserContext.browser();
 	}
 
 	public Page getPagePromise() {

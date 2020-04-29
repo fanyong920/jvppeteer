@@ -23,6 +23,7 @@ public class WebSocketTransportFactory implements Constant {
 	public static WebSocketTransport create(String url) throws InterruptedException {
 		WebSocketTransport client = new WebSocketTransport(URI.create(url));
 		client.connectBlocking();
+		client.setConnectionLostTimeout(0);
 		return client;
 	}
 	

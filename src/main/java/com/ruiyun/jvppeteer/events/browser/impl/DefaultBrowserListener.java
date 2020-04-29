@@ -4,7 +4,7 @@ import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
 import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
 
 
-public abstract class DefaultBrowserListener<T> implements BrowserListener<T> {
+public class DefaultBrowserListener<T> implements BrowserListener<T> {
 	
 	private String mothod;
 
@@ -64,5 +64,10 @@ public abstract class DefaultBrowserListener<T> implements BrowserListener<T> {
 
 	public void setIsAvaliable(boolean isAvaliable) {
 		isAvaliable = isAvaliable;
+	}
+
+	@Override
+	public void onBrowserEvent(T event) {
+		this.getHandler().onEvent(event);
 	}
 }

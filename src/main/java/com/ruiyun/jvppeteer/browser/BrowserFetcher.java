@@ -682,21 +682,15 @@ public class BrowserFetcher {
         return String.format(downloadURLs.get(product).get(platform), host, revision, archiveName(product, platform, revision));
     }
 
-    public String getDownloadHost() {
+    public String host() {
         return downloadHost;
     }
 
-    public void setDownloadHost(String downloadHost) {
-        this.downloadHost = downloadHost;
-    }
 
-    public String getPlatform() {
+    public String platform() {
         return platform;
     }
 
-    public void setPlatform(String platform) {
-        this.platform = platform;
-    }
 
     public String getDownloadsFolder() {
         return downloadsFolder;
@@ -706,11 +700,8 @@ public class BrowserFetcher {
         this.downloadsFolder = downloadsFolder;
     }
 
-    public String getProduct() {
+    public String product() {
         return product;
     }
 
-    public void setProduct(String product) {
-        this.product = product;
-    }
 }
