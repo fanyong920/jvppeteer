@@ -9,4 +9,16 @@ public class JSHandle {
 
     public void dispose() {
     }
+
+    public String getObjectId() {
+        return null;
+    }
+
+    public Object getProtocolValue() {
+        return null;
+    }
+
+    public String deserializeValue(Object protocolValue) {
+        return null;
+    }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.browser.Browser;
 import com.ruiyun.jvppeteer.browser.BrowserContext;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
+import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.page.TaskQueue;

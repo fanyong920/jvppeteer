@@ -2,13 +2,11 @@ package com.ruiyun.jvppeteer.browser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.Event;
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
-import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.exception.LaunchException;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.definition.EventHandler;
+import com.ruiyun.jvppeteer.events.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.page.Page;
@@ -24,12 +22,13 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -81,6 +80,8 @@ public class Browser extends EventEmitter {
 
 	private Function closeCallback;
 
+	private CountDownLatch waitforTargetLatch ;
+
 	
 	public Browser(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors,
 				   Viewport defaultViewport, Process process, Function closeCallback) {
@@ -108,6 +109,7 @@ public class Browser extends EventEmitter {
 		}
 		this.port = this.connection.getPort();
 		targets = new ConcurrentHashMap<>();
+		waitforTargetLatch = new CountDownLatch(1);
 		DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
 			@Override
 			public void onBrowserEvent(Object event) {
@@ -222,8 +224,8 @@ public class Browser extends EventEmitter {
 //		addBrowserListener(browser);
 		//send
 		params.put("discover",true);
-		connection.send("Target.setDiscoverTargets",params,true);
-		System.out.println("浏览器完成");
+
+		connection.send("Target.setDiscoverTargets",params,false,browser.getWaitforTargetLatch());
 		return browser;
 	}
 
@@ -294,9 +296,50 @@ public class Browser extends EventEmitter {
 		Target existingTarget = find(targets(),predicate);
 		if(null != existingTarget){
 			return existingTarget;
-		}else{
-			throw  new LaunchException("Waiting for target failed: timeout "+options.getTimeout()+"ms exceeded");
 		}
+		DefaultBrowserListener<Target> createLis = null;
+		DefaultBrowserListener<Target> changeLis = null;
+		try {
+			createLis = new DefaultBrowserListener<Target>(){
+				@Override
+				public void onBrowserEvent(Target event) {
+					boolean test = predicate.test(event);
+					Browser browser = (Browser)this.getTarget();
+					if(test){
+						browser.getWaitforTargetLatch().countDown();
+					}
+				}
+			};
+			createLis.setMothod(Events.BROWSER_TARGETCREATED.getName());
+			createLis.setTarget(this);
+			this.on(createLis.getMothod(),createLis);
+
+			changeLis = new DefaultBrowserListener<Target>(){
+				@Override
+				public void onBrowserEvent(Target event) {
+					boolean test = predicate.test(event);
+					Browser browser = (Browser)this.getTarget();
+					if(test){
+						browser.getWaitforTargetLatch().countDown();
+					}
+				}
+			};
+			changeLis.setMothod(Events.BROWSER_TARGETCHANGED.getName());
+			changeLis.setTarget(this);
+			this.on(createLis.getMothod(),createLis);
+		} finally {
+			this.removeListener(Events.BROWSER_TARGETCREATED.getName(),createLis);
+			this.removeListener(Events.BROWSER_TARGETCREATED.getName(),changeLis);
+		}
+		try {
+			boolean waitResult = this.getWaitforTargetLatch().await(options.getTimeout(), TimeUnit.MILLISECONDS);
+			if(waitResult){
+				return find(targets(),predicate);
+			}
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+		throw  new TimeOutException("waiting for target failed: timeout "+options.getTimeout()+"ms exceeded");
 	}
 
 	/**
@@ -398,9 +441,10 @@ public class Browser extends EventEmitter {
 	 */
 	public void onDisconnected(EventHandler handler) {
 		System.out.println("我是浏览器事件监听，现在监听到 disconnected");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
-		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		DefaultBrowserListener listener = new DefaultBrowserListener();
+		listener.setMothod("disconnected");
+		listener.setHandler(handler);
+		this.on(listener.getMothod(),listener);
 	}
 	/**
 	 * <p>监听浏览器事件：targetchanged<p/>
@@ -411,9 +455,10 @@ public class Browser extends EventEmitter {
 	 */
 	public void onTargetchanged(EventHandler<Target> handler) {
 		System.out.println("我是浏览器事件监听，现在监听到 targetchanged");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
-		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		DefaultBrowserListener listener = new DefaultBrowserListener();
+		listener.setMothod("targetchanged");
+		listener.setHandler(handler);
+		this.on(listener.getMothod(),listener);
 	}
 
 	/**
@@ -425,9 +470,10 @@ public class Browser extends EventEmitter {
 	 */
 	public void onTrgetcreated(EventHandler<Target> handler) {
 		System.out.println("我是浏览器事件监听，现在监听到 targetcreated");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
-		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		DefaultBrowserListener listener = new DefaultBrowserListener();
+		listener.setMothod("targetcreated");
+		listener.setHandler(handler);
+		this.on(listener.getMothod(),listener);
 	}
 
 	/**
@@ -439,9 +485,10 @@ public class Browser extends EventEmitter {
 	 */
 	public void onTargetdestroyed(EventHandler<Target> handler) {
 		System.out.println("我是浏览器事件监听，现在监听到 targetdestroyed");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
-		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		DefaultBrowserListener listener = new DefaultBrowserListener();
+		listener.setMothod("targetdestroyed");
+		listener.setHandler(handler);
+		this.on(listener.getMothod(),listener);
 	}
 
 	public Map<String, Target> getTargets() {
@@ -504,4 +551,11 @@ public class Browser extends EventEmitter {
 		this.screenshotTaskQueue = screenshotTaskQueue;
 	}
 
+	public CountDownLatch getWaitforTargetLatch() {
+		return waitforTargetLatch;
+	}
+
+	public void setWaitforTargetLatch(CountDownLatch waitforTargetLatch) {
+		this.waitforTargetLatch = waitforTargetLatch;
+	}
 }

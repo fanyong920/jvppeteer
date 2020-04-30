@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.events.browser.definition;
+package com.ruiyun.jvppeteer.events.definition;
 
 @FunctionalInterface
 public interface EventHandler<T> {

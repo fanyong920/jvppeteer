@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.events.browser.definition;
+package com.ruiyun.jvppeteer.events.definition;
 
 import java.util.EventListener;
 /**

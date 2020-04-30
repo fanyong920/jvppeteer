@@ -2,9 +2,9 @@ package com.ruiyun.jvppeteer.protocol.page.network;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.protocol.page.frame.Frame;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.protocol.page.frame.Request;

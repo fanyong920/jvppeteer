@@ -5,12 +5,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.EmulationManager;
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.definition.EventHandler;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;
+import com.ruiyun.jvppeteer.protocol.console.ConsoleMessage;
 import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
@@ -363,6 +365,23 @@ public class Page extends EventEmitter {
 
     }
 
+    /**
+     * ç›‘å¬é¡µé¢çš„å…³é—­äº‹ä»¶
+     * @param handler è¦æä¾›çš„å¤„ç†å™¨
+     */
+    public void onClose(EventHandler handler){
+        DefaultBrowserListener listener = new DefaultBrowserListener();
+        listener.setHandler(handler);
+        listener.setMothod(Events.PAGE_CLOSE.getName());
+        this.on(listener.getMothod(),listener);
+    }
+
+    public void onConsole(EventHandler<ConsoleMessage> handler){
+        DefaultBrowserListener listener = new DefaultBrowserListener();
+        listener.setHandler(handler);
+        listener.setMothod(Events.PAGE_CONSOLE.getName());
+        this.on(listener.getMothod(),listener);
+    }
     private void onFileChooser(FileChooserOpenedPayload event){
 
     }
@@ -425,24 +444,17 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * »ñÈ¡¸ÃÒ³ÃæËùÓĞÄÚÈİ
-     * @return Ò³ÃæÄÚÈİ×Ö·û´®
+     * ä»¥å­—ç¬¦ä¸²å½¢å¼è¿”å›é¡µé¢çš„å†…å®¹
+     * @return é¡µé¢å†…å®¹
      */
     public String content() {
         return  this.frameManager.getMainFrame().content();
     }
 
     /**
-     * ±¾À´ÊÇÒªÊ¹ÓÃgoto×÷Îª·½·¨ÃûµÄ£¬µ«ÊÇgotoÊÇJavaµÄ¹Ø¼ü×Ö£¬ËùÒÔ¸Ä³ÉÁËgoTo¡£
-     * Ìø×ªµ½¾ßÌåÒ³Ãæ
-     * ÒÔÏÂÇé¿ö´Ë·½·¨½«±¨´í£º
-     *
-     * ·¢ÉúÁË SSL ´íÎó (±ÈÈçÓĞĞ©×ÔÇ©ÃûµÄhttpsÖ¤Êé).
-     * Ä¿±êµØÖ·ÎŞĞ§
-     * ³¬Ê±
-     * Ö÷Ò³Ãæ²»ÄÜ¼ÓÔØ
+     * å¯¼èˆªåˆ°æŒ‡å®šçš„url,å› ä¸ºgotoæ˜¯javaçš„å…³é”®å­—ï¼Œæ‰€ä»¥å°±é‡‡ç”¨äº†goToæ–¹æ³•å
      * the main resource failed to load.
-     * @param url ÒªÌø×ªµÄµØÖ·
+     * @param url url
      * @return Response
      */
     public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {

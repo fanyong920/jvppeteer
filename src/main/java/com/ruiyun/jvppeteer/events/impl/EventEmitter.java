@@ -1,10 +1,10 @@
-package com.ruiyun.jvppeteer.events;
+package com.ruiyun.jvppeteer.events.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.definition.Event;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;

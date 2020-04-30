@@ -1,6 +1,4 @@
-package com.ruiyun.jvppeteer.events;
-
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+package com.ruiyun.jvppeteer.events.impl;
 
 public class BrowserListenerWrapper<T> {
 

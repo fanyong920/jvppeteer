@@ -1,8 +1,8 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
-import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
+import com.ruiyun.jvppeteer.events.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.protocol.page.frame.Frame;
 import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;

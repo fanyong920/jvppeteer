@@ -1,7 +1,7 @@
-package com.ruiyun.jvppeteer.events.browser.impl;
+package com.ruiyun.jvppeteer.events.impl;
 
-import com.ruiyun.jvppeteer.events.browser.definition.BrowserListener;
-import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
+import com.ruiyun.jvppeteer.events.definition.BrowserListener;
+import com.ruiyun.jvppeteer.events.definition.EventHandler;
 
 
 public class DefaultBrowserListener<T> implements BrowserListener<T> {

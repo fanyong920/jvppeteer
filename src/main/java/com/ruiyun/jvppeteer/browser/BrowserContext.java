@@ -1,8 +1,9 @@
 package com.ruiyun.jvppeteer.browser;
 
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.EventHandler;
-import com.ruiyun.jvppeteer.events.browser.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.definition.EventHandler;
+import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.protocol.page.Page;
 import com.ruiyun.jvppeteer.protocol.target.Target;
 import com.ruiyun.jvppeteer.transport.Connection;
@@ -12,6 +13,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -127,6 +129,11 @@ public class BrowserContext extends EventEmitter {
 	public List<Target> targets() {
 		return this.browser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());
 	}
+
+	public Target waitForTarget(Predicate<Target> predicate, ChromeArgOptions options) {
+		return this.browser.waitForTarget(target -> target.browserContext() == this && predicate.test(target),options);
+	}
+
 	public Connection getConnection() {
 		return connection;
 	}

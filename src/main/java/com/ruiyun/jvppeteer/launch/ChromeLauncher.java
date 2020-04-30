@@ -64,7 +64,11 @@ public class ChromeLauncher implements Launcher {
         try {
             runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), "");
-            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), BrowserRunner::closeBroser, options.getTimeout());
+            Function closeCallback = (s) -> {
+                runner.close(s);
+                return null;
+            };
+            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(),closeCallback, options.getTimeout());
             browser.waitForTarget(t -> "page".equals(t.type()), options);
             return browser;
         } catch (IOException | InterruptedException e) {

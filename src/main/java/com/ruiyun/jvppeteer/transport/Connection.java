@@ -3,8 +3,8 @@ package com.ruiyun.jvppeteer.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.browser.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
@@ -79,6 +79,42 @@ public class Connection extends EventEmitter implements Consumer<String>{
 					if(!hasResult){
 						throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 					}
+				}
+				return callbacks.remove(id).getResult();
+			}
+		} catch (InterruptedException e) {
+			LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
+		}
+		return null;
+	}
+
+	public JsonNode send(String method,Map<String, Object> params,boolean isWait,CountDownLatch outLatch )  {
+		SendMsg  message = new SendMsg();
+		message.setMethod(method);
+		message.setParams(params);
+		try {
+			long id = rawSend(message);
+			if(id >= 0){
+				callbacks.putIfAbsent(id, message);
+				if(isWait){
+					if(outLatch != null){
+						message.setCountDownLatch(outLatch);
+					}else {
+						CountDownLatch latch = new CountDownLatch(1);
+						message.setCountDownLatch(latch);
+					}
+				}
+				if(isWait){
+					if(outLatch != null){
+						message.setCountDownLatch(outLatch);
+					}else {
+						CountDownLatch latch = new CountDownLatch(1);
+						message.setCountDownLatch(latch);
+					}
+				}
+				boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+				if(!hasResult){
+					throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 				}
 				return callbacks.remove(id).getResult();
 			}

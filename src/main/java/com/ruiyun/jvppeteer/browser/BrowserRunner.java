@@ -1,11 +1,13 @@
 package com.ruiyun.jvppeteer.browser;
 
+import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.exception.TimeOutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ public class BrowserRunner implements AutoCloseable {
 
 	private boolean closed;
 	
-	private List<String> listeners;
+	private List<BrowserListenerWrapper> listeners;
 
 	private static final List<BrowserRunner> runners = new ArrayList<>();
 
@@ -215,8 +217,22 @@ public class BrowserRunner implements AutoCloseable {
 		}
 	}
 
-	public static Object closeBroser(Object o) {
-		return null;
+	public boolean close(Object c) {
+		if(this.getClosed()){
+			return true;
+		}
+		Helper.removeEventListeners(this.listeners);
+		if (StringUtil.isNotEmpty(this.tempDirectory)) {
+			this.kill();
+		} else if (this.connection != null) {
+			// Attempt to close the browser gracefully
+			try {
+				this.connection.send("Browser.close",null,false);
+			}catch (Exception e){
+				this.kill();
+			}
+		}
+		return true;
 	}
 
 	public interface ShutdownHookRegistry {
