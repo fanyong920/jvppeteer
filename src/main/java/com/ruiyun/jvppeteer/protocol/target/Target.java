@@ -2,12 +2,12 @@ package com.ruiyun.jvppeteer.protocol.target;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.browser.Browser;
-import com.ruiyun.jvppeteer.browser.BrowserContext;
+import com.ruiyun.jvppeteer.types.browser.Browser;
+import com.ruiyun.jvppeteer.types.browser.BrowserContext;
 import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.protocol.page.Page;
-import com.ruiyun.jvppeteer.protocol.page.TaskQueue;
+import com.ruiyun.jvppeteer.types.page.Page;
+import com.ruiyun.jvppeteer.types.page.TaskQueue;
 import com.ruiyun.jvppeteer.protocol.promise.Promise;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -54,6 +54,8 @@ public class Target {
 
 	private String sessionId;
 
+	private CountDownLatch isClosedPromiseLatch;
+
 	public Target() {
 
 	}
@@ -80,6 +82,9 @@ public class Target {
 		if(pagePromise != null){
 			this.pagePromise.emit(Events.PAGE_CLOSE.getName(),null);
 			this.pagePromise.setClosed(true);
+		}
+		if(this.isClosedPromiseLatch != null){
+			this.isClosedPromiseLatch.countDown();
 		}
 	}
 	public Page page(){
@@ -150,7 +155,8 @@ public class Target {
 	public String url() {
 		return this.targetInfo.getUrl();
 	}
-	private Browser browser() {
+
+	public Browser browser() {
 		return this.browserContext.browser();
 	}
 
@@ -252,4 +258,15 @@ public class Target {
 
 	public void targetInfoChanged(TargetInfo targetInfo) {
 	}
+
+	public boolean WaiforisClosedPromise(){
+		this.isClosedPromiseLatch = new CountDownLatch(1);
+		try {
+			return this.isClosedPromiseLatch.await(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		return  false;
+	}
+
 }

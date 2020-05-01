@@ -6,16 +6,14 @@ import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
-import com.ruiyun.jvppeteer.protocol.page.LifecycleWatcher;
-import com.ruiyun.jvppeteer.protocol.page.frame.Frame;
-import com.ruiyun.jvppeteer.protocol.page.frame.FrameManager;
+import com.ruiyun.jvppeteer.types.page.LifecycleWatcher;
+import com.ruiyun.jvppeteer.types.page.frame.Frame;
+import com.ruiyun.jvppeteer.types.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.protocol.target.TimeoutSettings;
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.io.IOException;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,8 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static com.sun.deploy.uitoolkit.ToolkitStore.dispose;
 
 public class DOMWorld {
 
@@ -158,7 +154,7 @@ public class DOMWorld {
         return document.$$eval(selector, pageFunction, type, args);
     }
 
-    public ElementHandle $$(String selector) {
+    public List<ElementHandle> $$(String selector) {
         ElementHandle document = this.document();
         return document.$$(selector);
     }

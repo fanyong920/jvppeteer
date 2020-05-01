@@ -1,10 +1,12 @@
 package com.ruiyun.jvppeteer.options;
 
+import com.ruiyun.jvppeteer.types.page.Page;
+
 import java.util.List;
 
 /**
- * 页面${@link com.ruiyun.jvppeteer.protocol.page.Page#goTo}用到
- * 跳转到具体页面时可选择的参数
+ * ${@link Page#goTo}
+ * 瀵艰埅鍒伴〉闈㈢殑鐢ㄧ殑
  */
 public class PageNavigateOptions {
 
@@ -14,16 +16,16 @@ public class PageNavigateOptions {
     private String referer;
 
     /**
-     * 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过
+     * 瀵艰埅鍒颁竴涓〉闈㈢殑瓒呮椂浜嬩欢
      */
     private int timeout;
 
     /**
-     *  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
-     * load - 页面的load事件触发时
-     * domcontentloaded - 页面的 DOMContentLoaded 事件触发时
-     * networkidle0 - 不再有网络连接时触发（至少500毫秒后）
-     * networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *  鍒板摢涓樁娈垫墠绠楀鑸畬鎴愶紝鍏辨湁鍥涗釜闃舵
+     * load -
+     * domcontentloaded -
+     * networkidle0 -
+     * networkidle2 -
      */
     private List<String> waitUntil;
 

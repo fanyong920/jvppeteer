@@ -60,6 +60,8 @@ public class CDPSession extends EventEmitter implements Constant {
         message.setMethod(method);
         message.setParams(params);
         message.setSessionId(this.sessionId);
+        long id = this.connection.rawSend(message);
+        this.callbacks.putIfAbsent(id,message);
         try {
             if(isLock){
                 if(outLatch != null){
@@ -68,14 +70,16 @@ public class CDPSession extends EventEmitter implements Constant {
                     CountDownLatch latch = new CountDownLatch(1);
                     message.setCountDownLatch(latch);
                 }
+                boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+                if(!hasResult){
+                    throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                }
+                return callbacks.remove(id).getResult();
+            }else{
+                if(outLatch != null)
+                    message.setCountDownLatch(outLatch);
             }
-            long id = this.connection.rawSend(message);
-            this.callbacks.putIfAbsent(id,message);
-            boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
-            if(!hasResult){
-                throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
-            }
-            return callbacks.remove(id).getResult();
+
         } catch (InterruptedException e) {
             LOGGER.error("wait message result is interrupted:",e);
         }

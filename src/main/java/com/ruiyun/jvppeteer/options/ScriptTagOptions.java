@@ -1,7 +1,9 @@
 package com.ruiyun.jvppeteer.options;
 
+import com.ruiyun.jvppeteer.types.page.frame.Frame;
+
 /**
- * ÔÚ${@link com.ruiyun.jvppeteer.protocol.page.frame.Frame#addScriptTag(ScriptTagOptions)}
+ * ç”¨åœ¨${@link Frame#addScriptTag(ScriptTagOptions)}
  */
 public class ScriptTagOptions {
 

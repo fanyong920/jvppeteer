@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.coverage;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ruiyun.jvppeteer.protocol.page.payload.CoverageEntry;
+import com.ruiyun.jvppeteer.types.page.payload.CoverageEntry;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.List;

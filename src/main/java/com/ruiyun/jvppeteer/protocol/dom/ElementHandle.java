@@ -2,11 +2,19 @@ package com.ruiyun.jvppeteer.protocol.dom;
 
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
+import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
+import com.ruiyun.jvppeteer.protocol.js.RemoteObject;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.util.List;
 
 public class ElementHandle extends JSHandle {
+
+    public ElementHandle(ExecutionContext context, CDPSession client, RemoteObject remoteObject) {
+        super(context, client, remoteObject);
+    }
+
     public void dispose() {
     }
 
@@ -26,7 +34,7 @@ public class ElementHandle extends JSHandle {
         return null;
     }
 
-    public ElementHandle $$(String selector) {
+    public List<ElementHandle> $$(String selector) {
         return null;
     }
 

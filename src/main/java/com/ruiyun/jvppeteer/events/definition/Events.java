@@ -14,9 +14,9 @@ public enum Events {
     PAGE_FRAMEATTACHED( "frameattached"),
     PAGE_FRAMEDETACHED( "framedetached"),
     PAGE_FRAMENAVIGATED( "framenavigated"),
-    PAGE_LOAD( "load"),
-    PAGE_METRICS( "metrics"),
-    PAGE_POPUP( "popup"),
+    PAGE_LOAD("load"),
+    PAGE_METRICS("metrics"),
+    PAGE_POPUP("popup"),
     PAGE_WORKERCREATED( "workercreated"),
     PAGE_WORKERDESTROYED( "workerdestroyed"),
 

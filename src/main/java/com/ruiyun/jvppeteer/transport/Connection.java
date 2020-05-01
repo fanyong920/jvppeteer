@@ -94,30 +94,24 @@ public class Connection extends EventEmitter implements Consumer<String>{
 		message.setParams(params);
 		try {
 			long id = rawSend(message);
-			if(id >= 0){
-				callbacks.putIfAbsent(id, message);
-				if(isWait){
-					if(outLatch != null){
-						message.setCountDownLatch(outLatch);
-					}else {
-						CountDownLatch latch = new CountDownLatch(1);
-						message.setCountDownLatch(latch);
-					}
-				}
-				if(isWait){
-					if(outLatch != null){
-						message.setCountDownLatch(outLatch);
-					}else {
-						CountDownLatch latch = new CountDownLatch(1);
-						message.setCountDownLatch(latch);
-					}
+			callbacks.putIfAbsent(id, message);
+			if(isWait){
+				if(outLatch != null){
+					message.setCountDownLatch(outLatch);
+				}else {
+					CountDownLatch latch = new CountDownLatch(1);
+					message.setCountDownLatch(latch);
 				}
 				boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
 				if(!hasResult){
 					throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 				}
 				return callbacks.remove(id).getResult();
+			}else{
+				if(outLatch != null)
+					message.setCountDownLatch(outLatch);
 			}
+
 		} catch (InterruptedException e) {
 			LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
 		}

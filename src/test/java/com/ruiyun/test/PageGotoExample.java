@@ -1,18 +1,11 @@
 package com.ruiyun.test;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruiyun.jvppeteer.Puppeteer;
-import com.ruiyun.jvppeteer.browser.Browser;
+import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
-import com.ruiyun.jvppeteer.protocol.page.Page;
+import com.ruiyun.jvppeteer.types.page.Page;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class PageGotoExample {

@@ -15,8 +15,15 @@ public class ConsoleMessage {
 
     private Object location;
 
-    public ConsoleMessage(String type, List<JSHandle> args, Object location) {
+    private String text;
+
+    public ConsoleMessage() {
+    }
+
+    public ConsoleMessage(String type, String text, List<JSHandle> args, Object location) {
+        super();
         this.type = type;
+        this.text = text;
         this.args = args;
         this.location = location;
     }
@@ -45,17 +52,11 @@ public class ConsoleMessage {
         this.location = location;
     }
 
-    /**
-     * @return {string}
-     */
-    public String text() {
-        List<String> collect = this.args.stream().map(arg -> {
-            if (StringUtil.isNotEmpty(arg.getObjectId()))
-                return arg.toString();
-            return arg.deserializeValue(arg.getProtocolValue());
-        }).collect(Collectors.toList());
-        if(ValidateUtil.isEmpty(collect))
-            return null;
-        return String.join(" ",collect);
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.Environment;
-import com.ruiyun.jvppeteer.browser.Browser;
+import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;

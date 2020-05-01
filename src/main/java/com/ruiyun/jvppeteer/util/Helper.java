@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.protocol.js.RemoteObject;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
@@ -13,6 +14,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -220,5 +222,34 @@ public class Helper   {
             return true;
         }
         return false;
+    }
+
+    public static Object valueFromRemoteObject(RemoteObject remoteObject) {
+        ValidateUtil.assertBoolean(StringUtil.isEmpty(remoteObject.getObjectId()), "Cannot extract value when objectId is given");
+        if (StringUtil.isNotEmpty(remoteObject.getUnserializableValue())) {
+            if ("bigint".equals(remoteObject.getType()) )
+            return new BigInteger(remoteObject.getUnserializableValue().replace("n", ""));
+            switch (remoteObject.getUnserializableValue()) {
+                case "-0":
+                    return -0;
+                case "NaN":
+                    return "NaN";
+                case "Infinity":
+                    return "Infinity";
+                case "-Infinity":
+                    return "-Infinity";
+                default:
+                    throw new IllegalArgumentException("Unsupported unserializable value: " + remoteObject.getUnserializableValue());
+            }
+        }
+        return remoteObject.getValue();
+    }
+
+    public static void releaseObject(CDPSession client, RemoteObject remoteObject) {
+        if (StringUtil.isEmpty(remoteObject.getObjectId()))
+            return;
+        Map<String,Object> params = new HashMap<>();
+        params.put("objectId",remoteObject.getObjectId());
+        client.send("Runtime.releaseObject", params,false);
     }
 }

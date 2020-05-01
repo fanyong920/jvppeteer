@@ -1,14 +1,16 @@
 package com.ruiyun.jvppeteer.options;
 
+import com.ruiyun.jvppeteer.types.page.frame.Frame;
+
 /**
- * ÔÚ${@link com.ruiyun.jvppeteer.protocol.page.frame.Frame#click(String, ClickOptions)}
+ * ï¿½ï¿½${@link Frame#click(String, ClickOptions)}
  */
 public class ClickOptions {
 
     private int delay;
 
     /**
-     * "left"|"right"|"middle" ÕâÈýÖÖÑ¡Ôñ
+     * "left"|"right"|"middle" ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½
      */
     private String button;
 

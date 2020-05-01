@@ -1,12 +1,16 @@
 package com.ruiyun.jvppeteer;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -83,10 +87,29 @@ public interface Constant {
 	                "--use-mock-keychain"));}
 	};
 
+	Set<String> supportedMetrics = new HashSet(){
+
+		private static final long serialVersionUID = -5224857570151968464L;
+		{
+			add("Timestamp");
+			add("Documents");
+			add("Frames");
+			add("JSEventListeners");
+			add("Nodes");
+			add("LayoutCount");
+			add("RecalcStyleCount");
+			add("LayoutDuration");
+			add("RecalcStyleDuration");
+			add("ScriptDuration");
+			add("TaskDuration");
+			add("JSHeapUsedSize");
+			add("JSHeapTotalSize");
+		}
+	};
 	/**
 	 * fastjson的一个实例
 	 */
-	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(Include.NON_NULL);
+	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 	/**
 	 * 从浏览器的websocket接受到消息中有以下这些字段，在处理消息用到这些字段
