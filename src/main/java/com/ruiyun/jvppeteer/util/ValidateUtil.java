@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.util;
 import java.util.Collection;
 
 /**
- * ÑéÖ¤Àà¹¤¾ß
+ * éªŒè¯ç±»å·¥å…·
  */
 public class ValidateUtil {
 	

@@ -1,11 +1,11 @@
 package com.ruiyun.jvppeteer.transport.websocket;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.events.definition.Events;
+import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.options.PDFOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -17,7 +17,14 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class CDPSession extends EventEmitter implements Constant {
+import static com.ruiyun.jvppeteer.Constant.DEFAULT_TIMEOUT;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_ERROR_PROPERTY;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_ID_PROPERTY;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_METHOD_PROPERTY;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_PARAMS_PROPERTY;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_RESULT_PROPERTY;
+
+public class CDPSession extends EventEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
 
@@ -72,7 +79,7 @@ public class CDPSession extends EventEmitter implements Constant {
                 }
                 boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
-                    throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                    throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
                 }
                 return callbacks.remove(id).getResult();
             }else{
@@ -108,7 +115,7 @@ public class CDPSession extends EventEmitter implements Constant {
             this.callbacks.putIfAbsent(id,message);
             boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
             if(!hasResult){
-                throw new TimeOutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
             }
             return callbacks.remove(id).getResult();
         } catch (InterruptedException e) {
@@ -137,6 +144,7 @@ public class CDPSession extends EventEmitter implements Constant {
             if (callback != null) {
                 JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
 //                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
+                System.out.println("errNode="+errNode);
                 if (errNode != null) {
                     if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
                         callback.getCountDownLatch().countDown();

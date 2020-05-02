@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.types.page.frame;
 
-import com.ruiyun.jvppeteer.types.page.network.Response;
+import com.ruiyun.jvppeteer.types.page.payload.Response;
 import com.ruiyun.jvppeteer.types.page.payload.RequestWillBeSentPayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 

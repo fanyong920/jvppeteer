@@ -108,8 +108,8 @@ public class EventEmitter implements Event {
                 }else{
                     event = null;
                 }
-
-                Constant.executor.execute(() -> invokeListener(listener, event));
+                invokeListener(listener, event);
+//                Constant.executor.execute(() -> );
             } catch (IOException e) {
                 LOGGER.error("publish event error:", e);
                 return false;

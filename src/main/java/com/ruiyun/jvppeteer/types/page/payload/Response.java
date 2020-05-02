@@ -1,8 +1,7 @@
-package com.ruiyun.jvppeteer.types.page.network;
+package com.ruiyun.jvppeteer.types.page.payload;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.types.page.frame.Request;
-import com.ruiyun.jvppeteer.types.page.payload.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 

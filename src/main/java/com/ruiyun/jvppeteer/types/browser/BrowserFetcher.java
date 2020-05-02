@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -86,8 +87,8 @@ public class BrowserFetcher {
     }
 
     public BrowserFetcher(String projectRoot, FetcherOptions options) {
-        this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chromium").toLowerCase();
-        ValidateUtil.assertBoolean("chromium".equals(product) || "firefox".equals(product), "Unkown product: " + options.getProduct());
+        this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chrome").toLowerCase();
+        ValidateUtil.assertBoolean("chrome".equals(product) || "firefox".equals(product), "Unkown product: " + options.getProduct());
         this.downloadsFolder = StringUtil.isNotEmpty(options.getPath()) ? options.getPath() : Helper.join(projectRoot, ".local-browser");
         this.downloadHost = StringUtil.isNotEmpty(options.getHost()) ? options.getHost() : downloadURLs.get(this.product).get("host");
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : null;
@@ -97,7 +98,7 @@ public class BrowserFetcher {
             else if (PlatformUtil.isLinux())
                 this.platform = "linux";
             else if (PlatformUtil.isWindows())
-                this.platform = Helper.isWin64() ? "x64" : "win32";
+                this.platform = Helper.isWin64() ? "win64" : "win32";
             ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
         }
         ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
@@ -161,8 +162,8 @@ public class BrowserFetcher {
 	 */
     public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
-        Path fileName = Paths.get(url).getFileName();
-        String archivePath = Helper.join(this.downloadsFolder, fileName.toString());
+        int lastIndexOf = url.lastIndexOf("/");
+        String archivePath = Helper.join(this.downloadsFolder, url.substring(lastIndexOf));
         String folderPath = this.getFolderPath(revision);
         if (existsAsync(folderPath))
             return this.revisionInfo(revision);
@@ -520,7 +521,7 @@ public class BrowserFetcher {
 	 * @param archivePath
 	 * @param progressCallback
 	 */
-    private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) {
+    private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) throws IOException {
         BufferedInputStream bufferedInputStream = null;
         BufferedOutputStream bufferedOutputStream = null;
         try {
@@ -567,8 +568,7 @@ public class BrowserFetcher {
                 downloadedBytes += readLength;
                 progressCallback.accept(downloadedBytes, totalBytes);
             }
-        } catch (Exception e) {
-            LOGGER.error("Download failed: ", e);
+
         } finally {
             StreamUtil.closeStream(bufferedOutputStream);
             StreamUtil.closeStream(bufferedInputStream);
@@ -649,7 +649,7 @@ public class BrowserFetcher {
 	 * @return
 	 */
     public String archiveName(String product, String platform, String revision) {
-        if ("chromium".equals(product)) {
+        if ("chrome".equals(product)) {
             if ("linux".equals(platform))
                 return "chrome-linux";
             if ("mac".equals(platform))

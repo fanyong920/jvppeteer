@@ -1,7 +1,5 @@
 package com.ruiyun.jvppeteer.types.page.payload;
 
-import com.ruiyun.jvppeteer.types.page.network.ResourceTiming;
-
 import java.util.Map;
 
 /**

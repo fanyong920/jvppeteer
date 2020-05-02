@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.dom;
 
 import com.ruiyun.jvppeteer.exception.NavigateException;
-import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
@@ -190,14 +190,14 @@ public class DOMWorld {
                 if ("success".equals(this.frameManager.getNavigateResult())) {
                     watcher.dispose();
                 } else if ("timeout".equals(this.frameManager.getNavigateResult())) {
-                    throw new TimeOutException("setContent timeout :" + html);
+                    throw new TimeoutException("setContent timeout :" + html);
                 } else if ("termination".equals(this.frameManager.getNavigateResult())) {
                     throw new NavigateException("Navigating frame was detached");
                 } else {
                     throw new NavigateException("UnNokwn result " + this.frameManager.getNavigateResult());
                 }
             } else {
-                throw new TimeOutException("setContent timeout " + html);
+                throw new TimeoutException("setContent timeout " + html);
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

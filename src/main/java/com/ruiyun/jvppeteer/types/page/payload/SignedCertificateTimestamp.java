@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.types.page.network;
+package com.ruiyun.jvppeteer.types.page.payload;
 
 /**
  * Details of a signed certificate timestamp (SCT).

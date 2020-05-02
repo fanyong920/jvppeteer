@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.types.page.network;
+package com.ruiyun.jvppeteer.types.page.payload;
 
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
 

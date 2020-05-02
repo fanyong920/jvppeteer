@@ -30,14 +30,21 @@ public class Puppeteer implements Constant {
 	
 	private Environment env = null;
 
-	private String projectRoot;
-//
-//	private String preferredRevision;
+	private String projectRoot = System.getProperty("user.dir");
+
+	private String preferredRevision;
 
 	private boolean isPuppeteerCore;
 
 	public Puppeteer() {
 
+	}
+
+	public Puppeteer(String projectRoot, String preferredRevision) {
+		if(StringUtil.isNotEmpty(projectRoot)){
+			this.projectRoot = projectRoot;
+		}
+		this.preferredRevision = preferredRevision;
 	}
 
 	/**

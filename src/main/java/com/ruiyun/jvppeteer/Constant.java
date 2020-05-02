@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,9 +12,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 存放所用到的常量
@@ -109,7 +107,7 @@ public interface Constant {
 	/**
 	 * fastjson的一个实例
 	 */
-	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);;
 
 	/**
 	 * 从浏览器的websocket接受到消息中有以下这些字段，在处理消息用到这些字段
@@ -133,18 +131,18 @@ public interface Constant {
 	/**
 	 * 执行事件监听的线程池
 	 */
-	ThreadPoolExecutor executor = getThreadPoolExecutor();
+//	ThreadPoolExecutor executor = getThreadPoolExecutor();
 
-	static ThreadPoolExecutor getThreadPoolExecutor() {
-		Runtime runtime = Runtime.getRuntime();
-
-		int processorNum = runtime.availableProcessors();
-
-		if(processorNum < 3){
-			processorNum = 3;
-		}
-		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
-	}
+//	static ThreadPoolExecutor getThreadPoolExecutor() {
+//		Runtime runtime = Runtime.getRuntime();
+//
+//		int processorNum = runtime.availableProcessors();
+//
+//		if(processorNum < 3){
+//			processorNum = 3;
+//		}
+//		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
+//	}
 
 	/**
 	 * 默认的超时时间：启动浏览器实例超时，websocket接受消息超时等

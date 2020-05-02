@@ -1,7 +1,6 @@
 package com.ruiyun.jvppeteer.types.page.payload;
 
 import com.ruiyun.jvppeteer.types.page.frame.Request;
-import com.ruiyun.jvppeteer.types.page.network.Initiator;
 
 /**
  * Fired when page is about to send HTTP request.

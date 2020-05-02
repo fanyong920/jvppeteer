@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
 import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
-import com.ruiyun.jvppeteer.types.page.network.Response;
+import com.ruiyun.jvppeteer.types.page.payload.Response;
 import com.ruiyun.jvppeteer.types.page.payload.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 

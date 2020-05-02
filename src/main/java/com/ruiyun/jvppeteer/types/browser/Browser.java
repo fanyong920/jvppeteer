@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.events.definition.EventHandler;
 import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.types.page.Page;
@@ -109,7 +109,7 @@ public class Browser extends EventEmitter {
 			}
 		}
 		this.port = this.connection.getPort();
-		targets = new ConcurrentHashMap<>();
+		this.targets = new ConcurrentHashMap<>();
 		waitforTargetLatch = new CountDownLatch(1);
 		DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
 			@Override
@@ -169,7 +169,7 @@ public class Browser extends EventEmitter {
 
 	private void targetInfoChanged(TargetInfoChangedPayload event) {
 		Target target = this.targets.get(event.getTargetInfo().getTargetId());
-		ValidateUtil.assertBoolean(target != null,"target should exist before targetInfoChanged");
+		ValidateUtil.assertBoolean(target == null,"target should exist before targetInfoChanged");
 		String previousURL = target.url();
 		boolean wasInitialized = target.getIsInitialized();
 		target.targetInfoChanged(event.getTargetInfo());
@@ -188,7 +188,7 @@ public class Browser extends EventEmitter {
 	 * @return 所有target
 	 */
 	public List<Target> targets(){
-		return targets.values().stream().filter(item -> item.getIsInitialized()).collect(Collectors.toList());
+		return this.targets.values().stream().filter(item -> !item.getIsInitialized()).collect(Collectors.toList());
 	}
 
 	public Process process() {
@@ -226,7 +226,7 @@ public class Browser extends EventEmitter {
 		//send
 		params.put("discover",true);
 
-		connection.send("Target.setDiscoverTargets",params,false,browser.getWaitforTargetLatch());
+		connection.send("Target.setDiscoverTargets",params,false);
 		return browser;
 	}
 
@@ -269,18 +269,16 @@ public class Browser extends EventEmitter {
 	public void targetCreated(TargetCreatedPayload event){
 		BrowserContext context = null;
 		TargetInfo targetInfo = event.getTargetInfo();
-		if(StringUtil.isNotEmpty( targetInfo.getBrowserContextId())){
-			if( this.getContexts().containsKey(targetInfo.getBrowserContextId())){
-				context = this.getContexts().get(targetInfo.getBrowserContextId());
-			}else{
-				context = this.defaultBrowserContext();
-			}
+		if(StringUtil.isNotEmpty(targetInfo.getBrowserContextId()) && this.getContexts().containsKey(targetInfo.getBrowserContextId())){
+			context = this.getContexts().get(targetInfo.getBrowserContextId());
+		}else{
+			context = this.defaultBrowserContext();
 		}
 		Target target = new Target(targetInfo,context,() -> this.getConnection().createSession(targetInfo),this.getIgnoreHTTPSErrors(),this.getViewport(),this.getScreenshotTaskQueue());
-		if(this.getTargets().get(targetInfo.getTargetId()) != null){
-			throw new RuntimeException("Target should not exist before targetCreated");
+		if(this.targets.get(targetInfo.getTargetId()) != null){
+			throw new RuntimeException("Target should not exist befor targetCreated");
 		}
-		this.getTargets().putIfAbsent(targetInfo.getTargetId(),target);
+		this.targets.put(targetInfo.getTargetId(),target);
 		if (target.waitInitializedPromise()) {
 			this.emit(Events.BROWSER_TARGETCREATED.getName(), target);
 			context.emit(Events.BROWSERCONTEXT_TARGETCREATED.getName(), target);
@@ -327,20 +325,19 @@ public class Browser extends EventEmitter {
 			};
 			changeLis.setMothod(Events.BROWSER_TARGETCHANGED.getName());
 			changeLis.setTarget(this);
-			this.on(createLis.getMothod(),createLis);
+			this.on(changeLis.getMothod(),changeLis);
+			this.getWaitforTargetLatch().await(options.getTimeout(), TimeUnit.MILLISECONDS);
+			Target target = find(targets(), predicate);
+			if(target != null){
+				return target;
+			}
+		}catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		} finally {
 			this.removeListener(Events.BROWSER_TARGETCREATED.getName(),createLis);
-			this.removeListener(Events.BROWSER_TARGETCREATED.getName(),changeLis);
+			this.removeListener(Events.BROWSER_TARGETCHANGED.getName(),changeLis);
 		}
-		try {
-			boolean waitResult = this.getWaitforTargetLatch().await(options.getTimeout(), TimeUnit.MILLISECONDS);
-			if(waitResult){
-				return find(targets(),predicate);
-			}
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
-		throw  new TimeOutException("waiting for target failed: timeout "+options.getTimeout()+"ms exceeded");
+		throw  new TimeoutException("waiting for target failed: timeout "+options.getTimeout()+"ms exceeded");
 	}
 
 	/**
@@ -429,8 +426,9 @@ public class Browser extends EventEmitter {
 			Target target = this.targets.get(recevie.get(Constant.RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
 			ValidateUtil.assertBoolean(target.waitInitializedPromise(),"Failed to create target for page");
 			return target.page();
+		}else{
+			throw new RuntimeException("can't create new page: ");
 		}
-		throw new RuntimeException("can't create new page ,bacause recevie message is null");
 	}
 
 	/**
@@ -493,11 +491,7 @@ public class Browser extends EventEmitter {
 	}
 
 	public Map<String, Target> getTargets() {
-		return targets;
-	}
-
-	public void setTargets(Map<String, Target> targets) {
-		this.targets = targets;
+		return this.targets;
 	}
 
 	public int getPort() {

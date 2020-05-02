@@ -1,7 +1,7 @@
-package com.ruiyun.jvppeteer.types.page.network;
+package com.ruiyun.jvppeteer.types.page.payload;
 
 /**
- * �û���������
+ * 验证信息
  */
 public class Credentials {
 

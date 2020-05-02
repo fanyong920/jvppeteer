@@ -14,7 +14,7 @@ import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
-import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransport;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;

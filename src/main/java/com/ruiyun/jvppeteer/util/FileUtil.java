@@ -2,9 +2,15 @@ package com.ruiyun.jvppeteer.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.EnumSet;
 
 /**
  * 操作文件的一些公告方法
@@ -41,7 +47,20 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void removeFolder(String path) throws IOException{
-		Files.deleteIfExists(Paths.get(path));
+		File file = new File(path);
+		delete(file);
+	}
+
+	private static void delete(File file) {
+		if(file.isDirectory()){
+			File[] files = file.listFiles();
+			for (File f : files) {
+				delete(f);
+			}
+			file.deleteOnExit();
+		}else{
+			file.deleteOnExit();
+		}
 	}
 
 	/**

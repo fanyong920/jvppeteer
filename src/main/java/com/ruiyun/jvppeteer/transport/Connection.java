@@ -6,10 +6,11 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfo;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransport;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
@@ -58,10 +59,14 @@ public class Connection extends EventEmitter implements Consumer<String>{
 		this.lastId = 0;
 		this.transport = transport;
 		this.delay = delay;
-		this.transport.addMessageConsumer(this);
-		int start  = url.lastIndexOf(":");
-		int end = url.indexOf("/",start);
-		this.port = Integer.parseInt(url.substring(start + 1 ,end));
+		if(this.transport instanceof WebSocketTransport){
+			((WebSocketTransport)this.transport).addMessageConsumer(this);
+		}
+		if(StringUtil.isNotEmpty(url)){
+			int start  = url.lastIndexOf(":");
+			int end = url.indexOf("/",start);
+			this.port = Integer.parseInt(url.substring(start + 1 ,end));
+		}
 	}
 	
 	public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
@@ -77,7 +82,7 @@ public class Connection extends EventEmitter implements Consumer<String>{
 					message.setCountDownLatch(latch);
 					boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
 					if(!hasResult){
-						throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+						throw new TimeoutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 					}
 				}
 				return callbacks.remove(id).getResult();
@@ -104,7 +109,7 @@ public class Connection extends EventEmitter implements Consumer<String>{
 				}
 				boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
 				if(!hasResult){
-					throw new TimeOutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+					throw new TimeoutException("Wait result for "+Constant.DEFAULT_TIMEOUT+" MILLISECONDS with no response");
 				}
 				return callbacks.remove(id).getResult();
 			}else{

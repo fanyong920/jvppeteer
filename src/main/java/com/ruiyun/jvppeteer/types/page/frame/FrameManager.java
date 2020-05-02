@@ -7,7 +7,7 @@ import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
-import com.ruiyun.jvppeteer.exception.TimeOutException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContextDescription;
@@ -16,8 +16,8 @@ import com.ruiyun.jvppeteer.protocol.target.TimeoutSettings;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.types.page.LifecycleWatcher;
 import com.ruiyun.jvppeteer.types.page.Page;
-import com.ruiyun.jvppeteer.types.page.network.NetworkManager;
-import com.ruiyun.jvppeteer.types.page.network.Response;
+import com.ruiyun.jvppeteer.types.page.payload.NetworkManager;
+import com.ruiyun.jvppeteer.types.page.payload.Response;
 import com.ruiyun.jvppeteer.types.page.payload.ExecutionContextCreatedPayload;
 import com.ruiyun.jvppeteer.types.page.payload.ExecutionContextDestroyedPayload;
 import com.ruiyun.jvppeteer.types.page.payload.FrameAttachedPayload;
@@ -31,7 +31,6 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -464,7 +463,7 @@ public class FrameManager extends EventEmitter {
             watcher.dispose();
             return watcher.navigationResponse();
         } else if ("timeout".equals(navigateResult)) {
-            throw new TimeOutException("Navigation timeout of " + timeout + " ms exceeded");
+            throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
         } else if ("termination".equals(navigateResult)) {
             throw new NavigateException("Navigating frame was detached");
         } else {
@@ -480,15 +479,15 @@ public class FrameManager extends EventEmitter {
         try {
             JsonNode response = client.send("Page.navigate", params, true, latch, timeout);
             if (response != null && response.get("loaderId") != null) {
+                this.setNavigateResult("success");
                 return true;
             }
             if (response.get("errorText") != null) {
                 throw new NavigateException(response.get("errorText").toString());
             }
-        } catch (TimeOutException e) {
+        } catch (TimeoutException e) {
             this.setNavigateResult("timeout");
         }
-        this.setNavigateResult("success");
         return false;
     }
 
@@ -555,7 +554,7 @@ public class FrameManager extends EventEmitter {
             watcher.dispose();
             return watcher.navigationResponse();
         } else if ("timeout".equals(navigateResult)) {
-            throw new TimeOutException("Navigation timeout of " + timeout + " ms exceeded");
+            throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
         } else if ("termination".equals(navigateResult)) {
             throw new NavigateException("Navigating frame was detached");
         } else {

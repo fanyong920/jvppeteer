@@ -1,7 +1,5 @@
 package com.ruiyun.jvppeteer.types.page.payload;
 
-import com.ruiyun.jvppeteer.types.page.network.SignedCertificateTimestamp;
-
 import java.util.List;
 
 /**

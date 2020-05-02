@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.types.page.network;
+package com.ruiyun.jvppeteer.types.page.payload;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.Constant;
@@ -8,14 +8,6 @@ import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.types.page.frame.Frame;
 import com.ruiyun.jvppeteer.types.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.types.page.frame.Request;
-import com.ruiyun.jvppeteer.types.page.payload.AuthRequiredPayload;
-import com.ruiyun.jvppeteer.types.page.payload.LoadingFailedPayload;
-import com.ruiyun.jvppeteer.types.page.payload.LoadingFinishedPayload;
-import com.ruiyun.jvppeteer.types.page.payload.RequestPausedPayload;
-import com.ruiyun.jvppeteer.types.page.payload.RequestServedFromCachePayload;
-import com.ruiyun.jvppeteer.types.page.payload.RequestWillBeSentPayload;
-import com.ruiyun.jvppeteer.types.page.payload.ResponsePayload;
-import com.ruiyun.jvppeteer.types.page.payload.ResponseReceivedPayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;

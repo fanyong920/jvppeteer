@@ -9,7 +9,7 @@ import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.types.page.Page;
 import com.ruiyun.jvppeteer.types.page.TaskQueue;
 import com.ruiyun.jvppeteer.protocol.promise.Promise;
-import com.ruiyun.jvppeteer.transport.SessionFactory;
+import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.util.concurrent.CountDownLatch;
@@ -75,6 +75,8 @@ public class Target {
 		this.isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
 		if(isInitialized){//初始化
 			this.initializedPromise = this.initializedCallback(true);
+		}else{
+			this.initializedPromise = true;
 		}
 	}
 
@@ -108,22 +110,22 @@ public class Target {
 	public boolean initializedCallback(boolean success){
 		try {
 			if(!success){
-				initializedPromise = false;
+				this.initializedPromise = false;
 				return false;
 			}
 			Target opener = this.opener();
 			if(opener == null || opener.getPagePromise() == null || "page".equals(this.type())){
-				initializedPromise = true;
+				this.initializedPromise = true;
 				return true;
 			}
 			Page openerPage = opener.getPagePromise();
 			if(openerPage.getListenerCount(Events.PAGE_POPUP.getName()) <= 0){
-				initializedPromise = true;
+				this.initializedPromise = true;
 				return true;
 			}
 			Page pupopPage = this.page();
 			pupopPage.emit(Events.PAGE_POPUP.getName(),pupopPage);
-			initializedPromise = true;
+			this.initializedPromise = true;
 			return true;
 		} finally {
 			if(initializedCountDown != null && initializedCountDown.getCount() > 0){
@@ -257,6 +259,12 @@ public class Target {
 	}
 
 	public void targetInfoChanged(TargetInfo targetInfo) {
+		this.targetInfo = targetInfo;
+		if (!this.isInitialized && (!"page".equals(this.targetInfo.getType()) || !"".equals(this.targetInfo.getUrl()))) {
+			this.isInitialized = true;
+			this.initializedCallback(true);
+			return;
+		}
 	}
 
 	public boolean WaiforisClosedPromise(){

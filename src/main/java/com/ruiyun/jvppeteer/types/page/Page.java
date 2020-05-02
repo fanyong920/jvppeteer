@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.types.page;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.EmulationManager;
 import com.ruiyun.jvppeteer.events.definition.EventHandler;
@@ -12,6 +11,7 @@ import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Device;
+import com.ruiyun.jvppeteer.options.PDFOptions;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
@@ -41,19 +41,20 @@ import com.ruiyun.jvppeteer.types.page.frame.Keyboard;
 import com.ruiyun.jvppeteer.types.page.frame.Mouse;
 import com.ruiyun.jvppeteer.types.page.frame.Request;
 import com.ruiyun.jvppeteer.types.page.frame.Touchscreen;
-import com.ruiyun.jvppeteer.types.page.network.Credentials;
-import com.ruiyun.jvppeteer.types.page.network.NetworkManager;
-import com.ruiyun.jvppeteer.types.page.network.Response;
 import com.ruiyun.jvppeteer.types.page.payload.BindingCalledPayload;
 import com.ruiyun.jvppeteer.types.page.payload.ConsoleAPICalledPayload;
+import com.ruiyun.jvppeteer.types.page.payload.Credentials;
 import com.ruiyun.jvppeteer.types.page.payload.EntryAddedPayload;
 import com.ruiyun.jvppeteer.types.page.payload.FileChooserOpenedPayload;
 import com.ruiyun.jvppeteer.types.page.payload.GetNavigationHistoryReturnValue;
 import com.ruiyun.jvppeteer.types.page.payload.JavascriptDialogOpeningPayload;
+import com.ruiyun.jvppeteer.types.page.payload.Margin;
 import com.ruiyun.jvppeteer.types.page.payload.MediaFeature;
 import com.ruiyun.jvppeteer.types.page.payload.Metrics;
 import com.ruiyun.jvppeteer.types.page.payload.MetricsPayload;
 import com.ruiyun.jvppeteer.types.page.payload.NavigationEntry;
+import com.ruiyun.jvppeteer.types.page.payload.NetworkManager;
+import com.ruiyun.jvppeteer.types.page.payload.Response;
 import com.ruiyun.jvppeteer.types.page.trace.Tracing;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -131,6 +132,14 @@ public class Page extends EventEmitter {
 
     public static final String ABOUT_BLANK = "about:blank";
 
+    public static final Map<String,Double> unitToPixels = new HashMap(){
+        {
+            put("px",1.00);
+            put("in",96);
+            put("cm",37.8);
+            put("mm",3.78);
+        }
+    };
     public Page(CDPSession client, Target target, boolean ignoreHTTPSErrors, TaskQueue screenshotTaskQueue) {
         super();
         this.closed = false;
@@ -833,7 +842,7 @@ public class Page extends EventEmitter {
     /**
      * options 的 referer不用填
      * @param options
-     * @return
+     * @return Response
      */
     public Response goForward(PageNavigateOptions options) {
         return this.go(+1, options);
@@ -865,6 +874,88 @@ public class Page extends EventEmitter {
             }
         }
         return this.buildMetricsObject(metrics);
+    }
+    public void pdf(PDFOptions options) throws IOException {
+        double paperWidth = 8.5;
+        double paperHeight = 11;
+        if(StringUtil.isNotEmpty(options.getFormat())){
+            PaperFormats format = PaperFormats.valueOf(options.getFormat().toLowerCase());
+            ValidateUtil.assertBoolean(format != null,"Unknown paper format: "+options.getFormat());
+            paperWidth = format.getWidth();
+            paperHeight = format.getHeight();
+        }else{
+            Double width = convertPrintParameterToInches(options.getWidth());
+            if(width != null){
+                paperWidth = width;
+            }
+            Double height = convertPrintParameterToInches(options.getHeight());
+            if(height != null){
+                paperHeight = height;
+            }
+        }
+        Margin margin = options.getMargin();
+        Number marginTop,marginLeft,marginBottom,marginRight;
+        if((marginTop = convertPrintParameterToInches(margin.getTop())) == null){
+            marginTop = 0;
+        }
+        if((marginLeft = convertPrintParameterToInches(margin.getLeft())) == null){
+            marginLeft = 0;
+        }
+
+        if((marginBottom = convertPrintParameterToInches(margin.getBottom())) == null){
+            marginBottom = 0;
+        }
+
+        if((marginRight = convertPrintParameterToInches(margin.getRight())) == null){
+            marginRight = 0;
+        }
+        Map<String,Object> params = new HashMap<>();
+        params.put("transferMode","ReturnAsStream");
+        params.put("landscape",options.getLandscape());
+        params.put("displayHeaderFooter",options.getDisplayHeaderFooter());
+        params.put("headerTemplate",options.getHeaderTemplate());
+        params.put("footerTemplate",options.getFooterTemplate());
+        params.put("printBackground",options.getPrintBackground());
+        params.put("scale",options.getScale());
+        params.put("paperWidth",paperWidth);
+        params.put("paperHeight",paperHeight);
+        params.put("marginTop",marginTop);
+        params.put("marginBottom",marginBottom);
+        params.put("marginLeft",marginLeft);
+        params.put("marginRight",marginRight);
+        params.put("pageRanges",options.getPageRanges());
+        params.put("preferCSSPageSize",options.getPreferCSSPageSize());
+        JsonNode result = this.client.send("Page.printToPDF", params, true);
+        if(result != null)
+        Helper.readProtocolStream(this.client,result.get("stream"),options.getPath());
+    }
+
+    private Double convertPrintParameterToInches(String parameter) {
+        if(StringUtil.isEmpty(parameter)){
+            return null;
+        }
+        double pixels;
+        if(Helper.isNumber(parameter)){
+            pixels = Double.parseDouble(parameter);
+        }else if(parameter.endsWith("px") || parameter.endsWith("in") || parameter.endsWith("cm") || parameter.endsWith("mm")){
+
+            String unit = parameter.substring(parameter.length() - 2).toLowerCase();
+            String valueText = "";
+            if (unitToPixels.containsKey(unit)) {
+                valueText = parameter.substring(0, parameter.length() - 2);
+            } else {
+                // In case of unknown unit try to parse the whole parameter as number of pixels.
+                // This is consistent with phantom's paperSize behavior.
+                unit = "px";
+                valueText = parameter;
+            }
+            Double value = Double.parseDouble(valueText);
+            ValidateUtil.assertBoolean(!Double.isNaN(value), "Failed to parse parameter value: " + parameter);
+            pixels = value * unitToPixels.get(unit);
+        }else {
+            throw new IllegalArgumentException("page.pdf() Cannot handle parameter type: "+parameter);
+        }
+        return pixels / 96;
     }
 
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
@@ -953,4 +1044,11 @@ public class Page extends EventEmitter {
         return workers;
     }
 
+    public void setClosed(boolean closed) {
+        this.closed = closed;
+    }
+
+    public Mouse getMouse() {
+        return mouse;
+    }
 }
