@@ -20,7 +20,7 @@ public class Viewport {
      * Specify device scale factor (can be thought of as dpr).
      * @default 1
      */
-    private Double deviceScaleFactor = 1.00;
+    private Number deviceScaleFactor = 1;
     /**
      * 是否在页面中设置了 meta viewport 标签。默认是 false
      * Whether the meta viewport tag is taken into account.
@@ -45,7 +45,7 @@ public class Viewport {
 	public Viewport() {
 	}
 
-	public Viewport(Double width, Double height, Double deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
+	public Viewport(Double width, Double height, Number deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
 		this.width = width;
 		this.height = height;
 		this.deviceScaleFactor = deviceScaleFactor;
@@ -70,23 +70,23 @@ public class Viewport {
 		this.height = height;
 	}
 	
-	public Double getDeviceScaleFactor() {
+	public Number getDeviceScaleFactor() {
 		return deviceScaleFactor;
 	}
 	
-	public void setDeviceScaleFactor(Double deviceScaleFactor) {
+	public void setDeviceScaleFactor(Number deviceScaleFactor) {
 		this.deviceScaleFactor = deviceScaleFactor;
 	}
 	
-	public boolean isMobile() {
+	public boolean getIsMobile() {
 		return isMobile;
 	}
 	
-	public void setMobile(boolean isMobile) {
+	public void setIsMobile(boolean isMobile) {
 		this.isMobile = isMobile;
 	}
 	
-	public boolean isHasTouch() {
+	public boolean getHasTouch() {
 		return hasTouch;
 	}
 	
@@ -94,11 +94,11 @@ public class Viewport {
 		this.hasTouch = hasTouch;
 	}
 	
-	public boolean isLandscape() {
+	public boolean getIsLandscape() {
 		return isLandscape;
 	}
 	
-	public void setLandscape(boolean isLandscape) {
+	public void setIsLandscape(boolean isLandscape) {
 		this.isLandscape = isLandscape;
 	}
 

@@ -10,9 +10,12 @@ import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
+import com.ruiyun.jvppeteer.options.Clip;
+import com.ruiyun.jvppeteer.options.ClipOverwrite;
 import com.ruiyun.jvppeteer.options.Device;
 import com.ruiyun.jvppeteer.options.PDFOptions;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
@@ -22,6 +25,7 @@ import com.ruiyun.jvppeteer.protocol.console.ConsoleMessage;
 import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
 import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
 import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
+import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.js.JSHandle;
 import com.ruiyun.jvppeteer.protocol.log.Dialog;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
@@ -60,6 +64,7 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.LoggerFactory;
+import sun.misc.BASE64Decoder;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -67,6 +72,9 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -633,6 +641,112 @@ public class Page extends EventEmitter {
         }
     }
 
+    /**
+     * 截图
+     * @return String
+     */
+    public String  screenshot(ScreenshotOptions options) throws IOException {
+        String screenshotType = null;
+        // options.type takes precedence over inferring the type from options.path
+        // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
+        if (StringUtil.isNotEmpty(options.getType())) {
+            ValidateUtil.assertBoolean("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
+            screenshotType = options.getType();
+        } else if (StringUtil.isNotEmpty(options.getPath())) {
+          String mimeType =  Files.probeContentType(Paths.get(options.getPath()));
+            if ("image/png".equals(mimeType))
+                screenshotType = "png";
+            else if ("image/jpeg".equals(mimeType))
+                screenshotType = "jpeg";
+            ValidateUtil.assertBoolean(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
+        }
+
+        if (StringUtil.isEmpty(screenshotType))
+            screenshotType = "png";
+
+        if (options.getQuality() >= 0) {
+            ValidateUtil.assertBoolean("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
+            ValidateUtil.assertBoolean( options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
+        }
+        ValidateUtil.assertBoolean(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
+        if (options.getClip() != null) {
+            ValidateUtil.assertBoolean(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
+            ValidateUtil.assertBoolean(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
+        }
+        return (String)this.screenshotTaskQueue.postTask( ( type,  op) -> screenshotTask((String)type,(ScreenshotOptions)op),screenshotType,options);
+    }
+
+    private String screenshotTask(String format, ScreenshotOptions options)  {
+        Map<String,Object> params = new HashMap<>();
+        params.put("targetId",this.target.getTargetId());
+        this.client.send("Target.activateTarget", params,true);
+        ClipOverwrite clip = null;
+        if(options.getClip() != null){
+            clip = processClip(options.getClip());
+        }
+        if(options.getFullPage()){
+            JsonNode metrics = this.client.send("Page.getLayoutMetrics", null, true);
+            double width = Math.ceil(metrics.get("contentSize").get("width").asDouble());
+            double height = Math.ceil(metrics.get("contentSize").get("height").asDouble());
+            clip = new ClipOverwrite(0,0,width,height,1);
+            ScreenOrientation screenOrientation = null;
+            if(this.viewport.getIsLandscape()){
+                screenOrientation = new ScreenOrientation(90,"landscapePrimary");
+            }else {
+                screenOrientation = new ScreenOrientation(0,"portraitPrimary");
+            }
+            params.clear();
+            params.put("mobile",this.viewport.getIsMobile());
+            params.put("width",width);
+            params.put("height",height);
+            params.put("deviceScaleFactor",this.viewport.getDeviceScaleFactor());
+            params.put("screenOrientation",screenOrientation);
+            this.client.send("Emulation.setDeviceMetricsOverride", params,true);
+        }
+        boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
+        if (shouldSetDefaultBackground) {
+            params.clear();
+            Map<String,Integer> colorMap = new HashMap<>();
+            colorMap.put("r",0);
+            colorMap.put("g",0);
+            colorMap.put("b",0);
+            colorMap.put("a",0);
+            params.put("color",colorMap);
+            this.client.send("Emulation.setDefaultBackgroundColorOverride", params,true);
+        }
+        params.clear();
+        params.put("format",format);
+        params.put("quality",options.getQuality());
+        params.put("clip",clip);
+    JsonNode result =  this.client.send("Page.captureScreenshot", params,true);
+        if (shouldSetDefaultBackground) {
+            this.client.send("Emulation.setDefaultBackgroundColorOverride",null,true);
+        }
+        if (options.getFullPage() && this.viewport != null)
+             this.setViewport(this.viewport);
+        BASE64Decoder decoder = new BASE64Decoder();
+        String data = result.get("data").toString();
+        try {
+            byte[] buffer = decoder.decodeBuffer(data);
+            if(StringUtil.isNotEmpty(options.getPath())){
+                //TODO 验证
+                Files.write(Paths.get(options.getPath()),buffer, StandardOpenOption.CREATE,StandardOpenOption.WRITE);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return  data;
+    }
+
+    private ClipOverwrite processClip(Clip clip) {
+        long x = Math.round(clip.getX());
+       long y = Math.round(clip.getY());
+      long width = Math.round(clip.getWidth() + clip.getX() - x);
+      long height = Math.round(clip.getHeight() + clip.getY() - y);
+      ClipOverwrite result = new ClipOverwrite(x,y,width,height,1);
+      return result;
+    }
+
     private void onFileChooser(FileChooserOpenedPayload event) {
 
     }
@@ -929,6 +1043,10 @@ public class Page extends EventEmitter {
         if(result != null)
         Helper.readProtocolStream(this.client,result.get("stream"),options.getPath());
     }
+    public JSHandle queryObjects(JSHandle prototypeHandle) {
+    ExecutionContext context =  this.mainFrame().executionContext();
+        return context.queryObjects(prototypeHandle);
+    }
 
     private Double convertPrintParameterToInches(String parameter) {
         if(StringUtil.isEmpty(parameter)){
@@ -958,6 +1076,11 @@ public class Page extends EventEmitter {
         return pixels / 96;
     }
 
+    public Response reload(PageNavigateOptions options) {
+        Response response = this.waitForNavigation(options);
+        this.client.send("Page.reload",null,true);
+        return response;
+    }
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Metrics result = new Metrics();
         BeanInfo beanInfo = Introspector.getBeanInfo(Metric.class);

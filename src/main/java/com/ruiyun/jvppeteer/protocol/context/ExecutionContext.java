@@ -51,4 +51,8 @@ public class ExecutionContext {
     public JSHandle evaluateInternal(boolean b, String pageFunction, PageEvaluateType type, Object[] args) {
         return  null;
     }
+
+    public JSHandle queryObjects(JSHandle prototypeHandle) {
+        return null;
+    }
 }

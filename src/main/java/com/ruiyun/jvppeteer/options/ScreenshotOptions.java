@@ -10,7 +10,7 @@ public class ScreenshotOptions {
 
     private Clip clip;
 
-    private double quality;
+    private int quality;
 
     private boolean omitBackground;
 
@@ -32,7 +32,7 @@ public class ScreenshotOptions {
         this.path = path;
     }
 
-    public boolean isFullPage() {
+    public boolean getFullPage() {
         return fullPage;
     }
 
@@ -48,15 +48,15 @@ public class ScreenshotOptions {
         this.clip = clip;
     }
 
-    public double getQuality() {
+    public int getQuality() {
         return quality;
     }
 
-    public void setQuality(double quality) {
+    public void setQuality(int quality) {
         this.quality = quality;
     }
 
-    public boolean isOmitBackground() {
+    public boolean getOmitBackground() {
         return omitBackground;
     }
 

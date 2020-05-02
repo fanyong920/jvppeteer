@@ -13,13 +13,7 @@ public class TaskQueue<R> {
     public TaskQueue() {
     }
 
-    private BiFunction<String,ScreenshotOptions,R> function;
-
-    public TaskQueue(BiFunction<String,ScreenshotOptions,R>  function) {
-        this.function = function;
-    }
-
-    public void postTask(String screenshotType, ScreenshotOptions options){
-        function.apply(screenshotType,options);
+    public Object postTask(BiFunction<String,ScreenshotOptions,R> function,String screenshotType,ScreenshotOptions options){
+        return function.apply(screenshotType,options);
     }
 }
