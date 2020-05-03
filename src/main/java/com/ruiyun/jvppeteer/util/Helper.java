@@ -5,8 +5,8 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.protocol.js.RemoteObject;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
+import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import sun.misc.BASE64Decoder;
 
@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -251,5 +255,33 @@ public class Helper   {
         Map<String,Object> params = new HashMap<>();
         params.put("objectId",remoteObject.getObjectId());
         client.send("Runtime.releaseObject", params,false);
+    }
+
+    public static <T> T waitForEvent(EventEmitter eventEmitter, String eventName, Predicate<T> predicate, int timeout, String abortPromise) throws InterruptedException {
+        CountDownLatch latch = new CountDownLatch(1);
+        final T[] result = (T[]) new Object[1];
+        DefaultBrowserListener<T> listener = new DefaultBrowserListener<T>(){
+            @Override
+            public void onBrowserEvent(T event) {
+                if(!predicate.test(event))
+                    return;
+                result[0] = event;
+                latch.countDown();
+            }
+        };
+        listener.setMothod(eventName);
+        BrowserListenerWrapper<T> wrapper = addEventListener(eventEmitter, eventName, listener);
+        try {
+            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
+            if(!await){
+                throw new RuntimeException(abortPromise);
+            }
+            return result[0];
+        } finally {
+            List<BrowserListenerWrapper> removes = new ArrayList<>();
+            removes.add(wrapper);
+            removeEventListeners(removes);
+        }
+
     }
 }

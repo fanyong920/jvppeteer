@@ -2,12 +2,12 @@ package com.ruiyun.jvppeteer.types.page.frame;
 
 import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
-import com.ruiyun.jvppeteer.protocol.dom.DOMWorld;
-import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
-import com.ruiyun.jvppeteer.protocol.js.JSHandle;
-import com.ruiyun.jvppeteer.types.page.payload.Response;
-import com.ruiyun.jvppeteer.types.page.payload.FramePayload;
+import com.ruiyun.jvppeteer.types.page.context.ExecutionContext;
+import com.ruiyun.jvppeteer.types.page.DOM.DOMWorld;
+import com.ruiyun.jvppeteer.types.page.DOM.ElementHandle;
+import com.ruiyun.jvppeteer.types.page.js.JSHandle;
+import com.ruiyun.jvppeteer.types.page.Response;
+import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 import java.io.IOException;
@@ -134,7 +134,7 @@ public class Frame {
     public void hover(String selector) {
          this.secondaryWorld.hover(selector);
     }
-    public List<String> select(String selector, String... values){
+    public List<String> select(String selector, List<String> values){
         return this.secondaryWorld.select(selector, values);
     }
 
@@ -180,7 +180,7 @@ public class Frame {
         return result;
     }
 
-    private JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) {
+    public  JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) {
         return this.mainWorld.waitForFunction(pageFunction, type,options, args);
     }
 
@@ -194,7 +194,7 @@ public class Frame {
         this.navigationURL = framePayload.getUrl();
         this.url = framePayload.getUrl();
     }
-    private JSHandle waitForXPath(String xpath, WaitForOptions options) {
+    public JSHandle waitForXPath(String xpath, WaitForOptions options) {
         ElementHandle handle =  this.secondaryWorld.waitForXPath(xpath, options);
         if (handle == null)
             return null;

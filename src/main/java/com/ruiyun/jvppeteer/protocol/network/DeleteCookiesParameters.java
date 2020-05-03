@@ -23,6 +23,18 @@ public class DeleteCookiesParameters {
      */
     private String path;
 
+    public DeleteCookiesParameters() {
+        super();
+    }
+
+    public DeleteCookiesParameters(String name, String url, String domain, String path) {
+        super();
+        this.name = name;
+        this.url = url;
+        this.domain = domain;
+        this.path = path;
+    }
+
     public String getName() {
         return name;
     }

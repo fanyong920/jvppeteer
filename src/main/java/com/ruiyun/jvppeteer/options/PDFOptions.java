@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
-import com.ruiyun.jvppeteer.types.page.payload.Margin;
+import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 
 /**
  * 生成pdf时候需要的参数

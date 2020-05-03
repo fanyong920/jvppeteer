@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
+import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Clip;
 import com.ruiyun.jvppeteer.options.ClipOverwrite;
@@ -19,22 +20,24 @@ import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
+import com.ruiyun.jvppeteer.options.WaitForOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.protocol.accessbility.Accessibility;
+import com.ruiyun.jvppeteer.types.page.accessibility.Accessibility;
 import com.ruiyun.jvppeteer.protocol.console.ConsoleMessage;
-import com.ruiyun.jvppeteer.protocol.context.ExecutionContext;
-import com.ruiyun.jvppeteer.protocol.coverage.Coverage;
-import com.ruiyun.jvppeteer.protocol.dom.ElementHandle;
+import com.ruiyun.jvppeteer.types.page.context.ExecutionContext;
+import com.ruiyun.jvppeteer.types.page.coverage.Coverage;
+import com.ruiyun.jvppeteer.types.page.DOM.ElementHandle;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
-import com.ruiyun.jvppeteer.protocol.js.JSHandle;
+import com.ruiyun.jvppeteer.types.page.js.JSHandle;
 import com.ruiyun.jvppeteer.protocol.log.Dialog;
+import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
 import com.ruiyun.jvppeteer.protocol.performance.Metric;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
-import com.ruiyun.jvppeteer.protocol.target.Target;
-import com.ruiyun.jvppeteer.protocol.target.TimeoutSettings;
-import com.ruiyun.jvppeteer.protocol.work.Worker;
+import com.ruiyun.jvppeteer.types.page.target.Target;
+import com.ruiyun.jvppeteer.types.page.target.TimeoutSettings;
+import com.ruiyun.jvppeteer.types.page.work.Worker;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.types.browser.Browser;
@@ -45,20 +48,18 @@ import com.ruiyun.jvppeteer.types.page.frame.Keyboard;
 import com.ruiyun.jvppeteer.types.page.frame.Mouse;
 import com.ruiyun.jvppeteer.types.page.frame.Request;
 import com.ruiyun.jvppeteer.types.page.frame.Touchscreen;
-import com.ruiyun.jvppeteer.types.page.payload.BindingCalledPayload;
-import com.ruiyun.jvppeteer.types.page.payload.ConsoleAPICalledPayload;
-import com.ruiyun.jvppeteer.types.page.payload.Credentials;
-import com.ruiyun.jvppeteer.types.page.payload.EntryAddedPayload;
-import com.ruiyun.jvppeteer.types.page.payload.FileChooserOpenedPayload;
-import com.ruiyun.jvppeteer.types.page.payload.GetNavigationHistoryReturnValue;
-import com.ruiyun.jvppeteer.types.page.payload.JavascriptDialogOpeningPayload;
-import com.ruiyun.jvppeteer.types.page.payload.Margin;
-import com.ruiyun.jvppeteer.types.page.payload.MediaFeature;
-import com.ruiyun.jvppeteer.types.page.payload.Metrics;
-import com.ruiyun.jvppeteer.types.page.payload.MetricsPayload;
-import com.ruiyun.jvppeteer.types.page.payload.NavigationEntry;
-import com.ruiyun.jvppeteer.types.page.payload.NetworkManager;
-import com.ruiyun.jvppeteer.types.page.payload.Response;
+import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledPayload;
+import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
+import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
+import com.ruiyun.jvppeteer.protocol.log.EntryAddedPayload;
+import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.protocol.page.GetNavigationHistoryReturnValue;
+import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningPayload;
+import com.ruiyun.jvppeteer.protocol.DOM.Margin;
+import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
+import com.ruiyun.jvppeteer.protocol.performance.Metrics;
+import com.ruiyun.jvppeteer.protocol.performance.MetricsPayload;
+import com.ruiyun.jvppeteer.protocol.page.NavigationEntry;
 import com.ruiyun.jvppeteer.types.page.trace.Tracing;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -83,7 +84,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import static com.ruiyun.jvppeteer.Constant.OBJECTMAPPER;
@@ -93,7 +96,7 @@ public class Page extends EventEmitter {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Page.class);
 
-    private Set<Object> fileChooserInterceptors;
+    private Set<BiConsumer<Object, FileChooser>> fileChooserInterceptors;
 
     private boolean closed = true;
 
@@ -140,14 +143,15 @@ public class Page extends EventEmitter {
 
     public static final String ABOUT_BLANK = "about:blank";
 
-    public static final Map<String,Double> unitToPixels = new HashMap(){
+    public static final Map<String, Double> unitToPixels = new HashMap() {
         {
-            put("px",1.00);
-            put("in",96);
-            put("cm",37.8);
-            put("mm",3.78);
+            put("px", 1.00);
+            put("in", 96);
+            put("cm", 37.8);
+            put("mm", 3.78);
         }
     };
+
     public Page(CDPSession client, Target target, boolean ignoreHTTPSErrors, TaskQueue screenshotTaskQueue) {
         super();
         this.closed = false;
@@ -643,9 +647,10 @@ public class Page extends EventEmitter {
 
     /**
      * 截图
+     *
      * @return String
      */
-    public String  screenshot(ScreenshotOptions options) throws IOException {
+    public String screenshot(ScreenshotOptions options) throws IOException {
         String screenshotType = null;
         // options.type takes precedence over inferring the type from options.path
         // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
@@ -653,7 +658,7 @@ public class Page extends EventEmitter {
             ValidateUtil.assertBoolean("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
             screenshotType = options.getType();
         } else if (StringUtil.isNotEmpty(options.getPath())) {
-          String mimeType =  Files.probeContentType(Paths.get(options.getPath()));
+            String mimeType = Files.probeContentType(Paths.get(options.getPath()));
             if ("image/png".equals(mimeType))
                 screenshotType = "png";
             else if ("image/jpeg".equals(mimeType))
@@ -666,89 +671,181 @@ public class Page extends EventEmitter {
 
         if (options.getQuality() >= 0) {
             ValidateUtil.assertBoolean("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
-            ValidateUtil.assertBoolean( options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
+            ValidateUtil.assertBoolean(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
         }
         ValidateUtil.assertBoolean(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
         if (options.getClip() != null) {
             ValidateUtil.assertBoolean(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
             ValidateUtil.assertBoolean(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
         }
-        return (String)this.screenshotTaskQueue.postTask( ( type,  op) -> screenshotTask((String)type,(ScreenshotOptions)op),screenshotType,options);
+        return (String) this.screenshotTaskQueue.postTask((type, op) -> screenshotTask((String) type, (ScreenshotOptions) op), screenshotType, options);
     }
 
-    private String screenshotTask(String format, ScreenshotOptions options)  {
-        Map<String,Object> params = new HashMap<>();
-        params.put("targetId",this.target.getTargetId());
-        this.client.send("Target.activateTarget", params,true);
+    public List<String> select(String selector, List<String> values) {
+        return this.mainFrame().select(selector, values);
+    }
+
+    public String title() {
+        return this.mainFrame().title();
+    }
+
+    public void setBypassCSP(boolean enabled) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("enabled", enabled);
+        this.client.send("Page.setBypassCSP", params, true);
+    }
+
+    public void setCacheEnabled(boolean enabled) {
+        this.frameManager.networkManager().setCacheEnabled(enabled);
+    }
+
+    public void setContent(String html, PageNavigateOptions options) {
+        this.frameManager.mainFrame().setContent(html, options);
+    }
+
+    public void setCookie(List<CookieParam> cookies) {
+        String pageURL = this.url();
+        boolean startsWithHTTP = pageURL.startsWith("http");
+        cookies.replaceAll(cookie -> {
+            if (StringUtil.isEmpty(cookie.getUrl()) && startsWithHTTP)
+                cookie.setUrl(pageURL);
+            ValidateUtil.assertBoolean(!"about:blank".equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
+            ValidateUtil.assertBoolean(!StringUtil.isNotEmpty(cookie.getUrl()) && !cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
+            return cookie;
+        });
+        List<DeleteCookiesParameters> deleteCookiesParameters = new ArrayList<>();
+        for (CookieParam cookie : cookies) {
+            deleteCookiesParameters.add(new DeleteCookiesParameters(cookie.getName(), cookie.getUrl(), cookie.getDomain(), cookie.getPath()));
+        }
+
+        this.deleteCookie(deleteCookiesParameters);
+        Map<String, Object> params = new HashMap<>();
+        params.put("cookies", cookies);
+        this.client.send("Network.setCookies", params, true);
+    }
+
+    public void setDefaultNavigationTimeout(int timeout) {
+        this.timeoutSettings.setDefaultNavigationTimeout(timeout);
+    }
+
+    public void setExtraHTTPHeaders(Map<String, String> headers) {
+        this.frameManager.networkManager().setExtraHTTPHeaders(headers);
+    }
+
+    public void setGeolocation(int longitude, int latitude, int accuracy) {
+
+        if (longitude < -180 || longitude > 180)
+            throw new IllegalArgumentException("Invalid longitude " + longitude + ": precondition -180 <= LONGITUDE <= 180 failed.");
+        if (latitude < -90 || latitude > 90)
+            throw new IllegalArgumentException("Invalid latitude " + latitude + ": precondition -90 <= LATITUDE <= 90 failed.");
+        if (accuracy < 0)
+            throw new IllegalArgumentException("Invalid accuracy " + accuracy + ": precondition 0 <= ACCURACY failed.");
+        Map<String, Object> params = new HashMap<>();
+        params.put("longitude", longitude);
+        params.put("latitude", latitude);
+        params.put("accuracy", accuracy);
+        this.client.send("Emulation.setGeolocationOverride", params, true);
+    }
+
+    public void setJavaScriptEnabled(boolean enabled) {
+        if (this.javascriptEnabled == enabled)
+            return;
+        this.javascriptEnabled = enabled;
+        Map<String, Object> params = new HashMap<>();
+        params.put("value", !enabled);
+        this.client.send("Emulation.setScriptExecutionDisabled", params, true);
+    }
+
+    public void setOfflineMode(boolean enabled) {
+        this.frameManager.networkManager().setOfflineMode(enabled);
+    }
+
+    public void setRequestInterception(boolean value) {
+        this.frameManager.networkManager().setRequestInterception(value);
+    }
+
+    private String screenshotTask(String format, ScreenshotOptions options) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("targetId", this.target.getTargetId());
+        this.client.send("Target.activateTarget", params, true);
         ClipOverwrite clip = null;
-        if(options.getClip() != null){
+        if (options.getClip() != null) {
             clip = processClip(options.getClip());
         }
-        if(options.getFullPage()){
+        if (options.getFullPage()) {
             JsonNode metrics = this.client.send("Page.getLayoutMetrics", null, true);
             double width = Math.ceil(metrics.get("contentSize").get("width").asDouble());
             double height = Math.ceil(metrics.get("contentSize").get("height").asDouble());
-            clip = new ClipOverwrite(0,0,width,height,1);
+            clip = new ClipOverwrite(0, 0, width, height, 1);
             ScreenOrientation screenOrientation = null;
-            if(this.viewport.getIsLandscape()){
-                screenOrientation = new ScreenOrientation(90,"landscapePrimary");
-            }else {
-                screenOrientation = new ScreenOrientation(0,"portraitPrimary");
+            if (this.viewport.getIsLandscape()) {
+                screenOrientation = new ScreenOrientation(90, "landscapePrimary");
+            } else {
+                screenOrientation = new ScreenOrientation(0, "portraitPrimary");
             }
             params.clear();
-            params.put("mobile",this.viewport.getIsMobile());
-            params.put("width",width);
-            params.put("height",height);
-            params.put("deviceScaleFactor",this.viewport.getDeviceScaleFactor());
-            params.put("screenOrientation",screenOrientation);
-            this.client.send("Emulation.setDeviceMetricsOverride", params,true);
+            params.put("mobile", this.viewport.getIsMobile());
+            params.put("width", width);
+            params.put("height", height);
+            params.put("deviceScaleFactor", this.viewport.getDeviceScaleFactor());
+            params.put("screenOrientation", screenOrientation);
+            this.client.send("Emulation.setDeviceMetricsOverride", params, true);
         }
         boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
         if (shouldSetDefaultBackground) {
             params.clear();
-            Map<String,Integer> colorMap = new HashMap<>();
-            colorMap.put("r",0);
-            colorMap.put("g",0);
-            colorMap.put("b",0);
-            colorMap.put("a",0);
-            params.put("color",colorMap);
-            this.client.send("Emulation.setDefaultBackgroundColorOverride", params,true);
+            Map<String, Integer> colorMap = new HashMap<>();
+            colorMap.put("r", 0);
+            colorMap.put("g", 0);
+            colorMap.put("b", 0);
+            colorMap.put("a", 0);
+            params.put("color", colorMap);
+            this.client.send("Emulation.setDefaultBackgroundColorOverride", params, true);
         }
         params.clear();
-        params.put("format",format);
-        params.put("quality",options.getQuality());
-        params.put("clip",clip);
-    JsonNode result =  this.client.send("Page.captureScreenshot", params,true);
+        params.put("format", format);
+        params.put("quality", options.getQuality());
+        params.put("clip", clip);
+        JsonNode result = this.client.send("Page.captureScreenshot", params, true);
         if (shouldSetDefaultBackground) {
-            this.client.send("Emulation.setDefaultBackgroundColorOverride",null,true);
+            this.client.send("Emulation.setDefaultBackgroundColorOverride", null, true);
         }
         if (options.getFullPage() && this.viewport != null)
-             this.setViewport(this.viewport);
+            this.setViewport(this.viewport);
         BASE64Decoder decoder = new BASE64Decoder();
         String data = result.get("data").toString();
         try {
             byte[] buffer = decoder.decodeBuffer(data);
-            if(StringUtil.isNotEmpty(options.getPath())){
+            if (StringUtil.isNotEmpty(options.getPath())) {
                 //TODO 验证
-                Files.write(Paths.get(options.getPath()),buffer, StandardOpenOption.CREATE,StandardOpenOption.WRITE);
+                Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return  data;
+        return data;
     }
 
     private ClipOverwrite processClip(Clip clip) {
         long x = Math.round(clip.getX());
-       long y = Math.round(clip.getY());
-      long width = Math.round(clip.getWidth() + clip.getX() - x);
-      long height = Math.round(clip.getHeight() + clip.getY() - y);
-      ClipOverwrite result = new ClipOverwrite(x,y,width,height,1);
-      return result;
+        long y = Math.round(clip.getY());
+        long width = Math.round(clip.getWidth() + clip.getX() - x);
+        long height = Math.round(clip.getHeight() + clip.getY() - y);
+        ClipOverwrite result = new ClipOverwrite(x, y, width, height, 1);
+        return result;
     }
 
     private void onFileChooser(FileChooserOpenedPayload event) {
-
+        if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
+            return;
+        Frame frame = this.frameManager.frame(event.getFrameId());
+        ExecutionContext context = frame.executionContext();
+        ElementHandle element = context.adoptBackendNodeId(event.getBackendNodeId());
+        Set<BiConsumer<Object, FileChooser>> interceptors = new HashSet<>(this.fileChooserInterceptors);
+        this.fileChooserInterceptors.clear();
+        FileChooser fileChooser = new FileChooser(this.client, element, event);
+        for (BiConsumer interceptor : interceptors)
+            interceptor.accept(null, fileChooser);
     }
 
     private void onLogEntryAdded(EntryAddedPayload event) {
@@ -789,7 +886,10 @@ public class Page extends EventEmitter {
     }
 
     private void setViewport(Viewport viewport) {
-
+        boolean needsReload = this.emulationManager.emulateViewport(viewport);
+        this.viewport = viewport;
+        if (needsReload)
+            this.reload(null);
     }
 
     public void initialize() throws JsonProcessingException {
@@ -887,6 +987,10 @@ public class Page extends EventEmitter {
         this.emulateMedia(type);
     }
 
+    public void tap(String selector) {
+        this.mainFrame().tap(selector);
+    }
+
 
     public void emulateTimezone(String timezoneId) {
         try {
@@ -946,6 +1050,7 @@ public class Page extends EventEmitter {
 
     /**
      * options 的 referer不用填
+     *
      * @param options
      * @return
      */
@@ -955,6 +1060,7 @@ public class Page extends EventEmitter {
 
     /**
      * options 的 referer不用填
+     *
      * @param options
      * @return Response
      */
@@ -975,10 +1081,10 @@ public class Page extends EventEmitter {
     }
 
     public Metrics metrics() throws IllegalAccessException, IntrospectionException, InvocationTargetException {
-        JsonNode responseNode =  this.client.send("Performance.getMetrics",null,true);
-        List<Metric> metrics =  new ArrayList<>();
+        JsonNode responseNode = this.client.send("Performance.getMetrics", null, true);
+        List<Metric> metrics = new ArrayList<>();
         Iterator<JsonNode> elements = responseNode.get("metrics").elements();
-        while (elements.hasNext()){
+        while (elements.hasNext()) {
             JsonNode next = elements.next();
             try {
                 Metric value = OBJECTMAPPER.treeToValue(next, Metric.class);
@@ -989,73 +1095,79 @@ public class Page extends EventEmitter {
         }
         return this.buildMetricsObject(metrics);
     }
+
     public void pdf(PDFOptions options) throws IOException {
         double paperWidth = 8.5;
         double paperHeight = 11;
-        if(StringUtil.isNotEmpty(options.getFormat())){
+        if (StringUtil.isNotEmpty(options.getFormat())) {
             PaperFormats format = PaperFormats.valueOf(options.getFormat().toLowerCase());
-            ValidateUtil.assertBoolean(format != null,"Unknown paper format: "+options.getFormat());
+            ValidateUtil.assertBoolean(format != null, "Unknown paper format: " + options.getFormat());
             paperWidth = format.getWidth();
             paperHeight = format.getHeight();
-        }else{
+        } else {
             Double width = convertPrintParameterToInches(options.getWidth());
-            if(width != null){
+            if (width != null) {
                 paperWidth = width;
             }
             Double height = convertPrintParameterToInches(options.getHeight());
-            if(height != null){
+            if (height != null) {
                 paperHeight = height;
             }
         }
         Margin margin = options.getMargin();
-        Number marginTop,marginLeft,marginBottom,marginRight;
-        if((marginTop = convertPrintParameterToInches(margin.getTop())) == null){
+        Number marginTop, marginLeft, marginBottom, marginRight;
+        if ((marginTop = convertPrintParameterToInches(margin.getTop())) == null) {
             marginTop = 0;
         }
-        if((marginLeft = convertPrintParameterToInches(margin.getLeft())) == null){
+        if ((marginLeft = convertPrintParameterToInches(margin.getLeft())) == null) {
             marginLeft = 0;
         }
 
-        if((marginBottom = convertPrintParameterToInches(margin.getBottom())) == null){
+        if ((marginBottom = convertPrintParameterToInches(margin.getBottom())) == null) {
             marginBottom = 0;
         }
 
-        if((marginRight = convertPrintParameterToInches(margin.getRight())) == null){
+        if ((marginRight = convertPrintParameterToInches(margin.getRight())) == null) {
             marginRight = 0;
         }
-        Map<String,Object> params = new HashMap<>();
-        params.put("transferMode","ReturnAsStream");
-        params.put("landscape",options.getLandscape());
-        params.put("displayHeaderFooter",options.getDisplayHeaderFooter());
-        params.put("headerTemplate",options.getHeaderTemplate());
-        params.put("footerTemplate",options.getFooterTemplate());
-        params.put("printBackground",options.getPrintBackground());
-        params.put("scale",options.getScale());
-        params.put("paperWidth",paperWidth);
-        params.put("paperHeight",paperHeight);
-        params.put("marginTop",marginTop);
-        params.put("marginBottom",marginBottom);
-        params.put("marginLeft",marginLeft);
-        params.put("marginRight",marginRight);
-        params.put("pageRanges",options.getPageRanges());
-        params.put("preferCSSPageSize",options.getPreferCSSPageSize());
+        Map<String, Object> params = new HashMap<>();
+        params.put("transferMode", "ReturnAsStream");
+        params.put("landscape", options.getLandscape());
+        params.put("displayHeaderFooter", options.getDisplayHeaderFooter());
+        params.put("headerTemplate", options.getHeaderTemplate());
+        params.put("footerTemplate", options.getFooterTemplate());
+        params.put("printBackground", options.getPrintBackground());
+        params.put("scale", options.getScale());
+        params.put("paperWidth", paperWidth);
+        params.put("paperHeight", paperHeight);
+        params.put("marginTop", marginTop);
+        params.put("marginBottom", marginBottom);
+        params.put("marginLeft", marginLeft);
+        params.put("marginRight", marginRight);
+        params.put("pageRanges", options.getPageRanges());
+        params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
-        if(result != null)
-        Helper.readProtocolStream(this.client,result.get("stream"),options.getPath());
+        if (result != null)
+            Helper.readProtocolStream(this.client, result.get("stream"), options.getPath());
     }
+
+    public void setDefaultTimeout(int timeout) {
+        this.timeoutSettings.setDefaultTimeout(timeout);
+    }
+
     public JSHandle queryObjects(JSHandle prototypeHandle) {
-    ExecutionContext context =  this.mainFrame().executionContext();
+        ExecutionContext context = this.mainFrame().executionContext();
         return context.queryObjects(prototypeHandle);
     }
 
     private Double convertPrintParameterToInches(String parameter) {
-        if(StringUtil.isEmpty(parameter)){
+        if (StringUtil.isEmpty(parameter)) {
             return null;
         }
         double pixels;
-        if(Helper.isNumber(parameter)){
+        if (Helper.isNumber(parameter)) {
             pixels = Double.parseDouble(parameter);
-        }else if(parameter.endsWith("px") || parameter.endsWith("in") || parameter.endsWith("cm") || parameter.endsWith("mm")){
+        } else if (parameter.endsWith("px") || parameter.endsWith("in") || parameter.endsWith("cm") || parameter.endsWith("mm")) {
 
             String unit = parameter.substring(parameter.length() - 2).toLowerCase();
             String valueText = "";
@@ -1070,31 +1182,32 @@ public class Page extends EventEmitter {
             Double value = Double.parseDouble(valueText);
             ValidateUtil.assertBoolean(!Double.isNaN(value), "Failed to parse parameter value: " + parameter);
             pixels = value * unitToPixels.get(unit);
-        }else {
-            throw new IllegalArgumentException("page.pdf() Cannot handle parameter type: "+parameter);
+        } else {
+            throw new IllegalArgumentException("page.pdf() Cannot handle parameter type: " + parameter);
         }
         return pixels / 96;
     }
 
     public Response reload(PageNavigateOptions options) {
         Response response = this.waitForNavigation(options);
-        this.client.send("Page.reload",null,true);
+        this.client.send("Page.reload", null, true);
         return response;
     }
+
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Metrics result = new Metrics();
         BeanInfo beanInfo = Introspector.getBeanInfo(Metric.class);
         PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-        Map<String ,PropertyDescriptor> propertyMap = new HashMap<>();
+        Map<String, PropertyDescriptor> propertyMap = new HashMap<>();
         for (int i = 0; i < propertyDescriptors.length; i++) {
-            propertyMap.put(propertyDescriptors[i].getName(),propertyDescriptors[i]);
+            propertyMap.put(propertyDescriptors[i].getName(), propertyDescriptors[i]);
         }
         for (Metric metric : metrics) {
-            if(supportedMetrics.contains(metric.getName())){
-                propertyMap.get(metric.getName()).getWriteMethod().invoke(result,metric.getValue());
+            if (supportedMetrics.contains(metric.getName())) {
+                propertyMap.get(metric.getName()).getWriteMethod().invoke(result, metric.getValue());
             }
         }
-        return  result;
+        return result;
     }
 
     private Response go(int delta, PageNavigateOptions options) {
@@ -1151,6 +1264,95 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setEmulatedMedia", params, true);
     }
 
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) {
+        return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
+    }
+
+    public FileChooser waitForFileChooser(int timeout){
+        if (ValidateUtil.isEmpty(this.fileChooserInterceptors)) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("enabled",true);
+            this.client.send("Page.setInterceptFileChooserDialog", params,true);
+        }
+    if(timeout <=0 )
+        timeout = this.timeoutSettings.timeout();
+
+        //TODO
+//        this.fileChooserInterceptors.add(callback);
+//        return helper.waitWithTimeout(promise, 'waiting for file chooser', timeout).catch(error = > {
+//            this._fileChooserInterceptors.delete(callback);
+
+        return null;
+    }
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options ,Object... args) {
+        return this.mainFrame().waitForFunction(pageFunction, type,options, args);
+    }
+
+    public Request waitForRequest(String url,Predicate<Request> predicate, PageEvaluateType type ,int timeout) throws InterruptedException {
+    if(timeout <= 0){
+        timeout = this.timeoutSettings.timeout();
+    }
+        Predicate<Request> predi= request -> {
+            if(PageEvaluateType.STRING.equals(type)){
+                return url.equals(request.getUrl());
+            }else if(PageEvaluateType.FUNCTION.equals(type)){
+                return predicate.test(request);
+            }
+            return false;
+        };
+        DefaultBrowserListener listener= null;
+        try {
+            listener = sessionClosePromise();
+
+            return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
+        } finally {
+            if(listener != null)
+            this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
+        }
+    }
+
+    private DefaultBrowserListener sessionClosePromise() {
+        DefaultBrowserListener disConnectLis = new DefaultBrowserListener(){
+            @Override
+            public void onBrowserEvent(Object event) {
+                throw  new TerminateException("Target closed");
+            }
+        };
+        disConnectLis.setMothod(Events.CDPSESSION_DISCONNECTED.getName());
+        this.client.once(disConnectLis.getMothod(),disConnectLis);
+        return  disConnectLis;
+    }
+
+    public Response waitForResponse(String url,Predicate predicate, PageEvaluateType type,int timeout ) throws InterruptedException {
+        if(timeout <= 0)
+            timeout = this.timeoutSettings.timeout();
+        Predicate<Response> predi= response -> {
+            if(PageEvaluateType.STRING.equals(type)){
+                return url.equals(response.getUrl());
+            }else if(PageEvaluateType.FUNCTION.equals(type)){
+                return predicate.test(response);
+            }
+            return false;
+        };
+        DefaultBrowserListener listener= null;
+        try {
+            listener = sessionClosePromise();
+        return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
+        } finally {
+            if(listener != null)
+                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
+        }
+    }
+    public ElementHandle waitForSelector(String selector,WaitForOptions options) {
+        return this.mainFrame().waitForSelector(selector, options);
+    }
+
+    public JSHandle waitForXPath(String xpath, WaitForOptions options) {
+        return this.mainFrame().waitForXPath(xpath, options);
+    }
+    public List<Worker> workers() {
+        return new ArrayList<>(this.workers.values());
+    }
     private String url() {
         return this.mainFrame().url();
     }
@@ -1174,4 +1376,21 @@ public class Page extends EventEmitter {
     public Mouse getMouse() {
         return mouse;
     }
+
+    public Target target() {
+        return this.target;
+    }
+
+    public Touchscreen touchscreen() {
+        return this.touchscreen;
+    }
+
+    public Tracing tracing() {
+        return this.tracing;
+    }
+
+    public void type(String selector, String text, int delay) {
+        this.mainFrame().type(selector, text, delay);
+    }
+
 }

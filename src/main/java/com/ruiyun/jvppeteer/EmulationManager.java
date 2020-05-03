@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer;
 
+import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 
 public class EmulationManager {
@@ -12,5 +13,9 @@ public class EmulationManager {
 
     public EmulationManager(CDPSession client) {
         this.client = client;
+    }
+
+    public boolean emulateViewport(Viewport viewport) {
+        return true;
     }
 }

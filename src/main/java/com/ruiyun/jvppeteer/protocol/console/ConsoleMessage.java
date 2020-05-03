@@ -1,11 +1,8 @@
 package com.ruiyun.jvppeteer.protocol.console;
 
-import com.ruiyun.jvppeteer.protocol.js.JSHandle;
-import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
+import com.ruiyun.jvppeteer.types.page.js.JSHandle;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ConsoleMessage {
 

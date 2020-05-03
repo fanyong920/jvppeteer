@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.types.page.frame;
 
-import com.ruiyun.jvppeteer.types.page.payload.FramePayload;
+import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 
 import java.util.List;
 

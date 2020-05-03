@@ -7,7 +7,6 @@ import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.types.page.frame.Frame;
 import com.ruiyun.jvppeteer.types.page.frame.FrameManager;
 import com.ruiyun.jvppeteer.types.page.frame.Request;
-import com.ruiyun.jvppeteer.types.page.payload.Response;
 import com.ruiyun.jvppeteer.util.Helper;
 
 import java.util.ArrayList;

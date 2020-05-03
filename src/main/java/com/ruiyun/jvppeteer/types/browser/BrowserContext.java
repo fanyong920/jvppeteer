@@ -5,7 +5,7 @@ import com.ruiyun.jvppeteer.events.definition.EventHandler;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.types.page.Page;
-import com.ruiyun.jvppeteer.protocol.target.Target;
+import com.ruiyun.jvppeteer.types.page.target.Target;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
