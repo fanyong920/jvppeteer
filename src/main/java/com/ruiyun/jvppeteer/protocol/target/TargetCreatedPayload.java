@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.target;
 
-import com.ruiyun.jvppeteer.types.page.target.TargetInfo;
+import com.ruiyun.jvppeteer.types.page.TargetInfo;
 
 /**
  * Issued when a possible inspection target is created.

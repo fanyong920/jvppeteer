@@ -10,6 +10,18 @@ public class Clip {
 
     private double height;
 
+    public Clip() {
+        super();
+    }
+
+    public Clip(double x, double y, double width, double height) {
+        super();
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
     public double getX() {
         return x;
     }

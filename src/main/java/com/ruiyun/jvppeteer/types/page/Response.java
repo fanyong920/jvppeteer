@@ -1,11 +1,10 @@
 package com.ruiyun.jvppeteer.types.page;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
-import com.ruiyun.jvppeteer.types.page.frame.Request;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
-import com.ruiyun.jvppeteer.protocol.network.SecurityDetails;
 import sun.misc.BASE64Decoder;
 
 import java.io.IOException;
@@ -19,9 +18,9 @@ public class Response {
 
     private Request request;
 
-    private Response response;
-
     private byte[] contentPromise;
+
+    private boolean bodyLoadedPromise;
 
     private RemoteAddress remoteAddress;
 
@@ -35,21 +34,18 @@ public class Response {
 
     private boolean fromServiceWorker;
 
-    private Map<String,Object> headers;
+    private Map<String, String> headers;
 
     private SecurityDetails securityDetails;
 
-    private byte[] bodyLoadedPromise;
     public Response() {
     }
 
     public Response(CDPSession client, Request request, ResponsePayload responsePayload) {
         this.client = client;
         this.request = request;
-        this.response = response;
         this.contentPromise = null;
-
-        this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(),responsePayload.getRemotePort());
+        this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(), responsePayload.getRemotePort());
         this.status = responsePayload.getStatus();
         this.statusText = responsePayload.getStatusText();
         this.url = request.getUrl();
@@ -57,43 +53,90 @@ public class Response {
         this.fromServiceWorker = responsePayload.getFromServiceWorker();
         this.headers = new HashMap<>();
 
-        Map<String, Object> headers = responsePayload.getHeaders();
-        if(headers != null && headers.size() > 0){
-            for(Map.Entry<String,Object> entry : headers.entrySet()){
-                this.headers.put(entry.getKey().toLowerCase(),entry.getValue());
+        Map<String, String> headers = responsePayload.getHeaders();
+        if (headers != null && headers.size() > 0) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                this.headers.put(entry.getKey().toLowerCase(), entry.getValue());
             }
         }
-        this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()): null;
+        this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    public void bodyLoadedPromiseFulfill(Exception e){
-
+    public void bodyLoadedPromiseFulfill(RuntimeException e) throws IOException {
+        if (e != null) {
+            throw e;
+        }
+        synchronized (Response.class) {
+            if (this.contentPromise == null) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("requestId", this.request.getRequestId());
+                JsonNode response = this.client.send("Network.getResponseBody", params, true);
+                BASE64Decoder decoder = new BASE64Decoder();
+                JsonNode charsetNode = response.get("base64Encoded");
+                if (charsetNode != null) {
+                    this.contentPromise = decoder.decodeBuffer(response.get("data").toString());
+                } else {
+                    this.contentPromise = response.get("data").toString().getBytes(StandardCharsets.UTF_8);
+                }
+            }
+        }
     }
 
     public boolean ok() {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
+
     public byte[] buffer() throws IOException {
         if (this.contentPromise == null) {
-            synchronized (Response.class){
-                if(this.contentPromise == null){
-                    Map<String,Object> params = new HashMap<>();
-                    params.put("requestId",this.request.getRequestId());
-                    JsonNode response =  this.client.send("Network.getResponseBody",params,true);
-                    BASE64Decoder decoder = new BASE64Decoder();
-                    JsonNode charsetNode = response.get("base64Encoded") ;
-                    if(charsetNode != null ) {
-                        this.contentPromise = this.bodyLoadedPromise = decoder.decodeBuffer(response.get("data").toString());
-                    }else {
-                        this.contentPromise = this.bodyLoadedPromise = response.get("data").toString().getBytes(StandardCharsets.UTF_8);
-                    }
-                }
-            }
-
+            bodyLoadedPromiseFulfill(null);
         }
         return this.contentPromise;
     }
 
+    public String text() throws IOException {
+        byte[] content = this.buffer();
+        return new String(content, "utf-8");
+    }
+
+    public <T> T json(Class<T> clazz) throws IOException {
+        String content = this.text();
+        return Constant.OBJECTMAPPER.readValue(content, clazz);
+    }
+    public Request request() {
+        return this.request;
+    }
+
+   public boolean fromCache() {
+        return this.fromDiskCache || this.request.getFromMemoryCache();
+    }
+    public String url() {
+        return this.url;
+    }
+
+
+
+    public int status() {
+        return this.status;
+    }
+
+   public String  statusText() {
+        return this.statusText;
+    }
+
+    public Map<String,String> headers() {
+        return this.headers;
+    }
+
+    public SecurityDetails securityDetails() {
+        return this.securityDetails;
+    }
+    public boolean fromServiceWorker() {
+        return this.fromServiceWorker;
+    }
+
+    public Frame frame() {
+        return this.request.getFrame();
+    }
     public CDPSession getClient() {
         return client;
     }
@@ -108,14 +151,6 @@ public class Response {
 
     public void setRequest(Request request) {
         this.request = request;
-    }
-
-    public Response getResponse() {
-        return response;
-    }
-
-    public void setResponse(Response response) {
-        this.response = response;
     }
 
     public byte[] getContentPromise() {
@@ -174,11 +209,11 @@ public class Response {
         this.fromServiceWorker = fromServiceWorker;
     }
 
-    public Map<String, Object> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, Object> headers) {
+    public void setHeaders(Map<String, String> headers) {
         this.headers = headers;
     }
 

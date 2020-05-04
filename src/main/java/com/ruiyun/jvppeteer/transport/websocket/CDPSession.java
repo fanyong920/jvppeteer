@@ -5,7 +5,6 @@ import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.PDFOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.message.SendMsg;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -24,6 +23,16 @@ import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_METHOD_PROPERTY;
 import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_PARAMS_PROPERTY;
 import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_RESULT_PROPERTY;
 
+/**
+ *The CDPSession instances are used to talk raw Chrome Devtools Protocol:
+ *
+ * protocol methods can be called with session.send method.
+ * protocol events can be subscribed to with session.on method.
+ * Useful links:
+ *
+ * Documentation on DevTools Protocol can be found here: DevTools Protocol Viewer.
+ * Getting Started with DevTools Protocol: https://github.com/aslushnikov/getting-started-with-cdp/blob/master/README.md
+ */
 public class CDPSession extends EventEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);

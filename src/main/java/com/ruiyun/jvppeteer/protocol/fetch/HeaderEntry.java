@@ -9,6 +9,14 @@ public class HeaderEntry {
 
     private String value;
 
+    public HeaderEntry() {
+    }
+
+    public HeaderEntry(String name, String value) {
+        this.name = name;
+        this.value = value;
+    }
+
     public String getName() {
         return name;
     }

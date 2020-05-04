@@ -2,9 +2,9 @@ package com.ruiyun.jvppeteer.protocol.input;
 
 public class KeyDefinition {
 
-    private Number keyCode;
+    private int keyCode;
 
-    private Number shiftKeyCode;
+    private int shiftKeyCode;
 
     private String key;
 
@@ -16,13 +16,13 @@ public class KeyDefinition {
 
     private String shiftText;
 
-    private Number location;
+    private int location;
 
     public KeyDefinition() {
         super();
     }
 
-    public KeyDefinition(Number keyCode, Number shiftKeyCode, String key, String code, String shiftKey, Number location) {
+    public KeyDefinition(int keyCode, int shiftKeyCode, String key, String code, String shiftKey, int location) {
         this.keyCode = keyCode;
         this.shiftKeyCode = shiftKeyCode;
         this.key = key;
@@ -31,7 +31,7 @@ public class KeyDefinition {
         this.location = location;
     }
 
-    public KeyDefinition(Number keyCode, String key, String code) {
+    public KeyDefinition(int keyCode, String key, String code) {
         super();
         this.keyCode = keyCode;
         this.key = key;
@@ -44,32 +44,32 @@ public class KeyDefinition {
         this.code = code;
     }
 
-    public KeyDefinition(Number keyCode, String key, String code, Number location) {
+    public KeyDefinition(int keyCode, String key, String code, int location) {
         this.keyCode = keyCode;
         this.key = key;
         this.code = code;
         this.location = location;
     }
 
-    public KeyDefinition(String key, String code, Number location) {
+    public KeyDefinition(String key, String code, int location) {
         this.key = key;
         this.code = code;
         this.location = location;
     }
 
-    public KeyDefinition(Number keyCode, String key) {
+    public KeyDefinition(int keyCode, String key) {
         this.keyCode = keyCode;
         this.key = key;
     }
 
-    public KeyDefinition(Number keyCode, String code,  String shiftKey,String key) {
+    public KeyDefinition(int keyCode, String code,  String shiftKey,String key) {
         this.keyCode = keyCode;
         this.key = key;
         this.code = code;
         this.shiftKey = shiftKey;
     }
 
-    public KeyDefinition(Number keyCode, String code, String key, String text, Number location) {
+    public KeyDefinition(int keyCode, String code, String key, String text, int location) {
         this.keyCode = keyCode;
         this.key = key;
         this.code = code;
@@ -77,11 +77,11 @@ public class KeyDefinition {
         this.location = location;
     }
 
-    public Number getKeyCode() {
+    public int getKeyCode() {
         return keyCode;
     }
 
-    public void setKeyCode(Number keyCode) {
+    public void setKeyCode(int keyCode) {
         this.keyCode = keyCode;
     }
 
@@ -101,11 +101,11 @@ public class KeyDefinition {
         this.code = code;
     }
 
-    public Number getShiftKeyCode() {
+    public int getShiftKeyCode() {
         return shiftKeyCode;
     }
 
-    public void setShiftKeyCode(Number shiftKeyCode) {
+    public void setShiftKeyCode(int shiftKeyCode) {
         this.shiftKeyCode = shiftKeyCode;
     }
 
@@ -133,11 +133,11 @@ public class KeyDefinition {
         this.shiftText = shiftText;
     }
 
-    public Number getLocation() {
+    public int getLocation() {
         return location;
     }
 
-    public void setLocation(Number location) {
+    public void setLocation(int location) {
         this.location = location;
     }
 }

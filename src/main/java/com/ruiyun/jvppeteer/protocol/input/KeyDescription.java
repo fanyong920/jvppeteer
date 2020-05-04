@@ -10,13 +10,13 @@ public class KeyDescription {
 
     private String code;
 
-    private Number location;
+    private int location;
 
     public KeyDescription() {
         super();
     }
 
-    public KeyDescription( String key, Number keyCode, String code, String text, Number location) {
+    public KeyDescription( String key, Number keyCode, String code, String text, int location) {
         super();
         this.key = key;
         this.keyCode = keyCode;
@@ -57,11 +57,11 @@ public class KeyDescription {
         this.code = code;
     }
 
-    public Number getLocation() {
+    public int getLocation() {
         return location;
     }
 
-    public void setLocation(Number location) {
+    public void setLocation(int location) {
         this.location = location;
     }
 }

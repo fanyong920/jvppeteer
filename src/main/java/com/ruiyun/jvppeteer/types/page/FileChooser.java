@@ -1,12 +1,16 @@
 package com.ruiyun.jvppeteer.types.page;
 
-import com.ruiyun.jvppeteer.types.page.DOM.ElementHandle;
-import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.List;
 
+/**
+ * FileChooser objects are returned via the 'page.waitForFileChooser' method.
+ *
+ * File choosers let you react to the page requesting for a file.
+ */
 public class FileChooser {
 
     private CDPSession client;

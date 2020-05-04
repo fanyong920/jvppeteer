@@ -22,32 +22,16 @@ import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.options.WaitForOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.types.page.accessibility.Accessibility;
-import com.ruiyun.jvppeteer.protocol.console.ConsoleMessage;
-import com.ruiyun.jvppeteer.types.page.context.ExecutionContext;
-import com.ruiyun.jvppeteer.types.page.coverage.Coverage;
-import com.ruiyun.jvppeteer.types.page.DOM.ElementHandle;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
-import com.ruiyun.jvppeteer.types.page.js.JSHandle;
-import com.ruiyun.jvppeteer.protocol.log.Dialog;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
 import com.ruiyun.jvppeteer.protocol.performance.Metric;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
-import com.ruiyun.jvppeteer.types.page.target.Target;
-import com.ruiyun.jvppeteer.types.page.target.TimeoutSettings;
-import com.ruiyun.jvppeteer.types.page.work.Worker;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.types.browser.BrowserContext;
-import com.ruiyun.jvppeteer.types.page.frame.Frame;
-import com.ruiyun.jvppeteer.types.page.frame.FrameManager;
-import com.ruiyun.jvppeteer.types.page.frame.Keyboard;
-import com.ruiyun.jvppeteer.types.page.frame.Mouse;
-import com.ruiyun.jvppeteer.types.page.frame.Request;
-import com.ruiyun.jvppeteer.types.page.frame.Touchscreen;
 import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledPayload;
 import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
 import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
@@ -60,7 +44,6 @@ import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
 import com.ruiyun.jvppeteer.protocol.performance.Metrics;
 import com.ruiyun.jvppeteer.protocol.performance.MetricsPayload;
 import com.ruiyun.jvppeteer.protocol.page.NavigationEntry;
-import com.ruiyun.jvppeteer.types.page.trace.Tracing;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -410,7 +393,11 @@ public class Page extends EventEmitter {
             @Override
             public void onBrowserEvent(FileChooserOpenedPayload event) {
                 Page page = (Page) this.getTarget();
-                page.onFileChooser(event);
+                try {
+                    page.onFileChooser(event);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         };
         fileChooserOpenedLis.setMothod("Page.fileChooserOpened");
@@ -835,7 +822,7 @@ public class Page extends EventEmitter {
         return result;
     }
 
-    private void onFileChooser(FileChooserOpenedPayload event) {
+    private void onFileChooser(FileChooserOpenedPayload event) throws JsonProcessingException {
         if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
             return;
         Frame frame = this.frameManager.frame(event.getFrameId());
@@ -885,7 +872,7 @@ public class Page extends EventEmitter {
 
     }
 
-    private void setViewport(Viewport viewport) {
+    public void setViewport(Viewport viewport) {
         boolean needsReload = this.emulationManager.emulateViewport(viewport);
         this.viewport = viewport;
         if (needsReload)
@@ -1155,7 +1142,7 @@ public class Page extends EventEmitter {
         this.timeoutSettings.setDefaultTimeout(timeout);
     }
 
-    public JSHandle queryObjects(JSHandle prototypeHandle) {
+    public JSHandle queryObjects(JSHandle prototypeHandle) throws JsonProcessingException {
         ExecutionContext context = this.mainFrame().executionContext();
         return context.queryObjects(prototypeHandle);
     }
@@ -1236,9 +1223,9 @@ public class Page extends EventEmitter {
         this.frameManager.mainFrame().evaluate(pageFunction, type, args);
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         ExecutionContext context = this.mainFrame().executionContext();
-        return context.evaluateHandle(pageFunction, type, args);
+        return (JSHandle)context.evaluateHandle(pageFunction, type, args);
     }
 
     public void emulateMedia(String type) {
@@ -1393,4 +1380,18 @@ public class Page extends EventEmitter {
         this.mainFrame().type(selector, text, delay);
     }
 
+    public boolean getJavascriptEnabled() {
+        return javascriptEnabled;
+    }
+
+    public Touchscreen getTouchscreen() {
+        return touchscreen;
+    }
+
+    public Keyboard getKeyboard() {
+        return this.keyboard;
+    }
+    public Viewport viewport() {
+        return this.viewport;
+    }
 }

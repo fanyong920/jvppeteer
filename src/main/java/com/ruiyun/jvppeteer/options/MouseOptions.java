@@ -1,28 +1,16 @@
 package com.ruiyun.jvppeteer.options;
 
-import com.ruiyun.jvppeteer.types.page.Frame;
-
 /**
- * {@link Frame#click(String, ClickOptions)}
+ *
  */
-public class ClickOptions {
-
-    private int delay;
-
+public class MouseOptions {
     /**
-     * "left"|"right"|"middle" 三种选择
+     * 'none' | 'left' | 'right' | 'middle';
      */
     private String button;
 
+
     private int clickCount;
-
-    public int getDelay() {
-        return delay;
-    }
-
-    public void setDelay(int delay) {
-        this.delay = delay;
-    }
 
     public String getButton() {
         return button;
