@@ -86,6 +86,11 @@ public class BrowserFetcher {
     public BrowserFetcher() {
     }
 
+    /**
+     * 创建 BrowserFetcher 对象
+     * @param projectRoot 根目录，储存浏览器得根目录
+     * @param options 下载浏览器得一些配置
+     */
     public BrowserFetcher(String projectRoot, FetcherOptions options) {
         this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chrome").toLowerCase();
         ValidateUtil.assertBoolean("chrome".equals(product) || "firefox".equals(product), "Unkown product: " + options.getProduct());
@@ -117,7 +122,7 @@ public class BrowserFetcher {
 
 	/**
 	 * 发送一个http请求
-	 * @param proxy 代理
+	 * @param proxy 代理 可以为null
 	 * @param url 请求的url
 	 * @param method 请求方法 get post head
 	 * @return boolean
@@ -153,7 +158,7 @@ public class BrowserFetcher {
     }
 
 	/**
-	 * 下载浏览器
+	 * 根据给定得浏览器版本下载浏览器，可以利用下载回调显示下载进度
 	 * @param revision 浏览器版本
 	 * @param progressCallback 下载回调
 	 * @return RevisionInfo
@@ -517,6 +522,7 @@ public class BrowserFetcher {
 
 	/**
 	 * 下载浏览器到具体的路径
+     * ContentTypeapplication/x-zip-compressed
 	 * @param url
 	 * @param archivePath
 	 * @param progressCallback

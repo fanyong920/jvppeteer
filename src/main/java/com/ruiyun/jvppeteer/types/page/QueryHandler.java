@@ -29,7 +29,7 @@ public class QueryHandler {
         customQueryHandlers.remove(name);
     }
 
-    public Map<String, String> customQueryHandlers() {
+    public static Map<String, String> customQueryHandlers() {
         return customQueryHandlers;
     }
 

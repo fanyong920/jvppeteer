@@ -1,6 +1,11 @@
 package com.ruiyun.jvppeteer.types.page;
 
-import com.ruiyun.jvppeteer.options.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruiyun.jvppeteer.options.ClickOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.ScriptTagOptions;
+import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.options.WaitForOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
@@ -82,31 +87,31 @@ public class Frame {
     public ExecutionContext executionContext(){
         return this.mainWorld.executionContext();
     }
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         return this.mainWorld.evaluateHandle(pageFunction,type,args);
     }
 
-    public Object evaluate(String pageFunction,PageEvaluateType type, Object... args) {
+    public Object evaluate(String pageFunction,PageEvaluateType type, Object... args) throws JsonProcessingException {
         return this.mainWorld.evaluate(pageFunction, type,args);
     }
 
-    public ElementHandle $(String selector) {
+    public ElementHandle $(String selector) throws JsonProcessingException {
         return this.mainWorld.$(selector);
     }
 
-    public List<ElementHandle> $x(String expression) {
+    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
         return this.mainWorld.$x(expression);
     }
 
-    public Object  $eval(String selector,String pageFunction,PageEvaluateType type,Object... args) {
+    public Object  $eval(String selector,String pageFunction,PageEvaluateType type,Object... args) throws JsonProcessingException {
         return this.mainWorld.$eval(selector,pageFunction,type,args);
     }
 
-    public Object $$eval(String selector,String pageFunction,PageEvaluateType type,Object... args) {
+    public Object $$eval(String selector,String pageFunction,PageEvaluateType type,Object... args) throws JsonProcessingException {
         return this.mainWorld.$$eval(selector, pageFunction,type,args);
     }
 
-    public List<ElementHandle> $$(String selector) {
+    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
         return this.mainWorld.$$(selector);
     }
 
@@ -118,26 +123,26 @@ public class Frame {
         return this.mainWorld.addStyleTag(options);
     }
 
-    public void click(String selector, ClickOptions options) {
+    public void click(String selector, ClickOptions options) throws JsonProcessingException, InterruptedException {
          this.secondaryWorld.click(selector, options);
     }
 
-    public void focus(String selector) {
+    public void focus(String selector) throws JsonProcessingException {
         this.secondaryWorld.focus(selector);
     }
 
-    public void hover(String selector) {
+    public void hover(String selector) throws JsonProcessingException {
          this.secondaryWorld.hover(selector);
     }
-    public List<String> select(String selector, List<String> values){
+    public List<String> select(String selector, List<String> values) throws JsonProcessingException {
         return this.secondaryWorld.select(selector, values);
     }
 
-    public void tap(String selector) {
+    public void tap(String selector) throws JsonProcessingException {
         this.secondaryWorld.tap(selector);
     }
 
-    public void type(String selector, String text, int delay) {
+    public void type(String selector, String text, int delay) throws JsonProcessingException, InterruptedException {
         this.mainWorld.type(selector, text, delay);
     }
 
@@ -147,7 +152,7 @@ public class Frame {
      * @param type
      * @return
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
             String xPathPattern = "//";
 
         if (type.equals(PageEvaluateType.STRING)) {
@@ -165,7 +170,7 @@ public class Frame {
          throw new RuntimeException("Unsupported target type: " + selectorOrFunctionOrTimeout);
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForOptions options) throws JsonProcessingException {
         ElementHandle handle =  this.secondaryWorld.waitForSelector(selector, options);
         if (handle == null)
             return null;
@@ -175,11 +180,11 @@ public class Frame {
         return result;
     }
 
-    public  JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) {
+    public  JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) throws JsonProcessingException {
         return this.mainWorld.waitForFunction(pageFunction, type,options, args);
     }
 
-    public String title(){
+    public String title() throws JsonProcessingException {
         return this.secondaryWorld.title();
     }
 
@@ -189,7 +194,7 @@ public class Frame {
         this.navigationURL = framePayload.getUrl();
         this.url = framePayload.getUrl();
     }
-    public JSHandle waitForXPath(String xpath, WaitForOptions options) {
+    public JSHandle waitForXPath(String xpath, WaitForOptions options) throws JsonProcessingException {
         ElementHandle handle =  this.secondaryWorld.waitForXPath(xpath, options);
         if (handle == null)
             return null;
@@ -224,11 +229,11 @@ public class Frame {
         this.loaderId = loaderId;
     }
 
-    public String content() {
+    public String content() throws JsonProcessingException {
         return this.secondaryWorld.content();
     }
 
-    public void setContent(String html, PageNavigateOptions options) {
+    public void setContent(String html, PageNavigateOptions options) throws JsonProcessingException {
          this.secondaryWorld.setContent(html, options);
     }
 
@@ -322,4 +327,30 @@ public class Frame {
     public String url() {
         return this.url;
     }
+
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getNavigationURL() {
+        return navigationURL;
+    }
+
+    public void setNavigationURL(String navigationURL) {
+        this.navigationURL = navigationURL;
+    }
+    public String name() {
+        return this.getName();
+    }
+
+
+    public Frame parentFrame()  {
+        return this.getParentFrame();
+    }
+
+    public Set<Frame> childFrames() {
+        return this.getChildFrames();
+    }
+
 }

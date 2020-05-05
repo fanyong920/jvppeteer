@@ -8,7 +8,6 @@ import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.types.browser.BrowserContext;
-import com.ruiyun.jvppeteer.types.page.promise.Promise;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.util.concurrent.CountDownLatch;
@@ -41,9 +40,6 @@ public class Target {
 
 	@JsonIgnore
 	private Worker workerPromise;
-
-	@JsonIgnore
-	private Promise<Object> isClosedPromise;
 
 	@JsonIgnore
 	private boolean isInitialized;
@@ -253,13 +249,6 @@ public class Target {
 		this.screenshotTaskQueue = screenshotTaskQueue;
 	}
 
-	public Promise<Object> getIsClosedPromise() {
-		return isClosedPromise;
-	}
-
-	public void setIsClosedPromise(Promise<Object> isClosedPromise) {
-		this.isClosedPromise = isClosedPromise;
-	}
 
 	public boolean getIsInitialized() {
 		return isInitialized;

@@ -184,6 +184,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             String waitForWSEndpoint = waitForWSEndpoint(timeout, preferredRevision);
             WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
             this.connection = new Connection(waitForWSEndpoint, transport, slowMo);
+            LOGGER.info("Connect to browser by websocket url: " + waitForWSEndpoint);
         }
         return this.connection;
     }
@@ -211,7 +212,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                                     Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
                                     if (matcher.find()) {
                                         ws.append(matcher.group(1));
-                                        LOGGER.info("capture browser websocket url: " + ws.toString());
                                         success.set(true);
                                         break;
                                     }

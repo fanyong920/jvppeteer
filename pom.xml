@@ -60,6 +60,7 @@
         <commons.compress.version>1.19</commons.compress.version>
         <jsoup.version>1.11.3</jsoup.version>
         <htmlunit.version>2.38.0</htmlunit.version>
+        <httpasyncclient.version>4.1.4</httpasyncclient.version>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.jsoup/jsoup -->
@@ -144,6 +145,12 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>${commons.compress.version}</version>
+        </dependency>
+        <!-- 用于下载chrome浏览器压缩包 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+            <version>${httpasyncclient.version}</version>
         </dependency>
 
     </dependencies>

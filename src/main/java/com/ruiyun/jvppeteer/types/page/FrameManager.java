@@ -135,7 +135,11 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(ExecutionContextCreatedPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextCreated(event.getContext());
+                try {
+                    frameManager.onExecutionContextCreated(event.getContext());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         };
         executionContextCreatedListener.setTarget(this);
@@ -147,7 +151,11 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(ExecutionContextDestroyedPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextDestroyed(event.getExecutionContextId());
+                try {
+                    frameManager.onExecutionContextDestroyed(event.getExecutionContextId());
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         };
         executionContextDestroyedListener.setTarget(this);
@@ -159,7 +167,11 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(Object event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextsCleared();
+                try {
+                    frameManager.onExecutionContextsCleared();
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
             }
         };
         executionContextsClearedListener.setTarget(this);
@@ -188,7 +200,7 @@ public class FrameManager extends EventEmitter {
         this.emit(Events.FRAME_MANAGER_LIFECYCLE_EVENT.getName(), frame);
     }
 
-    private void onExecutionContextsCleared() {
+    private void onExecutionContextsCleared() throws JsonProcessingException {
         for (ExecutionContext context : this.contextIdToContext.values()) {
             if (context.getWorld() != null)
                 context.getWorld().setContext(null);
@@ -196,7 +208,7 @@ public class FrameManager extends EventEmitter {
         this.contextIdToContext.clear();
     }
 
-    private void onExecutionContextDestroyed(int executionContextId) {
+    private void onExecutionContextDestroyed(int executionContextId) throws JsonProcessingException {
         ExecutionContext context = this.contextIdToContext.get(executionContextId);
         if (context == null)
             return;
@@ -211,7 +223,7 @@ public class FrameManager extends EventEmitter {
         return context;
     }
 
-    private void onExecutionContextCreated(ExecutionContextDescription contextPayload) {
+    private void onExecutionContextCreated(ExecutionContextDescription contextPayload) throws JsonProcessingException {
         String frameId = contextPayload.getAuxData() != null ? contextPayload.getAuxData().getFrameId() : null;
         Frame frame = this.frames.get(frameId);
         DOMWorld world = null;

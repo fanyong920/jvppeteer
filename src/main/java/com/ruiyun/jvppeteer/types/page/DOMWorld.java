@@ -49,7 +49,11 @@ public class DOMWorld {
         this.timeoutSettings = timeoutSettings;
         this.documentPromise = null;
         this.contextPromise = null;
-        this.setContext(null);
+        try {
+            this.setContext(null);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         this.waitTasks = new HashSet<>();
         this.detached = false;
         this.hasContext = false;
@@ -83,7 +87,7 @@ public class DOMWorld {
 //            throw new RuntimeException("Execution Context is not available in detached frame "+this.frame.getUrl()+" (are you trying to evaluate?)");
 //        return this.contextPromise;
 //    }
-    public void setContext(ExecutionContext context) {
+    public void setContext(ExecutionContext context) throws JsonProcessingException {
         if (context != null) {
             this.contextResolveCallback(null, context);
             hasContext = false;
@@ -297,7 +301,7 @@ public class DOMWorld {
         return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION,null);
     }
 
-    public JSHandle waitForFunction(String pageFunction,PageEvaluateType type, WaitForOptions options, Object... args) {
+    public JSHandle waitForFunction(String pageFunction,PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
         if(StringUtil.isNotEmpty(options.getPolling())){

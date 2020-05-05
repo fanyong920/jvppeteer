@@ -534,7 +534,7 @@ public class Page extends EventEmitter {
      * @param {string} selector
      * @return {!Promise<?ElementHandle>}
      */
-    public ElementHandle $(String selector) {
+    public ElementHandle $(String selector) throws JsonProcessingException {
         return this.mainFrame().$(selector);
     }
 
@@ -542,11 +542,11 @@ public class Page extends EventEmitter {
      * @param {string} selector
      * @return {!Promise<!Array<!ElementHandle>>}
      */
-    public List<ElementHandle> $$(String selector) {
+    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
         return this.mainFrame().$$(selector);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         return this.mainFrame().$$eval(selector, pageFunction, type, args);
     }
 
@@ -563,7 +563,7 @@ public class Page extends EventEmitter {
      * @param {!Array<*>}       args
      * @return {!Promise<(!Object|undefined)>}
      */
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         return this.mainFrame().$eval(selector, pageFunction, type, args);
     }
 
@@ -571,7 +571,7 @@ public class Page extends EventEmitter {
      * @param {string} expression
      * @return {!Promise<!Array<!ElementHandle>>}
      */
-    public List<ElementHandle> $x(String expression) {
+    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
         return this.mainFrame().$x(expression);
     }
 
@@ -612,7 +612,7 @@ public class Page extends EventEmitter {
         return this.target.browserContext();
     }
 
-    public void click(String selector, ClickOptions options) {
+    public void click(String selector, ClickOptions options) throws JsonProcessingException, InterruptedException {
         this.mainFrame().click(selector, options);
     }
 
@@ -668,11 +668,11 @@ public class Page extends EventEmitter {
         return (String) this.screenshotTaskQueue.postTask((type, op) -> screenshotTask((String) type, (ScreenshotOptions) op), screenshotType, options);
     }
 
-    public List<String> select(String selector, List<String> values) {
+    public List<String> select(String selector, List<String> values) throws JsonProcessingException {
         return this.mainFrame().select(selector, values);
     }
 
-    public String title() {
+    public String title() throws JsonProcessingException {
         return this.mainFrame().title();
     }
 
@@ -686,7 +686,7 @@ public class Page extends EventEmitter {
         this.frameManager.networkManager().setCacheEnabled(enabled);
     }
 
-    public void setContent(String html, PageNavigateOptions options) {
+    public void setContent(String html, PageNavigateOptions options) throws JsonProcessingException {
         this.frameManager.mainFrame().setContent(html, options);
     }
 
@@ -905,7 +905,7 @@ public class Page extends EventEmitter {
      *
      * @return 页面内容
      */
-    public String content() {
+    public String content() throws JsonProcessingException {
         return this.frameManager.getMainFrame().content();
     }
 
@@ -974,7 +974,7 @@ public class Page extends EventEmitter {
         this.emulateMedia(type);
     }
 
-    public void tap(String selector) {
+    public void tap(String selector) throws JsonProcessingException {
         this.mainFrame().tap(selector);
     }
 
@@ -1027,7 +1027,7 @@ public class Page extends EventEmitter {
 
     }
 
-    public void focus(String selector) {
+    public void focus(String selector) throws JsonProcessingException {
         this.mainFrame().focus(selector);
     }
 
@@ -1055,7 +1055,7 @@ public class Page extends EventEmitter {
         return this.go(+1, options);
     }
 
-    public void hover(String selector) {
+    public void hover(String selector) throws JsonProcessingException {
         this.mainFrame().hover(selector);
     }
 
@@ -1219,7 +1219,7 @@ public class Page extends EventEmitter {
         return this.frameManager.mainFrame().waitForNavigation(options);
     }
 
-    public void evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+    public void evaluate(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         this.frameManager.mainFrame().evaluate(pageFunction, type, args);
     }
 
@@ -1251,7 +1251,7 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setEmulatedMedia", params, true);
     }
 
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
@@ -1271,7 +1271,7 @@ public class Page extends EventEmitter {
 
         return null;
     }
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options ,Object... args) {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options ,Object... args) throws JsonProcessingException {
         return this.mainFrame().waitForFunction(pageFunction, type,options, args);
     }
 
@@ -1330,11 +1330,11 @@ public class Page extends EventEmitter {
                 this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
         }
     }
-    public ElementHandle waitForSelector(String selector,WaitForOptions options) {
+    public ElementHandle waitForSelector(String selector,WaitForOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForSelector(selector, options);
     }
 
-    public JSHandle waitForXPath(String xpath, WaitForOptions options) {
+    public JSHandle waitForXPath(String xpath, WaitForOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForXPath(xpath, options);
     }
     public List<Worker> workers() {
@@ -1376,7 +1376,7 @@ public class Page extends EventEmitter {
         return this.tracing;
     }
 
-    public void type(String selector, String text, int delay) {
+    public void type(String selector, String text, int delay) throws JsonProcessingException, InterruptedException {
         this.mainFrame().type(selector, text, delay);
     }
 

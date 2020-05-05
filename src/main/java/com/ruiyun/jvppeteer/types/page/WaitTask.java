@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.types.page;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -31,7 +32,7 @@ public class WaitTask {
 
     private Object runningTask;
 
-    public WaitTask(DOMWorld domWorld, String predicateBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {
+    public WaitTask(DOMWorld domWorld, String predicateBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) throws JsonProcessingException {
         if (Helper.isNumber(polling)) {
             ValidateUtil.assertBoolean(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
         } else {
@@ -51,7 +52,7 @@ public class WaitTask {
         this.rerun();
     }
 
-    public void rerun() {
+    public void rerun() throws JsonProcessingException {
         int runcount = runCount.incrementAndGet();
         Exception error = null;
         JSHandle success = null;
