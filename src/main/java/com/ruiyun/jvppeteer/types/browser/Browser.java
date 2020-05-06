@@ -169,7 +169,7 @@ public class Browser extends EventEmitter {
 
 	private void targetInfoChanged(TargetInfoChangedPayload event) {
 		Target target = this.targets.get(event.getTargetInfo().getTargetId());
-		ValidateUtil.assertBoolean(target == null,"target should exist before targetInfoChanged");
+		ValidateUtil.assertBoolean(target != null,"target should exist before targetInfoChanged");
 		String previousURL = target.url();
 		boolean wasInitialized = target.getIsInitialized();
 		target.targetInfoChanged(event.getTargetInfo());

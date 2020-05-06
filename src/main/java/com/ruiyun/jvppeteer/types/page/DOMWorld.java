@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.types.page;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.*;
@@ -37,6 +38,8 @@ public class DOMWorld {
     private boolean hasContext;
 
     private ExecutionContext contextPromise;
+
+    private CountDownLatch waitForContext = null;
 
     public DOMWorld() {
         super();
@@ -89,27 +92,44 @@ public class DOMWorld {
 //    }
     public void setContext(ExecutionContext context) throws JsonProcessingException {
         if (context != null) {
-            this.contextResolveCallback(null, context);
-            hasContext = false;
+            System.out.println("setContext not null");
+            this.contextResolveCallback(context);
+            hasContext = true;
             for (WaitTask waitTask : this.waitTasks) {
                 waitTask.rerun();
             }
         } else {
             this.documentPromise = null;
-            this.hasContext = true;
+            this.hasContext = false;
         }
     }
 
-    private void contextResolveCallback(Object o, ExecutionContext context) {
+    private void contextResolveCallback(ExecutionContext context) throws JsonProcessingException {
+            this.contextPromise = context;
+            if(this.waitForContext != null && this.waitForContext.getCount() > 0) {
+                this.waitForContext.countDown();
+                System.out.println("contextResolveCallback count down ");
+            }
     }
 
     public boolean hasContext() {
-        return !hasContext;
+        return hasContext;
     }
 
     public ExecutionContext executionContext() {
         if (this.detached)
             throw new RuntimeException(MessageFormat.format("Execution Context is not available in detached frame {0} (are you trying to evaluate?)", this.frame.getUrl()));
+        if(this.contextPromise == null){
+                this.waitForContext = new CountDownLatch(1);
+                try {
+                    boolean await = this.waitForContext.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+                    if(!await){
+                        throw new TimeoutException("Wait for ExecutionContext time out");
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+        }
         return this.contextPromise;
     }
 
@@ -134,7 +154,7 @@ public class DOMWorld {
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
         JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
-        this.documentPromise = document.asElement();
+         this.documentPromise = document.asElement();
         return this.documentPromise;
     }
 
@@ -323,10 +343,4 @@ public class DOMWorld {
         return waitTasks;
     }
 
-    //
-//    public boolean hasContext() {
-//        return false;
-//    }
-//
-//    contextResolveCallback
 }

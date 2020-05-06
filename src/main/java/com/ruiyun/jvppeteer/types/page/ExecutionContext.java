@@ -93,11 +93,13 @@ public class ExecutionContext {
         String functionText = pageFunction;
         Map<String, Object> params = new HashMap<>();
         List<Object> argList = new ArrayList<>();
-        for (Object arg : args) {
-            argList.add(convertArgument(this, arg));
+        if(args != null && args.length > 0){
+            for (Object arg : args) {
+                argList.add(convertArgument(this, arg));
+            }
         }
         params.put("functionDeclaration", functionText + '\n' + suffix + '\n');
-        params.put("executionContextId", this.contextId);
+        params.put("executionContextId", this.contextId+1);
         params.put("arguments", argList);
         params.put("returnByValue", returnByValue);
         params.put("awaitPromise", true);

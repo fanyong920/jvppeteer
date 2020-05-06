@@ -178,7 +178,6 @@ public class HttpClienUtil implements Constant {
             org.apache.http.StatusLine statusLine = response.getStatusLine();
             if (200 == statusLine.getStatusCode()) {
                 String s = org.apache.http.util.EntityUtils.toString(response.getEntity());
-                System.out.println(s);
                 return OBJECTMAPPER.readValue(s, valueTypeRef);
             }
             String message =

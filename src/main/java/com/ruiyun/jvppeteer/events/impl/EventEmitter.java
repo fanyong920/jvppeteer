@@ -72,6 +72,9 @@ public class EventEmitter implements Event {
     @Override
     public boolean emit(String method, Object params) {
         ValidateUtil.notNull(method, "method must not be null");
+        if("Runtime.executionContextCreated".equals(method)){
+            System.out.println("我来啦，Runtime.executionContextCreated");
+        }
         Set<DefaultBrowserListener> listeners = this.listenerMap.get(method);
         if(ValidateUtil.isEmpty(listeners))
             return false;

@@ -85,4 +85,14 @@ public class SendMsg {
 		}
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "SendMsg{" +
+				"id=" + id +
+				", params=" + params +
+				", method='" + method + '\'' +
+				", sessionId='" + sessionId + '\'' +
+				'}';
+	}
 }

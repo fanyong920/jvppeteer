@@ -3,7 +3,6 @@ package com.ruiyun.jvppeteer.types.page;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.EmulationManager;
 import com.ruiyun.jvppeteer.events.definition.EventHandler;
 import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
@@ -140,7 +139,6 @@ public class Page extends EventEmitter {
         this.closed = false;
         this.client = client;
         this.client.getConnection();
-        System.out.println("this.client.getConnection();" + this.client.getConnection());
         this.target = target;
         this.keyboard = new Keyboard(client);
         this.mouse = new Mouse(client, keyboard);

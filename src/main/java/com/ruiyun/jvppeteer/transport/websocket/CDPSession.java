@@ -153,10 +153,11 @@ public class CDPSession extends EventEmitter {
             if (callback != null) {
                 JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
 //                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
-                System.out.println("errNode="+errNode);
                 if (errNode != null) {
                     if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
                         callback.getCountDownLatch().countDown();
+                        //还没有await 数据以及返回了了
+                        callback.setCountDownLatch(null);
                     }
                     throw new ProtocolException(Helper.createProtocolError(node));
                 }else {
@@ -164,16 +165,15 @@ public class CDPSession extends EventEmitter {
                     callback.setResult(result);
                     if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
                         callback.getCountDownLatch().countDown();
+                        callback.setCountDownLatch(null);
                     }
                 }
-            } else {
-                JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);
-                JsonNode method = node.get(RECV_MESSAGE_METHOD_PROPERTY);
-                if(method != null)
-                this.emit(method.asText(),paramsNode);
             }
         }else {
-            throw new RuntimeException("recv message id property is null");
+            JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);
+            JsonNode method = node.get(RECV_MESSAGE_METHOD_PROPERTY);
+            if(method != null)
+                this.emit(method.asText(),paramsNode);
         }
 
     }

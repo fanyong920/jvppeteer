@@ -20,8 +20,8 @@ public class AuxData {
         return isDefault;
     }
 
-    public void setIsDefault(boolean aDefault) {
-        isDefault = aDefault;
+    public void setIsDefault(boolean isDefault) {
+        this.isDefault = isDefault;
     }
 
     public String getType() {
