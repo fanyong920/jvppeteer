@@ -15,7 +15,7 @@ public class PagePDFExample {
     public static void main(String[] args) throws InterruptedException, IOException {
 //        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"GBK");
         ArrayList<String> arrayList = new ArrayList<>();
-        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("D:\\develop\\softwarePackage\\chrome-win\\chrome.exe").build();
+        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("D:\\develop\\project\\toString\\chrome-win\\chrome.exe").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

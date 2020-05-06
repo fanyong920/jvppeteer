@@ -16,6 +16,6 @@ public class EmulationManager {
     }
 
     public boolean emulateViewport(Viewport viewport) {
-        return true;
+        return false;
     }
 }
