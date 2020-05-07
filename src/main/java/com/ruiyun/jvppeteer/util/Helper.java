@@ -47,10 +47,14 @@ public class Helper {
         JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
         JsonNode errNode = node.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
         JsonNode errorMsg = errNode.get(Constant.RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
-        String message = "Protocol error " + methodNode.asText() + ": " + errorMsg;
+        String method = "";
+        if(methodNode != null){
+            method = methodNode.asText();
+        }
+        String message = "Protocol error " + method + ": " + errorMsg;
         JsonNode dataNode = errNode.get(Constant.RECV_MESSAGE_ERROR_DATA_PROPERTY);
         if (dataNode != null) {
-            message += " " + dataNode.asText();
+            message += " " + dataNode.toString();
         }
         return message;
     }

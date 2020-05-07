@@ -84,7 +84,7 @@ public class ExecutionContext {
 
             if (exceptionDetails != null)
                 throw new RuntimeException("Evaluation failed: " + Helper.getExceptionMessage(Constant.OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class)));
-            RemoteObject remoteObject = Constant.OBJECTMAPPER.treeToValue(result.get("remoteObject"), RemoteObject.class);
+            RemoteObject remoteObject = Constant.OBJECTMAPPER.treeToValue(result.get("result"), RemoteObject.class);
             return returnByValue ? Helper.valueFromRemoteObject(remoteObject) : createJSHandle(this, remoteObject);
         }
 
@@ -99,7 +99,7 @@ public class ExecutionContext {
             }
         }
         params.put("functionDeclaration", functionText + '\n' + suffix + '\n');
-        params.put("executionContextId", this.contextId+1);
+        params.put("executionContextId", this.contextId);
         params.put("arguments", argList);
         params.put("returnByValue", returnByValue);
         params.put("awaitPromise", true);
@@ -118,7 +118,7 @@ public class ExecutionContext {
         JsonNode exceptionDetails = callFunctionOnPromise.get("exceptionDetails");
         if (exceptionDetails != null)
             throw new RuntimeException("Evaluation failed: " + Helper.getExceptionMessage(Constant.OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class)));
-        RemoteObject remoteObject = Constant.OBJECTMAPPER.treeToValue(callFunctionOnPromise.get("remoteObject"), RemoteObject.class);
+        RemoteObject remoteObject = Constant.OBJECTMAPPER.treeToValue(callFunctionOnPromise.get("result"), RemoteObject.class);
         return returnByValue ? Helper.valueFromRemoteObject(remoteObject) : createJSHandle(this, remoteObject);
     }
 

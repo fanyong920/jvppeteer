@@ -227,7 +227,6 @@ public class FrameManager extends EventEmitter {
         String frameId = contextPayload.getAuxData() != null ? contextPayload.getAuxData().getFrameId() : null;
         Frame frame = this.frames.get(frameId);
         DOMWorld world = null;
-        System.out.println("frame="+frame);
         if (frame != null) {
             if (contextPayload.getAuxData() != null && contextPayload.getAuxData().getIsDefault()) {
                 world = frame.getMainWorld();
@@ -242,7 +241,6 @@ public class FrameManager extends EventEmitter {
             this.isolatedWorlds.add(contextPayload.getName());
         /*  ${@link ExecutionContext} */
         ExecutionContext context = new ExecutionContext(this.client, contextPayload, world);
-        System.out.println("world="+world);
         if (world != null)
             world.setContext(context);
         this.contextIdToContext.put(contextPayload.getId(), context);

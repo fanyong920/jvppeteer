@@ -196,8 +196,8 @@ public class Browser extends EventEmitter {
 	}
 
 	public BrowserContext createIncognitoBrowserContext() {
-    	JsonNode reult = this.connection.send("Target.createBrowserContext",null,true);
-		String browserContextId = reult.get("browserContextId").asText();
+    	JsonNode result = this.connection.send("Target.createBrowserContext",null,true);
+		String browserContextId = result.get("browserContextId").asText();
 		BrowserContext context = new BrowserContext(this.connection, this,browserContextId );
 		this.contexts.put(browserContextId, context);
 		return context;
@@ -381,7 +381,7 @@ public class Browser extends EventEmitter {
 		this.disconnect();
 	}
 
-	private void disconnect() {
+	public void disconnect() {
 		this.connection.dispose();
 	}
 
@@ -439,7 +439,6 @@ public class Browser extends EventEmitter {
 	 * @return
 	 */
 	public void onDisconnected(EventHandler handler) {
-		System.out.println("我是浏览器事件监听，现在监听到 disconnected");
 		DefaultBrowserListener listener = new DefaultBrowserListener();
 		listener.setMothod("disconnected");
 		listener.setHandler(handler);

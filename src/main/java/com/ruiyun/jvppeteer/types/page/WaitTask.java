@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.types.page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class WaitTask {
 
     private Object runningTask;
 
-    public WaitTask(DOMWorld domWorld, String predicateBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) throws JsonProcessingException {
+    public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody ,PageEvaluateType type, String title, String polling, int timeout, Object... args) throws JsonProcessingException {
         if (Helper.isNumber(polling)) {
             ValidateUtil.assertBoolean(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
         } else {
@@ -41,7 +42,20 @@ public class WaitTask {
         this.domWorld = domWorld;
         this.polling = polling;
         this.timeout = timeout;
-        this.predicateBody = PageEvaluateType.STRING.equals(type) ? "return (" + predicateBody + ")" : "return (" + predicateBody + ")(...args)";
+        if(PageEvaluateType.STRING.equals(type)){
+            this.predicateBody =   "return (" + predicateBody + ");";
+        }else {
+            if(StringUtil.isNotEmpty(predicateQueryHandlerBody)){
+                this.predicateBody = "\n" +
+                        "          return (function wrapper(args) {\n" +
+                        "            const predicateQueryHandler = "+predicateQueryHandlerBody+";\n" +
+                        "            return ("+predicateBody+")(...args);\n" +
+                        "          })(args);";
+            }else {
+                this.predicateBody =   "return ("+predicateBody+")(...args);";
+            }
+        }
+
         this.args = args;
         this.runCount = new AtomicInteger(0);
         domWorld.getWaitTasks().add(this);
@@ -54,12 +68,14 @@ public class WaitTask {
 
     public void rerun() throws JsonProcessingException {
         int runcount = runCount.incrementAndGet();
-        Exception error = null;
+        RuntimeException error = null;
         JSHandle success = null;
         try {
-            success = this.domWorld.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
-        } catch (Exception e) {
+            ExecutionContext context = this.domWorld.executionContext();
+            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
+        } catch (RuntimeException e) {
             error = e;
+
         }
         if (this.terminated || runcount != this.runCount.get()) {
             if (success != null)
@@ -81,10 +97,10 @@ public class WaitTask {
             this.rerun();
             return;
         }
+        if (error != null && error.getMessage().contains("Cannot find context with specified id"))
+            return;
         if (error != null) {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("", error);
-            }
+            throw error;
         } else {
             this.promise = success;
         }

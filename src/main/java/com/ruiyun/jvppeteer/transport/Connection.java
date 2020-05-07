@@ -195,9 +195,6 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 } else if (objectId != null) {//long类型的id,说明属于这次发送消息后接受的回应
 					long id = objectId.asLong();
 					SendMsg sendMsg = this.callbacks.get(id);
-					if(sendMsg == null){
-                        System.out.println("23232323");
-                    }
                     JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                     if (error != null) {
                         if (sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0) {

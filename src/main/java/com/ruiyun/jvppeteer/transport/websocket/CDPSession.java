@@ -58,8 +58,7 @@ public class CDPSession extends EventEmitter {
         }
         connection = null;
         callbacks.clear();
-        //TODO
-        connection.emit(Events.CDPSESSION_DISCONNECTED.getName(),null);
+        this.emit(Events.CDPSESSION_DISCONNECTED.getName(),null);
     }
 
     /**

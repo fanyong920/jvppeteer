@@ -92,7 +92,6 @@ public class DOMWorld {
 //    }
     public void setContext(ExecutionContext context) throws JsonProcessingException {
         if (context != null) {
-            System.out.println("setContext not null");
             this.contextResolveCallback(context);
             hasContext = true;
             for (WaitTask waitTask : this.waitTasks) {
@@ -106,14 +105,15 @@ public class DOMWorld {
 
     private void contextResolveCallback(ExecutionContext context) throws JsonProcessingException {
             this.contextPromise = context;
+//        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
+//        this.documentPromise = document.asElement();
             if(this.waitForContext != null && this.waitForContext.getCount() > 0) {
                 this.waitForContext.countDown();
-                System.out.println("contextResolveCallback count down ");
             }
     }
 
     public boolean hasContext() {
-        return hasContext;
+            return hasContext;
     }
 
     public ExecutionContext executionContext() {
@@ -330,7 +330,7 @@ public class DOMWorld {
         if(options.getTimeout() > 0){
             timeout = options.getTimeout();
         }
-        return new WaitTask(this,pageFunction,type,"function",polling,timeout,args).getPromise();
+        return new WaitTask(this,pageFunction,null,type,"function",polling,timeout,args).getPromise();
     }
 
     public void detach() {

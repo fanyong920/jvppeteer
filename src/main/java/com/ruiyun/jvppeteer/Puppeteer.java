@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer;
 
+import com.ruiyun.jvppeteer.options.BrowserOptions;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.types.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
@@ -14,6 +16,8 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.ruiyun.jvppeteer.Constant.PRODUCT_ENV;
+
 /**
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
  * 版本在一起使用效果最好。不能保证它可以与任何其他版本一起使用。谨慎地使用 executablePath 选项。 如果 Google
@@ -22,7 +26,7 @@ import java.util.List;
  * @author fff
  *
  */
-public class Puppeteer implements Constant {
+public class Puppeteer {
 
 	public String productName = null;
 
@@ -73,6 +77,22 @@ public class Puppeteer implements Constant {
 	private static Browser rawLaunch(boolean headless) {
 		Puppeteer puppeteer = new Puppeteer();
 		return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(),puppeteer);
+	}
+
+	/**
+	 * 连接一个已经存在的浏览器实例
+	 * browserWSEndpoint、browserURL、transport有其中一个就行了
+	 * @param options
+	 * @param browserWSEndpoint websocket
+	 * @param browserURL http
+	 * @param transport
+	 * @param product
+	 * @return
+	 */
+	public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport,String product) {
+		if (StringUtil.isNotEmpty(product))
+			this.productName = product;
+		return this.launcher.connect(options,browserWSEndpoint,browserURL,transport);
 	}
 	
 	/**
