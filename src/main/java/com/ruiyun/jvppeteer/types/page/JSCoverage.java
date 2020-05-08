@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.protocol.CSS.Point;
 import com.ruiyun.jvppeteer.protocol.profiler.CoverageEntry;
 import com.ruiyun.jvppeteer.protocol.profiler.CoverageRange;
 import com.ruiyun.jvppeteer.protocol.profiler.FunctionCoverage;
@@ -29,7 +30,6 @@ import java.util.stream.Collectors;
 
 public class JSCoverage {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JSCoverage.class);
 
     private CDPSession client;
 
@@ -111,18 +111,11 @@ public class JSCoverage {
         // Ignore other anonymous scripts unless the reportAnonymousScripts option is true.
         if (StringUtil.isEmpty(event.getUrl()) && !this.reportAnonymousScripts)
             return;
-        try {
-            Map<String, Object> params = new HashMap<>();
-            params.put("scriptId", event.getScriptId());
-            JsonNode response = this.client.send("Debugger.getScriptSource", params, true);
-            this.scriptURLs.put(event.getScriptId(), event.getUrl());
-            this.scriptSources.put(event.getScriptId(), response.get("scriptSource").asText());
-        } catch (Exception e) {
-            // This might happen if the page has already navigated away.
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("", e);
-            }
-        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("scriptId", event.getScriptId());
+        JsonNode response = this.client.send("Debugger.getScriptSource", params, true);
+        this.scriptURLs.put(event.getScriptId(), event.getUrl());
+        this.scriptSources.put(event.getScriptId(), response.get("scriptSource").asText());
     }
 
     public List<CoverageEntry> stop() throws JsonProcessingException {
@@ -153,70 +146,12 @@ public class JSCoverage {
             List<CoverageRange> flattenRanges = new ArrayList<>();
             for (FunctionCoverage func : entry.getFunctions())
                 flattenRanges.addAll(func.getRanges());
-            List<Range> ranges = convertToDisjointRanges(flattenRanges);
+            List<Range> ranges = Coverage.convertToDisjointRanges(flattenRanges);
             coverage.add(createCoverageEntry(url, ranges, text));
         }
         return coverage;
     }
 
-    private List<Range> convertToDisjointRanges(List<CoverageRange> nestedRanges) {
-        List<Point> points = new ArrayList<>();
-        for (CoverageRange range : nestedRanges) {
-            points.add(createPoint(range.getStartOffset(), 0, range));
-            points.add(createPoint(range.getStartOffset(), 1, range));
-        }
-        // Sort points to form a valid parenthesis sequence.
-        points.sort(new Comparator<Point>() {
-            @Override
-            public int compare(Point a, Point b) {
-
-                // Sort with increasing offsets.
-                if (a.offset != b.offset)
-                    return a.offset - b.offset;
-                // All "end" points should go before "start" points.
-                if (a.type != b.type)
-                    return b.type - a.type;
-                int aLength = a.range.getEndOffset() - a.range.getStartOffset();
-                int bLength = b.range.getEndOffset() - b.range.getStartOffset();
-                // For two "start" points, the one with longer range goes first.
-                if (a.type == 0)
-                    return bLength - aLength;
-                // For two "end" points, the one with shorter range goes first.
-                return aLength - bLength;
-            }
-
-        });
-
-        LinkedList<Integer> hitCountStack = new LinkedList<>();
-
-        List<Range> results = new ArrayList<>();
-        int lastOffset = 0;
-        // Run scanning line to intersect all ranges.
-        for (Point point : points) {
-            if (hitCountStack.size() > 0 && lastOffset < point.offset && hitCountStack.get(hitCountStack.size() - 1) > 0) {
-                Range lastResult = results.size() > 0 ? results.get(results.size() - 1) : null;
-                if (lastResult != null && lastResult.getEnd() == lastOffset)
-                    lastResult.setEnd(point.offset);
-                else
-                    results.add(createRange(lastOffset, point.offset));
-            }
-            lastOffset = point.offset;
-            if (point.type == 0)
-                hitCountStack.addLast(point.range.getCount());
-            else
-                hitCountStack.pop();
-        }
-        // Filter out empty ranges.
-        return results.stream().filter(range -> range.getEnd() - range.getStart() > 1).collect(Collectors.toList());
-    }
-
-    private Range createRange(int start, int end) {
-        return new Range(start, end);
-    }
-
-    private Point createPoint(int startOffset, int type, CoverageRange range) {
-        return new Point(startOffset, type, range);
-    }
 
     private CoverageEntry createCoverageEntry(String url, List<Range> ranges, String text) {
         CoverageEntry coverageEntity = new CoverageEntry();
@@ -226,47 +161,4 @@ public class JSCoverage {
         return coverageEntity;
     }
 
-    static class Point {
-
-        private int offset;
-
-        private int type;
-
-        private CoverageRange range;
-
-        public Point() {
-            super();
-        }
-
-        public Point(int offset, int type, CoverageRange range) {
-            super();
-            this.offset = offset;
-            this.type = type;
-            this.range = range;
-        }
-
-        public int getOffset() {
-            return offset;
-        }
-
-        public void setOffset(int offset) {
-            this.offset = offset;
-        }
-
-        public int getType() {
-            return type;
-        }
-
-        public void setType(int type) {
-            this.type = type;
-        }
-
-        public CoverageRange getRange() {
-            return range;
-        }
-
-        public void setRange(CoverageRange range) {
-            this.range = range;
-        }
-    }
 }

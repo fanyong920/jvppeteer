@@ -12,6 +12,17 @@ public class CoverageEntry {
 
     private String text;
 
+    public CoverageEntry() {
+        super();
+    }
+
+    public CoverageEntry(String url, List<Range> ranges, String text) {
+        super();
+        this.url = url;
+        this.ranges = ranges;
+        this.text = text;
+    }
+
     public String getUrl() {
         return url;
     }

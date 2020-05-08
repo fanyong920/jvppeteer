@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.transport.websocket;
 
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.transport.factory.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
@@ -36,8 +37,8 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		super(serverUri, httpHeaders);
 	}
 
-	public static WebSocketTransport create(String browserWSEndpoint) {
-		return null;
+	public static WebSocketTransport create(String browserWSEndpoint) throws InterruptedException {
+		return WebSocketTransportFactory.create(browserWSEndpoint);
 	}
 
 	@Override

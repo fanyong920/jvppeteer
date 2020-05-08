@@ -199,7 +199,6 @@ public class ChromeLauncher implements Launcher {
 
     @Override
     public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
-
         final Connection connection ;
 		try {
         if (transport != null) {
@@ -223,7 +222,7 @@ public class ChromeLauncher implements Launcher {
         	return null;
         };
 
-            browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result);
+            browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
             return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction, options.getTimeout());
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

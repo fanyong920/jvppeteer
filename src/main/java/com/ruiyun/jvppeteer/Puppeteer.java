@@ -22,165 +22,171 @@ import static com.ruiyun.jvppeteer.Constant.PRODUCT_ENV;
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
  * 版本在一起使用效果最好。不能保证它可以与任何其他版本一起使用。谨慎地使用 executablePath 选项。 如果 Google
  * Chrome（而不是Chromium）是首选，一个 Chrome Canary 或 Dev Channel 版本是建议的
- * 
- * @author fff
  *
+ * @author fff
  */
 public class Puppeteer {
 
-	public String productName = null;
+    public String productName = null;
 
-	private Launcher launcher;
-	
-	private Environment env = null;
+    private Launcher launcher;
 
-	private String projectRoot = System.getProperty("user.dir");
+    private Environment env = null;
 
-	private String preferredRevision;
+    private String projectRoot = System.getProperty("user.dir");
 
-	private boolean isPuppeteerCore;
+    private String preferredRevision;
 
-	public Puppeteer() {
+    private boolean isPuppeteerCore;
 
-	}
+    public Puppeteer() {
 
-	public Puppeteer(String projectRoot, String preferredRevision) {
-		if(StringUtil.isNotEmpty(projectRoot)){
-			this.projectRoot = projectRoot;
-		}
-		this.preferredRevision = preferredRevision;
-	}
+    }
 
-	/**
-	 * 以默认参数启动浏览器
-	 * <br/>
-	 * launch Browser by default options
-	 * @return
-	 */
-	public static Browser launch(){
-		return Puppeteer.rawLaunch();
-	}
+    public Puppeteer(String projectRoot, String preferredRevision, boolean isPuppeteerCore, String productName) {
+        this.projectRoot = projectRoot;
+        this.preferredRevision = preferredRevision;
+        this.isPuppeteerCore = isPuppeteerCore;
+        this.productName = productName;
+    }
 
-	public static  Browser launch(boolean headless) {
-		return Puppeteer.rawLaunch(headless);
-	}
+    /**
+     * 以默认参数启动浏览器
+     * <br/>
+     * launch Browser by default options
+     *
+     * @return
+     */
+    public static Browser launch() {
+        return Puppeteer.rawLaunch();
+    }
 
-	public static  Browser launch(LaunchOptions options) {
-		Puppeteer puppeteer = new Puppeteer();
-		return Puppeteer.rawLaunch(options,puppeteer);
-	}
+    public static Browser launch(boolean headless) {
+        return Puppeteer.rawLaunch(headless);
+    }
 
-	private static Browser rawLaunch() {
-		return Puppeteer.rawLaunch(true);
-	}
-	
-	private static Browser rawLaunch(boolean headless) {
-		Puppeteer puppeteer = new Puppeteer();
-		return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(),puppeteer);
-	}
+    public static Browser launch(LaunchOptions options) {
+        Puppeteer puppeteer = new Puppeteer();
+        return Puppeteer.rawLaunch(options, puppeteer);
+    }
 
-	/**
-	 * 连接一个已经存在的浏览器实例
-	 * browserWSEndpoint、browserURL、transport有其中一个就行了
-	 * @param options
-	 * @param browserWSEndpoint websocket
-	 * @param browserURL http
-	 * @param transport
-	 * @param product
-	 * @return
-	 */
-	public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport,String product) {
-		if (StringUtil.isNotEmpty(product))
-			this.productName = product;
-		return this.launcher.connect(options,browserWSEndpoint,browserURL,transport);
-	}
-	
-	/**
-	 * The method launches a browser instance with given arguments. The browser will
-	 * be closed when the parent java process is closed.
-	 */
-	private static Browser rawLaunch(LaunchOptions options,Puppeteer puppeteer) {
-		if (!StringUtil.isNotBlank(options.getProduct())) {
-			puppeteer.setProductName(options.getProduct()) ;
-		}
+    private static Browser rawLaunch() {
+        return Puppeteer.rawLaunch(true);
+    }
+
+    private static Browser rawLaunch(boolean headless) {
+        Puppeteer puppeteer = new Puppeteer();
+        return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(), puppeteer);
+    }
+
+    /**
+     * 连接一个已经存在的浏览器实例
+     * browserWSEndpoint、browserURL、transport有其中一个就行了
+     *
+     * @param options
+     * @param browserWSEndpoint websocket
+     * @param browserURL        http
+     * @param transport
+     * @param product
+     * @return
+     */
+    public static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport, String product) {
+        Puppeteer puppeteer = new Puppeteer();
+
+        if (StringUtil.isNotEmpty(product))
+            puppeteer.setProductName(product);
 		adapterLauncher(puppeteer);
-		Browser browser = puppeteer.getLauncher().launch(options);
-		return browser;
-	}
-	
-	/**
-	 * 适配chrome or firefox 浏览器
-	 */
-	private static void adapterLauncher(Puppeteer puppeteer) {
-		String productName = null;
-		Launcher launcher = null;
-		Environment env;
-		if (StringUtil.isEmpty(productName = puppeteer.getProductName()) && !puppeteer.getIsPuppeteerCore()) {
+		return puppeteer.getLauncher().connect(options, browserWSEndpoint, browserURL, transport);
+    }
 
-			if((env = puppeteer.getEnv()) == null){
-				puppeteer.setEnv(env = System::getenv);
-			}
-			for (int i = 0; i < PRODUCT_ENV.length; i++) {
-				String envProductName = PRODUCT_ENV[i];
-				productName = env.getEnv(envProductName);
-				if(StringUtil.isNotEmpty(productName)){
-					puppeteer.setProductName(productName);
-					break;
-				}
-			}
-		}
-		if(StringUtil.isEmpty(productName)){
-			productName = "chrome";
-			puppeteer.setProductName(productName);
-		}
-		switch (productName) {
-		case "firefox":
-			launcher = new FirefoxLauncher(puppeteer.getIsPuppeteerCore());
-		case "chrome":
-		default:
-			launcher = new ChromeLauncher(puppeteer.getIsPuppeteerCore());
-		}
-		puppeteer.setLauncher(launcher);
-	}
+    /**
+     * The method launches a browser instance with given arguments. The browser will
+     * be closed when the parent java process is closed.
+     */
+    private static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) {
+        if (!StringUtil.isNotBlank(options.getProduct())) {
+            puppeteer.setProductName(options.getProduct());
+        }
+        adapterLauncher(puppeteer);
+        Browser browser = puppeteer.getLauncher().launch(options);
+        return browser;
+    }
 
-	public List<String> defaultArgs(ChromeArgOptions options) {
-		List<String> chromeArguments = new ArrayList<>();
-		 this.getLauncher().defaultArgs(options,chromeArguments);
-		return chromeArguments;
-	}
+    /**
+     * 适配chrome or firefox 浏览器
+     */
+    private static void adapterLauncher(Puppeteer puppeteer) {
+        String productName = null;
+        Launcher launcher = null;
+        Environment env;
+        if (StringUtil.isEmpty(productName = puppeteer.getProductName()) && !puppeteer.getIsPuppeteerCore()) {
 
-	public String executablePath() {
-		return this.getLauncher().executablePath();
-	}
-	public BrowserFetcher createBrowserFetcher(FetcherOptions options){
-		return new BrowserFetcher(this.projectRoot,options);
-	}
-	private   String getProductName() {
-		return productName;
-	}
+            if ((env = puppeteer.getEnv()) == null) {
+                puppeteer.setEnv(env = System::getenv);
+            }
+            for (int i = 0; i < PRODUCT_ENV.length; i++) {
+                String envProductName = PRODUCT_ENV[i];
+                productName = env.getEnv(envProductName);
+                if (StringUtil.isNotEmpty(productName)) {
+                    puppeteer.setProductName(productName);
+                    break;
+                }
+            }
+        }
+        if (StringUtil.isEmpty(productName)) {
+            productName = "chrome";
+            puppeteer.setProductName(productName);
+        }
+        switch (productName) {
+            case "firefox":
+                launcher = new FirefoxLauncher(puppeteer.getIsPuppeteerCore());
+            case "chrome":
+            default:
+                launcher = new ChromeLauncher(puppeteer.getIsPuppeteerCore());
+        }
+        puppeteer.setLauncher(launcher);
+    }
 
-	private   void setProductName(String productName) {
-		this.productName = productName;
-	}
+    public List<String> defaultArgs(ChromeArgOptions options) {
+        List<String> chromeArguments = new ArrayList<>();
+        this.getLauncher().defaultArgs(options, chromeArguments);
+        return chromeArguments;
+    }
 
-	private boolean getIsPuppeteerCore() {
-		return isPuppeteerCore;
-	}
+    public String executablePath() {
+        return this.getLauncher().executablePath();
+    }
+
+    public BrowserFetcher createBrowserFetcher(FetcherOptions options) {
+        return new BrowserFetcher(this.projectRoot, options);
+    }
+
+    private String getProductName() {
+        return productName;
+    }
+
+    private void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    private boolean getIsPuppeteerCore() {
+        return isPuppeteerCore;
+    }
 
 
-	private Launcher getLauncher() {
-		return launcher;
-	}
+    private Launcher getLauncher() {
+        return launcher;
+    }
 
-	private void setLauncher(Launcher launcher) {
-		this.launcher = launcher;
-	}
+    private void setLauncher(Launcher launcher) {
+        this.launcher = launcher;
+    }
 
-	private Environment getEnv() {
-		return env;
-	}
+    private Environment getEnv() {
+        return env;
+    }
 
-	private void setEnv(Environment env) {
-		this.env = env;
-	}
+    private void setEnv(Environment env) {
+        this.env = env;
+    }
 }

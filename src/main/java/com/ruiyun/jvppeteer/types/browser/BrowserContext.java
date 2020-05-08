@@ -149,5 +149,21 @@ public class BrowserContext extends EventEmitter {
 	public Page newPage(){
 		return browser.createPageInContext(this.id);
 	}
-	
+
+	public Browser getBrowser() {
+		return browser;
+	}
+
+	public void setBrowser(Browser browser) {
+		this.browser = browser;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
 }

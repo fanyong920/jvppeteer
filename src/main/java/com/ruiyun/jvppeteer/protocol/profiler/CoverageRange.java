@@ -17,6 +17,15 @@ public class CoverageRange {
      */
     private int count;
 
+    public CoverageRange() {
+    }
+
+    public CoverageRange(int startOffset, int endOffset, int count) {
+        this.startOffset = startOffset;
+        this.endOffset = endOffset;
+        this.count = count;
+    }
+
     public int getStartOffset() {
         return startOffset;
     }
