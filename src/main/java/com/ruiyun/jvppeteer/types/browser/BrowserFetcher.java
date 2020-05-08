@@ -255,7 +255,19 @@ public class BrowserFetcher {
         }
 
         public void setPlatform(String platform) {
-            this.platform = platform;
+            if(StringUtil.isNotEmpty(platform)){
+                this.platform = platform;
+                return;
+            }
+            if (platform == null) {
+                if (PlatformUtil.isMac())
+                    this.platform = "mac";
+                else if (PlatformUtil.isLinux())
+                    this.platform = "linux";
+                else if (PlatformUtil.isWindows())
+                    this.platform = Helper.isWin64() ? "win64" : "win32";
+                ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
+            }
         }
 
         public String getRevision() {
@@ -282,7 +294,7 @@ public class BrowserFetcher {
 	 * 修改文件权限，与linux上chmod命令一样，并非异步，只是方法名为了与nodejs的puppeteer库一样
 	 * @param executablePath
 	 * @param perms 权限字符串，例如"775",与linux上文件权限一样
-	 * @throws IOException
+	 * @throws IOException 异常
 	 */
     private void chmodAsync(String executablePath, String perms) throws IOException {
         Helper.chmod(executablePath, perms);
@@ -290,8 +302,8 @@ public class BrowserFetcher {
 
 	/**
 	 * 删除压缩文件
-	 * @param archivePath
-	 * @throws IOException
+	 * @param archivePath zip路径
+	 * @throws IOException 异常
 	 */
 	private void unlinkAsync(String archivePath) throws IOException {
         Files.deleteIfExists(Paths.get(archivePath));
@@ -299,10 +311,10 @@ public class BrowserFetcher {
 
 	/**
 	 * intall archive file: *.zip,*.tar.bz2,*.dmg
-	 * @param archivePath
-	 * @param folderPath
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param archivePath zip路径
+	 * @param folderPath 存放的路径
+	 * @throws IOException 异常
+	 * @throws InterruptedException 异常
 	 */
     private void install(String archivePath, String folderPath) throws IOException, InterruptedException {
         LOGGER.info("Installing " + archivePath + " to " + folderPath);
@@ -320,11 +332,11 @@ public class BrowserFetcher {
 
 	/**
 	 * mount and copy
-	 * @param archivePath
-	 * @param folderPath
-	 * @return
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param archivePath zip路径
+	 * @param folderPath 存放路径
+	 * @return string
+	 * @throws IOException 异常
+	 * @throws InterruptedException 异常
 	 */
 	private String mountAndCopy(String archivePath, String folderPath) throws IOException, InterruptedException {
 		String mountPath = null;
@@ -393,10 +405,10 @@ public class BrowserFetcher {
 
 	/**
 	 * Install *.app directory from dmg file
-	 * @param archivePath
-	 * @param folderPath
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param archivePath zip路径
+	 * @param folderPath 存放路径
+	 * @throws IOException 异常
+	 * @throws InterruptedException 异常
 	 */
     private void installDMG(String archivePath, String folderPath) throws IOException, InterruptedException {
 		String mountPath = null;
@@ -410,9 +422,9 @@ public class BrowserFetcher {
 
 	/**
 	 * unmount finally
-	 * @param mountPath
-	 * @throws IOException
-	 * @throws InterruptedException
+	 * @param mountPath mount Path
+	 * @throws IOException 异常
+	 * @throws InterruptedException 异常
 	 */
 	private void unmount(String mountPath) throws IOException, InterruptedException {
 		BufferedReader reader = null;
@@ -445,9 +457,9 @@ public class BrowserFetcher {
 
 	/**
 	 * 解压tar文件
-	 * @param archivePath
-	 * @param folderPath
-	 * @throws IOException
+	 * @param archivePath zip路径
+	 * @param folderPath 存放路径
+	 * @throws IOException 异常
 	 */
 	private void extractTar(String archivePath, String folderPath) throws IOException {
         BufferedOutputStream wirter = null;
@@ -484,8 +496,8 @@ public class BrowserFetcher {
 
 	/**
 	 * 解压zip文件
-	 * @param archivePath
-	 * @param folderPath
+	 * @param archivePath zip路径
+	 * @param folderPath 存放路径
 	 * @throws IOException
 	 */
     private void extractZip(String archivePath, String folderPath) throws IOException {
@@ -523,9 +535,9 @@ public class BrowserFetcher {
 	/**
 	 * 下载浏览器到具体的路径
      * ContentTypeapplication/x-zip-compressed
-	 * @param url
-	 * @param archivePath
-	 * @param progressCallback
+	 * @param url url
+	 * @param archivePath zip路径
+	 * @param progressCallback 回调函数
 	 */
     private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) throws IOException {
         BufferedInputStream bufferedInputStream = null;
@@ -583,11 +595,11 @@ public class BrowserFetcher {
 
 	/**
 	 * 创建文件夹
-	 * @param downloadsFolder
-	 * @throws IOException
+	 * @param folder 要创建的文件夹
+	 * @throws IOException 创建文件失败
 	 */
-	private void mkdirAsync(String downloadsFolder) throws IOException {
-        File file = new File(downloadsFolder);
+	private void mkdirAsync(String folder) throws IOException {
+        File file = new File(folder);
         if (!file.exists()) {
             Files.createDirectory(file.toPath());
         }
@@ -596,7 +608,7 @@ public class BrowserFetcher {
 	/**
 	 * 根据浏览器版本获取对应浏览器路径
 	 * @param revision 浏览器版本
-	 * @return
+	 * @return string
 	 */
 	public String getFolderPath(String revision) {
         return Paths.get(this.downloadsFolder, this.platform + "-" + revision).toString();
@@ -604,8 +616,8 @@ public class BrowserFetcher {
 
 	/**
 	 * 获取浏览器版本相关信息
-	 * @param revision
-	 * @return
+	 * @param revision 版本
+	 * @return RevisionInfo
 	 */
 	public RevisionInfo revisionInfo(String revision) {
         String folderPath = this.getFolderPath(revision);
@@ -640,8 +652,8 @@ public class BrowserFetcher {
 
 	/**
 	 * 检测给定的路径是否存在
-	 * @param filePath
-	 * @return
+	 * @param filePath 文件路径
+	 * @return boolean
 	 */
 	public boolean existsAsync(String filePath) {
         return Files.exists(Paths.get(filePath));
@@ -649,9 +661,9 @@ public class BrowserFetcher {
 
 	/**
 	 * 根据平台信息和版本信息确定要下载的浏览器压缩包
-	 * @param product
-	 * @param platform
-	 * @param revision
+	 * @param product 产品
+	 * @param platform 平台
+	 * @param revision 版本
 	 * @return
 	 */
     public String archiveName(String product, String platform, String revision) {

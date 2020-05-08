@@ -39,7 +39,7 @@ public class BrowserContext extends EventEmitter {
 	public BrowserContext() {
 		super();
 	}
-	private  static Map<String,String> webPermissionToProtocol = new HashMap<>(32);
+	private static final Map<String,String> webPermissionToProtocol = new HashMap<>(32);
 
 	static {
 		webPermissionToProtocol.put("geolocation","geolocation");
@@ -145,8 +145,6 @@ public class BrowserContext extends EventEmitter {
 	public Browser browser() {
 		return browser;
 	}
-
-
 
 	public Page newPage(){
 		return browser.createPageInContext(this.id);

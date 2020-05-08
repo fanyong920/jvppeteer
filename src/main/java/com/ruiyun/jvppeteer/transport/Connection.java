@@ -146,7 +146,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
     /**
      * recevie message from browser by websocket
      *
-     * @param message
+     * @param message 从浏览器接受到的消息
      */
     public void onMessage(String message) {
         if (delay >= 0) {
