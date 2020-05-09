@@ -28,5 +28,18 @@ public class StringTest {
         patterns.add("{urlPattern: \"*\"}");
         params.put("patterns",patterns);
         System.out.println(Constant.OBJECTMAPPER.writeValueAsString(params));
+        String s = "adasd\nasdadad\nds\n".replaceAll("\n", "");
+        System.out.println(s);
+        System.out.println("adasd\nasdadad\nds\n");
+        Map<String,String> map = new HashMap<>();
+        map.put("\u0000","sadad");
+        String s1 = map.get("\u0000");
+        System.out.println(s1);
+        boolean isXPath = true;
+        boolean waitForHidden = true;
+        String selectorOrXPath = "65466";
+
+        String title = (isXPath ? "XPath" : "selector") +" "+ "\""+selectorOrXPath+"\""+ (waitForHidden ? " to be hidden":"");
+        System.out.println(title);
     }
 }

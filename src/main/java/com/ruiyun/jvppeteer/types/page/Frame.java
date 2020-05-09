@@ -5,7 +5,7 @@ import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
-import com.ruiyun.jvppeteer.options.WaitForOptions;
+import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
@@ -119,7 +119,7 @@ public class Frame {
         return this.mainWorld.addScriptTag(options);
     }
 
-    public ElementHandle addStyleTag(StyleTagOptions options) {
+    public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         return this.mainWorld.addStyleTag(options);
     }
 
@@ -152,7 +152,7 @@ public class Frame {
      * @param type
      * @return
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
             String xPathPattern = "//";
 
         if (type.equals(PageEvaluateType.STRING)) {
@@ -170,7 +170,7 @@ public class Frame {
          throw new RuntimeException("Unsupported target type: " + selectorOrFunctionOrTimeout);
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForOptions options) throws JsonProcessingException {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         ElementHandle handle =  this.secondaryWorld.waitForSelector(selector, options);
         if (handle == null)
             return null;
@@ -180,7 +180,7 @@ public class Frame {
         return result;
     }
 
-    public  JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options, Object[] args) throws JsonProcessingException {
+    public  JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args) throws JsonProcessingException {
         return this.mainWorld.waitForFunction(pageFunction, type,options, args);
     }
 
@@ -194,7 +194,7 @@ public class Frame {
         this.navigationURL = framePayload.getUrl();
         this.url = framePayload.getUrl();
     }
-    public JSHandle waitForXPath(String xpath, WaitForOptions options) throws JsonProcessingException {
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws JsonProcessingException {
         ElementHandle handle =  this.secondaryWorld.waitForXPath(xpath, options);
         if (handle == null)
             return null;

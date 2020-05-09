@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.options;
 import com.ruiyun.jvppeteer.types.page.Frame;
 
 /**
- * ��${@link Frame#addScriptTag(ScriptTagOptions)}
+ * 在${@link Frame#addScriptTag(ScriptTagOptions)}用到
  */
 public class StyleTagOptions {
 

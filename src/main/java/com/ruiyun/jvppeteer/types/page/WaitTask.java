@@ -33,7 +33,7 @@ public class WaitTask {
 
     private Object runningTask;
 
-    public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody ,PageEvaluateType type, String title, String polling, int timeout, Object... args) throws JsonProcessingException {
+    public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {
         if (Helper.isNumber(polling)) {
             ValidateUtil.assertBoolean(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
         } else {
@@ -42,17 +42,17 @@ public class WaitTask {
         this.domWorld = domWorld;
         this.polling = polling;
         this.timeout = timeout;
-        if(PageEvaluateType.STRING.equals(type)){
-            this.predicateBody =   "return (" + predicateBody + ");";
-        }else {
-            if(StringUtil.isNotEmpty(predicateQueryHandlerBody)){
+        if (PageEvaluateType.STRING.equals(type)) {
+            this.predicateBody = "return (" + predicateBody + ");";
+        } else {
+            if (StringUtil.isNotEmpty(predicateQueryHandlerBody)) {
                 this.predicateBody = "\n" +
                         "          return (function wrapper(args) {\n" +
-                        "            const predicateQueryHandler = "+predicateQueryHandlerBody+";\n" +
-                        "            return ("+predicateBody+")(...args);\n" +
+                        "            const predicateQueryHandler = " + predicateQueryHandlerBody + ";\n" +
+                        "            return (" + predicateBody + ")(...args);\n" +
                         "          })(args);";
-            }else {
-                this.predicateBody =   "return ("+predicateBody+")(...args);";
+            } else {
+                this.predicateBody = "return (" + predicateBody + ")(...args);";
             }
         }
 
@@ -66,43 +66,43 @@ public class WaitTask {
         this.rerun();
     }
 
-    public void rerun() throws JsonProcessingException {
+    public void rerun() {
         int runcount = runCount.incrementAndGet();
         RuntimeException error = null;
         JSHandle success = null;
         try {
             ExecutionContext context = this.domWorld.executionContext();
             success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
-        } catch (RuntimeException e) {
-            error = e;
 
-        }
-        if (this.terminated || runcount != this.runCount.get()) {
-            if (success != null)
+            if (this.terminated || runcount != this.runCount.get()) {
+                if (success != null)
+                    success.dispose();
+                return;
+            }
+
+            // Ignore timeouts in pageScript - we track timeouts ourselves.
+            // If the frame's execution context has already changed, `frame.evaluate` will
+            // throw an error - ignore this predicate run altogether.
+            if (error == null && this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success) != null) {
                 success.dispose();
-            return;
-        }
+                return;
+            }
 
-        // Ignore timeouts in pageScript - we track timeouts ourselves.
-        // If the frame's execution context has already changed, `frame.evaluate` will
-        // throw an error - ignore this predicate run altogether.
-        if (error == null && this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success) != null) {
-            success.dispose();
-            return;
-        }
-
-        // When the page is navigated, the promise is rejected.
-        // Try again right away.
-        if (error != null && error.getMessage().contains("Execution context was destroyed")) {
-            this.rerun();
-            return;
-        }
-        if (error != null && error.getMessage().contains("Cannot find context with specified id"))
-            return;
-        if (error != null) {
-            throw error;
-        } else {
-            this.promise = success;
+            // When the page is navigated, the promise is rejected.
+            // Try again right away.
+            if (error != null && error.getMessage().contains("Execution context was destroyed")) {
+                this.rerun();
+                return;
+            }
+            if (error != null && error.getMessage().contains("Cannot find context with specified id"))
+                return;
+            if (error != null) {
+                throw error;
+            } else {
+                this.promise = success;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         this.cleanup();
     }

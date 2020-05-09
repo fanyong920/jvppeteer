@@ -19,7 +19,7 @@ import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.options.WaitForOptions;
+import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
@@ -581,7 +581,7 @@ public class Page extends EventEmitter {
      * @param {!{url?: string, path?: string, content?: string}} options
      * @return {!Promise<!ElementHandle>}
      */
-    public ElementHandle addStyleTag(StyleTagOptions options) {
+    public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         return this.mainFrame().addStyleTag(options);
     }
 
@@ -1249,7 +1249,7 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setEmulatedMedia", params, true);
     }
 
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
@@ -1269,7 +1269,7 @@ public class Page extends EventEmitter {
 
         return null;
     }
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type,WaitForOptions options ,Object... args) throws JsonProcessingException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options , Object... args) throws JsonProcessingException {
         return this.mainFrame().waitForFunction(pageFunction, type,options, args);
     }
 
@@ -1328,11 +1328,11 @@ public class Page extends EventEmitter {
                 this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
         }
     }
-    public ElementHandle waitForSelector(String selector,WaitForOptions options) throws JsonProcessingException {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForSelector(selector, options);
     }
 
-    public JSHandle waitForXPath(String xpath, WaitForOptions options) throws JsonProcessingException {
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForXPath(xpath, options);
     }
     public List<Worker> workers() {

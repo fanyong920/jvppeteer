@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
-public class WaitForOptions {
+public class WaitForSelectorOptions {
 
     private boolean visible;
 

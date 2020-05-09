@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.types.page;
 
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ public class Dialog {
 
     private String message;
 
-    private String defaultValue;
+    private String defaultValue = "";
 
     private boolean handled;
 
@@ -27,6 +28,7 @@ public class Dialog {
         this.type = type.getType();
         this.message = message;
         this.handled = false;
+        if(StringUtil.isNotEmpty(defaultValue))
         this.defaultValue = defaultValue;
     }
 

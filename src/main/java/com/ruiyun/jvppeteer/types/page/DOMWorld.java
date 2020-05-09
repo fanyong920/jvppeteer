@@ -4,7 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.*;
+import com.ruiyun.jvppeteer.options.ClickOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.ScriptTagOptions;
+import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -80,16 +84,6 @@ public class DOMWorld {
                 "    }", PageEvaluateType.FUNCTION, null);
     }
 
-    //    private Object evaluate(String pageFunction, PageEvaluateType type Object ...args) {
-//    const context =  this.executionContext();
-//        return context.evaluate(pageFunction, ...args);
-//    }
-//
-//    public ExecutionContext executionContext() {
-//        if (this.detached)
-//            throw new RuntimeException("Execution Context is not available in detached frame "+this.frame.getUrl()+" (are you trying to evaluate?)");
-//        return this.contextPromise;
-//    }
     public void setContext(ExecutionContext context) throws JsonProcessingException {
         if (context != null) {
             this.contextResolveCallback(context);
@@ -195,9 +189,9 @@ public class DOMWorld {
             }
         }
 
-        this.evaluate("() => {\n" +
+        this.evaluate("(html) => {\n" +
                 "      document.open();\n" +
-                "      document.write(" + html + ");\n" +
+                "      document.write(html);\n" +
                 "      document.close();\n" +
                 "    }", PageEvaluateType.FUNCTION, html);
         LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
@@ -228,7 +222,7 @@ public class DOMWorld {
             try {
                 ExecutionContext context = this.executionContext();
                 ElementHandle handle = (ElementHandle)context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
-                handle.asElement();
+               return handle.asElement();
             } catch (Exception e) {
                 throw new RuntimeException("Loading script from ${url} failed");
             }
@@ -236,7 +230,7 @@ public class DOMWorld {
         if (StringUtil.isNotEmpty(options.getPath())) {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
 
-            contents.add("//# sourceURL=" + options.getPath().replaceAll("\\n", ""));
+            contents.add("//# sourceURL=" + options.getPath().replaceAll("\n", ""));
             ExecutionContext context = this.executionContext();
             ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, contents, options.getType());
             return evaluateHandle.asElement();
@@ -250,16 +244,92 @@ public class DOMWorld {
     }
 
     private String addScriptContent() {
-        return null;
+        return "function addScriptContent(content, type = 'text/javascript') {\n" +
+                "    const script = document.createElement('script');\n" +
+                "    script.type = type;\n" +
+                "    script.text = content;\n" +
+                "    let error = null;\n" +
+                "    script.onerror = e => error = e;\n" +
+                "    document.head.appendChild(script);\n" +
+                "    if (error)\n" +
+                "      throw error;\n" +
+                "    return script;\n" +
+                "  }";
     }
 
-    //TODO 貌似这个功能做不了，因为java不能实现document.head.appendChild(script);这样的语法
     private String addScriptUrl() {
-        return null;
+        return "async function addScriptUrl(url, type) {\n" +
+                "      const script = document.createElement('script');\n" +
+                "      script.src = url;\n" +
+                "      if (type)\n" +
+                "        script.type = type;\n" +
+                "      const promise = new Promise((res, rej) => {\n" +
+                "        script.onload = res;\n" +
+                "        script.onerror = rej;\n" +
+                "      });\n" +
+                "      document.head.appendChild(script);\n" +
+                "      await promise;\n" +
+                "      return script;\n" +
+                "    }";
     }
 
-    public ElementHandle addStyleTag(StyleTagOptions options) {
-        return null;
+    public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
+        if (options != null && StringUtil.isNotEmpty(options.getUrl())) {
+            try {
+                ExecutionContext context =  this.executionContext();
+                ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, options.getUrl());
+                return handle.asElement();
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(MessageFormat.format("Loading style from {} failed",options.getUrl()));
+            }
+        }
+
+        if (options != null && StringUtil.isNotEmpty(options.getPath())) {
+            List<String> contents =  Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
+            String s = options.getPath().replaceAll("\n", "");
+            contents .add("/*# sourceURL=\\"+s) ;
+            ExecutionContext context =  this.executionContext();
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, contents);
+            return handle.asElement();
+        }
+
+        if (options != null && StringUtil.isNotEmpty(options.getContent())) {
+            ExecutionContext context =  this.executionContext();
+            ElementHandle handle = (ElementHandle)  context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION,options.getContent());
+            return handle.asElement();
+        }
+
+        throw new IllegalArgumentException("Provide an object with a `url`, `path` or `content` property");
+    }
+
+    private String addStyleContent() {
+        return  "async function addStyleContent(content) {\n" +
+                "      const style = document.createElement('style');\n" +
+                "      style.type = 'text/css';\n" +
+                "      style.appendChild(document.createTextNode(content));\n" +
+                "      const promise = new Promise((res, rej) => {\n" +
+                "        style.onload = res;\n" +
+                "        style.onerror = rej;\n" +
+                "      });\n" +
+                "      document.head.appendChild(style);\n" +
+                "      await promise;\n" +
+                "      return style;\n" +
+                "    }";
+    }
+
+    private String addStyleUrl() {
+        return "async function addStyleUrl(url) {\n" +
+                "      const link = document.createElement('link');\n" +
+                "      link.rel = 'stylesheet';\n" +
+                "      link.href = url;\n" +
+                "      const promise = new Promise((res, rej) => {\n" +
+                "        link.onload = res;\n" +
+                "        link.onerror = rej;\n" +
+                "      });\n" +
+                "      document.head.appendChild(link);\n" +
+                "      await promise;\n" +
+                "      return link;\n" +
+                "    }";
     }
 
     public void click(String selector, ClickOptions options) throws JsonProcessingException, InterruptedException {
@@ -305,15 +375,61 @@ public class DOMWorld {
         handle.dispose();
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
         return this.waitForSelectorOrXPath(selector, false, options);
     }
     //TODO
-    private ElementHandle waitForSelectorOrXPath(String selector, boolean b, WaitForOptions options) {
-        return null;
+    private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath , WaitForSelectorOptions options) {
+        boolean waitForVisible = false;
+        boolean waitForHidden = false;
+        int  timeout = this.timeoutSettings.timeout();
+        if(options != null){
+            waitForVisible = options.getVisible();
+            waitForHidden = options.getHidden();
+            if(options.getTimeout() > 0){
+                timeout = options.getTimeout();
+            }
+        }
+        String polling = waitForVisible || waitForHidden ? "raf" : "mutation";
+        String title = (isXPath ? "XPath" : "selector") +" "+ "\""+selectorOrXPath+"\""+ (waitForHidden ? " to be hidden":"");
+
+        QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selectorOrXPath, "(element, selector) =>\n" +
+                "      document.querySelector(selector)");
+        String queryHandler = queryHandlerAndSelector.getQueryHandler();
+        String updatedSelector = queryHandlerAndSelector.getUpdatedSelector();
+        String predicate = "function predicate(selectorOrXPath, isXPath, waitForVisible, waitForHidden) {\n" +
+                "      const node = isXPath\n" +
+                "        ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue\n" +
+                "        : document.querySelector(selectorOrXPath);\n" +
+                "      if (!node)\n" +
+                "        return waitForHidden;\n" +
+                "      if (!waitForVisible && !waitForHidden)\n" +
+                "        return node;\n" +
+                "      const element = /** @type {Element} */ (node.nodeType === Node.TEXT_NODE ? node.parentElement : node);\n" +
+                "\n" +
+                "      const style = window.getComputedStyle(element);\n" +
+                "      const isVisible = style && style.visibility !== 'hidden' && hasVisibleBoundingBox();\n" +
+                "      const success = (waitForVisible === isVisible || waitForHidden === !isVisible);\n" +
+                "      return success ? node : null;\n" +
+                "\n" +
+                "      /**\n" +
+                "       * @return {boolean}\n" +
+                "       */\n" +
+                "      function hasVisibleBoundingBox() {\n" +
+                "        const rect = element.getBoundingClientRect();\n" +
+                "        return !!(rect.top || rect.bottom || rect.width || rect.height);\n" +
+                "      }\n" +
+                "    }";
+        WaitTask waitTask = new WaitTask(this, predicate, queryHandler, PageEvaluateType.FUNCTION, title, polling, timeout, updatedSelector, isXPath, waitForVisible, waitForHidden);
+        JSHandle handle = waitTask.getPromise();
+        if (handle.asElement() == null) {
+             handle.dispose();
+            return null;
+        }
+        return handle.asElement();
     }
 
-    public ElementHandle waitForXPath(String xpath, WaitForOptions options) {
+    public ElementHandle waitForXPath(String xpath, WaitForSelectorOptions options) {
         return this.waitForSelectorOrXPath(xpath, true, options);
     }
 
@@ -321,7 +437,7 @@ public class DOMWorld {
         return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION,null);
     }
 
-    public JSHandle waitForFunction(String pageFunction,PageEvaluateType type, WaitForOptions options, Object... args) throws JsonProcessingException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
         if(StringUtil.isNotEmpty(options.getPolling())){

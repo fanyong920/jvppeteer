@@ -38,10 +38,10 @@ public class Keyboard {
         keyDefinitions.put("Backspace", new KeyDefinition(8, "Backspace", "Backspace"));
         keyDefinitions.put("Tab", new KeyDefinition(9, "Tab", "Tab"));
         keyDefinitions.put("Numpad5", new KeyDefinition(12, 101, "Clear", "Numpad5", "5", 3));
-        keyDefinitions.put("NumpadEnter", new KeyDefinition(13, "NumpadEnter", "Enter", "\\r", 3));
-        keyDefinitions.put("Enter", new KeyDefinition(13, "Enter", "Enter", "\\r"));
-        keyDefinitions.put("\\r", new KeyDefinition(13, "Enter", "Enter", "\\r"));
-        keyDefinitions.put("\\n", new KeyDefinition(13, "Enter", "Enter", "\\r"));
+        keyDefinitions.put("NumpadEnter", new KeyDefinition(13, "NumpadEnter", "Enter", "\r", 3));
+        keyDefinitions.put("Enter", new KeyDefinition(13, "Enter", "Enter", "\r"));
+        keyDefinitions.put("\r", new KeyDefinition(13, "Enter", "Enter", "\r"));
+        keyDefinitions.put("\n", new KeyDefinition(13, "Enter", "Enter", "\r"));
         keyDefinitions.put("ShiftLeft", new KeyDefinition(16, "Shift", "ShiftLeft", 1));
         keyDefinitions.put("ShiftRight", new KeyDefinition(16, "Shift", "ShiftRight", 2));
         keyDefinitions.put("ControlLeft", new KeyDefinition(17, "Control", "ControlLeft", 1));
@@ -76,7 +76,7 @@ public class Keyboard {
         keyDefinitions.put("Insert", new KeyDefinition(45, "Insert", "Insert"));
         keyDefinitions.put("Numpad0", new KeyDefinition(45, 96, "Insert", "Numpad0", "0", 3));
         keyDefinitions.put("Delete", new KeyDefinition(46, "Delete", "Delete"));
-        keyDefinitions.put("NumpadDecimal", new KeyDefinition(46, 110, "NumpadDecimal", "\\u0000", ".", 3));
+        keyDefinitions.put("NumpadDecimal", new KeyDefinition(46, 110, "NumpadDecimal", "\u0000", ".", 3));
         keyDefinitions.put("Digit0", new KeyDefinition(48, "Digit0", ")", "0"));
         keyDefinitions.put("Digit1", new KeyDefinition(49, "Digit1", "!", "1"));
         keyDefinitions.put("Digit2", new KeyDefinition(50, "Digit2", "@", "2"));
@@ -177,7 +177,7 @@ public class Keyboard {
         keyDefinitions.put(" ", new KeyDefinition(32, " ", "Space"));
         keyDefinitions.put("Print", new KeyDefinition(42, "Print"));
         keyDefinitions.put("Execute", new KeyDefinition(43, "Execute", "Open"));
-        keyDefinitions.put("\\u0000", new KeyDefinition(46, "\\u0000", "NumpadDecimal", 3));
+        keyDefinitions.put("\u0000", new KeyDefinition(46, "\u0000", "NumpadDecimal", 3));
         keyDefinitions.put("d", new KeyDefinition(68, "d", "KeyD"));
         keyDefinitions.put("e", new KeyDefinition(69, "e", "KeyE"));
         keyDefinitions.put("f", new KeyDefinition(70, "f", "KeyF"));
