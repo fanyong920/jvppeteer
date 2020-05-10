@@ -33,11 +33,11 @@ public class JSHandle {
         return this.context;
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         return this.executionContext().evaluate(pageFunction, type, this, args);
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
         return this.executionContext().evaluateInternal(false, pageFunction, type, args);
     }
 
@@ -54,7 +54,7 @@ public class JSHandle {
         return result;
     }
 
-    public Map<String, JSHandle> getProperties() throws JsonProcessingException {
+    public Map<String, JSHandle> getProperties() {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
         params.put("ownProperties", true);
@@ -66,12 +66,16 @@ public class JSHandle {
 
             if (!property.get("enumerable").asBoolean())
                 continue;
-            result.put(property.get("name").asText(), createJSHandle(this.context, Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
+            try {
+                result.put(property.get("name").asText(), createJSHandle(this.context, Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         return result;
     }
 
-    public Object jsonValue() throws JsonProcessingException {
+    public Object jsonValue()  {
         if (StringUtil.isNotEmpty(this.remoteObject.getObjectId())) {
             Map<String, Object> params = new HashMap<>();
             params.put("functionDeclaration", "function() { return this; }");
@@ -79,7 +83,11 @@ public class JSHandle {
             params.put("returnByValue", true);
             params.put("awaitPromise", true);
             JsonNode response = this.client.send("Runtime.callFunctionOn", params, true);
-            return Helper.valueFromRemoteObject(Constant.OBJECTMAPPER.treeToValue(response.get("result"), RemoteObject.class));
+            try {
+                return Helper.valueFromRemoteObject(Constant.OBJECTMAPPER.treeToValue(response.get("result"), RemoteObject.class));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         return Helper.valueFromRemoteObject(this.remoteObject);
     }

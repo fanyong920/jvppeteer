@@ -112,9 +112,6 @@ public class Response {
     public String url() {
         return this.url;
     }
-
-
-
     public int status() {
         return this.status;
     }

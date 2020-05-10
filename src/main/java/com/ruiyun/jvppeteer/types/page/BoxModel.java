@@ -1,23 +1,23 @@
-package com.ruiyun.jvppeteer.protocol.input;
+package com.ruiyun.jvppeteer.types.page;
+
+import com.ruiyun.jvppeteer.protocol.input.ClickablePoint;
 
 import java.util.List;
 
 public class BoxModel {
 
+    private List<ClickablePoint> content;
 
-    private List<Integer> content;
+    private List<ClickablePoint> padding;
 
-    private List<Integer> padding;
+    private List<ClickablePoint> border;
 
-    private List<Integer> border;
-
-    private List<Integer> margin;
-
+    private List<ClickablePoint> margin;
     private int width;
 
     private int height;
 
-    public BoxModel(List<Integer> content, List<Integer> padding, List<Integer> border, List<Integer> margin, int width, int height) {
+    public BoxModel(List<ClickablePoint> content, List<ClickablePoint> padding, List<ClickablePoint> border, List<ClickablePoint> margin, int width, int height) {
         this.content = content;
         this.padding = padding;
         this.border = border;
@@ -29,35 +29,35 @@ public class BoxModel {
     public BoxModel() {
     }
 
-    public List<Integer> getContent() {
+    public List<ClickablePoint> getContent() {
         return content;
     }
 
-    public void setContent(List<Integer> content) {
+    public void setContent(List<ClickablePoint> content) {
         this.content = content;
     }
 
-    public List<Integer> getPadding() {
+    public List<ClickablePoint> getPadding() {
         return padding;
     }
 
-    public void setPadding(List<Integer> padding) {
+    public void setPadding(List<ClickablePoint> padding) {
         this.padding = padding;
     }
 
-    public List<Integer> getBorder() {
+    public List<ClickablePoint> getBorder() {
         return border;
     }
 
-    public void setBorder(List<Integer> border) {
+    public void setBorder(List<ClickablePoint> border) {
         this.border = border;
     }
 
-    public List<Integer> getMargin() {
+    public List<ClickablePoint> getMargin() {
         return margin;
     }
 
-    public void setMargin(List<Integer> margin) {
+    public void setMargin(List<ClickablePoint> margin) {
         this.margin = margin;
     }
 

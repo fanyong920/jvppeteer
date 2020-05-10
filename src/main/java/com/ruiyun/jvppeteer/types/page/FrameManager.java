@@ -9,10 +9,6 @@ import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
-import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedPayload;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDestroyedPayload;
 import com.ruiyun.jvppeteer.protocol.page.FrameAttachedPayload;
 import com.ruiyun.jvppeteer.protocol.page.FrameDetachedPayload;
 import com.ruiyun.jvppeteer.protocol.page.FrameNavigatedPayload;
@@ -20,6 +16,10 @@ import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.protocol.page.FrameStoppedLoadingPayload;
 import com.ruiyun.jvppeteer.protocol.page.LifecycleEventPayload;
 import com.ruiyun.jvppeteer.protocol.page.NavigatedWithinDocumentPayload;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedPayload;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDestroyedPayload;
+import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -62,6 +62,10 @@ public class FrameManager extends EventEmitter {
      * "success" "timeout" "termination"
      */
     private String navigateResult;
+
+    private boolean ensureNewDocumentNavigation;
+
+    private String DocumentNavigationPromiseType = null;
 
     public FrameManager(CDPSession client, Page page, boolean ignoreHTTPSErrors, TimeoutSettings timeoutSettings) {
         super();
@@ -151,11 +155,7 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(ExecutionContextDestroyedPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                try {
-                    frameManager.onExecutionContextDestroyed(event.getExecutionContextId());
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                frameManager.onExecutionContextDestroyed(event.getExecutionContextId());
             }
         };
         executionContextDestroyedListener.setTarget(this);
@@ -167,11 +167,7 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(Object event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                try {
-                    frameManager.onExecutionContextsCleared();
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                frameManager.onExecutionContextsCleared();
             }
         };
         executionContextsClearedListener.setTarget(this);
@@ -200,7 +196,7 @@ public class FrameManager extends EventEmitter {
         this.emit(Events.FRAME_MANAGER_LIFECYCLE_EVENT.getName(), frame);
     }
 
-    private void onExecutionContextsCleared() throws JsonProcessingException {
+    private void onExecutionContextsCleared() {
         for (ExecutionContext context : this.contextIdToContext.values()) {
             if (context.getWorld() != null)
                 context.getWorld().setContext(null);
@@ -208,7 +204,7 @@ public class FrameManager extends EventEmitter {
         this.contextIdToContext.clear();
     }
 
-    private void onExecutionContextDestroyed(int executionContextId) throws JsonProcessingException {
+    private void onExecutionContextDestroyed(int executionContextId)  {
         ExecutionContext context = this.contextIdToContext.get(executionContextId);
         if (context == null)
             return;
@@ -309,14 +305,13 @@ public class FrameManager extends EventEmitter {
         params.put("source", "//# sourceURL=" + ExecutionContext.EVALUATION_SCRIPT_URL);
         params.put("worldName", name);
         this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
-        this.frames().parallelStream().map(frame -> {
+        this.frames().forEach(frame -> {
             Map<String, Object> param = new HashMap<>();
             param.put("frameId", frame.getId());
             param.put("grantUniveralAccess", true);
             param.put("worldName", name);
-            JsonNode send = this.client.send("Page.createIsolatedWorld", param, true);
-            return send;
-        }).count();
+            this.client.send("Page.createIsolatedWorld", param, true);
+        });
     }
 
     private void handleFrameTree(FrameTree frameTree) {
@@ -463,16 +458,35 @@ public class FrameManager extends EventEmitter {
 
         this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-        navigate(this.client, url, referer, frame.getId(), timeout);
-        if ("success".equals(navigateResult)) {
+        try {
+            this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
+            if(this.ensureNewDocumentNavigation)
+                DocumentNavigationPromiseType = "new";
+            else
+                DocumentNavigationPromiseType = "same";
+            if ("success".equals(navigateResult)) {
+                this.latch = new CountDownLatch(1);
+                try {
+                    boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
+                    if(!await){
+                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+                    }
+                    if ("success".equals(navigateResult)) {
+                        return watcher.navigationResponse();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            if ("timeout".equals(navigateResult)) {
+                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+            } else if ("termination".equals(navigateResult)) {
+                throw new NavigateException("Navigating frame was detached");
+            } else {
+                throw new NavigateException("UnNokwn result " + navigateResult);
+            }
+        }finally {
             watcher.dispose();
-            return watcher.navigationResponse();
-        } else if ("timeout".equals(navigateResult)) {
-            throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-        } else if ("termination".equals(navigateResult)) {
-            throw new NavigateException("Navigating frame was detached");
-        } else {
-            throw new NavigateException("UnNokwn result " + navigateResult);
         }
     }
 
@@ -483,12 +497,13 @@ public class FrameManager extends EventEmitter {
         params.put("frameId", frameId);
         try {
             JsonNode response = client.send("Page.navigate", params, true, latch, timeout);
+
+            if (response != null && response.get("errorText") != null) {
+                throw new NavigateException(response.get("errorText").toString()+" at "+url);
+            }
             if (response != null && response.get("loaderId") != null) {
                 this.setNavigateResult("success");
                 return true;
-            }
-            if (response.get("errorText") != null) {
-                throw new NavigateException(response.get("errorText").toString());
             }
         } catch (TimeoutException e) {
             this.setNavigateResult("timeout");
@@ -550,13 +565,18 @@ public class FrameManager extends EventEmitter {
 
         this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
+        DocumentNavigationPromiseType = "all";
         try {
-            latch.await(timeout, TimeUnit.MILLISECONDS);
+            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
+            if(!await){
+                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+            }
         } catch (InterruptedException e) {
             throw new NavigateException("UnNokwn result " + e.getMessage());
+        }finally {
+            watcher.dispose();
         }
         if ("success".equals(navigateResult)) {
-            watcher.dispose();
             return watcher.navigationResponse();
         } else if ("timeout".equals(navigateResult)) {
             throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
@@ -579,4 +599,14 @@ public class FrameManager extends EventEmitter {
     public NetworkManager networkManager() {
         return this.networkManager;
     }
+
+    public String getDocumentNavigationPromiseType() {
+        return DocumentNavigationPromiseType;
+    }
+
+    public void setDocumentNavigationPromiseType(String documentNavigationPromiseType) {
+        DocumentNavigationPromiseType = documentNavigationPromiseType;
+    }
+
+
 }

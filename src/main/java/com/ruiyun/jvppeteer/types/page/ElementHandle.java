@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Clip;
 import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
+import com.ruiyun.jvppeteer.protocol.DOM.GetBoxModelReturnValue;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.input.BoxModel;
 import com.ruiyun.jvppeteer.protocol.input.ClickablePoint;
@@ -41,7 +42,7 @@ public class ElementHandle extends JSHandle {
     private Page page;
 
     @Override
-    public Map<String, JSHandle> getProperties() throws JsonProcessingException {
+    public Map<String, JSHandle> getProperties() {
         return super.getProperties();
     }
 
@@ -70,7 +71,7 @@ public class ElementHandle extends JSHandle {
         return this.frameManager.frame(frameId.asText());
     }
 
-    public void scrollIntoViewIfNeeded() throws JsonProcessingException {
+    public void scrollIntoViewIfNeeded() {
         String pageFunction = "async (element, pageJavascriptEnabled) => {\n" +
                 "            if (!element.isConnected)\n" +
                 "                return 'Node is detached from document';\n" +
@@ -100,8 +101,13 @@ public class ElementHandle extends JSHandle {
                 "            return false;\n" +
                 "        }";
         Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
-        if (error != null)
-            throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
+        try {
+            if (error != null)
+                throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private ClickablePoint clickablePoint() {
@@ -121,7 +127,13 @@ public class ElementHandle extends JSHandle {
         Iterator<JsonNode> elements = quadsNode.elements();
         List<List<ClickablePoint>> quads = new ArrayList<>();
         while (elements.hasNext()) {
-            JsonNode quad = elements.next();
+            JsonNode quadNode = elements.next();
+            List<Integer> quad = new ArrayList<>();
+
+            Iterator<JsonNode> iterator = quadNode.elements();
+            while (iterator.hasNext()){
+                quad.add(iterator.next().asInt());
+            }
             List<ClickablePoint> clickOptions = this.fromProtocolQuad(quad);
             intersectQuadWithViewport(clickOptions, clientWidth.asInt(), clientHeight.asInt());
         }
@@ -140,10 +152,16 @@ public class ElementHandle extends JSHandle {
         return new ClickablePoint(x / 4, y / 4);
     }
 
-    private JsonNode getBoxModel() {
+    private GetBoxModelReturnValue getBoxModel() {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
-        return this.client.send("DOM.getBoxModel", params, true);
+        JsonNode result = this.client.send("DOM.getBoxModel", params, true);
+        try {
+            Constant.OBJECTMAPPER.treeToValue(result, GetBoxModelReturnValue.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return null;
     }
 
     public String screenshot(ScreenshotOptions options) throws IOException {
@@ -178,18 +196,18 @@ public class ElementHandle extends JSHandle {
         return imageData;
     }
 
-    public BoxModel boxModel() {
-        JsonNode result = this.getBoxModel();
+    public com.ruiyun.jvppeteer.types.page.BoxModel boxModel() {
+        GetBoxModelReturnValue result = this.getBoxModel();
         if (result == null)
             return null;
-        JsonNode model = result.get("model");
-        List<ClickablePoint> content = this.fromProtocolQuad(model.get("content"));
-        List<ClickablePoint> padding = this.fromProtocolQuad(model.get("padding"));
-        List<ClickablePoint> border = this.fromProtocolQuad(model.get("border"));
-        List<ClickablePoint> margin = this.fromProtocolQuad(model.get("margin"));
-        int width = model.get("width").asInt();
-        int height = model.get("height").asInt();
-        return new BoxModel(content, padding, border, margin, width, height);
+        BoxModel model = result.getModel();
+        List<ClickablePoint> content = this.fromProtocolQuad(model.getContent());
+        List<ClickablePoint> padding = this.fromProtocolQuad(model.getPadding());
+        List<ClickablePoint> border = this.fromProtocolQuad(model.getBorder());
+        List<ClickablePoint> margin = this.fromProtocolQuad(model.getMargin());
+        int width = model.getWidth();
+        int height = model.getHeight();
+        return new com.ruiyun.jvppeteer.types.page.BoxModel(content, padding, border, margin, width, height);
     }
 
     public int computeQuadArea(List<ClickablePoint> quad) {
@@ -204,19 +222,12 @@ public class ElementHandle extends JSHandle {
         return Math.abs(area);
     }
 
-    private List<ClickablePoint> fromProtocolQuad(JsonNode quad) {
+    private List<ClickablePoint> fromProtocolQuad(List<Integer> quad) {
         List<ClickablePoint> result = new ArrayList<>();
-        if (quad.isArray()) {
-            result.add(new ClickablePoint(quad.get(0).asInt(), quad.get(1).asInt()));
-            result.add(new ClickablePoint(quad.get(2).asInt(), quad.get(3).asInt()));
-            result.add(new ClickablePoint(quad.get(4).asInt(), quad.get(5).asInt()));
-            result.add(new ClickablePoint(quad.get(6).asInt(), quad.get(7).asInt()));
-        } else {
-            result.add(new ClickablePoint(quad.get("0").asInt(), quad.get("1").asInt()));
-            result.add(new ClickablePoint(quad.get("2").asInt(), quad.get("3").asInt()));
-            result.add(new ClickablePoint(quad.get(4).asInt(), quad.get("5").asInt()));
-            result.add(new ClickablePoint(quad.get("6").asInt(), quad.get("7").asInt()));
-        }
+        result.add(new ClickablePoint(quad.get(0), quad.get(1)));
+        result.add(new ClickablePoint(quad.get(2), quad.get(3)));
+        result.add(new ClickablePoint(quad.get(4), quad.get(5)));
+        result.add(new ClickablePoint(quad.get(6), quad.get(7)));
         return result;
     }
 
@@ -227,7 +238,7 @@ public class ElementHandle extends JSHandle {
         }
     }
 
-    public ElementHandle $(String selector) throws JsonProcessingException {
+    public ElementHandle $(String selector) {
         String defaultHandler = "(element, selector) => element.querySelector(selector)";
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
         JSHandle handle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
@@ -238,7 +249,7 @@ public class ElementHandle extends JSHandle {
         return null;
     }
 
-    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
+    public List<ElementHandle> $x(String expression) {
         String pageFunction = "(element, expression) => {\n" +
                 "            const document = element.ownerDocument || element;\n" +
                 "            const iterator = document.evaluate(expression, element, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);\n" +
@@ -260,7 +271,7 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public ElementHandle $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) throws JsonProcessingException {
+    public ElementHandle $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
         ElementHandle elementHandle = this.$(selector);
         if (elementHandle == null)
             throw new RuntimeException("failed to find element matching selector " + selector);
@@ -269,7 +280,7 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) throws JsonProcessingException {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
         String defaultHandler = "(element, selector) => Array.from(element.querySelectorAll(selector))";
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
 
@@ -279,7 +290,7 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
+    public List<ElementHandle> $$(String selector) {
         String defaultHandler = "(element, selector) => element.querySelectorAll(selector)";
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
         JSHandle arrayHandle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
@@ -293,8 +304,9 @@ public class ElementHandle extends JSHandle {
         }
         return result;
     }
-    public boolean isIntersectingViewport() throws JsonProcessingException {
-        String pageFunction ="async (element) => {\n" +
+
+    public boolean isIntersectingViewport() {
+        String pageFunction = "async (element) => {\n" +
                 "            const visibleRatio = await new Promise(resolve => {\n" +
                 "                const observer = new IntersectionObserver(entries => {\n" +
                 "                    resolve(entries[0].intersectionRatio);\n" +
@@ -304,25 +316,26 @@ public class ElementHandle extends JSHandle {
                 "            });\n" +
                 "            return visibleRatio > 0;\n" +
                 "        }";
-        return  (Boolean) this.evaluate(pageFunction,PageEvaluateType.FUNCTION);
+        return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
     }
-    public void click(ClickOptions options) throws JsonProcessingException, InterruptedException {
+
+    public void click(ClickOptions options) throws InterruptedException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
         this.page.getMouse().click(point.getX(), point.getY(), options);
     }
 
-    public void focus() throws JsonProcessingException {
+    public void focus() {
         this.evaluate("element => element.focus()", PageEvaluateType.FUNCTION);
     }
 
-    public void hover() throws JsonProcessingException {
+    public void hover() {
         this.scrollIntoViewIfNeeded();
         ClickablePoint clickablePoint = this.clickablePoint();
         this.page.getMouse().move(clickablePoint.getX(), clickablePoint.getX(), 0);
     }
 
-    public List<String> select(List<String> values) throws JsonProcessingException {
+    public List<String> select(List<String> values) {
         /* TODO(jacktfranklin@): once ExecutionContext is TypeScript, and
          * its evaluate function is properly typed with generics we can
          * return here and remove the typecasting
@@ -345,36 +358,36 @@ public class ElementHandle extends JSHandle {
         return (List<String>) this.evaluate(pageFunction, PageEvaluateType.FUNCTION, values);
     }
 
-    public void tap() throws JsonProcessingException {
+    public void tap() {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
         this.page.getTouchscreen().tap(point.getX(), point.getY());
     }
 
-    public void type(String text, int delay) throws JsonProcessingException, InterruptedException {
+    public void type(String text, int delay) throws InterruptedException {
         this.focus();
         this.page.getKeyboard().type(text, delay);
     }
 
-    public void press(String key, int delay, String text) throws JsonProcessingException, InterruptedException {
+    public void press(String key, int delay, String text) throws InterruptedException {
         this.focus();
         this.page.getKeyboard().press(key, delay, text);
     }
 
     public Clip boundingBox() {
-        JsonNode result = this.getBoxModel();
+        GetBoxModelReturnValue result = this.getBoxModel();
         if (result == null)
             return null;
-        JsonNode quad = result.get("model").get("border");
-        int x = Math.min(Math.min(Math.min(quad.get(0).asInt(), quad.get(2).asInt()), quad.get(4).asInt()), quad.get(6).asInt());
-        int y = Math.min(Math.min(Math.min(quad.get(1).asInt(), quad.get(3).asInt()), quad.get(5).asInt()), quad.get(7).asInt());
-        int width = Math.max(Math.max(Math.max(quad.get(0).asInt(), quad.get(2).asInt()), quad.get(4).asInt()), quad.get(6).asInt()) - x;
-        int height = Math.max(Math.max(Math.max(quad.get(1).asInt(), quad.get(3).asInt()), quad.get(5).asInt()), quad.get(7).asInt()) - y;
+        List<Integer> quad = result.getModel().getBorder();
+        int x = Math.min(Math.min(Math.min(quad.get(0), quad.get(2)), quad.get(4)), quad.get(6));
+        int y = Math.min(Math.min(Math.min(quad.get(1), quad.get(3)), quad.get(5)), quad.get(7));
+        int width = Math.max(Math.max(Math.max(quad.get(0), quad.get(2)), quad.get(4)), quad.get(6)) - x;
+        int height = Math.max(Math.max(Math.max(quad.get(1), quad.get(3)), quad.get(5)), quad.get(7)) - y;
 
         return new Clip(x, y, width, height);
     }
 
-    public void uploadFile(List<String> filePaths) throws JsonProcessingException {
+    public void uploadFile(List<String> filePaths) {
         boolean isMultiple = (Boolean) this.evaluate("(element) => element.multiple", PageEvaluateType.FUNCTION);
         ValidateUtil.assertBoolean(filePaths.size() <= 1 || isMultiple, "Multiple file uploads only work with <input type=file multiple>");
         List<String> files = filePaths.stream().map(filePath -> {
@@ -411,7 +424,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public RemoteObject getRemoteObject() {
-        return null;
+        return this.remoteObject;
     }
 
 

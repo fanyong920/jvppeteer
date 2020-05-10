@@ -56,11 +56,7 @@ public class DOMWorld {
         this.timeoutSettings = timeoutSettings;
         this.documentPromise = null;
         this.contextPromise = null;
-        try {
-            this.setContext(null);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        this.setContext(null);
         this.waitTasks = new HashSet<>();
         this.detached = false;
         this.hasContext = false;
@@ -73,7 +69,7 @@ public class DOMWorld {
         return this.frame;
     }
 
-    public String content() throws JsonProcessingException {
+    public String content() {
         return (String) this.evaluate("() => {\n" +
                 "      let retVal = '';\n" +
                 "      if (document.doctype)\n" +
@@ -84,7 +80,7 @@ public class DOMWorld {
                 "    }", PageEvaluateType.FUNCTION, null);
     }
 
-    public void setContext(ExecutionContext context) throws JsonProcessingException {
+    public void setContext(ExecutionContext context) {
         if (context != null) {
             this.contextResolveCallback(context);
             hasContext = true;
@@ -97,7 +93,7 @@ public class DOMWorld {
         }
     }
 
-    private void contextResolveCallback(ExecutionContext context) throws JsonProcessingException {
+    private void contextResolveCallback(ExecutionContext context) {
             this.contextPromise = context;
 //        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
 //        this.documentPromise = document.asElement();
@@ -127,23 +123,23 @@ public class DOMWorld {
         return this.contextPromise;
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
         ExecutionContext context = this.executionContext();
         return (JSHandle)context.evaluateHandle(pageFunction, type, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         ExecutionContext context = this.executionContext();
         return context.evaluate(pageFunction, type, args);
     }
 
-    public ElementHandle $(String selector) throws JsonProcessingException {
+    public ElementHandle $(String selector) {
         ElementHandle document = this.document();
         ElementHandle value = document.$(selector);
         return value;
     }
 
-    private ElementHandle document() throws JsonProcessingException {
+    private ElementHandle document() {
         if (this.documentPromise != null)
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
@@ -172,7 +168,7 @@ public class DOMWorld {
         return document.$$(selector);
     }
 
-    public void setContent(String html, PageNavigateOptions options) throws JsonProcessingException {
+    public void setContent(String html, PageNavigateOptions options) {
         List<String> waitUntil;
         int timeout;
         if (options == null) {
@@ -275,13 +271,9 @@ public class DOMWorld {
 
     public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         if (options != null && StringUtil.isNotEmpty(options.getUrl())) {
-            try {
-                ExecutionContext context =  this.executionContext();
-                ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, options.getUrl());
-                return handle.asElement();
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(MessageFormat.format("Loading style from {} failed",options.getUrl()));
-            }
+            ExecutionContext context =  this.executionContext();
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, options.getUrl());
+            return handle.asElement();
         }
 
         if (options != null && StringUtil.isNotEmpty(options.getPath())) {
@@ -332,28 +324,28 @@ public class DOMWorld {
                 "    }";
     }
 
-    public void click(String selector, ClickOptions options) throws JsonProcessingException, InterruptedException {
+    public void click(String selector, ClickOptions options) throws InterruptedException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.click(options);
         handle.dispose();
     }
 
-    public void focus(String selector) throws JsonProcessingException {
+    public void focus(String selector) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.focus();
         handle.dispose();
     }
 
-    public void hover(String selector) throws JsonProcessingException {
+    public void hover(String selector) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.hover();
         handle.dispose();
     }
 
-    public List<String> select(String selector, List<String> values) throws JsonProcessingException {
+    public List<String> select(String selector, List<String> values) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         List<String> result = handle.select(values);
@@ -361,14 +353,14 @@ public class DOMWorld {
         return result;
     }
 
-    public void tap(String selector) throws JsonProcessingException {
+    public void tap(String selector) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.tap();
         handle.dispose();
     }
 
-    public void type(String selector, String text, int delay) throws JsonProcessingException, InterruptedException {
+    public void type(String selector, String text, int delay) throws InterruptedException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.type(text, delay);
@@ -433,7 +425,7 @@ public class DOMWorld {
         return this.waitForSelectorOrXPath(xpath, true, options);
     }
 
-    public String title() throws JsonProcessingException {
+    public String title() {
         return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION,null);
     }
 

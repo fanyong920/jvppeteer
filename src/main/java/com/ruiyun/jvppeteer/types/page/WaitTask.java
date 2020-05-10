@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.text.MessageFormat;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WaitTask {
@@ -31,7 +33,9 @@ public class WaitTask {
 
     private Object[] args;
 
-    private Object runningTask;
+    private boolean promiseDone;
+
+    private CountDownLatch waitPromiseLatch;
 
     public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {
         if (Helper.isNumber(polling)) {
@@ -61,25 +65,32 @@ public class WaitTask {
         domWorld.getWaitTasks().add(this);
         // Since page navigation requires us to re-install the pageScript, we should track
         // timeout on our end.
-        //TODO
-//        if()
+
+        long start = System.currentTimeMillis();
         this.rerun();
+        long end = System.currentTimeMillis();
+        if (timeout > 0 && (end - start) > timeout) {
+            this.terminate(new RuntimeException(MessageFormat.format("waiting for {0} failed: timeout {1}ms exceeded", title, timeout)));
+        }
     }
 
     public void rerun() {
-        int runcount = runCount.incrementAndGet();
-        RuntimeException error = null;
-        JSHandle success = null;
         try {
-            ExecutionContext context = this.domWorld.executionContext();
-            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
+            int runcount = runCount.incrementAndGet();
+            RuntimeException error = null;
+            JSHandle success = null;
+            try {
+                ExecutionContext context = this.domWorld.executionContext();
+                success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
 
-            if (this.terminated || runcount != this.runCount.get()) {
-                if (success != null)
-                    success.dispose();
-                return;
+                if (this.terminated || runcount != this.runCount.get()) {
+                    if (success != null)
+                        success.dispose();
+                    return;
+                }
+            } catch (RuntimeException e) {
+                error = e;
             }
-
             // Ignore timeouts in pageScript - we track timeouts ourselves.
             // If the frame's execution context has already changed, `frame.evaluate` will
             // throw an error - ignore this predicate run altogether.
@@ -91,7 +102,6 @@ public class WaitTask {
             // When the page is navigated, the promise is rejected.
             // Try again right away.
             if (error != null && error.getMessage().contains("Execution context was destroyed")) {
-                this.rerun();
                 return;
             }
             if (error != null && error.getMessage().contains("Cannot find context with specified id"))
@@ -101,65 +111,113 @@ public class WaitTask {
             } else {
                 this.promise = success;
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            this.cleanup();
+        }finally {
+            promiseDone = true;
+            if(waitPromiseLatch != null && waitPromiseLatch.getCount() > 0){
+                waitPromiseLatch.countDown();
+            }
         }
-        this.cleanup();
     }
 
     private String waitForPredicatePageFunction() {
-//        const predicate = new Function('...args', predicateBody);
-//        let timedOut = false;
-//        if (timeout)
-//            setTimeout(() => timedOut = true, timeout);
-//        if (polling === 'raf')
-//            return await pollRaf();
-//        if (polling === 'mutation')
-//            return await pollMutation();
-//        if (typeof polling === 'number')
-//        return await pollInterval(polling);
-//
-//        /**
-//         * @return {!Promise<*>}
-//         */
-//        function pollMutation() {
-//    const success = predicate.apply(null, args);
-//            if (success)
-//                return Promise.resolve(success);
-//
-//            let fulfill;
-//    const result = new Promise(x => fulfill = x);
-//    const observer = new MutationObserver(mutations => {
-//            if (timedOut) {
-//                observer.disconnect();
-//                fulfill();
-//            }
-//      const success = predicate.apply(null, args);
-//            if (success) {
-//                observer.disconnect();
-//                fulfill(success);
-//            }
-//    });
-//            observer.observe(document, {
-//                    childList: true,
-//                    subtree: true,
-//                    attributes: true
-//    });
-//            return result;
-        return null;
+
+        return "async function waitForPredicatePageFunction(predicateBody, polling, timeout, ...args) {\n" +
+                "  const predicate = new Function('...args', predicateBody);\n" +
+                "  let timedOut = false;\n" +
+                "  if (timeout)\n" +
+                "    setTimeout(() => timedOut = true, timeout);\n" +
+                "  if (polling === 'raf')\n" +
+                "    return await pollRaf();\n" +
+                "  if (polling === 'mutation')\n" +
+                "    return await pollMutation();\n" +
+                "  if (typeof polling === 'number')\n" +
+                "    return await pollInterval(polling);\n" +
+                "\n" +
+                "  /**\n" +
+                "   * @return {!Promise<*>}\n" +
+                "   */\n" +
+                "  function pollMutation() {\n" +
+                "    const success = predicate.apply(null, args);\n" +
+                "    if (success)\n" +
+                "      return Promise.resolve(success);\n" +
+                "\n" +
+                "    let fulfill;\n" +
+                "    const result = new Promise(x => fulfill = x);\n" +
+                "    const observer = new MutationObserver(mutations => {\n" +
+                "      if (timedOut) {\n" +
+                "        observer.disconnect();\n" +
+                "        fulfill();\n" +
+                "      }\n" +
+                "      const success = predicate.apply(null, args);\n" +
+                "      if (success) {\n" +
+                "        observer.disconnect();\n" +
+                "        fulfill(success);\n" +
+                "      }\n" +
+                "    });\n" +
+                "    observer.observe(document, {\n" +
+                "      childList: true,\n" +
+                "      subtree: true,\n" +
+                "      attributes: true\n" +
+                "    });\n" +
+                "    return result;\n" +
+                "  }\n" +
+                "\n" +
+                "  /**\n" +
+                "   * @return {!Promise<*>}\n" +
+                "   */\n" +
+                "  function pollRaf() {\n" +
+                "    let fulfill;\n" +
+                "    const result = new Promise(x => fulfill = x);\n" +
+                "    onRaf();\n" +
+                "    return result;\n" +
+                "\n" +
+                "    function onRaf() {\n" +
+                "      if (timedOut) {\n" +
+                "        fulfill();\n" +
+                "        return;\n" +
+                "      }\n" +
+                "      const success = predicate.apply(null, args);\n" +
+                "      if (success)\n" +
+                "        fulfill(success);\n" +
+                "      else\n" +
+                "        requestAnimationFrame(onRaf);\n" +
+                "    }\n" +
+                "  }\n" +
+                "\n" +
+                "  /**\n" +
+                "   * @param {number} pollInterval\n" +
+                "   * @return {!Promise<*>}\n" +
+                "   */\n" +
+                "  function pollInterval(pollInterval) {\n" +
+                "    let fulfill;\n" +
+                "    const result = new Promise(x => fulfill = x);\n" +
+                "    onTimeout();\n" +
+                "    return result;\n" +
+                "\n" +
+                "    function onTimeout() {\n" +
+                "      if (timedOut) {\n" +
+                "        fulfill();\n" +
+                "        return;\n" +
+                "      }\n" +
+                "      const success = predicate.apply(null, args);\n" +
+                "      if (success)\n" +
+                "        fulfill(success);\n" +
+                "      else\n" +
+                "        setTimeout(onTimeout, pollInterval);\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
     }
 
     public void terminate(RuntimeException e) {
         this.terminated = true;
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.error("", e);
-        }
+        LOGGER.error("", e);
         this.cleanup();
     }
 
     private void cleanup() {
         this.domWorld.getWaitTasks().remove(this);
-        this.runningTask = null;
     }
 
     public JSHandle getPromise() {

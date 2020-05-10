@@ -87,7 +87,7 @@ public class CDPSession extends EventEmitter {
                 }
                 boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
-                    throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                    throw new TimeoutException("Wait result for "+(timeout <= 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
                 }
                 return callbacks.remove(id).getResult();
             }else{
