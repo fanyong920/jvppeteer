@@ -1,5 +1,20 @@
 package com.ruiyun.jvppeteer.protocol.performance;
 
+/**
+ * Timestamp <number> 时间点(when the metrics sample was taken)
+ * Documents <number> 页面的documents数量。
+ * Frames <number> 页面的iframe数量。
+ * JSEventListeners <number> 页面的js事件数量。
+ * Nodes <number> 页面的dom节点数量。
+ * LayoutCount <number> 整页面或部分页面的布局数量。
+ * RecalcStyleCount <number> 页面样式重新计算数量。
+ * LayoutDuration <number> 页面布局总时间。
+ * RecalcStyleDuration <number> 页面样式重新计算总时间。
+ * ScriptDuration <number> 页面js代码执行总时间。
+ * TaskDuration <number> 页面任务执行总时间。
+ * JSHeapUsedSize <number> 页面占用堆内存大小。
+ * JSHeapTotalSize <number> 总的页面堆内存大小。
+ */
 public class Metrics {
 
     private int Timestamp;

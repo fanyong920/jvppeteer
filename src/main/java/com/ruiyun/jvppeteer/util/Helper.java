@@ -1,10 +1,12 @@
 package com.ruiyun.jvppeteer.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
@@ -25,6 +27,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -315,4 +318,29 @@ public class Helper {
         }
 
     }
+
+    public static final String evaluationString(String fun, PageEvaluateType type, Object... args) {
+        if(PageEvaluateType.STRING.equals(type)){
+            ValidateUtil.assertBoolean(args.length == 0,"Cannot evaluate a string with arguments");
+            return fun;
+        }
+
+      List<String>  argsList = new ArrayList<>();
+        for (Object arg : args) {
+            if(arg == null){
+                argsList.add("undefined");
+            }else {
+                try {
+                    argsList.add(Constant.OBJECTMAPPER.writeValueAsString(arg));
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return MessageFormat.format("({0})({1})",fun,String.join(",",argsList));
+
+    }
+
+
 }

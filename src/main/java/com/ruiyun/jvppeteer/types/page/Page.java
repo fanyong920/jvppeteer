@@ -21,30 +21,33 @@ import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.console.Location;
+import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
+import com.ruiyun.jvppeteer.protocol.log.EntryAddedPayload;
+import com.ruiyun.jvppeteer.protocol.network.Cookie;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
+import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.protocol.page.GetNavigationHistoryReturnValue;
+import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningPayload;
+import com.ruiyun.jvppeteer.protocol.page.NavigationEntry;
 import com.ruiyun.jvppeteer.protocol.performance.Metric;
+import com.ruiyun.jvppeteer.protocol.performance.Metrics;
+import com.ruiyun.jvppeteer.protocol.performance.MetricsPayload;
+import com.ruiyun.jvppeteer.protocol.performance.PageMetrics;
+import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledPayload;
+import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
+import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
+import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
 import com.ruiyun.jvppeteer.types.browser.Browser;
 import com.ruiyun.jvppeteer.types.browser.BrowserContext;
-import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledPayload;
-import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
-import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
-import com.ruiyun.jvppeteer.protocol.log.EntryAddedPayload;
-import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
-import com.ruiyun.jvppeteer.protocol.page.GetNavigationHistoryReturnValue;
-import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningPayload;
-import com.ruiyun.jvppeteer.protocol.DOM.Margin;
-import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
-import com.ruiyun.jvppeteer.protocol.performance.Metrics;
-import com.ruiyun.jvppeteer.protocol.performance.MetricsPayload;
-import com.ruiyun.jvppeteer.protocol.page.NavigationEntry;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -60,6 +63,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -113,7 +117,7 @@ public class Page extends EventEmitter {
     @JsonIgnore
     private Tracing tracing;
 
-    private Map<String, Function> pageBindings;
+    private Map<String, Function<List<JsonNode>,Object>> pageBindings;
 
     @JsonIgnore
     private Coverage coverage;
@@ -129,6 +133,8 @@ public class Page extends EventEmitter {
     public static final String ABOUT_BLANK = "about:blank";
 
     public static final Map<String, Double> unitToPixels = new HashMap() {
+        private static final long serialVersionUID = -4861220887908575532L;
+
         {
             put("px", 1.00);
             put("in", 96);
@@ -372,7 +378,15 @@ public class Page extends EventEmitter {
             @Override
             public void onBrowserEvent(MetricsPayload event) {
                 Page page = (Page) this.getTarget();
-                page.emitMetrics(event);
+                try {
+                    page.emitMetrics(event);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (IntrospectionException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }
         };
         metricsLis.setMothod("Inspector.targetCrashed");
@@ -464,14 +478,14 @@ public class Page extends EventEmitter {
         this.on(listener.getMothod(), listener);
     }
 
-    public void onMetrics(EventHandler<MetricsPayload> handler) {
+    public void onMetrics(EventHandler<PageMetrics> handler) {
         DefaultBrowserListener listener = new DefaultBrowserListener();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_METRICS.getName());
         this.on(listener.getMothod(), listener);
     }
 
-    public void onPageerror(EventHandler<Error> handler) {
+    public void onPageerror(EventHandler<RuntimeException> handler) {
         DefaultBrowserListener listener = new DefaultBrowserListener();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_ERROR.getName());
@@ -549,6 +563,7 @@ public class Page extends EventEmitter {
 
     /**
      * 返回主 Frame
+     *
      * @return {@link Frame}
      */
     public Frame mainFrame() {
@@ -586,12 +601,18 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * @param {?{username: string, password: string}} credentials
+     *为HTTP authentication 提供认证凭据 。
+     *
+     * 传 null 禁用认证。
+     * @param credentials 验证信息
      */
     public void authenticate(Credentials credentials) {
         this.frameManager.networkManager().authenticate(credentials);
     }
 
+    /**
+     * 相当于多个tab时，切换到某个tab。
+     */
     public void bringToFront() {
         this.client.send("Page.bringToFront", null, true);
     }
@@ -688,6 +709,27 @@ public class Page extends EventEmitter {
         this.frameManager.mainFrame().setContent(html, options);
     }
 
+    public List<Cookie> cookies(List<String> urls) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("urls", ValidateUtil.isNotEmpty(urls) ? urls : this.url());
+        JsonNode result = this.client.send("Network.getCookies", params, true);
+        JsonNode cookiesNode = result.get("cookies");
+        Iterator<JsonNode> elements = cookiesNode.elements();
+        List<Cookie> cookies = new ArrayList<>();
+        while (elements.hasNext()) {
+            JsonNode cookieNode = elements.next();
+            Cookie cookie = null;
+            try {
+                cookie = OBJECTMAPPER.treeToValue(cookieNode, Cookie.class);
+                cookie.setPriority(null);
+                cookies.add(cookie);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+        return cookies;
+    }
+
     public void setCookie(List<CookieParam> cookies) {
         String pageURL = this.url();
         boolean startsWithHTTP = pageURL.startsWith("http");
@@ -713,6 +755,11 @@ public class Page extends EventEmitter {
         this.timeoutSettings.setDefaultNavigationTimeout(timeout);
     }
 
+    /**
+     * 当前页面发起的每个请求都会带上这些请求头
+     * 注意 此方法不保证请求头的顺序
+     * @param headers 每个 HTTP 请求都会带上这些请求头。值必须是字符串
+     */
     public void setExtraHTTPHeaders(Map<String, String> headers) {
         this.frameManager.networkManager().setExtraHTTPHeaders(headers);
     }
@@ -837,11 +884,15 @@ public class Page extends EventEmitter {
         if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
             event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, arg));
         if (!"worker".equals(event.getEntry().getSource()))
-            this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(),event.getEntry().getLineNumber())));
+            this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
     }
 
-    private void emitMetrics(MetricsPayload event) {
-
+    private void emitMetrics(MetricsPayload event) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
+        PageMetrics pageMetrics = new PageMetrics();
+        Metrics metrics = this.buildMetricsObject(event.getMetrics());
+        pageMetrics.setMetrics(metrics);
+        pageMetrics.setTitle(event.getTitle());
+        this.emit(Events.PAGE_METRICS.getName(), pageMetrics);
     }
 
     private void onTargetCrashed() {
@@ -867,11 +918,67 @@ public class Page extends EventEmitter {
     }
 
     private void onConsoleAPI(ConsoleAPICalledPayload event) {
-
+        if (event.getExecutionContextId() == 0) {
+            // DevTools protocol stores the last 1000 console messages. These
+            // messages are always reported even for removed execution contexts. In
+            // this case, they are marked with executionContextId = 0 and are
+            // reported upon enabling Runtime agent.
+            //
+            // Ignore these messages since:
+            // - there's no execution context we can use to operate with message
+            //   arguments
+            // - these messages are reported before Puppeteer clients can subscribe
+            //   to the 'console'
+            //   page event.
+            //
+            // @see https://github.com/puppeteer/puppeteer/issues/3865
+            return;
+        }
+        ExecutionContext context = this.frameManager.executionContextById(event.getExecutionContextId());
+        List<JSHandle> values = new ArrayList<>();
+        for (int i = 0; i < event.getArgs().size(); i++) {
+            RemoteObject arg = event.getArgs().get(i);
+            JSHandle.createJSHandle(context, arg);
+        };
+        this.addConsoleMessage(event.getType(), values, event.getStackTrace());
     }
 
+    // TODO 校验到这里
     private void onBindingCalled(BindingCalledPayload event) {
+        String payload = event.getPayload();
+        JsonNode payloadNode = OBJECTMAPPER.valueToTree(payload);
+        List<JsonNode> jsonNodes = new ArrayList<>();
+        Iterator<JsonNode> args = payloadNode.get("args").elements();
+        while (args.hasNext()){
+            jsonNodes.add(args.next());
+        }
+        String expression = null;
+        try {
+            Object result = this.pageBindings.get(event.getName()).apply(jsonNodes);
+            expression = Helper.evaluationString(deliverResult(), PageEvaluateType.FUNCTION,payloadNode.get("name").toString(), payloadNode.get("seq").toString(), result);
+        } catch (Exception e) {
+            expression = Helper.evaluationString(deliverError(),PageEvaluateType.FUNCTION,payloadNode.get("name").toString(), payloadNode.get("seq").toString(), e,e.getMessage());
+        }
+        Map<String,Object> params = new HashMap<>();
+        params.put("expression",expression);
+        params.put("contextId",event.getExecutionContextId());
+        this.client.send("Runtime.evaluate", params,false);
+    }
 
+    private String deliverError() {
+        return "function deliverError(name, seq, message, stack) {\n" +
+                "      const error = new Error(message);\n" +
+                "      error.stack = stack;\n" +
+                "      window[name]['callbacks'].get(seq).reject(error);\n" +
+                "      window[name]['callbacks'].delete(seq);\n" +
+                "    }";
+    }
+
+    private String deliverResult() {
+        return "function deliverResult(name, seq, result) {\n" +
+                "      window[name]['callbacks'].get(seq).resolve(result);\n" +
+                "      window[name]['callbacks'].delete(seq);\n" +
+                "    }";
     }
 
     public void setViewport(Viewport viewport) {
@@ -899,7 +1006,9 @@ public class Page extends EventEmitter {
 
     private void handleException(ExceptionDetails exceptionDetails) {
         String message = Helper.getExceptionMessage(exceptionDetails);
-
+        RuntimeException err = new RuntimeException(message);
+        err.setStackTrace(null); // Don't report clientside error with a node stack attached
+        this.emit(Events.PAGE_PageError.getName(), err);
     }
 
     /**
@@ -967,6 +1076,10 @@ public class Page extends EventEmitter {
         this.setUserAgent(options.getUserAgent());
     }
 
+    /**
+     * 给页面设置userAgent
+     * @param userAgent userAgent的值
+     */
     private void setUserAgent(String userAgent) {
         this.frameManager.networkManager().setUserAgent(userAgent);
     }
@@ -998,7 +1111,6 @@ public class Page extends EventEmitter {
 
     public void evaluateOnNewDocument(String pageFunction, PageEvaluateType type, Object... args) {
         Map<String, Object> params = new HashMap<>();
-
         if (PageEvaluateType.STRING.equals(type)) {
             ValidateUtil.assertBoolean(args.length == 0, "Cannot evaluate a string with arguments");
             params.put("source", pageFunction);
@@ -1021,12 +1133,42 @@ public class Page extends EventEmitter {
             params.put("source", source);
             this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
         }
-
     }
 
-    //TODO
-    public void exposeFunction(String name, String puppeteerFunction) {
+    public void exposeFunction(String name, Function<List<JsonNode>,Object> puppeteerFunction) {
+        if(this.pageBindings.containsKey(name)){
+            throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!",name,name));
+        }
+        this.pageBindings.put(name,puppeteerFunction);
+        String expression = Helper.evaluationString(addPageBinding(), PageEvaluateType.FUNCTION,name);
+        Map<String, Object> params = new HashMap<>();
+        params.put("name",name);
+         this.client.send("Runtime.addBinding", params,true);
+         params.clear();
+         params.put("source",expression);
+         this.client.send("Page.addScriptToEvaluateOnNewDocument", params,true);
+         this.frames().forEach(frame -> {frame.evaluate(expression,PageEvaluateType.FUNCTION);});
+    }
 
+    private String addPageBinding() {
+        return "function addPageBinding(bindingName) {\n" +
+                "      const win = /** @type * */ (window);\n" +
+                "      const binding = /** @type function(string):* */ (win[bindingName]);\n" +
+                "\n" +
+                "      win[bindingName] = (...args) => {\n" +
+                "        const me = window[bindingName];\n" +
+                "        let callbacks = me['callbacks'];\n" +
+                "        if (!callbacks) {\n" +
+                "          callbacks = new Map();\n" +
+                "          me['callbacks'] = callbacks;\n" +
+                "        }\n" +
+                "        const seq = (me['lastSeq'] || 0) + 1;\n" +
+                "        me['lastSeq'] = seq;\n" +
+                "        const promise = new Promise((resolve, reject) => callbacks.set(seq, {resolve, reject}));\n" +
+                "        binding(JSON.stringify({name: bindingName, seq, args}));\n" +
+                "        return promise;\n" +
+                "      };\n" +
+                "    }";
     }
 
     public void focus(String selector) throws JsonProcessingException {
@@ -1069,6 +1211,13 @@ public class Page extends EventEmitter {
         return this.keyboard;
     }
 
+    /**
+     *返回页面的一些基本信息
+     * @return Metrics 基本信息载体
+     * @throws IllegalAccessException 异常
+     * @throws IntrospectionException 异常
+     * @throws InvocationTargetException 异常
+     */
     public Metrics metrics() throws IllegalAccessException, IntrospectionException, InvocationTargetException {
         JsonNode responseNode = this.client.send("Performance.getMetrics", null, true);
         List<Metric> metrics = new ArrayList<>();
@@ -1382,7 +1531,7 @@ public class Page extends EventEmitter {
         return this.tracing;
     }
 
-     public Accessibility accessibility() {
+    public Accessibility accessibility() {
         return this.accessibility;
     }
 

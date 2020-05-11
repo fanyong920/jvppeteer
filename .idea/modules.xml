@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/jvppeteer.iml" filepath="$PROJECT_DIR$/jvppeteer.iml" />
+      <module fileurl="file://D:/taobaoMobile/taobaoMobile/portal/portal.iml" filepath="D:/taobaoMobile/taobaoMobile/portal/portal.iml" />
+      <module fileurl="file://D:/taobaoMobile/taobaoMobile/src/taobaoMobile.iml" filepath="D:/taobaoMobile/taobaoMobile/src/taobaoMobile.iml" />
+    </modules>
+  </component>
+</project>

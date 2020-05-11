@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.Constant;
 import org.junit.Test;
 
+import java.text.MessageFormat;
 import java.util.*;
 
 public class StringTest {
@@ -41,5 +42,12 @@ public class StringTest {
 
         String title = (isXPath ? "XPath" : "selector") +" "+ "\""+selectorOrXPath+"\""+ (waitForHidden ? " to be hidden":"");
         System.out.println(title);
+
+        String fun = "saedad";
+        List<String> argsList = new ArrayList<>();
+        argsList.add("1231");
+        argsList.add("56");
+        argsList.add("8765");
+        System.out.println( MessageFormat.format("({0})({1})",fun,String.join(",",argsList)));
     }
 }

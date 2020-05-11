@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/Constant.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/Environment.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/Puppeteer.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/exception/NavigateException.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/options/BrowserOptions.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/options/Device.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/options/Viewport.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/util/FileUtil.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/ruiyun/jvppeteer/util/Helper.java" charset="UTF-8" />
+    <file url="PROJECT" charset="UTF-8" />
+  </component>
+</project>

@@ -1,17 +1,14 @@
 package com.ruiyun.jvppeteer.transport.httpclient;
 
-import java.io.IOException;
-import java.nio.charset.CodingErrorAction;
-import java.text.MessageFormat;
-
-import javax.net.ssl.SSLContext;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.ruiyun.jvppeteer.Constant;
-import org.apache.http.*;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.Consts;
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.MessageConstraints;
@@ -42,6 +39,10 @@ import org.apache.http.message.LineParser;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.CharArrayBuffer;
 import org.apache.http.util.EntityUtils;
+
+import javax.net.ssl.SSLContext;
+import java.io.IOException;
+import java.nio.charset.CodingErrorAction;
 
 public class HttpClienUtil implements Constant {
 
