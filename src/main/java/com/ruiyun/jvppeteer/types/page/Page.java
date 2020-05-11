@@ -8,6 +8,7 @@ import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.impl.EventEmitter;
 import com.ruiyun.jvppeteer.exception.NavigateException;
+import com.ruiyun.jvppeteer.exception.PageCrashException;
 import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Clip;
@@ -21,6 +22,7 @@ import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
+import com.ruiyun.jvppeteer.protocol.console.Location;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
@@ -60,6 +62,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -391,11 +394,7 @@ public class Page extends EventEmitter {
             @Override
             public void onBrowserEvent(FileChooserOpenedPayload event) {
                 Page page = (Page) this.getTarget();
-                try {
-                    page.onFileChooser(event);
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                page.onFileChooser(event);
             }
         };
         fileChooserOpenedLis.setMothod("Page.fileChooserOpened");
@@ -532,7 +531,7 @@ public class Page extends EventEmitter {
      * @param {string} selector
      * @return {!Promise<?ElementHandle>}
      */
-    public ElementHandle $(String selector) throws JsonProcessingException {
+    public ElementHandle $(String selector) {
         return this.mainFrame().$(selector);
     }
 
@@ -540,16 +539,17 @@ public class Page extends EventEmitter {
      * @param {string} selector
      * @return {!Promise<!Array<!ElementHandle>>}
      */
-    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
+    public List<ElementHandle> $$(String selector) {
         return this.mainFrame().$$(selector);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         return this.mainFrame().$$eval(selector, pageFunction, type, args);
     }
 
     /**
-     * @return {!Frame}
+     * 返回主 Frame
+     * @return {@link Frame}
      */
     public Frame mainFrame() {
         return this.frameManager.mainFrame();
@@ -561,7 +561,7 @@ public class Page extends EventEmitter {
      * @param {!Array<*>}       args
      * @return {!Promise<(!Object|undefined)>}
      */
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         return this.mainFrame().$eval(selector, pageFunction, type, args);
     }
 
@@ -569,7 +569,7 @@ public class Page extends EventEmitter {
      * @param {string} expression
      * @return {!Promise<!Array<!ElementHandle>>}
      */
-    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
+    public List<ElementHandle> $x(String expression) {
         return this.mainFrame().$x(expression);
     }
 
@@ -610,7 +610,7 @@ public class Page extends EventEmitter {
         return this.target.browserContext();
     }
 
-    public void click(String selector, ClickOptions options) throws JsonProcessingException, InterruptedException {
+    public void click(String selector, ClickOptions options) throws InterruptedException {
         this.mainFrame().click(selector, options);
     }
 
@@ -666,11 +666,11 @@ public class Page extends EventEmitter {
         return (String) this.screenshotTaskQueue.postTask((type, op) -> screenshotTask((String) type, (ScreenshotOptions) op), screenshotType, options);
     }
 
-    public List<String> select(String selector, List<String> values) throws JsonProcessingException {
+    public List<String> select(String selector, List<String> values) {
         return this.mainFrame().select(selector, values);
     }
 
-    public String title() throws JsonProcessingException {
+    public String title() {
         return this.mainFrame().title();
     }
 
@@ -684,7 +684,7 @@ public class Page extends EventEmitter {
         this.frameManager.networkManager().setCacheEnabled(enabled);
     }
 
-    public void setContent(String html, PageNavigateOptions options) throws JsonProcessingException {
+    public void setContent(String html, PageNavigateOptions options) {
         this.frameManager.mainFrame().setContent(html, options);
     }
 
@@ -694,7 +694,7 @@ public class Page extends EventEmitter {
         cookies.replaceAll(cookie -> {
             if (StringUtil.isEmpty(cookie.getUrl()) && startsWithHTTP)
                 cookie.setUrl(pageURL);
-            ValidateUtil.assertBoolean(!"about:blank".equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
+            ValidateUtil.assertBoolean(!ABOUT_BLANK.equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
             ValidateUtil.assertBoolean(!StringUtil.isNotEmpty(cookie.getUrl()) && !cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
             return cookie;
         });
@@ -820,7 +820,7 @@ public class Page extends EventEmitter {
         return result;
     }
 
-    private void onFileChooser(FileChooserOpenedPayload event) throws JsonProcessingException {
+    private void onFileChooser(FileChooserOpenedPayload event) {
         if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
             return;
         Frame frame = this.frameManager.frame(event.getFrameId());
@@ -834,6 +834,10 @@ public class Page extends EventEmitter {
     }
 
     private void onLogEntryAdded(EntryAddedPayload event) {
+        if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
+            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, arg));
+        if (!"worker".equals(event.getEntry().getSource()))
+            this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(),event.getEntry().getLineNumber())));
     }
 
     private void emitMetrics(MetricsPayload event) {
@@ -841,7 +845,7 @@ public class Page extends EventEmitter {
     }
 
     private void onTargetCrashed() {
-
+        this.emit("error", new PageCrashException("Page crashed!"));
     }
 
     public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue screenshotTaskQueue) {
@@ -1217,13 +1221,13 @@ public class Page extends EventEmitter {
         return this.frameManager.mainFrame().waitForNavigation(options);
     }
 
-    public void evaluate(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public void evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         this.frameManager.mainFrame().evaluate(pageFunction, type, args);
     }
 
     public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
         ExecutionContext context = this.mainFrame().executionContext();
-        return (JSHandle)context.evaluateHandle(pageFunction, type, args);
+        return (JSHandle) context.evaluateHandle(pageFunction, type, args);
     }
 
     public void emulateMedia(String type) {
@@ -1253,81 +1257,83 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
-    public FileChooser waitForFileChooser(int timeout){
+    public FileChooser waitForFileChooser(int timeout) {
         if (ValidateUtil.isEmpty(this.fileChooserInterceptors)) {
             Map<String, Object> params = new HashMap<>();
-            params.put("enabled",true);
-            this.client.send("Page.setInterceptFileChooserDialog", params,true);
+            params.put("enabled", true);
+            this.client.send("Page.setInterceptFileChooserDialog", params, true);
         }
-    if(timeout <=0 )
-        timeout = this.timeoutSettings.timeout();
+        if (timeout <= 0)
+            timeout = this.timeoutSettings.timeout();
 
-        //TODO
+        //TODO 暂时不知道callback到底是何物
 //        this.fileChooserInterceptors.add(callback);
 //        return helper.waitWithTimeout(promise, 'waiting for file chooser', timeout).catch(error = > {
 //            this._fileChooserInterceptors.delete(callback);
 
         return null;
     }
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options , Object... args) throws JsonProcessingException {
-        return this.mainFrame().waitForFunction(pageFunction, type,options, args);
+
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
+        return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
 
-    public Request waitForRequest(String url,Predicate<Request> predicate, PageEvaluateType type ,int timeout) throws InterruptedException {
-    if(timeout <= 0){
-        timeout = this.timeoutSettings.timeout();
-    }
-        Predicate<Request> predi= request -> {
-            if(PageEvaluateType.STRING.equals(type)){
+    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type, int timeout) throws InterruptedException {
+        if (timeout <= 0) {
+            timeout = this.timeoutSettings.timeout();
+        }
+        Predicate<Request> predi = request -> {
+            if (PageEvaluateType.STRING.equals(type)) {
                 return url.equals(request.getUrl());
-            }else if(PageEvaluateType.FUNCTION.equals(type)){
+            } else if (PageEvaluateType.FUNCTION.equals(type)) {
                 return predicate.test(request);
             }
             return false;
         };
-        DefaultBrowserListener listener= null;
+        DefaultBrowserListener listener = null;
         try {
             listener = sessionClosePromise();
 
             return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
         } finally {
-            if(listener != null)
-            this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
+            if (listener != null)
+                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
         }
     }
 
     private DefaultBrowserListener sessionClosePromise() {
-        DefaultBrowserListener disConnectLis = new DefaultBrowserListener(){
+        DefaultBrowserListener disConnectLis = new DefaultBrowserListener() {
             @Override
             public void onBrowserEvent(Object event) {
-                throw  new TerminateException("Target closed");
+                throw new TerminateException("Target closed");
             }
         };
         disConnectLis.setMothod(Events.CDPSESSION_DISCONNECTED.getName());
-        this.client.once(disConnectLis.getMothod(),disConnectLis);
-        return  disConnectLis;
+        this.client.once(disConnectLis.getMothod(), disConnectLis);
+        return disConnectLis;
     }
 
-    public Response waitForResponse(String url,Predicate predicate, PageEvaluateType type,int timeout ) throws InterruptedException {
-        if(timeout <= 0)
+    public Response waitForResponse(String url, Predicate predicate, PageEvaluateType type, int timeout) throws InterruptedException {
+        if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
-        Predicate<Response> predi= response -> {
-            if(PageEvaluateType.STRING.equals(type)){
+        Predicate<Response> predi = response -> {
+            if (PageEvaluateType.STRING.equals(type)) {
                 return url.equals(response.getUrl());
-            }else if(PageEvaluateType.FUNCTION.equals(type)){
+            } else if (PageEvaluateType.FUNCTION.equals(type)) {
                 return predicate.test(response);
             }
             return false;
         };
-        DefaultBrowserListener listener= null;
+        DefaultBrowserListener listener = null;
         try {
             listener = sessionClosePromise();
-        return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
+            return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
         } finally {
-            if(listener != null)
-                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(),listener);
+            if (listener != null)
+                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
         }
     }
+
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForSelector(selector, options);
     }
@@ -1335,9 +1341,11 @@ public class Page extends EventEmitter {
     public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForXPath(xpath, options);
     }
-    public List<Worker> workers() {
-        return new ArrayList<>(this.workers.values());
+
+    public java.util.Collection<Worker> workers() {
+        return this.workers.values();
     }
+
     private String url() {
         return this.mainFrame().url();
     }
@@ -1374,7 +1382,11 @@ public class Page extends EventEmitter {
         return this.tracing;
     }
 
-    public void type(String selector, String text, int delay) throws JsonProcessingException, InterruptedException {
+     public Accessibility accessibility() {
+        return this.accessibility;
+    }
+
+    public void type(String selector, String text, int delay) throws InterruptedException {
         this.mainFrame().type(selector, text, delay);
     }
 
@@ -1389,6 +1401,7 @@ public class Page extends EventEmitter {
     public Keyboard getKeyboard() {
         return this.keyboard;
     }
+
     public Viewport viewport() {
         return this.viewport;
     }

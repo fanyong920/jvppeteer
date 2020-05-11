@@ -96,23 +96,23 @@ public class Frame {
         return this.mainWorld.evaluate(pageFunction, type, args);
     }
 
-    public ElementHandle $(String selector) throws JsonProcessingException {
+    public ElementHandle $(String selector) {
         return this.mainWorld.$(selector);
     }
 
-    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
+    public List<ElementHandle> $x(String expression) {
         return this.mainWorld.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args)   {
         return this.mainWorld.$eval(selector, pageFunction, type, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args)   {
         return this.mainWorld.$$eval(selector, pageFunction, type, args);
     }
 
-    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
+    public List<ElementHandle> $$(String selector) {
         return this.mainWorld.$$(selector);
     }
 
@@ -153,7 +153,7 @@ public class Frame {
      * @param type
      * @return
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
         String xPathPattern = "//";
 
         if (type.equals(PageEvaluateType.STRING)) {
@@ -171,7 +171,7 @@ public class Frame {
         throw new IllegalArgumentException("Unsupported target type: " + selectorOrFunctionOrTimeout);
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
         ElementHandle handle = this.secondaryWorld.waitForSelector(selector, options);
         if (handle == null)
             return null;
@@ -181,7 +181,7 @@ public class Frame {
         return result;
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args) throws JsonProcessingException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args)   {
         return this.mainWorld.waitForFunction(pageFunction, type, options, args);
     }
 
@@ -196,7 +196,7 @@ public class Frame {
         this.url = framePayload.getUrl();
     }
 
-    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws JsonProcessingException {
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) {
         ElementHandle handle = this.secondaryWorld.waitForXPath(xpath, options);
         if (handle == null)
             return null;
@@ -211,7 +211,7 @@ public class Frame {
         this.lifecycleEvents.add("load");
     }
 
-    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
+    public Response goTo(String url, PageNavigateOptions options) {
         return this.frameManager.navigateFrame(this, url, options);
     }
 
@@ -231,11 +231,11 @@ public class Frame {
         this.loaderId = loaderId;
     }
 
-    public String content() throws JsonProcessingException {
+    public String content() {
         return this.secondaryWorld.content();
     }
 
-    public void setContent(String html, PageNavigateOptions options) throws JsonProcessingException {
+    public void setContent(String html, PageNavigateOptions options) {
         this.secondaryWorld.setContent(html, options);
     }
 

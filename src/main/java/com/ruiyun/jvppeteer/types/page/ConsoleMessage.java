@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.types.page;
 
+import com.ruiyun.jvppeteer.protocol.console.Location;
+
 import java.util.List;
 
 /**
@@ -11,14 +13,14 @@ public class  ConsoleMessage {
 
     private List<JSHandle> args;
 
-    private Object location;
+    private Location location;
 
     private String text;
 
     public ConsoleMessage() {
     }
 
-    public ConsoleMessage(String type, String text, List<JSHandle> args, Object location) {
+    public ConsoleMessage(String type, String text, List<JSHandle> args, Location location) {
         super();
         this.type = type;
         this.text = text;
@@ -46,11 +48,11 @@ public class  ConsoleMessage {
         this.args = args;
     }
 
-    public Object location() {
+    public Location location() {
         return location;
     }
 
-    public void setLocation(Object location) {
+    public void setLocation(Location location) {
         this.location = location;
     }
 

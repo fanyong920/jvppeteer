@@ -50,7 +50,7 @@ public class ExecutionContext {
         this.world = world;
     }
 
-    public ElementHandle adoptElementHandle(ElementHandle elementHandle) throws JsonProcessingException {
+    public ElementHandle adoptElementHandle(ElementHandle elementHandle) {
         ValidateUtil.assertBoolean(elementHandle.executionContext() != this, "Cannot adopt handle that already belongs to this execution context");
         ValidateUtil.assertBoolean(this.world != null, "Cannot adopt handle without DOMWorld");
         Map<String, Object> params = new HashMap<>();
@@ -172,12 +172,16 @@ public class ExecutionContext {
         return JSHandle.createJSHandle(executionContext, remoteObject);
     }
 
-    public ElementHandle adoptBackendNodeId(int backendNodeId) throws JsonProcessingException {
+    public ElementHandle adoptBackendNodeId(int backendNodeId)  {
         Map<String, Object> params = new HashMap<>();
         params.put("backendNodeId", backendNodeId);
         params.put("executionContextId", this.contextId);
         JsonNode object = this.client.send("DOM.resolveNode", params, true);
-        return (ElementHandle) createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(object.get("object"), RemoteObject.class));
+        try {
+            return (ElementHandle) createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(object.get("object"), RemoteObject.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public CDPSession getClient() {

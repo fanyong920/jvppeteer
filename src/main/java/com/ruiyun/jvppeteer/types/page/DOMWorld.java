@@ -148,22 +148,22 @@ public class DOMWorld {
         return this.documentPromise;
     }
 
-    public List<ElementHandle> $x(String expression) throws JsonProcessingException {
+    public List<ElementHandle> $x(String expression) {
         ElementHandle document = this.document();
         return document.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         ElementHandle document = this.document();
         return document.$eval(selector, pageFunction, type, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         ElementHandle document = this.document();
         return document.$$eval(selector, pageFunction, type, args);
     }
 
-    public List<ElementHandle> $$(String selector) throws JsonProcessingException {
+    public List<ElementHandle> $$(String selector) {
         ElementHandle document = this.document();
         return document.$$(selector);
     }
@@ -429,7 +429,7 @@ public class DOMWorld {
         return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION,null);
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
         if(StringUtil.isNotEmpty(options.getPolling())){
