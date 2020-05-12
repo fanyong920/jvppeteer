@@ -96,7 +96,7 @@ public class CDPSession extends EventEmitter {
             }
 
         } catch (InterruptedException e) {
-            LOGGER.error("wait message result is interrupted:",e);
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -114,20 +114,20 @@ public class CDPSession extends EventEmitter {
         message.setMethod(method);
         message.setParams(params);
         message.setSessionId(this.sessionId);
+        long id = this.connection.rawSend(message);
+        this.callbacks.putIfAbsent(id,message);
         try {
             if(isWait){
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
+                boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+                if(!hasResult){
+                    throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                }
+                return callbacks.remove(id).getResult();
             }
-            long id = this.connection.rawSend(message);
-            this.callbacks.putIfAbsent(id,message);
-            boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
-            if(!hasResult){
-                throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
-            }
-            return callbacks.remove(id).getResult();
         } catch (InterruptedException e) {
-            LOGGER.error("wait message result is interrupted:",e);
+            throw new RuntimeException(e);
         }
         return null;
     }

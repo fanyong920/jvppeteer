@@ -34,9 +34,9 @@ public interface Constant {
 	String PUPPETEER_CHROMIUM_REVISION_ENV = "PUPPETEER_CHROMIUM_REVISION";
 
 	/**
-	 * websocket clinet 传输数据的最大荷载，但是目前没有设置进去，使用了默认值
+	 * 读取流中的数据的buffer size
 	 */
-	long DEFAULT_PAYLOAD  = 256 * 1024 * 1024;
+	int DEFAULT_BUFFER_SIZE  = 8 * 1024;
 
 	/**
 	 * 如果websoket使用tyrus的话，就能用到这个字段，与{@link Constant#DEFAULT_PAYLOAD} 一起配合使用

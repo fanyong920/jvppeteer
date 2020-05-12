@@ -26,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -164,7 +165,7 @@ public class Helper {
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
      */
-    public static final void readProtocolStream(CDPSession client, String handler, String path) throws IOException {
+    public static final byte[] readProtocolStream(CDPSession client, String handler, String path) throws IOException {
         boolean eof = false;
         File file = null;
         BufferedOutputStream writer = null;
@@ -175,10 +176,12 @@ public class Helper {
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);
         try {
-
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            writer = new BufferedOutputStream(fileOutputStream);
-            byte[] buffer = new byte[4096];
+            if(file != null){
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                writer = new BufferedOutputStream(fileOutputStream);
+            }
+            byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
+            byte[] bytes = null;
             while (!eof) {
                 JsonNode response = client.send("IO.read", params, true);
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
@@ -186,20 +189,22 @@ public class Helper {
                 JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
                 if (dataNode != null && StringUtil.isNotEmpty(dataNode.asText())) {
                     try {
-                        byte[] bytes;
                         if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
                             bytes = Base64.decode(dataNode.asText());
                         } else {
                             bytes = dataNode.asText().getBytes();
                         }
                         //转成二进制流 io
-                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
-                        reader = new BufferedInputStream(byteArrayInputStream);
-                        int read = -1;
-                        while ((read = reader.read(buffer)) != -1) {
-                            writer.write(buffer, 0, read);
+                        if(file != null){
+                            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+                            reader = new BufferedInputStream(byteArrayInputStream);
+                            int read ;
+                            while ((read = reader.read(buffer,0,Constant.DEFAULT_BUFFER_SIZE)) != -1) {
+                                writer.write(buffer, 0, read);
+                                writer.flush();
+                            }
                         }
-                        writer.flush();
+
                     } finally {
                         StreamUtil.closeStream(reader);
                     }
@@ -208,6 +213,7 @@ public class Helper {
             }
             writer.flush();
             client.send("IO.close", params, false);
+            return bytes;
         } finally {
             StreamUtil.closeStream(writer);
             StreamUtil.closeStream(reader);

@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.types.browser;
 
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.util.*;
 import com.sun.javafx.PlatformUtil;
@@ -578,10 +579,9 @@ public class BrowserFetcher {
                 FileUtil.createNewFile(file);
             }
             bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file));
-            int bufferSize = 8192;
-            byte[] buffer = new byte[bufferSize];
+            byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
             int readLength = -1;
-            while ((readLength = bufferedInputStream.read(buffer, 0, bufferSize)) > 0) {
+            while ((readLength = bufferedInputStream.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) > 0) {
                 bufferedOutputStream.write(buffer, 0, readLength);
                 downloadedBytes += readLength;
                 progressCallback.accept(downloadedBytes, totalBytes);
