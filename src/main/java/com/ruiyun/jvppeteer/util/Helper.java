@@ -11,18 +11,24 @@ import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import sun.misc.BASE64Decoder;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -51,7 +57,7 @@ public class Helper {
         JsonNode errNode = node.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
         JsonNode errorMsg = errNode.get(Constant.RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
         String method = "";
-        if(methodNode != null){
+        if (methodNode != null) {
             method = methodNode.asText();
         }
         String message = "Protocol error " + method + ": " + errorMsg;
@@ -158,37 +164,45 @@ public class Helper {
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
      */
-    public static final void readProtocolStream(CDPSession client, JsonNode handler, String path) throws IOException {
+    public static final void readProtocolStream(CDPSession client, String handler, String path) throws IOException {
         boolean eof = false;
         File file = null;
         BufferedOutputStream writer = null;
+        BufferedInputStream reader = null;
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
-        } else {
-            throw new IllegalArgumentException("Path can't be null");
         }
         Map<String, Object> params = new HashMap<>();
-        Iterator<String> fieldNames = handler.fieldNames();
-        while (fieldNames.hasNext()) {
-            String name = fieldNames.next();
-            params.put(name, handler.get(name).asText());
-        }
+        params.put("handle", handler);
         try {
-            writer = new BufferedOutputStream(new FileOutputStream(file));
-            BASE64Decoder decoder = new BASE64Decoder();
+
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            writer = new BufferedOutputStream(fileOutputStream);
+            byte[] buffer = new byte[4096];
             while (!eof) {
                 JsonNode response = client.send("IO.read", params, true);
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
                 JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
                 JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
-                if (dataNode != null) {
-                    byte[] bytes;
-                    if (base64EncodedNode != null) {
-                        bytes = decoder.decodeBuffer(dataNode.toString());
-                    } else {
-                        bytes = dataNode.toString().getBytes();
+                if (dataNode != null && StringUtil.isNotEmpty(dataNode.asText())) {
+                    try {
+                        byte[] bytes;
+                        if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
+                            bytes = Base64.decode(dataNode.asText());
+                        } else {
+                            bytes = dataNode.asText().getBytes();
+                        }
+                        //转成二进制流 io
+                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+                        reader = new BufferedInputStream(byteArrayInputStream);
+                        int read = -1;
+                        while ((read = reader.read(buffer)) != -1) {
+                            writer.write(buffer, 0, read);
+                        }
+                        writer.flush();
+                    } finally {
+                        StreamUtil.closeStream(reader);
                     }
-                    writer.write(bytes);
                 }
                 eof = eofNode.asBoolean();
             }
@@ -196,13 +210,14 @@ public class Helper {
             client.send("IO.close", params, false);
         } finally {
             StreamUtil.closeStream(writer);
+            StreamUtil.closeStream(reader);
         }
     }
 
 
     public static String getExceptionMessage(ExceptionDetails exceptionDetails) {
         if (exceptionDetails.getException() != null)
-            return StringUtil.isNotEmpty(exceptionDetails.getException().getDescription()) ? exceptionDetails.getException().getDescription() : (String)exceptionDetails.getException().getValue();
+            return StringUtil.isNotEmpty(exceptionDetails.getException().getDescription()) ? exceptionDetails.getException().getDescription() : (String) exceptionDetails.getException().getValue();
         String message = exceptionDetails.getText();
         if (exceptionDetails.getStackTrace() != null) {
             for (CallFrame callframe : exceptionDetails.getStackTrace().getCallFrames()) {
@@ -282,15 +297,16 @@ public class Helper {
     }
 
     //TODO 验证
-    public static final void copyProperties(Object src,Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+    public static final void copyProperties(Object src, Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Class<?> destClass = dest.getClass();
         BeanInfo srcBean = Introspector.getBeanInfo(src.getClass());
         PropertyDescriptor[] propertyDescriptors = srcBean.getPropertyDescriptors();
         for (PropertyDescriptor descriptor : propertyDescriptors) {
-            PropertyDescriptor destDescriptor = new PropertyDescriptor(descriptor.getName(),destClass);
-            destDescriptor.getWriteMethod().invoke(dest,descriptor.getReadMethod().invoke(src));
+            PropertyDescriptor destDescriptor = new PropertyDescriptor(descriptor.getName(), destClass);
+            destDescriptor.getWriteMethod().invoke(dest, descriptor.getReadMethod().invoke(src));
         }
     }
+
     public static <T> T waitForEvent(EventEmitter eventEmitter, String eventName, Predicate<T> predicate, int timeout, String abortPromise) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
         final T[] result = (T[]) new Object[1];
@@ -320,16 +336,16 @@ public class Helper {
     }
 
     public static final String evaluationString(String fun, PageEvaluateType type, Object... args) {
-        if(PageEvaluateType.STRING.equals(type)){
-            ValidateUtil.assertBoolean(args.length == 0,"Cannot evaluate a string with arguments");
+        if (PageEvaluateType.STRING.equals(type)) {
+            ValidateUtil.assertBoolean(args.length == 0, "Cannot evaluate a string with arguments");
             return fun;
         }
 
-      List<String>  argsList = new ArrayList<>();
+        List<String> argsList = new ArrayList<>();
         for (Object arg : args) {
-            if(arg == null){
+            if (arg == null) {
                 argsList.add("undefined");
-            }else {
+            } else {
                 try {
                     argsList.add(Constant.OBJECTMAPPER.writeValueAsString(arg));
                 } catch (JsonProcessingException e) {
@@ -338,7 +354,7 @@ public class Helper {
             }
         }
 
-        return MessageFormat.format("({0})({1})",fun,String.join(",",argsList));
+        return MessageFormat.format("({0})({1})", fun, String.join(",", argsList));
 
     }
 

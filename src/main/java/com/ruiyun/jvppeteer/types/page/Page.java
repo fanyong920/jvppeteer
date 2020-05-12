@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.types.page;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.definition.EventHandler;
 import com.ruiyun.jvppeteer.events.definition.Events;
 import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
@@ -26,6 +27,7 @@ import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.console.Location;
 import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
+import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import com.ruiyun.jvppeteer.protocol.log.EntryAddedPayload;
 import com.ruiyun.jvppeteer.protocol.network.Cookie;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
@@ -79,6 +81,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import static com.ruiyun.jvppeteer.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_STREAM_PROPERTY;
 import static com.ruiyun.jvppeteer.Constant.supportedMetrics;
 
 public class Page extends EventEmitter {
@@ -117,7 +120,7 @@ public class Page extends EventEmitter {
     @JsonIgnore
     private Tracing tracing;
 
-    private Map<String, Function<List<JsonNode>,Object>> pageBindings;
+    private Map<String, Function<List<JsonNode>, Object>> pageBindings;
 
     @JsonIgnore
     private Coverage coverage;
@@ -542,28 +545,38 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * @param {string} selector
-     * @return {!Promise<?ElementHandle>}
+     *此方法在页面内执行 document.querySelector。如果没有元素匹配指定选择器，返回值是 null。
+     * @param selector 选择器
+     * @return ElementHandle
      */
     public ElementHandle $(String selector) {
         return this.mainFrame().$(selector);
     }
 
     /**
-     * @param {string} selector
-     * @return {!Promise<!Array<!ElementHandle>>}
+     * 此方法在页面内执行 document.querySelectorAll。如果没有元素匹配指定选择器，返回值是 []。
+     * @param selector 选择器
+     * @return List<ElementHandle>
      */
     public List<ElementHandle> $$(String selector) {
         return this.mainFrame().$$(selector);
     }
 
+    /**
+     * 此方法在页面内执行 Array.from(document.querySelectorAll(selector))，然后把匹配到的元素数组作为第一个参数传给 pageFunction。
+     * @param selector 一个框架选择器
+     * @param pageFunction 在浏览器实例上下文中要执行的方法
+     * @param type
+     * @param args 要传给 pageFunction 的参数。（比如你的代码里生成了一个变量，在页面中执行方法时需要用到，可以通过这个 args 传进去）
+     * @return pageFunction 的返回值
+     */
     public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         return this.mainFrame().$$eval(selector, pageFunction, type, args);
     }
 
     /**
-     * 返回主 Frame
-     *
+     * <p>返回主 Frame</p>
+     * 保证页面一直有有一个主 frame
      * @return {@link Frame}
      */
     public Frame mainFrame() {
@@ -571,39 +584,51 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * @param {string}          selector
-     * @param {Function|string} pageFunction
-     * @param {!Array<*>}       args
-     * @return {!Promise<(!Object|undefined)>}
+     *此方法在页面内执行 document.querySelector，然后把匹配到的元素作为第一个参数传给 pageFunction。
+     * @param selector 选择器
+     * @param pageFunction 在浏览器实例上下文中要执行的方法
+     * @param type 具体类型
+     * @param args 要传给 pageFunction 的参数。（比如你的代码里生成了一个变量，在页面中执行方法时需要用到，可以通过这个 args 传进去）
+     * @return pageFunction 的返回值
      */
     public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
         return this.mainFrame().$eval(selector, pageFunction, type, args);
     }
 
     /**
-     * @param {string} expression
-     * @return {!Promise<!Array<!ElementHandle>>}
+     * 此方法解析指定的XPath表达式。
+     * @param expression XPath表达式。
+     * @return ElementHandle
      */
     public List<ElementHandle> $x(String expression) {
         return this.mainFrame().$x(expression);
     }
 
+    /**
+     * 注入一个指定src(url)或者代码(content)的 script 标签到当前页面。
+     * @param options 可选参数
+     * @return 注入完成的tag标签
+     * @throws IOException 异常
+     */
     public ElementHandle addScriptTag(ScriptTagOptions options) throws IOException {
         return this.mainFrame().addScriptTag(options);
     }
 
     /**
-     * @param {!{url?: string, path?: string, content?: string}} options
-     * @return {!Promise<!ElementHandle>}
+     * 添加一个指定link(url)的 <link rel="stylesheet"> 标签。 或者添加一个指定代码(content)的 <style type="text/css"> 标签。
+     * @param options link标签
+     * @return 注入完成的tag标签。当style的onload触发或者代码被注入到frame。
+     * @throws IOException 异常
      */
     public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         return this.mainFrame().addStyleTag(options);
     }
 
     /**
-     *为HTTP authentication 提供认证凭据 。
-     *
+     * 为HTTP authentication 提供认证凭据 。
+     * <p>
      * 传 null 禁用认证。
+     *
      * @param credentials 验证信息
      */
     public void authenticate(Credentials credentials) {
@@ -618,25 +643,36 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * @return {@link Browser}
+     * 返回页面隶属的浏览器
+     * @return
      */
     public Browser browser() {
         return this.target.browser();
     }
 
     /**
-     * @return {@link BrowserContext}
+     * 返回默认的浏览器上下文
+     * @return 浏览器上下文
      */
     public BrowserContext browserContext() {
         return this.target.browserContext();
     }
 
+    /**
+     * 此方法找到一个匹配 selector 选择器的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 点击它。 如果选择器没有匹配任何元素，此方法将会报错。
+     * @param selector 选择器
+     * @param options 参数
+     * @throws InterruptedException 异常
+     */
     public void click(String selector, ClickOptions options) throws InterruptedException {
         this.mainFrame().click(selector, options);
     }
 
     /**
-     * @param {!{runBeforeUnload: (boolean|undefined)}=} options
+     * page.close() 在 beforeunload 处理之前默认不执行
+     * <p><strong>注意 如果 runBeforeUnload 设置为true，可能会弹出一个 beforeunload 对话框。 这个对话框需要通过页面的 'dialog' 事件手动处理</strong></p>
+     *
+     * @param runBeforeUnload 默认 false. 是否执行 before unload
      */
     public void close(boolean runBeforeUnload) {
         ValidateUtil.assertBoolean(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
@@ -652,7 +688,8 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 截图
+     * <p>截图</p>
+     * 备注 在OS X上 截图需要至少1/6秒。查看讨论：https://crbug.com/741689。
      *
      * @return String
      */
@@ -687,28 +724,66 @@ public class Page extends EventEmitter {
         return (String) this.screenshotTaskQueue.postTask((type, op) -> screenshotTask((String) type, (ScreenshotOptions) op), screenshotType, options);
     }
 
+    /**
+     * 当提供的选择器完成选中后，触发change和input事件 如果没有元素匹配指定选择器，将报错。
+     * @param selector 要查找的选择器
+     * @param values 查找的配置项。如果选择器有多个属性，所有的值都会查找，否则只有第一个元素被找到
+     * @return
+     */
     public List<String> select(String selector, List<String> values) {
         return this.mainFrame().select(selector, values);
     }
 
+    /**
+     * 返回页面标题
+     *
+     * @return 页面标题
+     */
     public String title() {
         return this.mainFrame().title();
     }
 
+    /**
+     * 设置绕过页面的安全政策
+     * <p>注意 CSP 发生在 CSP 初始化而不是评估阶段。也就是说应该在导航到这个域名前设置</p>
+     *
+     * @param enabled 是否绕过页面的安全政策
+     */
     public void setBypassCSP(boolean enabled) {
         Map<String, Object> params = new HashMap<>();
         params.put("enabled", enabled);
         this.client.send("Page.setBypassCSP", params, true);
     }
 
+    /**
+     * 设置每个请求忽略缓存。默认是启用缓存的。
+     *
+     * @param enabled 设置缓存的 enabled 状态
+     */
     public void setCacheEnabled(boolean enabled) {
         this.frameManager.networkManager().setCacheEnabled(enabled);
     }
 
+    /**
+     * 给页面设置html
+     *
+     * @param html    分派给页面的HTML。
+     * @param options timeout <number> 加载资源的超时时间，默认值为30秒，传入0禁用超时. 可以使用 page.setDefaultNavigationTimeout(timeout) 或者 page.setDefaultTimeout(timeout) 方法修改默认值
+     *                waitUntil <string|Array<string>> HTML设置成功的标志事件, 默认为 load。 如果给定的是一个事件数组，那么当所有事件之后，给定的内容才被认为设置成功。 事件可以是：
+     *                load - load事件触发后，设置HTML内容完成。
+     *                domcontentloaded - DOMContentLoaded 事件触发后，设置HTML内容完成。
+     *                networkidle0 - 不再有网络连接时（至少500毫秒之后），设置HTML内容完成
+     *                networkidle2 - 只剩2个网络连接时（至少500毫秒之后），设置HTML内容完成
+     */
     public void setContent(String html, PageNavigateOptions options) {
         this.frameManager.mainFrame().setContent(html, options);
     }
 
+    /**
+     * 获取指定url的cookies
+     * @param urls 指定的url集合
+     * @return Cookie
+     */
     public List<Cookie> cookies(List<String> urls) {
         Map<String, Object> params = new HashMap<>();
         params.put("urls", ValidateUtil.isNotEmpty(urls) ? urls : this.url());
@@ -751,6 +826,16 @@ public class Page extends EventEmitter {
         this.client.send("Network.setCookies", params, true);
     }
 
+    /**
+     * 此方法会改变下面几个方法的默认30秒等待时间：
+     * ${@link Page#goTo(String)}
+     * ${@link Page#goTo(String, PageNavigateOptions)}
+     * ${@link Page#goBack(PageNavigateOptions)}
+     * ${@link Page#goForward(PageNavigateOptions)}
+     * ${@link Page#reload(PageNavigateOptions)}
+     * ${@link Page#waitForNavigation(PageNavigateOptions)}
+     * @param timeout
+     */
     public void setDefaultNavigationTimeout(int timeout) {
         this.timeoutSettings.setDefaultNavigationTimeout(timeout);
     }
@@ -758,12 +843,19 @@ public class Page extends EventEmitter {
     /**
      * 当前页面发起的每个请求都会带上这些请求头
      * 注意 此方法不保证请求头的顺序
+     *
      * @param headers 每个 HTTP 请求都会带上这些请求头。值必须是字符串
      */
     public void setExtraHTTPHeaders(Map<String, String> headers) {
         this.frameManager.networkManager().setExtraHTTPHeaders(headers);
     }
 
+    /**
+     * Sets the page's geolocation.
+     * @param longitude  Latitude between -90 and 90.
+     * @param latitude Longitude between -180 and 180.
+     * @param accuracy Optional non-negative accuracy value.
+     */
     public void setGeolocation(int longitude, int latitude, int accuracy) {
 
         if (longitude < -180 || longitude > 180)
@@ -779,6 +871,12 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setGeolocationOverride", params, true);
     }
 
+    /**
+     * 是否启用js
+     * 注意 改变这个值不会影响已经执行的js。下一个跳转会完全起作用。
+     *
+     * @param enabled 是否启用js
+     */
     public void setJavaScriptEnabled(boolean enabled) {
         if (this.javascriptEnabled == enabled)
             return;
@@ -788,10 +886,20 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setScriptExecutionDisabled", params, true);
     }
 
+    /**
+     * 设置启用离线模式。
+     * @param enabled 设置 true, 启用离线模式。
+     */
     public void setOfflineMode(boolean enabled) {
         this.frameManager.networkManager().setOfflineMode(enabled);
     }
 
+    /**
+     * 启用请求拦截器，会激活 request.abort, request.continue 和 request.respond 方法。这提供了修改页面发出的网络请求的功能。
+     *<p></p>
+     * 一旦启用请求拦截，每个请求都将停止，除非它继续，响应或中止
+     * @param value  是否启用请求拦截器
+     */
     public void setRequestInterception(boolean value) {
         this.frameManager.networkManager().setRequestInterception(value);
     }
@@ -899,22 +1007,42 @@ public class Page extends EventEmitter {
         this.emit("error", new PageCrashException("Page crashed!"));
     }
 
+    /**
+     * 创建一个page对象
+     * @param client
+     * @param target
+     * @param ignoreHTTPSErrors
+     * @param viewport
+     * @param screenshotTaskQueue
+     * @return
+     */
     public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue screenshotTaskQueue) {
         Page page = new Page(client, target, ignoreHTTPSErrors, screenshotTaskQueue);
-        try {
-            page.initialize();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Create new Page fail: ", e);
-        }
+        page.initialize();
         if (viewport != null) {
             page.setViewport(viewport);
         }
         return page;
     }
 
-
+    /**
+     * 当js对话框出现的时候触发，比如alert, prompt, confirm 或者 beforeunload。Puppeteer可以通过Dialog's accept 或者 dismiss来响应弹窗。
+     *
+     * @param event 触发事件
+     */
     private void onDialog(JavascriptDialogOpeningPayload event) {
-
+        DialogType dialogType = null;
+        if ("alert".equals(event.getType()))
+            dialogType = DialogType.Alert;
+        else if ("confirm".equals(event.getType()))
+            dialogType = DialogType.Confirm;
+        else if ("prompt".equals(event.getType()))
+            dialogType = DialogType.Prompt;
+        else if ("beforeunload".equals(event.getType()))
+            dialogType = DialogType.BeforeUnload;
+        ValidateUtil.assertBoolean(dialogType != null, "Unknown javascript dialog type: " + event.getType());
+        Dialog dialog = new Dialog(this.client, dialogType, event.getMessage(), event.getDefaultPrompt());
+        this.emit(Events.PAGE_DIALOG.getName(), dialog);
     }
 
     private void onConsoleAPI(ConsoleAPICalledPayload event) {
@@ -939,30 +1067,30 @@ public class Page extends EventEmitter {
         for (int i = 0; i < event.getArgs().size(); i++) {
             RemoteObject arg = event.getArgs().get(i);
             JSHandle.createJSHandle(context, arg);
-        };
+        }
+        ;
         this.addConsoleMessage(event.getType(), values, event.getStackTrace());
     }
 
-    // TODO 校验到这里
     private void onBindingCalled(BindingCalledPayload event) {
         String payload = event.getPayload();
         JsonNode payloadNode = OBJECTMAPPER.valueToTree(payload);
         List<JsonNode> jsonNodes = new ArrayList<>();
         Iterator<JsonNode> args = payloadNode.get("args").elements();
-        while (args.hasNext()){
+        while (args.hasNext()) {
             jsonNodes.add(args.next());
         }
         String expression = null;
         try {
             Object result = this.pageBindings.get(event.getName()).apply(jsonNodes);
-            expression = Helper.evaluationString(deliverResult(), PageEvaluateType.FUNCTION,payloadNode.get("name").toString(), payloadNode.get("seq").toString(), result);
+            expression = Helper.evaluationString(deliverResult(), PageEvaluateType.FUNCTION, payloadNode.get("name").toString(), payloadNode.get("seq").toString(), result);
         } catch (Exception e) {
-            expression = Helper.evaluationString(deliverError(),PageEvaluateType.FUNCTION,payloadNode.get("name").toString(), payloadNode.get("seq").toString(), e,e.getMessage());
+            expression = Helper.evaluationString(deliverError(), PageEvaluateType.FUNCTION, payloadNode.get("name").toString(), payloadNode.get("seq").toString(), e, e.getMessage());
         }
-        Map<String,Object> params = new HashMap<>();
-        params.put("expression",expression);
-        params.put("contextId",event.getExecutionContextId());
-        this.client.send("Runtime.evaluate", params,false);
+        Map<String, Object> params = new HashMap<>();
+        params.put("expression", expression);
+        params.put("contextId", event.getExecutionContextId());
+        this.client.send("Runtime.evaluate", params, false);
     }
 
     private String deliverError() {
@@ -981,6 +1109,12 @@ public class Page extends EventEmitter {
                 "    }";
     }
 
+    /**
+     * 如果是一个浏览器多个页面的情况，每个页面都可以有单独的viewport
+     * <p>注意 在大部分情况下，改变 viewport 会重新加载页面以设置 isMobile 或者 hasTouch</p>
+     *
+     * @param viewport
+     */
     public void setViewport(Viewport viewport) {
         boolean needsReload = this.emulationManager.emulateViewport(viewport);
         this.viewport = viewport;
@@ -988,7 +1122,7 @@ public class Page extends EventEmitter {
             this.reload(null);
     }
 
-    public void initialize() throws JsonProcessingException {
+    public void initialize() {
         frameManager.initialize();
         Map<String, Object> params = new HashMap<>();
         params.put("autoAttach", true);
@@ -1001,42 +1135,86 @@ public class Page extends EventEmitter {
     }
 
     private void addConsoleMessage(String type, List<JSHandle> args, StackTrace stackTrace) {
-
+        if (this.getListenerCount(Events.PAGE_CONSOLE.getName()) == 0) {
+            args.forEach(arg -> arg.dispose());
+            return;
+        }
+        List<String> textTokens = new ArrayList();
+        for (JSHandle arg : args) {
+            RemoteObject remoteObject = arg.getRemoteObject();
+            if (StringUtil.isNotEmpty(remoteObject.getObjectId()))
+                textTokens.add(arg.toString());
+            else {
+                try {
+                    textTokens.add(Constant.OBJECTMAPPER.writeValueAsString(Helper.valueFromRemoteObject(remoteObject)));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        Location location = stackTrace != null && stackTrace.getCallFrames().size() > 0 ? new Location(stackTrace.getCallFrames().get(0).getUrl(), stackTrace.getCallFrames().get(0).getLineNumber(), stackTrace.getCallFrames().get(0).getColumnNumber()) : new Location();
+        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, location);
+        this.emit(Events.PAGE_CONSOLE.getName(), message);
     }
 
     private void handleException(ExceptionDetails exceptionDetails) {
         String message = Helper.getExceptionMessage(exceptionDetails);
         RuntimeException err = new RuntimeException(message);
-        err.setStackTrace(null); // Don't report clientside error with a node stack attached
+//        err.setStackTrace(null); // Don't report clientside error with a node stack attached
         this.emit(Events.PAGE_PageError.getName(), err);
     }
 
     /**
-     * 以字符串形式返回页面的内容
+     * 返回页面的完整 html 代码，包括 doctype。
      *
      * @return 页面内容
      */
-    public String content() throws JsonProcessingException {
+    public String content() {
         return this.frameManager.getMainFrame().content();
     }
 
     /**
-     * 导航到指定的url,因为goto是java的关键字，所以就采用了goTo方法名
-     * the main resource failed to load.
+     * <p>导航到指定的url,因为goto是java的关键字，所以就采用了goTo方法名
      *
-     * @param url url
+     * <p>以下情况此方法将报错：
+     * <p>发生了 SSL 错误 (比如有些自签名的https证书).
+     * <p>目标地址无效
+     * <p>超时
+     * <p>主页面不能加载
+     *
+     * @param url      url
+     * @param options: <p>timeout <number> 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                 <p>waitUntil <string|Array<string>> 满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     *                 <p>load - 页面的load事件触发时
+     *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
+     *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
+    public Response goTo(String url, PageNavigateOptions options) {
         return this.frameManager.getMainFrame().goTo(url, options);
     }
 
-    public Response goTo(String url) throws InterruptedException {
+    /**
+     * 导航到某个网站
+     * <p>以下情况此方法将报错：</p>
+     * <p>发生了 SSL 错误 (比如有些自签名的https证书).</p>
+     * <p>目标地址无效</p>
+     * <p>超时</p>
+     * <p>主页面不能加载</p>
+     *
+     * @param url 导航到的地址. 地址应该带有http协议, 比如 https://.
+     * @return 响应
+     */
+    public Response goTo(String url) {
         return this.frameManager.getMainFrame().goTo(url, null);
     }
 
     /**
-     * @param {Array<Protocol.Network.deleteCookiesParameters>} cookies
+     * 删除cookies
+     *
+     * @param cookies 要删除的ciikies
      */
     public void deleteCookie(List<DeleteCookiesParameters> cookies) {
         String pageURL = this.url();
@@ -1067,9 +1245,11 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 把浏览器的界面和userAgent设置成手机设备的样子
+     * 根据指定的参数和 user agent 生成模拟器。此方法是和下面两个方法效果相同
+     * <p>${@link Page#setViewport(Viewport)}<p/>
+     * <p>${@link Page#setUserAgent(String)}<p/>
      *
-     * @param options Device 枚举类
+     * @param options Device 模拟器枚举类
      */
     public void emulate(Device options) {
         this.setViewport(options.getViewport());
@@ -1078,18 +1258,27 @@ public class Page extends EventEmitter {
 
     /**
      * 给页面设置userAgent
+     *
      * @param userAgent userAgent的值
      */
     private void setUserAgent(String userAgent) {
         this.frameManager.networkManager().setUserAgent(userAgent);
     }
 
-
+    /**
+     * 改变页面的css媒体类型。支持的值仅包括 'screen', 'print' 和 null。传 null 禁用媒体模拟
+     *
+     * @param type css媒体类型
+     */
     public void emulateMediaType(String type) {
         this.emulateMedia(type);
     }
 
-    public void tap(String selector) throws JsonProcessingException {
+    /**
+     * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.touchscreen 来点击元素的中间位置 如果没有匹配的元素，此方法会报错
+     * @param selector 要点击的元素的选择器。如果有多个匹配的元素，点击第一个
+     */
+    public void tap(String selector) {
         this.mainFrame().tap(selector);
     }
 
@@ -1135,19 +1324,26 @@ public class Page extends EventEmitter {
         }
     }
 
-    public void exposeFunction(String name, Function<List<JsonNode>,Object> puppeteerFunction) {
-        if(this.pageBindings.containsKey(name)){
-            throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!",name,name));
+    /**
+     * 此方法添加一个命名为 name 的方法到页面的 window 对象 当调用 name 方法时，在 node.js 中执行 puppeteerFunction
+     * @param name 挂载到window对象的方法名
+     * @param puppeteerFunction 调用name方法时实际执行的方法
+     */
+    public void exposeFunction(String name, Function<List<JsonNode>, Object> puppeteerFunction) {
+        if (this.pageBindings.containsKey(name)) {
+            throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!", name, name));
         }
-        this.pageBindings.put(name,puppeteerFunction);
-        String expression = Helper.evaluationString(addPageBinding(), PageEvaluateType.FUNCTION,name);
+        this.pageBindings.put(name, puppeteerFunction);
+        String expression = Helper.evaluationString(addPageBinding(), PageEvaluateType.FUNCTION, name);
         Map<String, Object> params = new HashMap<>();
-        params.put("name",name);
-         this.client.send("Runtime.addBinding", params,true);
-         params.clear();
-         params.put("source",expression);
-         this.client.send("Page.addScriptToEvaluateOnNewDocument", params,true);
-         this.frames().forEach(frame -> {frame.evaluate(expression,PageEvaluateType.FUNCTION);});
+        params.put("name", name);
+        this.client.send("Runtime.addBinding", params, true);
+        params.clear();
+        params.put("source", expression);
+        this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
+        this.frames().forEach(frame -> {
+            frame.evaluate(expression, PageEvaluateType.FUNCTION);
+        });
     }
 
     private String addPageBinding() {
@@ -1171,26 +1367,45 @@ public class Page extends EventEmitter {
                 "    }";
     }
 
-    public void focus(String selector) throws JsonProcessingException {
+    /**
+     * 此方法找到一个匹配selector的元素，并且把焦点给它。 如果没有匹配的元素，此方法将报错。
+     * @param selector 要给焦点的元素的选择器selector。如果有多个匹配的元素，焦点给第一个元素。
+     * @throws JsonProcessingException 异常
+     */
+    public void focus(String selector) {
         this.mainFrame().focus(selector);
     }
 
+    /**
+     * 返回加载到页面中的所有iframe标签
+     * @return iframe标签
+     */
     public List<Frame> frames() {
         return this.frameManager.frames();
     }
 
     /**
-     * options 的 referer不用填
+     * 导航到页面历史的前一个页面
+     * <p>options 的 referer参数不用填，填了也用不上</p>
+     * <p>
+     * options 导航配置，可选值：
+     * <p>otimeout  跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     * <p>owaitUntil 满足什么条件认为页面跳转完成，默认是load事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     * <p>oload - 页面的load事件触发时
+     * <p>odomcontentloaded - 页面的DOMContentLoaded事件触发时
+     * <p>onetworkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     * <p>onetworkidle2 - 只有2个网络连接时触发（至少500毫秒后）
      *
-     * @param options
-     * @return
+     * @param options 见上面注释
+     * @return 响应
      */
     public Response goBack(PageNavigateOptions options) {
         return this.go(-1, options);
     }
 
     /**
-     * options 的 referer不用填
+     * 导航到页面历史的后一个页面。
+     * <p>options 的 referer参数不用填，填了也用不上</p>
      *
      * @param options
      * @return Response
@@ -1199,10 +1414,18 @@ public class Page extends EventEmitter {
         return this.go(+1, options);
     }
 
-    public void hover(String selector) throws JsonProcessingException {
+    /**
+     * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 来hover到元素的中间。 如果没有匹配的元素，此方法将会报错。
+     * @param selector 要hover的元素的选择器。如果有多个匹配的元素，hover第一个。
+     */
+    public void hover(String selector) {
         this.mainFrame().hover(selector);
     }
 
+    /**
+     * 表示页面是否被关闭。
+     * @return 页面是否被关闭。
+     */
     public boolean isClosed() {
         return this.closed;
     }
@@ -1212,10 +1435,11 @@ public class Page extends EventEmitter {
     }
 
     /**
-     *返回页面的一些基本信息
+     * 返回页面的一些基本信息
+     *
      * @return Metrics 基本信息载体
-     * @throws IllegalAccessException 异常
-     * @throws IntrospectionException 异常
+     * @throws IllegalAccessException    异常
+     * @throws IntrospectionException    异常
      * @throws InvocationTargetException 异常
      */
     public Metrics metrics() throws IllegalAccessException, IntrospectionException, InvocationTargetException {
@@ -1234,6 +1458,13 @@ public class Page extends EventEmitter {
         return this.buildMetricsObject(metrics);
     }
 
+    /**
+     * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
+     * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
+     *
+     * @param options
+     * @throws IOException
+     */
     public void pdf(PDFOptions options) throws IOException {
         double paperWidth = 8.5;
         double paperHeight = 11;
@@ -1286,14 +1517,29 @@ public class Page extends EventEmitter {
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
         if (result != null)
-            Helper.readProtocolStream(this.client, result.get("stream"), options.getPath());
+            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath());
     }
 
+    /**
+     * 此方法会改变下面几个方法的默认30秒等待时间：
+     * ${@link Page#goTo(String)}
+     * ${@link Page#goTo(String, PageNavigateOptions)}
+     * ${@link Page#goBack(PageNavigateOptions)}
+     * ${@link Page#goForward(PageNavigateOptions)}
+     * ${@link Page#reload(PageNavigateOptions)}
+     * ${@link Page#waitForNavigation(PageNavigateOptions)}
+     * @param timeout
+     */
     public void setDefaultTimeout(int timeout) {
         this.timeoutSettings.setDefaultTimeout(timeout);
     }
 
-    public JSHandle queryObjects(JSHandle prototypeHandle) throws JsonProcessingException {
+    /**
+     * 此方法遍历js堆栈，找到所有带有指定原型的对象
+     * @param prototypeHandle
+     * @return
+     */
+    public JSHandle queryObjects(JSHandle prototypeHandle)   {
         ExecutionContext context = this.mainFrame().executionContext();
         return context.queryObjects(prototypeHandle);
     }
@@ -1326,6 +1572,12 @@ public class Page extends EventEmitter {
         return pixels / 96;
     }
 
+    /**
+     * 重新加载页面
+     *
+     * @param options 与${@link Page#goTo(String, PageNavigateOptions)}中的options是一样的配置
+     * @return 响应
+     */
     public Response reload(PageNavigateOptions options) {
         Response response = this.waitForNavigation(options);
         this.client.send("Page.reload", null, true);
@@ -1366,19 +1618,50 @@ public class Page extends EventEmitter {
         return response;
     }
 
+    /**
+     * 此方法在页面跳转到一个新地址或重新加载时解析，如果你的代码会间接引起页面跳转，这个方法比较有用
+     * <p>比如你在在代码中使用了Page.click()方法，引起了页面跳转
+     * 注意 通过 History API 改变地址会认为是一次跳转。
+     *
+     * @param options PageNavigateOptions
+     * @return 响应
+     */
     private Response waitForNavigation(PageNavigateOptions options) {
         return this.frameManager.mainFrame().waitForNavigation(options);
     }
 
+    /**
+     * 在页面实例上下文中执行方法
+     * 添加一个方法，在以下某个场景被调用：</p>
+     * <p>   页面导航完成后</p>
+     * <p>   页面的iframe加载或导航完成。这种场景，指定的函数被调用的上下文是新加载的iframe。</p>
+     * 指定的函数在所属的页面被创建并且所属页面的任意 script 执行之前被调用。常用于修改页面js环境，比如给 Math.random 设定种子
+     *
+     * @param pageFunction 要在页面实例上下文中执行的方法
+     * @param type         是方法字符串还是普通字符串
+     * @param args         要在页面实例上下文中执行的方法的参数
+     */
     public void evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         this.frameManager.mainFrame().evaluate(pageFunction, type, args);
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws JsonProcessingException {
+    /**
+     * 此方法和 page.evaluate 的唯一区别是此方法返回的是页内类型(JSHandle)
+     * @param pageFunction 要在页面实例上下文中执行的方法
+     * @param type 是方法字符串还是普通字符串
+     * @param args 要在页面实例上下文中执行的方法的参数
+     * @return
+     */
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
         ExecutionContext context = this.mainFrame().executionContext();
         return (JSHandle) context.evaluateHandle(pageFunction, type, args);
     }
 
+    /**
+     * 改变页面的css媒体类型。支持的值仅包括 'screen', 'print' 和 null。传 null 禁用媒体模拟
+     *
+     * @param type css媒体类型
+     */
     public void emulateMedia(String type) {
         ValidateUtil.assertBoolean("screen".equals(type) || "print".equals(type) || type == null, "Unsupported media type: " + type);
         Map<String, Object> params = new HashMap<>();
@@ -1402,7 +1685,20 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setEmulatedMedia", params, true);
     }
 
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
+    /**
+     * 此方法根据第一个参数的不同有不同的结果：
+     *
+     * <p>如果 selectorOrFunctionOrTimeout 是 string, 那么认为是 css 选择器或者一个xpath, 根据是不是'//'开头, 这时候此方法是 page.waitForSelector 或 page.waitForXPath的简写</p>
+     * <p>如果 selectorOrFunctionOrTimeout 是 function, 那么认为是一个predicate，这时候此方法是page.waitForFunction()的简写</p>
+     * <p>如果 selectorOrFunctionOrTimeout 是 number, 那么认为是超时时间，单位是毫秒，返回的是Promise对象,在指定时间后resolve</p>
+     * <p>否则会报错
+     * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
+     * @param type 具体类型
+     * @param options 可选的等待参数
+     * @param args 传给 pageFunction 的参数
+     * @return
+     */
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args)  {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
@@ -1423,10 +1719,30 @@ public class Page extends EventEmitter {
         return null;
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws JsonProcessingException {
+    /**
+     * 要在浏览器实例上下文执行方法
+     * @param pageFunction 要在浏览器实例上下文执行的方法
+     * @param type 执行的类型，string or function
+     * @param options 可选参数
+     * @param args 执行的方法的参数
+     * @return JSHandle
+     */
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args)  {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
 
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空
+     * <p>当url不为空时， type = PageEvaluateType.STRING </p>
+     * <p>当predicate不为空时， type = PageEvaluateType.FUNCTION </p>
+     *
+     * @param url       等待的请求
+     * @param predicate 方法
+     * @param type      判别到底是url还是方法
+     * @param timeout   超时时间
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
     public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type, int timeout) throws InterruptedException {
         if (timeout <= 0) {
             timeout = this.timeoutSettings.timeout();
@@ -1442,7 +1758,6 @@ public class Page extends EventEmitter {
         DefaultBrowserListener listener = null;
         try {
             listener = sessionClosePromise();
-
             return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
         } finally {
             if (listener != null)
@@ -1462,6 +1777,18 @@ public class Page extends EventEmitter {
         return disConnectLis;
     }
 
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空
+     * <p>当url不为空时， type = PageEvaluateType.STRING </p>
+     * <p>当predicate不为空时， type = PageEvaluateType.FUNCTION </p>
+     *
+     * @param url       等待的请求
+     * @param predicate 方法
+     * @param type      判别到底是url还是方法
+     * @param timeout   超时时间
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
     public Response waitForResponse(String url, Predicate predicate, PageEvaluateType type, int timeout) throws InterruptedException {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
@@ -1483,18 +1810,38 @@ public class Page extends EventEmitter {
         }
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
+    /**
+     * 等待指定的选择器匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的选择器在超时时间后扔不出现，此方法会报错。
+     * @param selector 要等待的元素选择器
+     * @param options 可选参数
+     * @return ElementHandle
+     */
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options)   {
         return this.mainFrame().waitForSelector(selector, options);
     }
 
-    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws JsonProcessingException {
+    /**
+     * 等待指定的xpath匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的xpath在超时时间后扔不出现，此方法会报错。
+     * @param xpath 要等待的元素的xpath
+     * @param options 可选参数
+     * @return JSHandle
+     */
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options)  {
         return this.mainFrame().waitForXPath(xpath, options);
     }
 
+    /**
+     *  该方法返回所有与页面关联的 WebWorkers
+     * @return  WebWorkers
+     */
     public java.util.Collection<Worker> workers() {
         return this.workers.values();
     }
 
+    /**
+     * 返回页面的地址
+     * @return 页面地址
+     */
     private String url() {
         return this.mainFrame().url();
     }
@@ -1535,6 +1882,14 @@ public class Page extends EventEmitter {
         return this.accessibility;
     }
 
+    /**
+     * 每个字符输入后都会触发 keydown, keypress/input 和 keyup 事件
+     * <p>要点击特殊按键，比如 Control 或 ArrowDown，用 keyboard.press</p>
+     * @param selector 要输入内容的元素选择器。如果有多个匹配的元素，输入到第一个匹配的元素。
+     * @param text 要输入的内容
+     * @param delay 每个字符输入的延迟，单位是毫秒。默认是 0。
+     * @throws InterruptedException
+     */
     public void type(String selector, String text, int delay) throws InterruptedException {
         this.mainFrame().type(selector, text, delay);
     }
@@ -1551,6 +1906,17 @@ public class Page extends EventEmitter {
         return this.keyboard;
     }
 
+    /**
+     * 获取Viewport
+     * width <number> 宽度，单位是像素
+     * height <number> 高度，单位是像素
+     * deviceScaleFactor <number> 定义设备缩放， (类似于 dpr)。 默认 1。
+     * isMobile <boolean> 要不要包含meta viewport 标签。 默认 false。
+     * hasTouch<boolean> 指定终端是否支持触摸。 默认 false
+     * isLandscape <boolean> 指定终端是不是 landscape 模式。 默认 false。
+     *
+     * @return Viewport
+     */
     public Viewport viewport() {
         return this.viewport;
     }

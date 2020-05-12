@@ -278,13 +278,18 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public void initialize() throws JsonProcessingException {
+    public void initialize()   {
 
         this.client.send("Page.enable", null, false);
         /* @type Protocol.Page.getFrameTreeReturnValue*/
         JsonNode result = this.client.send("Page.getFrameTree", null, true);
 
-        FrameTree frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTree.class);
+        FrameTree frameTree = null;
+        try {
+            frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTree.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         this.handleFrameTree(frameTree);
 
         Map<String, Object> params = new HashMap<>();

@@ -2,6 +2,7 @@ package com.ruiyun.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import org.junit.Test;
 
 import java.text.MessageFormat;
@@ -49,5 +50,10 @@ public class StringTest {
         argsList.add("56");
         argsList.add("8765");
         System.out.println( MessageFormat.format("({0})({1})",fun,String.join(",",argsList)));
+
+        DialogType alert = DialogType.valueOf("Alert");
+        String s2 = DialogType.Alert.toString();
+        System.out.println("s2;"+s2);
+        System.out.println(alert.getType());
     }
 }

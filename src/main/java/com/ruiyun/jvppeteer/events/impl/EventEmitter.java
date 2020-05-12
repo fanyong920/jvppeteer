@@ -26,10 +26,10 @@ public class EventEmitter implements Event {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EventEmitter.class);
 
-    @JsonIgnore
+
     private Map<String,Set<DefaultBrowserListener>> listenerMap = new ConcurrentHashMap<>();
 
-    @JsonIgnore
+
     private AtomicInteger listenerCount = new AtomicInteger(0);
 
     @Override
@@ -160,6 +160,9 @@ public class EventEmitter implements Event {
     public int getListenerCount(String method){
         Set<DefaultBrowserListener> defaultBrowserListeners = this.listenerMap.get(method);
         int i = 0;
+        if(ValidateUtil.isEmpty(defaultBrowserListeners)){
+            return 0;
+        }
         for (DefaultBrowserListener listener : defaultBrowserListeners) {
             if(!listener.getIsAvaliable()){
                 continue;

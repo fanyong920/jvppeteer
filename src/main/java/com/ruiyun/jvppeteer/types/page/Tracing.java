@@ -72,7 +72,7 @@ public class Tracing implements Constant {
                 Tracing tracing = null;
                 try {
                     tracing = (Tracing)this.getTarget();
-                    Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY),tracing.getPath());
+                    Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY).asText(),tracing.getPath());
                 } catch (IOException ignored) {
                 }
             }

@@ -49,7 +49,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	@Override
 	public void onClose() {
-
+		close();
 	}
 
 	@Override
@@ -62,14 +62,15 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	@Override
 	public void onError(Exception e) {
-
+		LOGGER.error("Websocket error:",e);
 	}
 
 
 
 	@Override
-	public void onOpen(ServerHandshake ServerHandshake) {
-
+	public void onOpen(ServerHandshake serverHandshake) {
+		LOGGER.info("Websocket serverHandshake status: "+serverHandshake.getHttpStatus());
+		System.out.println("Websocket serverHandshake status: "+serverHandshake.getHttpStatus());
 	}
 
 

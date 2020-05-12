@@ -6,13 +6,12 @@ public class TimeoutSettings implements Constant {
 
     private int defaultNavigationTimeout;
 
-    private  int defaultTimeout;
+    private int defaultTimeout;
 
     public TimeoutSettings() {
         this.defaultTimeout = 0;
         this.defaultNavigationTimeout = 0;
     }
-
 
     public int navigationTimeout() {
         if (this.defaultNavigationTimeout != 0)

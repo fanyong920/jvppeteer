@@ -18,6 +18,13 @@ public class Location {
         this.lineNumber = lineNumber;
     }
 
+    public Location(String url, int lineNumber, int columnNumber) {
+        super();
+        this.url = url;
+        this.lineNumber = lineNumber;
+        this.columnNumber = columnNumber;
+    }
+
     public String getUrl() {
         return url;
     }

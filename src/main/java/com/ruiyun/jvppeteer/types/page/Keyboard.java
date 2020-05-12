@@ -340,7 +340,7 @@ public class Keyboard {
                 this.press(String.valueOf(c), delay,null);
             else
 
-            if (delay >= 0)
+            if (delay > 0)
                 Thread.sleep(delay);
             this.sendCharacter(String.valueOf(c));
         }

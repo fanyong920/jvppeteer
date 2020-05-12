@@ -14,6 +14,7 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
+import javax.management.relation.RoleUnresolved;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -134,13 +135,17 @@ public class ExecutionContext {
         return returnByValue ? Helper.valueFromRemoteObject(remoteObject) : createJSHandle(this, remoteObject);
     }
 
-    public JSHandle queryObjects(JSHandle prototypeHandle) throws JsonProcessingException {
+    public JSHandle queryObjects(JSHandle prototypeHandle) {
         ValidateUtil.assertBoolean(!prototypeHandle.getDisposed(), "Prototype JSHandle is disposed!");
         ValidateUtil.assertBoolean(StringUtil.isNotEmpty(prototypeHandle.getRemoteObject().getObjectId()), "Prototype JSHandle must not be referencing primitive value");
         Map<String, Object> params = new HashMap<>();
         params.put("prototypeObjectId", prototypeHandle.getRemoteObject().getObjectId());
         JsonNode response = this.client.send("Runtime.queryObjects", params, true);
-        return createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(response.get("objects"), RemoteObject.class));
+        try {
+            return createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(response.get("objects"), RemoteObject.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String convertArgument(ExecutionContext th, Object arg) throws JsonProcessingException {
