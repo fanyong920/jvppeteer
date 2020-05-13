@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.transport.factory;
 
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.transport.websocket.WebSocketTransport;
+import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 
 import java.net.URI;
 

@@ -3,9 +3,8 @@ package com.ruiyun.test;
 import com.ruiyun.jvppeteer.Puppeteer;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
-import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.types.browser.Browser;
-import com.ruiyun.jvppeteer.types.page.Page;
+import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.page.Page;
 
 import java.io.IOException;
 import java.util.ArrayList;

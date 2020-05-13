@@ -2,8 +2,8 @@ package com.ruiyun.jvppeteer;
 
 import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
-import com.ruiyun.jvppeteer.types.browser.Browser;
-import com.ruiyun.jvppeteer.types.browser.BrowserFetcher;
+import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;

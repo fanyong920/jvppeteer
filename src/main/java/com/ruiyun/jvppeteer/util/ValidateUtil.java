@@ -23,7 +23,7 @@ public class ValidateUtil {
 
 	public static final void assertBoolean(boolean condition, String errorText) {
 		if (!condition)
-			throw new RuntimeException(errorText);
+			throw new IllegalArgumentException(errorText);
 	}
 
 }

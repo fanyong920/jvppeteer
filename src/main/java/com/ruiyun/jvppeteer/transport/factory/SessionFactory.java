@@ -1,9 +1,8 @@
 package com.ruiyun.jvppeteer.transport.factory;
 
-import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.ruiyun.jvppeteer.transport.CDPSession;
 
 @FunctionalInterface
 public interface SessionFactory {
-
     CDPSession create();
 }

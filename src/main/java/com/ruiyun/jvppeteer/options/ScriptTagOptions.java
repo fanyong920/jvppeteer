@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
-import com.ruiyun.jvppeteer.types.page.Frame;
+import com.ruiyun.jvppeteer.core.page.Frame;
 
 /**
  * 用在${@link Frame#addScriptTag(ScriptTagOptions)}

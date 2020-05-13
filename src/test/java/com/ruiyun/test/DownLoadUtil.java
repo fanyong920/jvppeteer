@@ -1,6 +1,6 @@
 package com.ruiyun.test;
 
-import com.ruiyun.jvppeteer.transport.httpclient.HttpClienUtil;
+import com.ruiyun.jvppeteer.util.HttpClienUtil;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;

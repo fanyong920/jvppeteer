@@ -2,7 +2,7 @@ package com.ruiyun.test;
 
 import com.ruiyun.jvppeteer.Puppeteer;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
-import com.ruiyun.jvppeteer.types.browser.BrowserFetcher;
+import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 
 import java.io.IOException;
 import java.math.BigDecimal;

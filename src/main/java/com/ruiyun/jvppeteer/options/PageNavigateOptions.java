@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
-import com.ruiyun.jvppeteer.types.page.Page;
+import com.ruiyun.jvppeteer.core.page.Page;
 
 import java.util.List;
 

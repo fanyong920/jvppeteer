@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.protocol.network;
 
-import com.ruiyun.jvppeteer.types.page.Request;
+import com.ruiyun.jvppeteer.core.page.Request;
 
 /**
  * Fired when page is about to send HTTP request.

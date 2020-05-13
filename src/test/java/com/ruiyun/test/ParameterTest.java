@@ -1,6 +1,6 @@
 package com.ruiyun.test;
 
-import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

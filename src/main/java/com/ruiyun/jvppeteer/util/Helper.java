@@ -3,16 +3,15 @@ package com.ruiyun.jvppeteer.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.events.impl.BrowserListenerWrapper;
-import com.ruiyun.jvppeteer.events.impl.DefaultBrowserListener;
-import com.ruiyun.jvppeteer.events.impl.EventEmitter;
+import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
+import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
-import com.ruiyun.jvppeteer.transport.websocket.CDPSession;
+import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import sun.misc.BASE64Decoder;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -26,10 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +33,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -211,7 +205,6 @@ public class Helper {
                 }
                 eof = eofNode.asBoolean();
             }
-            writer.flush();
             client.send("IO.close", params, false);
             return bytes;
         } finally {

@@ -4,15 +4,13 @@ import com.ruiyun.jvppeteer.Puppeteer;
 import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
-import com.ruiyun.jvppeteer.types.browser.Browser;
-import com.ruiyun.jvppeteer.types.browser.BrowserContext;
-import com.ruiyun.jvppeteer.types.page.Target;
+import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.browser.BrowserContext;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 public class BrowserFunctionExample {
     public static void main(String[] args) throws UnsupportedEncodingException {
