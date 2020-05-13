@@ -18,7 +18,7 @@ public class PagesEmulateExample {
        // String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-        //必须在无厘头模式下才能生效
+
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");

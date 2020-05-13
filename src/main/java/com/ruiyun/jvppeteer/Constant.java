@@ -39,11 +39,6 @@ public interface Constant {
 	int DEFAULT_BUFFER_SIZE  = 8 * 1024;
 
 	/**
-	 * 如果websoket使用tyrus的话，就能用到这个字段，与{@link Constant#DEFAULT_PAYLOAD} 一起配合使用
-	 */
-	String INCOMING_BUFFER_SIZE_PROPERTY = "org.glassfish.tyrus.incomingBufferSize";
-
-	/**
 	 * 启动浏览器时，如果没有指定路径，那么会从以下路径搜索可执行的路径
 	 */
 	String[] PROBABLE_CHROME_EXECUTABLE_PATH =
@@ -128,21 +123,6 @@ public interface Constant {
 	String RECV_MESSAGE_STREAM_DATA_PROPERTY = "data";
 	String RECV_MESSAGE_BASE64ENCODED_PROPERTY = "base64Encoded";
 
-	/**
-	 * 执行事件监听的线程池
-	 */
-//	ThreadPoolExecutor executor = getThreadPoolExecutor();
-
-//	static ThreadPoolExecutor getThreadPoolExecutor() {
-//		Runtime runtime = Runtime.getRuntime();
-//
-//		int processorNum = runtime.availableProcessors();
-//
-//		if(processorNum < 3){
-//			processorNum = 3;
-//		}
-//		return  new ThreadPoolExecutor(processorNum,processorNum,30, TimeUnit.SECONDS,new LinkedBlockingDeque<>());
-//	}
 
 	/**
 	 * 默认的超时时间：启动浏览器实例超时，websocket接受消息超时等

@@ -1616,9 +1616,11 @@ public class Page extends EventEmitter {
         for (int i = 0; i < propertyDescriptors.length; i++) {
             propertyMap.put(propertyDescriptors[i].getName(), propertyDescriptors[i]);
         }
-        for (Metric metric : metrics) {
-            if (supportedMetrics.contains(metric.getName())) {
-                propertyMap.get(metric.getName()).getWriteMethod().invoke(result, metric.getValue());
+        if(ValidateUtil.isNotEmpty(metrics)){
+            for (Metric metric : metrics) {
+                if (supportedMetrics.contains(metric.getName())) {
+                    propertyMap.get(metric.getName()).getWriteMethod().invoke(result, metric.getValue());
+                }
             }
         }
         return result;

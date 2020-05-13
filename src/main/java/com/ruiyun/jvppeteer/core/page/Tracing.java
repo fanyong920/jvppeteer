@@ -40,10 +40,11 @@ public class Tracing implements Constant {
     }
 
     /**
-     * start tracing
-     * @param path A path to write the trace file to.
-     * @param screenshots captures screenshots in the trace
-     * @param categories specify custom categories to use instead of default.
+     * <p>start tracing</p>
+     * 每个浏览器一次只能激活一条跟踪
+     * @param path A path to write the trace file to. 跟踪文件写入的路径
+     * @param screenshots captures screenshots in the trace 捕获跟踪中的屏幕截图
+     * @param categories specify custom categories to use instead of default. 指定要使用的自定义类别替换默认值
      */
     public void  start(String path,boolean screenshots, Set<String> categories) {
         ValidateUtil.assertBoolean(!this.recording, "Cannot start recording trace while already recording trace.");
@@ -63,9 +64,6 @@ public class Tracing implements Constant {
      * stop tracing
      */
     public void stop() {
-//        this.client.once('Tracing.tracingComplete', event => {
-//                helper.readProtocolStream(this._client, event.stream, this._path).then(fulfill);
-//    });
         DefaultBrowserListener<JsonNode> traceListener = new DefaultBrowserListener<JsonNode>() {
             @Override
             public void onBrowserEvent(JsonNode event) {
@@ -74,6 +72,7 @@ public class Tracing implements Constant {
                     tracing = (Tracing)this.getTarget();
                     Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY).asText(),tracing.getPath());
                 } catch (IOException ignored) {
+                    ignored.printStackTrace();
                 }
             }
         };

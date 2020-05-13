@@ -181,10 +181,11 @@ public class Helper {
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
                 JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
                 JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
-                if (dataNode != null && StringUtil.isNotEmpty(dataNode.asText())) {
+                String dataText = dataNode.asText();
+                if (dataNode != null && StringUtil.isNotEmpty(dataText)) {
                     try {
                         if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
-                            bytes = Base64.decode(dataNode.asText());
+                            bytes = Base64.decode(dataText);
                         } else {
                             bytes = dataNode.asText().getBytes();
                         }

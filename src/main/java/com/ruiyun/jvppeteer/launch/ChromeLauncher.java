@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -40,14 +41,14 @@ public class ChromeLauncher implements Launcher {
 
     private String preferredRevision;
 
-    public ChromeLauncher(String projectRoot, String preferredRevision) {
+    public ChromeLauncher(String projectRoot, String preferredRevision, boolean isPuppeteerCore) {
+        super();
         this.projectRoot = projectRoot;
         this.preferredRevision = preferredRevision;
+        this.isPuppeteerCore = isPuppeteerCore;
     }
 
-    public ChromeLauncher(boolean isPuppeteerCore) {
-        super();
-        this.isPuppeteerCore = isPuppeteerCore;
+    public ChromeLauncher() {
     }
 
     @Override
@@ -66,7 +67,7 @@ public class ChromeLauncher implements Launcher {
                 runner.close(s);
                 return null;
             };
-            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(),closeCallback, options.getTimeout());
+            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback, options.getTimeout());
             browser.waitForTarget(t -> "page".equals(t.type()), options);
             return browser;
         } catch (IOException | InterruptedException e) {
@@ -111,7 +112,7 @@ public class ChromeLauncher implements Launcher {
             chromeArguments.add("--hide-scrollbars");
             chromeArguments.add("--mute-audio");
         }
-        List<String> ignoreDefaultArgs = null;
+        List<String> ignoreDefaultArgs;
         if (launchOptions != null && ValidateUtil.isNotEmpty(ignoreDefaultArgs = launchOptions.getIgnoreDefaultArgs())) {
             chromeArguments.removeAll(ignoreDefaultArgs);
         }
@@ -185,42 +186,44 @@ public class ChromeLauncher implements Launcher {
         if (StringUtil.isNotEmpty(revision)) {
             RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
             if (!revisionInfo.getLocal()) {
-                throw new RuntimeException(
+                throw new LaunchException(
                         "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
                                 + revisionInfo.getExecutablePath());
             }
             return revisionInfo.getExecutablePath();
         } else {
-            throw new RuntimeException(
-                    "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable ");
+            RevisionInfo revisionInfo = browserFetcher.revisionInfo(this.preferredRevision);
+            if (!revisionInfo.getLocal())
+                throw new LaunchException(MessageFormat.format("Could not find browser revision {0}. Pleaze download a browser binary.", this.preferredRevision));
+            return revisionInfo.getExecutablePath();
         }
 
     }
 
     @Override
     public Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
-        final Connection connection ;
-		try {
-        if (transport != null) {
-            connection = new Connection("", transport, options.getSlowMo());
-        } else if (StringUtil.isNotEmpty(browserWSEndpoint)) {
-            WebSocketTransport connectionTransport = WebSocketTransport.create(browserWSEndpoint);
-            connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo());
-        } else if (StringUtil.isNotEmpty(browserURL)) {
-            String connectionURL = getWSEndpoint(browserURL);
-            WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
-            connection = new Connection(connectionURL, connectionTransport, options.getSlowMo());
-        }else {
-        	throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
-		}
-        JsonNode result = connection.send("Target.getBrowserContexts", null, true);
+        final Connection connection;
+        try {
+            if (transport != null) {
+                connection = new Connection("", transport, options.getSlowMo());
+            } else if (StringUtil.isNotEmpty(browserWSEndpoint)) {
+                WebSocketTransport connectionTransport = WebSocketTransport.create(browserWSEndpoint);
+                connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo());
+            } else if (StringUtil.isNotEmpty(browserURL)) {
+                String connectionURL = getWSEndpoint(browserURL);
+                WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
+                connection = new Connection(connectionURL, connectionTransport, options.getSlowMo());
+            } else {
+                throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
+            }
+            JsonNode result = connection.send("Target.getBrowserContexts", null, true);
 
-        JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
-        List<String> browserContextIds = null;
-        Function closeFunction = (t) -> {
-			connection.send("Browser.close",null,false);
-        	return null;
-        };
+            JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
+            List<String> browserContextIds = null;
+            Function closeFunction = (t) -> {
+                connection.send("Browser.close", null, false);
+                return null;
+            };
 
             browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
             return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction, options.getTimeout());
@@ -231,20 +234,20 @@ public class ChromeLauncher implements Launcher {
     }
 
     private String getWSEndpoint(String browserURL) throws IOException {
-		URI uri = URI.create(browserURL).resolve("/json/version");
-		URL url = uri.toURL();
+        URI uri = URI.create(browserURL).resolve("/json/version");
+        URL url = uri.toURL();
 
-		HttpURLConnection conn =(HttpURLConnection)url.openConnection();
-		conn.setRequestMethod("GET");
-		conn.connect();
-		int responseCode = conn.getResponseCode();
-		if(responseCode != HttpURLConnection.HTTP_OK){
-			throw  new RuntimeException("browserURL: "+browserURL+",HTTP "+responseCode);
-		}
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.connect();
+        int responseCode = conn.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            throw new RuntimeException("browserURL: " + browserURL + ",HTTP " + responseCode);
+        }
         String result = StreamUtil.toString(conn.getInputStream());
         JsonNode jsonNode = Constant.OBJECTMAPPER.readTree(result);
 
-        return  jsonNode.get("webSocketDebuggerUrl").asText();
+        return jsonNode.get("webSocketDebuggerUrl").asText();
     }
 
     public boolean getIsPuppeteerCore() {

@@ -116,8 +116,8 @@ public class Puppeteer {
      * 适配chrome or firefox 浏览器
      */
     private static void adapterLauncher(Puppeteer puppeteer) {
-        String productName = null;
-        Launcher launcher = null;
+        String productName;
+        Launcher launcher;
         Environment env;
         if (StringUtil.isEmpty(productName = puppeteer.getProductName()) && !puppeteer.getIsPuppeteerCore()) {
 
@@ -142,7 +142,7 @@ public class Puppeteer {
                 launcher = new FirefoxLauncher(puppeteer.getIsPuppeteerCore());
             case "chrome":
             default:
-                launcher = new ChromeLauncher(puppeteer.getIsPuppeteerCore());
+                launcher = new ChromeLauncher(puppeteer.getProjectRoot(),puppeteer.getPreferredRevision(),puppeteer.getIsPuppeteerCore());
         }
         puppeteer.setLauncher(launcher);
     }
@@ -189,4 +189,21 @@ public class Puppeteer {
     private void setEnv(Environment env) {
         this.env = env;
     }
+
+    public String getProjectRoot() {
+        return projectRoot;
+    }
+
+    public void setProjectRoot(String projectRoot) {
+        this.projectRoot = projectRoot;
+    }
+
+    public String getPreferredRevision() {
+        return preferredRevision;
+    }
+
+    public void setPreferredRevision(String preferredRevision) {
+        this.preferredRevision = preferredRevision;
+    }
+
 }
