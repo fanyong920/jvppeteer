@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -47,6 +49,12 @@ import java.util.regex.Pattern;
  * 一些公共方法
  */
 public class Helper {
+
+    /**
+     * 单线程，一个浏览器只能有一个trcing 任务
+     */
+    private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
         JsonNode errNode = node.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
@@ -159,13 +167,31 @@ public class Helper {
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
      */
-    public static final byte[] readProtocolStream(CDPSession client, String handler, String path) throws IOException {
+    public static final void readProtocolStream(CDPSession client, String handler, String path ,boolean isNewThread) throws IOException {
+
+        if(isNewThread){
+            singleThreadExecutor.submit(() -> {
+                try {
+                    run(client, handler, path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }else{
+            run(client, handler, path);
+        }
+
+    }
+
+    private static void run(CDPSession client, String handler, String path) throws IOException {
         boolean eof = false;
-        File file = null;
+        File file;
         BufferedOutputStream writer = null;
         BufferedInputStream reader = null;
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
+        }else{
+            throw new IllegalArgumentException("path must be not null");
         }
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);
@@ -175,7 +201,7 @@ public class Helper {
                 writer = new BufferedOutputStream(fileOutputStream);
             }
             byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
-            byte[] bytes = null;
+            byte[] bytes;
             while (!eof) {
                 JsonNode response = client.send("IO.read", params, true);
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
@@ -207,7 +233,7 @@ public class Helper {
                 eof = eofNode.asBoolean();
             }
             client.send("IO.close", params, false);
-            return bytes;
+
         } finally {
             StreamUtil.closeStream(writer);
             StreamUtil.closeStream(reader);

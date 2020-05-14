@@ -67,12 +67,12 @@ public class Tracing implements Constant {
         DefaultBrowserListener<JsonNode> traceListener = new DefaultBrowserListener<JsonNode>() {
             @Override
             public void onBrowserEvent(JsonNode event) {
-                Tracing tracing = null;
+                Tracing tracing;
                 try {
                     tracing = (Tracing)this.getTarget();
-                    Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY).asText(),tracing.getPath());
+                    Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY).asText(),tracing.getPath(),true);
                 } catch (IOException ignored) {
-                    ignored.printStackTrace();
+
                 }
             }
         };

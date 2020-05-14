@@ -75,6 +75,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -1539,7 +1540,7 @@ public class Page extends EventEmitter {
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
         if (result != null)
-            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath());
+            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(),false);
     }
 
     /**

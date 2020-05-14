@@ -13,10 +13,10 @@ import java.util.HashSet;
 
 public class PagesTracingExample {
 
-    public static void main(String[] args) throws IOException, InterruptedException {
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+    public static void main(String[] args) {
+        //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-        //String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
@@ -25,7 +25,7 @@ public class PagesTracingExample {
 
         Page page = browser.newPage();
         //开启追踪
-        page.tracing().start("C:\\Users\\fanyong\\Desktop\\trace.json",true,new HashSet<>());
+        page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json",true,new HashSet<>());
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         page.tracing().stop();
         //waifor tracingComplete

@@ -65,7 +65,7 @@ public class CDPSession extends EventEmitter {
      * @param params 参数
      * @return result
      */
-    public JsonNode send(String method,Map<String, Object> params,boolean isLock,CountDownLatch outLatch,int timeout)  {
+    public JsonNode send(String method,Map<String, Object> params,boolean isBlock,CountDownLatch outLatch,int timeout)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
@@ -76,7 +76,7 @@ public class CDPSession extends EventEmitter {
         long id = this.connection.rawSend(message);
         this.callbacks.putIfAbsent(id,message);
         try {
-            if(isLock){
+            if(isBlock){
                 if(outLatch != null){
                     message.setCountDownLatch(outLatch);
                 }else {
@@ -104,7 +104,7 @@ public class CDPSession extends EventEmitter {
      * @param params 参数
      * @return result
      */
-    public JsonNode send(String method,Map<String, Object> params,boolean isWait)  {
+    public JsonNode send(String method,Map<String, Object> params,boolean isBlock)  {
         if(connection == null){
             throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
         }
@@ -115,7 +115,7 @@ public class CDPSession extends EventEmitter {
         long id = this.connection.rawSend(message);
         this.callbacks.putIfAbsent(id,message);
         try {
-            if(isWait){
+            if(isBlock){
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
                 boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
