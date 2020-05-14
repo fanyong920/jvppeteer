@@ -13,7 +13,7 @@
         <!--该元素描述了项目相关的所有邮件列表。自动产生的网站引用这些信息。 -->
         <mailingList>
             <!--邮件的名称 -->
-            <name> fanyong </name>
+            <name>fanyong</name>
             <!--发送邮件的地址或链接，如果是邮件地址，创建文档时，mailto: 链接会被自动创建 -->
             <post>1023079644@qq.com</post>
         </mailingList>
@@ -26,7 +26,7 @@
             <!--项目开发者的全名 -->
             <name>fanyong</name>
             <!--项目开发者的email -->
-            <email> 1023079644@qq.com</email>
+            <email>1023079644@qq.com</email>
             <!--项目开发者在项目中扮演的角色，角色元素描述了各种角色 -->
             <roles>
                 <role>Project Manager</role>
@@ -59,65 +59,48 @@
     <dependencies>
 
 
-       <!-- <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly-client</artifactId>
-            <version>${tyrus.version}</version>
-        </dependency>-->
+        <!-- <dependency>
+             <groupId>org.glassfish.tyrus</groupId>
+             <artifactId>tyrus-container-grizzly-client</artifactId>
+             <version>${tyrus.version}</version>
+         </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${log4j12.version}</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>org.slf4j</groupId>-->
+        <!--            <artifactId>slf4j-log4j12</artifactId>-->
+        <!--            <version>${log4j12.version}</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
         </dependency>
-        <dependency>
-            <groupId>javax.websocket</groupId>
-            <artifactId>javax.websocket-api</artifactId>
-            <version>${websocket.api.version}</version>
-            <scope>provided</scope>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>javax.websocket</groupId>-->
+        <!--            <artifactId>javax.websocket-api</artifactId>-->
+        <!--            <version>${websocket.api.version}</version>-->
+        <!--            <scope>provided</scope>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.github.kklisura.cdt</groupId>
-            <artifactId>cdt-java-client</artifactId>
-            <version>${cdt.version}</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
             <version>${java.webSocket.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-
-        </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
@@ -129,6 +112,21 @@
             <artifactId>httpasyncclient</artifactId>
             <version>${httpasyncclient.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kklisura.cdt</groupId>
+            <artifactId>cdt-java-client</artifactId>
+            <version>${cdt.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
 
     </dependencies>
 

@@ -70,7 +70,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * @param handleSIGHUP
      * @param dumpio
      * @param pipe
-     * @throws IOException
+     * @throws IOException io异常
      */
     public void start(boolean handleSIGINT, boolean handleSIGTERM, boolean handleSIGHUP, boolean dumpio, boolean pipe) throws IOException {
         if (process != null) {
@@ -148,6 +148,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     }
 
+    /**
+     * kill 掉浏览器进程
+     */
     public void kill() {
         //kill chrome process
         if (process != null && process.isAlive()) {
@@ -170,12 +173,22 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     }
 
+    /**
+     * 连接上浏览器
+     * @param usePipe 是否是pipe连接
+     * @param timeout 超时时间
+     * @param slowMo 放慢频率
+     * @param preferredRevision 浏览器版本
+     * @return 连接对象
+     * @throws InterruptedException 打断异常
+     */
     public Connection setUpConnection(boolean usePipe, int timeout, int slowMo, String preferredRevision) throws InterruptedException {
         if (usePipe) {/* pipe connection*/
-            InputStream pipeRead = this.getProcess().getInputStream();
-            OutputStream pipeWrite = this.getProcess().getOutputStream();
-            PipeTransport transport = new PipeTransport(pipeRead, pipeWrite);
-            this.connection = new Connection("", transport, slowMo);
+            throw new LaunchException("Temporarily not supported pipe connect to chromuim.If you have a pipe connect to chromium idea,pleaze new a issue in github:https://github.com/fanyong920/jvppeteer/issues");
+//            InputStream pipeRead = this.getProcess().getInputStream();
+//            OutputStream pipeWrite = this.getProcess().getOutputStream();
+//            PipeTransport transport = new PipeTransport(pipeRead, pipeWrite);
+//            this.connection = new Connection("", transport, slowMo);
         } else {/*websoket connection*/
             String waitForWSEndpoint = waitForWSEndpoint(timeout, preferredRevision);
             WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
@@ -186,11 +199,11 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
     }
 
     /**
-     * acquired browser ws
+     * waiting for browser ws url
      *
-     * @param timeout
-     * @param preferredRevision
-     * @return
+     * @param timeout 等待超时时间
+     * @param preferredRevision 浏览器版本
+     * @return ws url
      */
     private String waitForWSEndpoint(int timeout, String preferredRevision) {
         final StringBuilder ws = new StringBuilder();
@@ -272,6 +285,11 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         }
     }
 
+    /**
+     * 关闭浏览器
+     * @param c 这个参数只是为了与另外一个close()方法区分
+     * @return 是否关闭
+     */
     public boolean close(Object c) {
         if (this.getClosed()) {
             return true;
@@ -290,6 +308,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         return true;
     }
 
+    /**
+     * 注册钩子
+     */
     public interface ShutdownHookRegistry {
         /**
          * Registers a new shutdown hook thread.
