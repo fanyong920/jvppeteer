@@ -55,7 +55,6 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
-import sun.misc.BASE64Decoder;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -78,10 +77,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -971,7 +968,6 @@ public class Page extends EventEmitter {
         }
         if (options.getFullPage() && this.viewport != null)
             this.setViewport(this.viewport);
-        BASE64Decoder decoder = new BASE64Decoder();
         String data = result.get("data").asText();
         try {
 //            byte[] buffer = decoder.decodeBuffer(data);

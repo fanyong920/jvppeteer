@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentPayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import sun.misc.BASE64Encoder;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -253,14 +253,14 @@ public class Request {
         if (responseBody != null && !responseHeaders.containsKey("content-length"));
         responseHeaders.put("content-length" ,String.valueOf(responseBody.length));
 
-        BASE64Encoder encoder = new BASE64Encoder();
+
         Map<String,Object> params = new HashMap<>();
         params.put("requestId",this.interceptionId);
         params.put("responseCode",status);
         params.put("responsePhrase",STATUS_TEXTS.get(status));
         params.put("responseHeaders",headersArray(responseHeaders));
         if(responseBody != null){
-            params.put("body",encoder.encode(responseBody));
+            params.put("body", Base64.encode(responseBody));
         }
          this.client.send("Fetch.fulfillRequest", params,true);
     }

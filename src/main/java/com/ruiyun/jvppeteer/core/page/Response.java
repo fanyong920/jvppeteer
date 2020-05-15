@@ -3,9 +3,9 @@ package com.ruiyun.jvppeteer.core.page;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
-import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
-import sun.misc.BASE64Decoder;
+import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,12 +71,12 @@ public class Response {
                 Map<String, Object> params = new HashMap<>();
                 params.put("requestId", this.request.getRequestId());
                 JsonNode response = this.client.send("Network.getResponseBody", params, true);
-                BASE64Decoder decoder = new BASE64Decoder();
+
                 JsonNode charsetNode = response.get("base64Encoded");
                 if (charsetNode != null) {
-                    this.contentPromise = decoder.decodeBuffer(response.get("data").toString());
+                    this.contentPromise = Base64.decode(response.get("data").asText());
                 } else {
-                    this.contentPromise = response.get("data").toString().getBytes(StandardCharsets.UTF_8);
+                    this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
                 }
             }
         }
