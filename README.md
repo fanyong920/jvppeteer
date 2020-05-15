@@ -26,7 +26,7 @@
 ## 开始使用
 
 ### 以下是使用依赖管理工具（如maven或gradle）的简要指南。
-#### maven
+#### Maven
 要使用maven,请将此依赖添加到pom.xml文件中：
 
 ```xml
@@ -132,7 +132,7 @@ page.tracing().stop();
 
 1. [Puppeteer中文文档](https://zhaoqize.github.io/puppeteer-api-zh_CN/#/)
 2. [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/)
-3. [chrome启动命令参数](https://peter.sh/experiments/chromium-command-line-switches/)
+3. [Chrome命令行启动参数](https://peter.sh/experiments/chromium-command-line-switches/)
 
 ### 执照
 
