@@ -1668,8 +1668,8 @@ public class Page extends EventEmitter {
      * @param type         是方法字符串还是普通字符串
      * @param args         要在页面实例上下文中执行的方法的参数
      */
-    public void evaluate(String pageFunction, PageEvaluateType type, Object... args) {
-        this.frameManager.mainFrame().evaluate(pageFunction, type, args);
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+        return this.frameManager.mainFrame().evaluate(pageFunction, type, args);
     }
 
     /**
