@@ -1,22 +1,23 @@
-# jvppeteer
+# Jvppeteer
 <p align = "left">
 <a rel="nofollow" href="https://download-chromium.appspot.com/"><img src ="https://img.shields.io/badge/chromium%20download-latest-blue"  alt="下载最新版本的chromuim" style="max-width:100%;"></a> <a><img alt="maven仓库" src="https://img.shields.io/maven-central/v/com.ruiyun/jvppeteer/1.0.0" style="max-width:100%;"></a> <a href="https://github.com/fanyong920/jvppeteer/issues"><img alt="Issue resolution status" src="https://img.shields.io/github/issues/fanyong920/jvppeteer" style="max-width:100%;"></a>
 </p>
 
 
-**本库的灵感来自[Puppeteer](https://github.com/puppeteer/puppeteer),API也与其基本上保持一致，做这个库是为了方便Java开发者方便操控chrome 或者chromiun**
+
+**本库的灵感来自[Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer),API也与其基本上保持一致，做这个库是为了方便使用Java操控Chrome 或 Chromium**
 
 
 
 
-   >jvppeteer通过[DevTools](https://chromedevtools.github.io/devtools-protocol/)控制 Chromium 或 Chrome。
+   >Jvppeteer通过[DevTools](https://chromedevtools.github.io/devtools-protocol/)控制 Chromium 或 Chrome。
    >默认情况下，以headless模式运行，也可以通过配置运行'有头'模式。
 
 
-你可以在浏览器中手动执行的绝大多数操作都可以使用 jvppeteer 来完成！ 下面是一些示例：
+你可以在浏览器中手动执行的绝大多数操作都可以使用 Jvppeteer 来完成！ 下面是一些示例：
 
-- 生成页面 PDF。
-- 抓取 SPA（单页应用）并生成预渲染内容（即“SSR”（服务器端渲染））。
+- 生成页面 PDF。J
+- 抓取 SPA（单页应用）并生成预渲J染内容（即“SSR”（服务器端渲染））。
 - 自动提交表单，进行 UI 测试，键盘输入等。
 - 创建一个时时更新的自动化测试环境。 使用最新的 JavaScript 和浏览器功能直接在最新版本的Chrome中执行测试。
 - 捕获网站的 [timeline trace](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference)，用来帮助分析性能问题。
@@ -68,9 +69,9 @@ LaunchOptions options = new OptionsBuilder().withHeadless(false).withExecutableP
 Puppeteer.launch(options);
 ```
 
-在这个启动例子里，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的chrome浏览器
+在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的Chrome浏览器
 
-#### 导航
+#### 导航：
 
 ```java
 ArrayList<String> arrayList = new ArrayList<>();
@@ -83,9 +84,9 @@ ArrayList<String> arrayList = new ArrayList<>();
         browser.close();
 ```
 
-这个例子里，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。arrayList是放一些额外的参数启动参数的，在下面资源章节中我会给出相关资料。
+这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。arrayList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
 
-#### 生成PDF
+#### 生成PDF：
 
 ```java
 ArrayList<String> arrayList = new ArrayList<>();
@@ -102,7 +103,7 @@ pdfOptions.setPath("test.pdf");
 page.pdf(pdfOptions);
 ```
 
-在这个例子中，导航到某个页面后，会将整个页面截图，并写成PDF文件,注意，生成PDF必须在headless模式下才能生效
+在这个例子中，导航到某个页面后，将整个页面截图，并写成PDF文件。注意，生成PDF必须在headless模式下才能生效
 
 #### TRACING:性能分析
 
@@ -123,7 +124,7 @@ page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
 page.tracing().stop();
 ```
 
-在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面有页面性能的具体数据，可以用chrome浏览器开发者工具打开该json文件，并分析性能。
+在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面包含页面性能的具体数据，可以用Chrome浏览器开发者工具打开该json文件，并分析性能。
 
 **更多的例子请看**[这里](https://github.com/fanyong920/jvppeteer/tree/master/src/test/java/com/ruiyun/test)
 
