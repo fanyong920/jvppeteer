@@ -239,7 +239,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public ElementHandle $(String selector) {
-        String defaultHandler = "(element, selector) => element.querySelector(selector)";
+        String defaultHandler = "(element, selector) => element.querySelector(selector);";
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
         JSHandle handle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
         ElementHandle element = handle.asElement();

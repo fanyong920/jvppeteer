@@ -40,6 +40,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -53,7 +55,7 @@ public class Helper {
     /**
      * 单线程，一个浏览器只能有一个trcing 任务
      */
-    private static final ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+    private static ExecutorService COMMON_EXECUTOR = null;
 
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
@@ -167,17 +169,17 @@ public class Helper {
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
      */
-    public static final void readProtocolStream(CDPSession client, String handler, String path ,boolean isNewThread) throws IOException {
+    public static final void readProtocolStream(CDPSession client, String handler, String path, boolean isNewThread) throws IOException {
 
-        if(isNewThread){
-            singleThreadExecutor.submit(() -> {
+        if (isNewThread) {
+            Helper.commonExecutor().submit(() -> {
                 try {
                     run(client, handler, path);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
-        }else{
+        } else {
             run(client, handler, path);
         }
 
@@ -190,13 +192,13 @@ public class Helper {
         BufferedInputStream reader = null;
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
-        }else{
+        } else {
             throw new IllegalArgumentException("path must be not null");
         }
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);
         try {
-            if(file != null){
+            if (file != null) {
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 writer = new BufferedOutputStream(fileOutputStream);
             }
@@ -216,11 +218,11 @@ public class Helper {
                             bytes = dataNode.asText().getBytes();
                         }
                         //转成二进制流 io
-                        if(file != null){
+                        if (file != null) {
                             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
                             reader = new BufferedInputStream(byteArrayInputStream);
-                            int read ;
-                            while ((read = reader.read(buffer,0,Constant.DEFAULT_BUFFER_SIZE)) != -1) {
+                            int read;
+                            while ((read = reader.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) != -1) {
                                 writer.write(buffer, 0, read);
                                 writer.flush();
                             }
@@ -381,8 +383,21 @@ public class Helper {
         }
 
         return MessageFormat.format("({0})({1})", fun, String.join(",", argsList));
-
     }
 
-
+    public static final ExecutorService commonExecutor() {
+        if (COMMON_EXECUTOR == null) {
+            synchronized (Helper.class) {
+                if (COMMON_EXECUTOR == null) {
+                    Runtime runtime = Runtime.getRuntime();
+                    int processorNum = runtime.availableProcessors();
+                    if (processorNum < 3) {
+                        processorNum = 3;
+                    }
+                    COMMON_EXECUTOR = new ThreadPoolExecutor(processorNum, processorNum, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+                }
+            }
+        }
+        return COMMON_EXECUTOR;
+    }
 }

@@ -39,7 +39,7 @@ public class FileChooser {
     /**
      * @param {!Array<string>} filePaths
      */
-    public void accept(List<String> filePaths) throws JsonProcessingException {
+    public void accept(List<String> filePaths) {
         ValidateUtil.assertBoolean(!this.handled, "Cannot accept FileChooser which is already handled!");
         this.handled = true;
         this.element.uploadFile(filePaths);

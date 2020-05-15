@@ -1,6 +1,7 @@
 package com.ruiyun.test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import org.junit.Test;
@@ -55,5 +56,12 @@ public class StringTest {
         String s2 = DialogType.Alert.toString();
         System.out.println("s2;"+s2);
         System.out.println(alert.getType());
+
+        ObjectNode objectNode = Constant.OBJECTMAPPER.createObjectNode();
+        objectNode.put("12","3245");
+        String s3 = Constant.OBJECTMAPPER.writeValueAsString(objectNode);
+        System.out.println(s3);
+        String aaa= "asas";
+        System.out.println(aaa);
     }
 }

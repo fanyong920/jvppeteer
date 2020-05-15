@@ -147,16 +147,24 @@ public class ExecutionContext {
         }
     }
 
-    public String convertArgument(ExecutionContext th, Object arg) throws JsonProcessingException {
+    public Object convertArgument(ExecutionContext th, Object arg) throws JsonProcessingException {
         ObjectNode objectNode = Constant.OBJECTMAPPER.createObjectNode();
         if (arg == null) {
             return null;
         }
         if (arg instanceof BigInteger) // eslint-disable-line valid-typeof
-            return objectNode.put("unserializableValue", arg.toString() + "n").toString();
-        if (arg instanceof String)
-            return objectNode.put("unserializableValue", arg.toString()).toString();
+            return objectNode.put("unserializableValue", arg.toString() + "n");
+        if ("-0".equals(arg))
+            return objectNode.put("unserializableValue", "-0");
 
+        if ("Infinity".equals(arg))
+            return objectNode.put("unserializableValue", "Infinity");
+
+        if ("-Infinity".equals(arg))
+            return objectNode.put("unserializableValue", "-Infinity");
+
+        if ("NaN".equals(arg))
+            return objectNode.put("unserializableValue", "NaN");
         JSHandle objectHandle = arg != null && (arg instanceof JSHandle) ? (JSHandle) arg : null;
         if (objectHandle != null) {
             if (objectHandle.getContext() != this)
@@ -164,12 +172,12 @@ public class ExecutionContext {
             if (objectHandle.getDisposed())
                 throw new IllegalArgumentException("JSHandle is disposed!");
             if (objectHandle.getRemoteObject().getUnserializableValue() != null)
-                return objectNode.put("unserializableValue", objectHandle.getRemoteObject().getUnserializableValue()).toString();
+                return objectNode.put("unserializableValue", objectHandle.getRemoteObject().getUnserializableValue());
             if (StringUtil.isEmpty(objectHandle.getRemoteObject().getObjectId()))
-                return objectNode.put("value", Constant.OBJECTMAPPER.writeValueAsString(objectHandle.getRemoteObject().getValue())).toString();
-            return objectNode.put("objectId", objectHandle.getRemoteObject().getObjectId()).toString();
+                return objectNode.putPOJO("value", objectHandle.getRemoteObject().getValue());
+            return objectNode.put("objectId", objectHandle.getRemoteObject().getObjectId());
         }
-        return objectNode.put("value", Constant.OBJECTMAPPER.writeValueAsString(arg)).toString();
+        return objectNode.putPOJO("value", arg);
     }
 
     private JSHandle createJSHandle(ExecutionContext executionContext, RemoteObject remoteObject) {

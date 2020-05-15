@@ -13,6 +13,7 @@ import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.PageCrashException;
 import com.ruiyun.jvppeteer.exception.TerminateException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Clip;
 import com.ruiyun.jvppeteer.options.ClipOverwrite;
@@ -75,7 +76,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -87,7 +92,7 @@ import static com.ruiyun.jvppeteer.Constant.supportedMetrics;
 
 public class Page extends EventEmitter {
 
-    private Set<BiConsumer<Object, FileChooser>> fileChooserInterceptors;
+    private Set<FileChooserCallBack> fileChooserInterceptors;
 
     private boolean closed = true;
 
@@ -285,8 +290,7 @@ public class Page extends EventEmitter {
         requestFinishedLis.setTarget(this);
         networkManager.on(requestFinishedLis.getMothod(), requestFinishedLis);
 
-        //TODO ${fileChooserInterceptors}
-        this.fileChooserInterceptors = new HashSet<>();
+        this.fileChooserInterceptors = new CopyOnWriteArraySet<>();
 
         DefaultBrowserListener<Object> domContentEventFiredLis = new DefaultBrowserListener<Object>() {
             @Override
@@ -997,11 +1001,11 @@ public class Page extends EventEmitter {
         Frame frame = this.frameManager.frame(event.getFrameId());
         ExecutionContext context = frame.executionContext();
         ElementHandle element = context.adoptBackendNodeId(event.getBackendNodeId());
-        Set<BiConsumer<Object, FileChooser>> interceptors = new HashSet<>(this.fileChooserInterceptors);
+        Set<FileChooserCallBack> interceptors = new HashSet<>(this.fileChooserInterceptors);
         this.fileChooserInterceptors.clear();
         FileChooser fileChooser = new FileChooser(this.client, element, event);
-        for (BiConsumer interceptor : interceptors)
-            interceptor.accept(null, fileChooser);
+        for (FileChooserCallBack interceptor : interceptors)
+            interceptor.setFileChooser(fileChooser);
     }
 
     private void onLogEntryAdded(EntryAddedPayload event) {
@@ -1731,21 +1735,28 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
-    public FileChooser waitForFileChooser(int timeout) {
-        if (ValidateUtil.isEmpty(this.fileChooserInterceptors)) {
-            Map<String, Object> params = new HashMap<>();
-            params.put("enabled", true);
-            this.client.send("Page.setInterceptFileChooserDialog", params, true);
-        }
+    public Future<FileChooser> waitForFileChooser( int timeout) {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
-
-        //TODO 暂时不知道callback到底是何物
-//        this.fileChooserInterceptors.add(callback);
-//        return helper.waitWithTimeout(promise, 'waiting for file chooser', timeout).catch(error = > {
-//            this._fileChooserInterceptors.delete(callback);
-
-        return null;
+        int finalTimeout = timeout;
+        Future<FileChooser> fileChooserFuture = Helper.commonExecutor().submit(() -> {
+            if (ValidateUtil.isEmpty(this.fileChooserInterceptors)) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("enabled", true);
+                this.client.send("Page.setInterceptFileChooserDialog", params, true);
+            }
+            CountDownLatch latch = new CountDownLatch(1);
+            FileChooserCallBack callback = new FileChooserCallBack(latch);
+            this.fileChooserInterceptors.add(callback);
+            try {
+                callback.waitForFileChooser(finalTimeout);
+                return callback.getFileChooser();
+            } catch (InterruptedException e) {
+                this.fileChooserInterceptors.remove(callback);
+                throw new RuntimeException(e);
+            }
+        });
+        return fileChooserFuture;
     }
 
     /**
@@ -1954,5 +1965,49 @@ public class Page extends EventEmitter {
      */
     public Viewport viewport() {
         return this.viewport;
+    }
+    class FileChooserCallBack{
+
+        public FileChooserCallBack() {
+            super();
+        }
+
+        public FileChooserCallBack(CountDownLatch latch) {
+            super();
+            this.latch = latch;
+        }
+
+        private  CountDownLatch latch;
+
+        private FileChooser fileChooser;
+
+        public FileChooser getFileChooser() {
+            return fileChooser;
+        }
+
+        public void setFileChooser(FileChooser fileChooser) {
+            if(this.latch != null && this.latch.getCount() > 0){
+                this.latch.countDown();
+            }
+            System.out.println("---------------回调----------------https://sm.ms/");
+            this.fileChooser = fileChooser;
+        }
+
+        public CountDownLatch getLatch() {
+            return latch;
+        }
+
+        public void setLatch(CountDownLatch latch) {
+            this.latch = latch;
+        }
+
+        public void waitForFileChooser(int finalTimeout) throws InterruptedException {
+            if(this.latch != null){
+                boolean await = this.latch.await(finalTimeout, TimeUnit.MILLISECONDS);
+                if(!await){
+                    throw new TimeoutException("waiting for file chooser failed: timeout "+finalTimeout+"ms exceeded");
+                }
+            }
+        }
     }
 }
