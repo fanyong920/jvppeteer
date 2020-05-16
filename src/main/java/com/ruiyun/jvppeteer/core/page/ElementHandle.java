@@ -402,7 +402,7 @@ public class ElementHandle extends JSHandle {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", objectId);
         JsonNode node = this.client.send("DOM.describeNode", params, true);
-        int backendNodeId = node.get("backendNodeId").asInt();
+        int backendNodeId = node.get("node").get("backendNodeId").asInt();
         // The zero-length array is a special case, it seems that DOM.setFileInputFiles does
         // not actually update the files in that case, so the solution is to eval the element
         // value to a new FileList directly.

@@ -992,16 +992,18 @@ public class Page extends EventEmitter {
     }
 
     private void onFileChooser(FileChooserOpenedPayload event) {
-        if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
-            return;
-        Frame frame = this.frameManager.frame(event.getFrameId());
-        ExecutionContext context = frame.executionContext();
-        ElementHandle element = context.adoptBackendNodeId(event.getBackendNodeId());
-        Set<FileChooserCallBack> interceptors = new HashSet<>(this.fileChooserInterceptors);
-        this.fileChooserInterceptors.clear();
-        FileChooser fileChooser = new FileChooser(this.client, element, event);
-        for (FileChooserCallBack interceptor : interceptors)
-            interceptor.setFileChooser(fileChooser);
+        Helper.commonExecutor().submit(() -> {
+            if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
+                return;
+            Frame frame = this.frameManager.frame(event.getFrameId());
+            ExecutionContext context = frame.executionContext();
+            ElementHandle element = context.adoptBackendNodeId(event.getBackendNodeId());
+            Set<FileChooserCallBack> interceptors = new HashSet<>(this.fileChooserInterceptors);
+            this.fileChooserInterceptors.clear();
+            FileChooser fileChooser = new FileChooser(this.client, element, event);
+            for (FileChooserCallBack interceptor : interceptors)
+                interceptor.setFileChooser(fileChooser);
+        });
     }
 
     private void onLogEntryAdded(EntryAddedPayload event) {
@@ -1982,11 +1984,12 @@ public class Page extends EventEmitter {
         }
 
         public void setFileChooser(FileChooser fileChooser) {
+            this.fileChooser = fileChooser;
             if(this.latch != null && this.latch.getCount() > 0){
                 this.latch.countDown();
             }
             System.out.println("---------------回调----------------https://sm.ms/");
-            this.fileChooser = fileChooser;
+
         }
 
         public CountDownLatch getLatch() {
