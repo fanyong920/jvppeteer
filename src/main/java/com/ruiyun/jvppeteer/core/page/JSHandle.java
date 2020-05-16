@@ -38,7 +38,10 @@ public class JSHandle {
     }
 
     public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
-        return this.executionContext().evaluateInternal(false, pageFunction, type, args);
+        Object[] argsArray = new Object[args.length + 1];
+        argsArray[0] = this;
+        System.arraycopy(args,0,argsArray,1,args.length);
+        return this.executionContext().evaluateInternal(false, pageFunction, type,argsArray);
     }
 
     public JSHandle getProperty(String propertyName) throws JsonProcessingException {

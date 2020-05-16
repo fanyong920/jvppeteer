@@ -183,20 +183,23 @@ public class DOMWorld {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
         }
-
         this.evaluate("(html) => {\n" +
                 "      document.open();\n" +
                 "      document.write(html);\n" +
                 "      document.close();\n" +
                 "    }", PageEvaluateType.FUNCTION, html);
         LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
-        CountDownLatch latch = new CountDownLatch(1);
-        this.frameManager.setLatch(latch);
+
+        if(watcher.lifecyclePromise() != null){
+            return;
+        }
         try {
+            CountDownLatch latch = new CountDownLatch(1);
+            this.frameManager.setContentLatch(latch);
+            this.frameManager.setNavigateResult(null);
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
             if (await) {
-                if ("success".equals(this.frameManager.getNavigateResult())) {
-                    watcher.dispose();
+                if ("Content-success".equals(this.frameManager.getNavigateResult())) {
                 } else if ("timeout".equals(this.frameManager.getNavigateResult())) {
                     throw new TimeoutException("setContent timeout :" + html);
                 } else if ("termination".equals(this.frameManager.getNavigateResult())) {
@@ -209,6 +212,8 @@ public class DOMWorld {
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
+        }finally {
+            watcher.dispose();
         }
     }
 

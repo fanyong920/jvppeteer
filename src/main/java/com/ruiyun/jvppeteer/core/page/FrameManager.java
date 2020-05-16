@@ -55,7 +55,8 @@ public class FrameManager extends EventEmitter {
     /**
      * 给导航到新的网页用
      */
-    private CountDownLatch latch;
+    private CountDownLatch documentLatch;
+    private CountDownLatch contentLatch;
 
     /**
      * 导航到新的网页的结果
@@ -179,6 +180,7 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(LifecycleEventPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
+//                System.out.println("Page.lifecycleEventListener....");
                 frameManager.onLifecycleEvent(event);
             }
         };
@@ -204,7 +206,7 @@ public class FrameManager extends EventEmitter {
         this.contextIdToContext.clear();
     }
 
-    private void onExecutionContextDestroyed(int executionContextId)  {
+    private void onExecutionContextDestroyed(int executionContextId) {
         ExecutionContext context = this.contextIdToContext.get(executionContextId);
         if (context == null)
             return;
@@ -278,7 +280,7 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public void initialize()   {
+    public void initialize() {
 
         this.client.send("Page.enable", null, false);
         /* @type Protocol.Page.getFrameTreeReturnValue*/
@@ -460,20 +462,29 @@ public class FrameManager extends EventEmitter {
             }
             assertNoLegacyNavigationOptions(options);
         }
-
-        this.latch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
+
+        long start = System.currentTimeMillis();
         try {
             this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
-            if(this.ensureNewDocumentNavigation)
-                DocumentNavigationPromiseType = "new";
-            else
-                DocumentNavigationPromiseType = "same";
             if ("success".equals(navigateResult)) {
-                this.latch = new CountDownLatch(1);
+                if (this.ensureNewDocumentNavigation) {
+                    DocumentNavigationPromiseType = "new";
+                    if (watcher.newDocumentNavigationPromise() != null) {
+                        return watcher.navigationResponse();
+                    }
+                } else {
+                    DocumentNavigationPromiseType = "same";
+                    if (watcher.sameDocumentNavigationPromise() != null) {
+                        return watcher.navigationResponse();
+                    }
+                }
                 try {
-                    boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
-                    if(!await){
+                    this.navigateResult = "";
+                    this.documentLatch = new CountDownLatch(1);
+                    long end = System.currentTimeMillis();
+                    boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
+                    if (!await) {
                         throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
                     }
                     if ("success".equals(navigateResult)) {
@@ -490,7 +501,7 @@ public class FrameManager extends EventEmitter {
             } else {
                 throw new NavigateException("UnNokwn result " + navigateResult);
             }
-        }finally {
+        } finally {
             watcher.dispose();
         }
     }
@@ -501,29 +512,24 @@ public class FrameManager extends EventEmitter {
         params.put("referer", referer);
         params.put("frameId", frameId);
         try {
-            JsonNode response = client.send("Page.navigate", params, true, latch, timeout);
-
-            if (response != null && response.get("errorText") != null) {
-                throw new NavigateException(response.get("errorText").toString()+" at "+url);
+            JsonNode response = client.send("Page.navigate", params, true, null, timeout);
+            this.setNavigateResult("success");
+            if (response == null) {
+                return false;
             }
-            if (response != null && response.get("loaderId") != null) {
-                this.setNavigateResult("success");
+            if (response.get("errorText") != null) {
+                throw new NavigateException(response.get("errorText").toString() + " at " + url);
+            }
+            if (response.get("loaderId") != null) {
                 return true;
             }
+
         } catch (TimeoutException e) {
             this.setNavigateResult("timeout");
         }
         return false;
     }
 
-
-    public CountDownLatch getLatch() {
-        return latch;
-    }
-
-    public void setLatch(CountDownLatch latch) {
-        this.latch = latch;
-    }
 
     public String getNavigateResult() {
         return navigateResult;
@@ -568,37 +574,43 @@ public class FrameManager extends EventEmitter {
             assertNoLegacyNavigationOptions(options);
         }
 
-        this.latch = new CountDownLatch(1);
+        this.DocumentNavigationPromiseType = "all";
+        this.setNavigateResult(null);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-        DocumentNavigationPromiseType = "all";
+        if (watcher.newDocumentNavigationPromise() != null) {
+            return watcher.navigationResponse();
+        }
+        if (watcher.sameDocumentNavigationPromise() != null) {
+            return watcher.navigationResponse();
+        }
         try {
-            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
-            if(!await){
+            this.documentLatch = new CountDownLatch(1);
+            boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
+            if (!await) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+            }
+            if ("success".equals(navigateResult)) {
+                return watcher.navigationResponse();
+            } else if ("timeout".equals(navigateResult)) {
+                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+            } else if ("termination".equals(navigateResult)) {
+                throw new NavigateException("Navigating frame was detached");
+            } else {
+                throw new NavigateException("UnNokwn result " + navigateResult);
             }
         } catch (InterruptedException e) {
             throw new NavigateException("UnNokwn result " + e.getMessage());
-        }finally {
+        } finally {
             watcher.dispose();
         }
-        if ("success".equals(navigateResult)) {
-            return watcher.navigationResponse();
-        } else if ("timeout".equals(navigateResult)) {
-            throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-        } else if ("termination".equals(navigateResult)) {
-            throw new NavigateException("Navigating frame was detached");
-        } else {
-            throw new NavigateException("UnNokwn result " + navigateResult);
-        }
-
     }
 
-    private void assertNoLegacyNavigationOptions(PageNavigateOptions options){
-        ValidateUtil.assertBoolean(!"networkidle".equals(options.getWaitUntil()),"ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
+    private void assertNoLegacyNavigationOptions(PageNavigateOptions options) {
+        ValidateUtil.assertBoolean(!"networkidle".equals(options.getWaitUntil()), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 
     public Frame mainFrame() {
-        return  this.mainFrame;
+        return this.mainFrame;
     }
 
     public NetworkManager networkManager() {
@@ -613,5 +625,19 @@ public class FrameManager extends EventEmitter {
         DocumentNavigationPromiseType = documentNavigationPromiseType;
     }
 
+    public CountDownLatch getDocumentLatch() {
+        return documentLatch;
+    }
 
+    public void setDocumentLatch(CountDownLatch documentLatch) {
+        this.documentLatch = documentLatch;
+    }
+
+    public CountDownLatch getContentLatch() {
+        return contentLatch;
+    }
+
+    public void setContentLatch(CountDownLatch contentLatch) {
+        this.contentLatch = contentLatch;
+    }
 }

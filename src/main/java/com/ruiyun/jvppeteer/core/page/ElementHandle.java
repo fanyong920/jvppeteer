@@ -102,7 +102,7 @@ public class ElementHandle extends JSHandle {
                 "        }";
         Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
         try {
-            if (error != null)
+            if (error != null && (error.getClass().equals(boolean.class) || error.getClass().equals(Boolean.class) ) && (boolean)error)
                 throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -122,7 +122,7 @@ public class ElementHandle extends JSHandle {
         // Filter out quads that have too small area to click into.
         JsonNode layoutViewport = layoutMetrics.get("layoutViewport");
         JsonNode clientWidth = layoutViewport.get("clientWidth");
-        JsonNode clientHeight = layoutMetrics.get("clientHeight");
+        JsonNode clientHeight = layoutViewport.get("clientHeight");
         JsonNode quadsNode = result.get("quads");
         Iterator<JsonNode> elements = quadsNode.elements();
         List<List<ClickablePoint>> quads = new ArrayList<>();
@@ -136,8 +136,8 @@ public class ElementHandle extends JSHandle {
             }
             List<ClickablePoint> clickOptions = this.fromProtocolQuad(quad);
             intersectQuadWithViewport(clickOptions, clientWidth.asInt(), clientHeight.asInt());
+            quads.add(clickOptions);
         }
-
         List<List<ClickablePoint>> collect = quads.stream().filter(quad -> computeQuadArea(quad) > 1).collect(Collectors.toList());
         if (collect.size() == 0)
             throw new RuntimeException("Node is either not visible or not an HTMLElement");
@@ -239,7 +239,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public ElementHandle $(String selector) {
-        String defaultHandler = "(element, selector) => element.querySelector(selector);";
+        String defaultHandler = "(element, selector) => element.querySelector(selector)";
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
         JSHandle handle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
         ElementHandle element = handle.asElement();

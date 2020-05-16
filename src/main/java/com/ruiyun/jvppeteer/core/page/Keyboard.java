@@ -285,7 +285,6 @@ public class Keyboard {
 
     public void down(String key,String text) {
         KeyDescription description = this.keyDescriptionForString(key);
-
         boolean autoRepeat = this.pressedKeys.contains(description.getCode());
         this.pressedKeys.add(description.getCode());
         this.modifiers |= this.modifierBit(description.getKey());
@@ -294,7 +293,7 @@ public class Keyboard {
         }
         Map<String, Object> params = new HashMap<>();
         if(StringUtil.isNotEmpty(text)) {
-            params.put("type", "keydown");
+            params.put("type", "keyDown");
         }
         else {
             params.put("type", "rawKeyDown");
@@ -316,7 +315,7 @@ public class Keyboard {
         this.modifiers &= ~this.modifierBit(description.getKey());
         this.pressedKeys.remove(description.getCode());
         Map<String, Object> params = new HashMap<>();
-        params.put("type", "keyup");
+        params.put("type", "keyUp");
         params.put("modifiers", this.modifiers);
         params.put("key", description.getKey());
         params.put("windowsVirtualKeyCode", description.getKeyCode());
@@ -338,17 +337,17 @@ public class Keyboard {
             char c = text.charAt(i);
             if (charIsKey(String.valueOf(c)))
                 this.press(String.valueOf(c), delay,null);
-            else
-
-            if (delay > 0)
-                Thread.sleep(delay);
-            this.sendCharacter(String.valueOf(c));
+            else{
+                if (delay > 0)
+                    Thread.sleep(delay);
+                this.sendCharacter(String.valueOf(c));
+            }
         }
     }
 
     public void press(String key, int delay,String text) throws InterruptedException {
         this.down(key,text);
-        if (delay >= 0)
+        if (delay > 0)
             Thread.sleep(delay);
         this.up(key);
     }
@@ -379,7 +378,7 @@ public class Keyboard {
             description.setKey(definition.getShiftKey());
 
         if (definition.getKeyCode() != 0)
-            description.setKeyCode(definition.getShiftKeyCode());
+            description.setKeyCode(definition.getKeyCode());
         if (shift != 0 && definition.getShiftKeyCode() != 0)
             description.setKeyCode(definition.getShiftKeyCode());
 

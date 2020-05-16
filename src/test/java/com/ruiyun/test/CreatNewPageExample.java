@@ -24,7 +24,7 @@ public class CreatNewPageExample {
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
-        ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        System.out.println("page="+OBJECTMAPPER.writeValueAsString(page));
+        //ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);
+       // System.out.println("page="+OBJECTMAPPER.writeValueAsString(page));
     }
 }

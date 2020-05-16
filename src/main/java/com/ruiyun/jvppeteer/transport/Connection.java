@@ -131,7 +131,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
             String sendMsg = Constant.OBJECTMAPPER.writeValueAsString(message);
             if (LOGGER.isDebugEnabled())
                 LOGGER.debug("SEND -> " + sendMsg);
-            System.out.println("SEND -> " + sendMsg);
+//            System.out.println("SEND -> " + sendMsg);
             transport.send(sendMsg);
             return id;
         } catch (JsonProcessingException e) {
@@ -222,7 +222,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
      * 从{@link CDPSession}中拿到对应的{@link Connection}
      *
      * @param client
-     * @return
+     * @returno
      */
     public static Connection fromSession(CDPSession client) {
         return client.getConnection();

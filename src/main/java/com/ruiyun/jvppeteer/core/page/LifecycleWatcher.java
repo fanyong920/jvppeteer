@@ -29,6 +29,11 @@ public class LifecycleWatcher {
     private boolean hasSameDocumentNavigation;
 
 
+    private Object lifecyclePromise = null;
+    private Object sameDocumentNavigationPromise = null;
+    private Object newDocumentNavigationPromise = null;
+
+
     public LifecycleWatcher() {
         super();
     }
@@ -40,22 +45,22 @@ public class LifecycleWatcher {
         this.initialLoaderId = frame.getLoaderId();
         this.timeout = timeout;
         this.navigationRequest = null;
-        waitUntil.replaceAll(value -> {
+        waitUntil.forEach(value -> {
             if ("domcontentloaded".equals(value)) {
-                return "DOMContentLoaded";
+                this.expectedLifecycle.add( "DOMContentLoaded");
             } else if ("networkidle0".equals(value)) {
-                return "networkIdle";
+                this.expectedLifecycle.add( "networkIdle");
             } else if ("networkidle2".equals(value)) {
-                return "networkAlmostIdle";
+                this.expectedLifecycle.add(  "networkAlmostIdle");
             } else if ("load".equals(value)) {
-                return "load";
+                this.expectedLifecycle.add( "load");
+            }else{
+                throw new IllegalArgumentException("Unknown value for options.waitUntil: " + value);
             }
-            throw new IllegalArgumentException("Unknown value for options.waitUntil: " + value);
+
         });
-        this.expectedLifecycle.addAll(waitUntil);
 
         this.eventListeners = new ArrayList<>();
-
         DefaultBrowserListener<Object> disconnecteListener = new DefaultBrowserListener<Object>() {
             @Override
             public void onBrowserEvent(Object event) {
@@ -113,11 +118,19 @@ public class LifecycleWatcher {
         this.checkLifecycleComplete();
     }
 
-    public void lifecyclePromise() {
+    public Object sameDocumentNavigationPromise(){
+        return this.sameDocumentNavigationPromise;
     }
 
+    public Object newDocumentNavigationPromise() {
+        return this.newDocumentNavigationPromise ;
+    }
     public void lifecycleCallback() {
-        setNavigateResult("success");
+        this.lifecyclePromise = new Object();
+        if (this.frameManager.getContentLatch() != null && this.frameManager.getContentLatch().getCount() > 0) {
+            this.frameManager.setNavigateResult("Content-success");
+            this.frameManager.getContentLatch().countDown();
+        }
     }
 
     private void onFrameDetached(Frame frame) {
@@ -134,7 +147,7 @@ public class LifecycleWatcher {
         this.navigationRequest = request;
     }
 
-    private void navigatedWithinDocument(Frame frame) {
+    public void navigatedWithinDocument(Frame frame) {
         if (this.frame != frame)
             return;
         this.hasSameDocumentNavigation = true;
@@ -149,7 +162,7 @@ public class LifecycleWatcher {
             return;
         if (this.hasSameDocumentNavigation)
             this.sameDocumentNavigationCompleteCallback();
-        if (this.frame.getLoaderId().equals(this.initialLoaderId))
+        if (!this.frame.getLoaderId().equals(this.initialLoaderId))
             this.newDocumentNavigationCompleteCallback();
     }
     /**
@@ -170,7 +183,9 @@ public class LifecycleWatcher {
         }
         return true;
     }
-
+   public Object lifecyclePromise() {
+        return this.lifecyclePromise;
+    }
     private void terminate(TerminateException e) {
         terminationCallback();
     }
@@ -193,21 +208,20 @@ public class LifecycleWatcher {
     }
 
     public void newDocumentNavigationCompleteCallback() {
+        this.newDocumentNavigationPromise = new Object();
         if ("new".equals(this.frameManager.getDocumentNavigationPromiseType()) || "all".equals(this.frameManager.getDocumentNavigationPromiseType()))
             setNavigateResult("success");
     }
     public void sameDocumentNavigationCompleteCallback() {
+        this.sameDocumentNavigationPromise = new Object();
         if ("same".equals(this.frameManager.getDocumentNavigationPromiseType()) || "all".equals(this.frameManager.getDocumentNavigationPromiseType()))
             setNavigateResult("success");
     }
 
-    public void sameDocumentNavigationPromise() {
-        setNavigateResult("success");
-    }
     private void setNavigateResult(String result) {
-        if (this.frameManager.getLatch() != null && this.frameManager.getLatch().getCount() > 0) {
+        if (this.frameManager.getDocumentLatch() != null && this.frameManager.getDocumentLatch().getCount() > 0 && !"Content-success".equals(result)) {
             this.frameManager.setNavigateResult(result);
-            this.frameManager.getLatch().countDown();
+            this.frameManager.getDocumentLatch().countDown();
         }
     }
 

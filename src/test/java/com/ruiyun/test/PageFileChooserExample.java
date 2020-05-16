@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.page.ElementHandle;
 import com.ruiyun.jvppeteer.core.page.FileChooser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.ClickOptions;
@@ -20,9 +21,9 @@ import java.util.concurrent.Future;
 public class PageFileChooserExample {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, UnsupportedEncodingException {
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-        //String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
@@ -30,13 +31,16 @@ public class PageFileChooserExample {
         Browser browser = Puppeteer.launch(options);
 
         Page page = browser.newPage();
-        page.goTo("https://sm.ms/");
+        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         ClickOptions clickOptions = new ClickOptions();
-        Future<FileChooser> fileChooserFuture = page.waitForFileChooser(30000);
-        page.click("#smfile",clickOptions);
-        FileChooser fileChooser = fileChooserFuture.get();
-        List<String> paths = new ArrayList<>();
-        paths.add("C:\\Users\\fanyong\\Pictures\\Saved Pictures\\IMG_20180820_174915.jpg");
-        fileChooser.accept(paths);
+//        Future<FileChooser> fileChooserFuture = page.waitForFileChooser(30000);
+        Thread.sleep(3000);
+        ElementHandle elementHandle = page.$("#su");
+        elementHandle.type("我是樊勇",0);
+        elementHandle.press("Enter",0,null);
+//        FileChooser fileChooser = fileChooserFuture.get();
+//        List<String> paths = new ArrayList<>();
+//        paths.add("C:\\Users\\howay\\Desktop\\sunway.png");
+//        fileChooser.accept(paths);
     }
 }

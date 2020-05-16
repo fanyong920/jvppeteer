@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
@@ -126,7 +127,7 @@ public class ExecutionContext {
         RemoteObject remoteObject = null;
         try {
             if (exceptionDetails != null)
-                throw new RuntimeException("Evaluation failed: " + Helper.getExceptionMessage(Constant.OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class)));
+                throw new ProtocolException("Evaluation failed: " + Helper.getExceptionMessage(Constant.OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class)));
             remoteObject = Constant.OBJECTMAPPER.treeToValue(callFunctionOnPromise.get("result"), RemoteObject.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
