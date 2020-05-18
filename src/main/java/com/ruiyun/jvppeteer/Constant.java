@@ -19,6 +19,10 @@ import java.util.Set;
 public interface Constant {
 
 	/**
+	 * 临时文件夹前缀
+	 */
+	String PROFILE_PREFIX = "puppeteer_dev_chrome_profile-";
+	/**
 	 * 把产品存放到环境变量的所有可用字段
 	 */
 	String[] PRODUCT_ENV = {"PUPPETEER_PRODUCT","java_config_puppeteer_product","java_package_config_puppeteer_product"};

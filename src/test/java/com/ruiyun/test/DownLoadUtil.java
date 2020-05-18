@@ -119,9 +119,9 @@ public class DownLoadUtil {
                     if (!isSuccess) {
                         executor.shutdownNow();
                     }
-                    StreamUtil.closeStream(file);
-                    StreamUtil.closeStream(channel);
-                    StreamUtil.closeStream(readableByteChannel);
+                    StreamUtil.closeQuietly(file);
+                    StreamUtil.closeQuietly(channel);
+                    StreamUtil.closeQuietly(readableByteChannel);
                     if (conn != null) {
                         conn.disconnect();
                         conn = null;

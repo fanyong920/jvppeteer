@@ -1,8 +1,5 @@
 package com.ruiyun.jvppeteer.launch;
 
-import java.util.List;
-
-import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.Environment;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.options.BrowserOptions;
@@ -10,11 +7,11 @@ import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 
-public interface Launcher extends Constant {
+import java.util.List;
+
+public interface Launcher {
 	
 	Environment env = System::getenv;
-	
-	String PROFILE_PREFIX = "puppeteer_dev_chrome_profile-";
 	
 	Browser launch(LaunchOptions options);
 	

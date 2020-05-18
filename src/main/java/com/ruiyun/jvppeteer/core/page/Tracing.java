@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -39,6 +40,10 @@ public class Tracing implements Constant {
         this.path = "";
     }
 
+    public void  start(String path) {
+       this.start(path,false,null);
+    }
+
     /**
      * <p>start tracing</p>
      * 每个浏览器一次只能激活一条跟踪
@@ -48,8 +53,8 @@ public class Tracing implements Constant {
      */
     public void  start(String path,boolean screenshots, Set<String> categories) {
         ValidateUtil.assertBoolean(!this.recording, "Cannot start recording trace while already recording trace.");
-       if(ValidateUtil.isEmpty(categories))
-           categories = DEFAULTCATEGORIES;
+       if(categories == null)
+           categories = new HashSet<>(DEFAULTCATEGORIES);
         if (screenshots)
             categories.add("disabled-by-default-devtools.screenshot");
         this.path = path;
@@ -59,6 +64,7 @@ public class Tracing implements Constant {
         params.put("categories",String.join(",",categories));
         this.client.send("Tracing.start", params,true);
     }
+
 
     /**
      * stop tracing

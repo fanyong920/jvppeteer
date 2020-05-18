@@ -31,15 +31,14 @@ public class PageFileChooserExample {
 
         Page page = browser.newPage();
         PageNavigateOptions options1 = new PageNavigateOptions();
-        options1.setWaitUntil(Arrays.asList("DOMContentLoaded"));
+        options1.setWaitUntil(Arrays.asList("domcontentloaded"));
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        ClickOptions clickOptions = new ClickOptions();
         Future<FileChooser> fileChooserFuture = page.waitForFileChooser(30000);
         ElementHandle elementHandle = page.$("#form > span.bg.s_ipt_wr.quickdelete-wrap > span.soutu-btn");
-        elementHandle.click(clickOptions);
+        elementHandle.click();
 
         ElementHandle button = page.$("#form > div > div.soutu-state-normal > div.upload-wrap > input");
-        button.click(clickOptions);
+        button.click();
         FileChooser fileChooser = fileChooserFuture.get();
 
         List<String> paths = new ArrayList<>();

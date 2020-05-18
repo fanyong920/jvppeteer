@@ -64,7 +64,7 @@ public class ChromeLauncher implements Launcher {
             runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), "");
             Function closeCallback = (s) -> {
-                runner.close(s);
+                runner.closeQuietly();
                 return null;
             };
             Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback, options.getTimeout());
@@ -90,7 +90,7 @@ public class ChromeLauncher implements Launcher {
             launchOptions = (LaunchOptions) options;
             pipe = launchOptions.getPipe();
             if (!launchOptions.getIgnoreAllDefaultArgs()) {
-                chromeArguments.addAll(DEFAULT_ARGS);
+                chromeArguments.addAll(Constant.DEFAULT_ARGS);
             }
         }
 
@@ -128,7 +128,7 @@ public class ChromeLauncher implements Launcher {
             }
         }
         if (!isCustomUserDir) {
-            temporaryUserDataDir = FileUtil.createProfileDir(PROFILE_PREFIX);
+            temporaryUserDataDir = FileUtil.createProfileDir(Constant.PROFILE_PREFIX);
             chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
         }
         if (!isCustomRemoteDebugger) {
@@ -154,8 +154,8 @@ public class ChromeLauncher implements Launcher {
                 }
                 return chromeExecutable;
             } else {
-                for (int i = 0; i < EXECUTABLE_ENV.length; i++) {
-                    chromeExecutable = env.getEnv(EXECUTABLE_ENV[i]);
+                for (int i = 0; i < Constant.EXECUTABLE_ENV.length; i++) {
+                    chromeExecutable = env.getEnv(Constant.EXECUTABLE_ENV[i]);
                     if (StringUtil.isNotEmpty(chromeExecutable)) {
                         boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
                         if (!assertDir) {
@@ -165,8 +165,8 @@ public class ChromeLauncher implements Launcher {
                     }
                 }
 
-                for (int i = 0; i < PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
-                    chromeExecutable = PROBABLE_CHROME_EXECUTABLE_PATH[i];
+                for (int i = 0; i < Constant.PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
+                    chromeExecutable = Constant.PROBABLE_CHROME_EXECUTABLE_PATH[i];
                     if (StringUtil.isNotEmpty(chromeExecutable)) {
                         boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
                         if (assertDir) {
@@ -182,7 +182,7 @@ public class ChromeLauncher implements Launcher {
         FetcherOptions fetcherOptions = new FetcherOptions();
         fetcherOptions.setProduct(this.product());
         BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot, fetcherOptions);
-        String revision = env.getEnv(PUPPETEER_CHROMIUM_REVISION_ENV);
+        String revision = env.getEnv(Constant.PUPPETEER_CHROMIUM_REVISION_ENV);
         if (StringUtil.isNotEmpty(revision)) {
             RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
             if (!revisionInfo.getLocal()) {

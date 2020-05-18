@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.transport;
 
-import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 
 import java.io.IOException;
@@ -60,8 +59,8 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void close() {
-        StreamUtil.closeStream(pipeWriter);
-        StreamUtil.closeStream(pipeReader);
+        StreamUtil.closeQuietly(pipeWriter);
+        StreamUtil.closeQuietly(pipeReader);
     }
 
     private class PipeWriterThread implements Runnable {

@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
@@ -93,37 +92,37 @@ public class Page extends EventEmitter {
 
     private boolean closed = true;
 
-    @JsonIgnore
+
     private CDPSession client;
 
     private Target target;
 
-    @JsonIgnore
+
     private Keyboard keyboard;
 
-    @JsonIgnore
+
     private Mouse mouse;
 
     private TimeoutSettings timeoutSettings;
 
-    @JsonIgnore
+
     private Touchscreen touchscreen;
 
-    @JsonIgnore
+
     private Accessibility accessibility;
 
-    @JsonIgnore
+
     private FrameManager frameManager;
 
-    @JsonIgnore
+
     private EmulationManager emulationManager;
 
-    @JsonIgnore
+
     private Tracing tracing;
 
     private Map<String, Function<List<JsonNode>, Object>> pageBindings;
 
-    @JsonIgnore
+
     private Coverage coverage;
 
     private boolean javascriptEnabled;
@@ -134,7 +133,7 @@ public class Page extends EventEmitter {
 
     private Map<String, Worker> workers;
 
-    public static final String ABOUT_BLANK = "about:blank";
+    private static final String ABOUT_BLANK = "about:blank";
 
     public static final Map<String, Double> unitToPixels = new HashMap() {
         private static final long serialVersionUID = -4861220887908575532L;
@@ -731,7 +730,17 @@ public class Page extends EventEmitter {
             ValidateUtil.assertBoolean(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
             ValidateUtil.assertBoolean(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
         }
-        return (String) this.screenshotTaskQueue.postTask((type, op) -> screenshotTask((String) type, (ScreenshotOptions) op), screenshotType, options);
+        return (String) this.screenshotTaskQueue.postTask((type, op) -> {
+            try {
+                return screenshotTask((String) type, (ScreenshotOptions) op);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }, screenshotType, options);
+    }
+
+    public String screenshot() throws IOException {
+       return this.screenshot(new ScreenshotOptions());
     }
 
     /**
@@ -920,7 +929,7 @@ public class Page extends EventEmitter {
         this.frameManager.networkManager().setRequestInterception(value);
     }
 
-    private String screenshotTask(String format, ScreenshotOptions options) {
+    private String screenshotTask(String format, ScreenshotOptions options) throws IOException {
         Map<String, Object> params = new HashMap<>();
         params.put("targetId", this.target.getTargetId());
         this.client.send("Target.activateTarget", params, true);
@@ -969,15 +978,10 @@ public class Page extends EventEmitter {
         if (options.getFullPage() && this.viewport != null)
             this.setViewport(this.viewport);
         String data = result.get("data").asText();
-        try {
 //            byte[] buffer = decoder.decodeBuffer(data);
-            byte[] buffer = Base64.decode(data);
-            if (StringUtil.isNotEmpty(options.getPath())) {
-                //TODO 验证
-                Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        byte[] buffer = Base64.decode(data);
+        if (StringUtil.isNotEmpty(options.getPath())) {
+            Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }
         return data;
     }
@@ -1407,6 +1411,10 @@ public class Page extends EventEmitter {
         return this.frameManager.frames();
     }
 
+    public Response goBack() {
+        return this.go(-1, new PageNavigateOptions());
+    }
+
     /**
      * 导航到页面历史的前一个页面
      * <p>options 的 referer参数不用填，填了也用不上</p>
@@ -1424,6 +1432,10 @@ public class Page extends EventEmitter {
      */
     public Response goBack(PageNavigateOptions options) {
         return this.go(-1, options);
+    }
+
+    public Response goForward() {
+        return this.go(+1, new PageNavigateOptions());
     }
 
     /**
@@ -1455,9 +1467,6 @@ public class Page extends EventEmitter {
         return this.closed;
     }
 
-    public Keyboard keyboard() {
-        return this.keyboard;
-    }
 
     /**
      * 返回页面的一些基本信息
@@ -1487,8 +1496,19 @@ public class Page extends EventEmitter {
      * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
      *
-     * @param options
-     * @throws IOException
+     * @return Object Future or String
+     * @throws IOException 异常
+     */
+    public void pdf(String path) throws IOException {
+        this.pdf(new PDFOptions(path));
+    }
+    /**
+     * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
+     * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
+     *
+     * @param options 选项
+     * @return Object Future or String
+     * @throws IOException 异常
      */
     public void pdf(PDFOptions options) throws IOException {
         double paperWidth = 8.5;
@@ -1542,7 +1562,8 @@ public class Page extends EventEmitter {
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
         if (result != null)
-            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(),false);
+         Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(), false);
+
     }
 
     /**
@@ -1613,16 +1634,11 @@ public class Page extends EventEmitter {
 
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Metrics result = new Metrics();
-        BeanInfo beanInfo = Introspector.getBeanInfo(Metric.class);
-        PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
-        Map<String, PropertyDescriptor> propertyMap = new HashMap<>();
-        for (int i = 0; i < propertyDescriptors.length; i++) {
-            propertyMap.put(propertyDescriptors[i].getName(), propertyDescriptors[i]);
-        }
-        if(ValidateUtil.isNotEmpty(metrics)){
+        if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
                 if (supportedMetrics.contains(metric.getName())) {
-                    propertyMap.get(metric.getName()).getWriteMethod().invoke(result, metric.getValue());
+                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(),Metrics.class);
+                    descriptor.getWriteMethod().invoke(result,metric.getValue());
                 }
             }
         }
@@ -1733,7 +1749,7 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
-    public Future<FileChooser> waitForFileChooser( int timeout) {
+    public Future<FileChooser> waitForFileChooser(int timeout) {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
         int finalTimeout = timeout;
@@ -1964,7 +1980,8 @@ public class Page extends EventEmitter {
     public Viewport viewport() {
         return this.viewport;
     }
-    class FileChooserCallBack{
+
+    class FileChooserCallBack {
 
         public FileChooserCallBack() {
             super();
@@ -1975,7 +1992,7 @@ public class Page extends EventEmitter {
             this.latch = latch;
         }
 
-        private  CountDownLatch latch;
+        private CountDownLatch latch;
 
         private FileChooser fileChooser;
 
@@ -1985,11 +2002,9 @@ public class Page extends EventEmitter {
 
         public void setFileChooser(FileChooser fileChooser) {
             this.fileChooser = fileChooser;
-            if(this.latch != null && this.latch.getCount() > 0){
+            if (this.latch != null && this.latch.getCount() > 0) {
                 this.latch.countDown();
             }
-            System.out.println("---------------回调----------------https://sm.ms/");
-
         }
 
         public CountDownLatch getLatch() {
@@ -2001,10 +2016,10 @@ public class Page extends EventEmitter {
         }
 
         public void waitForFileChooser(int finalTimeout) throws InterruptedException {
-            if(this.latch != null){
+            if (this.latch != null) {
                 boolean await = this.latch.await(finalTimeout, TimeUnit.MILLISECONDS);
-                if(!await){
-                    throw new TimeoutException("waiting for file chooser failed: timeout "+finalTimeout+"ms exceeded");
+                if (!await) {
+                    throw new TimeoutException("waiting for file chooser failed: timeout " + finalTimeout + "ms exceeded");
                 }
             }
         }

@@ -46,7 +46,7 @@ public class LaunchOptions extends BrowserOptions {
 	private boolean handleSIGHUP = true;
 	
 	/**
-	 * 将cheome的标准输出流输入流转换到java程序的标准输入输出
+	 * 将cheome的标准输出流输入流转换到java程序的标准输入输出,java默认已经将子进程的输入和错误流通过管道重定向了，现在这个参数暂时用不上
 	 * <br/>
 	 * Whether to pipe browser process stdout and stderr into process.stdout and
 	 * process.stderr.

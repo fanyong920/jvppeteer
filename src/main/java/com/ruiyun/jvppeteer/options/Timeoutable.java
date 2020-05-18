@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.options;
 public class Timeoutable {
 	
 	/**
-	 * 等待浏览器实例启动的最长时间（以毫秒为单位）。默认是 30000 (30 秒). 通过 0 来禁用超时。
+	 * 鏈�澶у鑸椂闂存槸30000ms,0琛ㄧず鏃犻檺绛夊緟
 	 * <br/>
      * Maximum navigation time in milliseconds, pass 0 to disable timeout.
      * @default 30000

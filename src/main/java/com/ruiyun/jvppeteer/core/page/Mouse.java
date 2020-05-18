@@ -28,6 +28,10 @@ public class Mouse {
         this.button = "none";
     }
 
+    public void move(int x, int y) {
+        this.move(x,y,1);
+    }
+
     public void move(int x, int y, int steps) {
         if (steps == 0) {
             steps = 1;
@@ -62,7 +66,11 @@ public class Mouse {
         }
     }
 
-    private void up(ClickOptions options) {
+    public void up() {
+       this.up(new ClickOptions());
+    }
+
+    public void up(ClickOptions options) {
         String button = "left";
         int clickCount = 1;
         this.button = "none";
@@ -81,8 +89,10 @@ public class Mouse {
         params.put("clickCount", clickCount);
         this.client.send("Input.dispatchMouseEvent", params, true);
     }
-
-    private void down(ClickOptions options) {
+    public void down() {
+        this.down(new ClickOptions());
+    }
+    public void down(ClickOptions options) {
         String button = "left";
         int clickCount = 1;
         if (StringUtil.isNotEmpty(options.getButton())) {

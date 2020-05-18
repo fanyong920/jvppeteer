@@ -1,13 +1,14 @@
 package com.ruiyun.jvppeteer.core.browser;
 
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.factory.WebSocketTransportFactory;
-import com.ruiyun.jvppeteer.transport.PipeTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -18,15 +19,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
@@ -64,15 +67,10 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * 启动浏览器进程
      * <br/>
      * Start your browser
-     *
-     * @param handleSIGINT
-     * @param handleSIGTERM
-     * @param handleSIGHUP
-     * @param dumpio
-     * @param pipe
+     * @param options 启动参数
      * @throws IOException io异常
      */
-    public void start(boolean handleSIGINT, boolean handleSIGTERM, boolean handleSIGHUP, boolean dumpio, boolean pipe) throws IOException {
+    public void start(LaunchOptions options) throws IOException {
         if (process != null) {
             throw new RuntimeException("This process has previously been started.");
         }
@@ -81,6 +79,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         arguments.add(executablePath);
         arguments.addAll(processArguments);
         ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
+
         process = processBuilder.start();
         this.closed = false;
 
@@ -107,7 +106,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         exitListener.setTarget(this);
         this.listeners.add(Helper.addEventListener(this, exitListener.getMothod(), exitListener));
 
-        if (handleSIGINT) {
+        if (options.getHandleSIGINT()) {
             DefaultBrowserListener sigintListener = new DefaultBrowserListener() {
                 @Override
                 public void onBrowserEvent(Object event) {
@@ -120,7 +119,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             this.listeners.add(Helper.addEventListener(this, sigintListener.getMothod(), sigintListener));
         }
 
-        if (handleSIGTERM) {
+        if (options.getHandleSIGTERM()) {
             DefaultBrowserListener sigtermListener = new DefaultBrowserListener() {
                 @Override
                 public void onBrowserEvent(Object event) {
@@ -133,7 +132,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             this.listeners.add(Helper.addEventListener(this, sigtermListener.getMothod(), sigtermListener));
         }
 
-        if (handleSIGHUP) {
+        if (options.getHandleSIGHUP()) {
             DefaultBrowserListener sighubListener = new DefaultBrowserListener() {
                 @Override
                 public void onBrowserEvent(Object event) {
@@ -166,7 +165,16 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         try {
             if (StringUtil.isNotEmpty(tempDirectory)) {
                 FileUtil.removeFolder(tempDirectory);
+                //同时把以前没删除干净的文件夹也重新删除一遍  C:\Users\fanyong\AppData\Local\Temp
+                Stream<Path> remainTempDirectories = Files.list(Paths.get(tempDirectory).getParent());
+                remainTempDirectories.forEach(path -> {
+                    if(path.getFileName().toString().startsWith(Constant.PROFILE_PREFIX)){
+                        FileUtil.removeFolder(path.toString());
+                    }
+
+                });
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -234,7 +242,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                             } catch (Exception e) {
                                 LOGGER.error("Failed to launch the browser process!please see TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md:", e);
                             } finally {
-                                StreamUtil.closeStream(reader);
+                                StreamUtil.closeQuietly(reader);
                             }
                         });
 
@@ -287,10 +295,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     /**
      * 关闭浏览器
-     * @param c 这个参数只是为了与另外一个close()方法区分
      * @return 是否关闭
      */
-    public boolean close(Object c) {
+    public boolean closeQuietly() {
         if (this.getClosed()) {
             return true;
         }

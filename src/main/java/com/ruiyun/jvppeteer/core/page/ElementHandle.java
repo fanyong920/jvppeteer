@@ -319,6 +319,10 @@ public class ElementHandle extends JSHandle {
         return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
     }
 
+    public void click() throws InterruptedException {
+        click(new ClickOptions());
+    }
+
     public void click(ClickOptions options) throws InterruptedException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
@@ -364,9 +368,17 @@ public class ElementHandle extends JSHandle {
         this.page.getTouchscreen().tap(point.getX(), point.getY());
     }
 
+    public void type(String text ) throws InterruptedException {
+        type(text,0);
+    }
+
     public void type(String text, int delay) throws InterruptedException {
         this.focus();
         this.page.getKeyboard().type(text, delay);
+    }
+
+    public void press(String key) throws InterruptedException {
+        this.press(key,0,null);
     }
 
     public void press(String key, int delay, String text) throws InterruptedException {

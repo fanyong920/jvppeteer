@@ -39,11 +39,12 @@ public class PageEvaluteExample {
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
 
        ThreadPoolExecutor executor = new ThreadPoolExecutor(4,4,40,TimeUnit.MILLISECONDS,new LinkedBlockingQueue<>());
-        //定义执行的方法
+
         CompletionService service = new ExecutorCompletionService(executor);
         List<Future> futureList = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
             Future submit = service.submit(() -> {
+                //定义执行的方法 ，在java这里不能像nodejs一样直接书写js代码，这里以字符串代替，可以在vs code上编辑代码后再粘贴过来即可。
                 String pageFunction = "() => {\n" +
                         "    return {\n" +
                         "      width: document.documentElement.clientWidth,\n" +
@@ -52,7 +53,6 @@ public class PageEvaluteExample {
                         "    };\n" +
                         "  }";
                 Object result = page.evaluate(pageFunction, PageEvaluateType.FUNCTION/**指明pageFunction字符串是一个方法,而不是单单一个字符串*/);
-                //waifor tracingComplete
                 System.out.println("result:" + Constant.OBJECTMAPPER.writeValueAsString(result));
                 return true;
             });

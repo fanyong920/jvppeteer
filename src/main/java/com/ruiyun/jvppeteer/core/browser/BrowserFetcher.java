@@ -363,8 +363,8 @@ public class BrowserFetcher {
 				mountPath = matcher.group();
 			}
 		} finally {
-			StreamUtil.closeStream(reader);
-			StreamUtil.closeStream(stringWriter);
+			StreamUtil.closeQuietly(reader);
+			StreamUtil.closeQuietly(stringWriter);
 		}
 		if (StringUtil.isEmpty(mountPath)) {
 			throw new RuntimeException("Could not find volume path in [" + stringWriter.toString() + "]");
@@ -395,7 +395,7 @@ public class BrowserFetcher {
 				process2.waitFor();
 				process2.destroyForcibly();
 			} finally {
-				StreamUtil.closeStream(reader);
+				StreamUtil.closeQuietly(reader);
 			}
 		}
 		return mountPath;
@@ -448,7 +448,7 @@ public class BrowserFetcher {
 				process3.waitFor();
 				process3.destroyForcibly();
 			} finally {
-				StreamUtil.closeStream(reader);
+				StreamUtil.closeQuietly(reader);
 			}
 		}
 	}
@@ -486,9 +486,9 @@ public class BrowserFetcher {
                 }
             }
         } finally {
-            StreamUtil.closeStream(wirter);
-            StreamUtil.closeStream(reader);
-            StreamUtil.closeStream(tarArchiveInputStream);
+            StreamUtil.closeQuietly(wirter);
+            StreamUtil.closeQuietly(reader);
+            StreamUtil.closeQuietly(tarArchiveInputStream);
         }
     }
 
@@ -524,9 +524,9 @@ public class BrowserFetcher {
 
             }
         } finally {
-            StreamUtil.closeStream(wirter);
-            StreamUtil.closeStream(reader);
-            StreamUtil.closeStream(zipFile);
+            StreamUtil.closeQuietly(wirter);
+            StreamUtil.closeQuietly(reader);
+            StreamUtil.closeQuietly(zipFile);
         }
     }
 
@@ -585,8 +585,8 @@ public class BrowserFetcher {
             }
 
         } finally {
-            StreamUtil.closeStream(bufferedOutputStream);
-            StreamUtil.closeStream(bufferedInputStream);
+            StreamUtil.closeQuietly(bufferedOutputStream);
+            StreamUtil.closeQuietly(bufferedInputStream);
         }
     }
 

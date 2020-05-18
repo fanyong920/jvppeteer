@@ -25,7 +25,7 @@ public class PageTracingExample {
 
         Page page = browser.newPage();
         //开启追踪
-        page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json",true,new HashSet<>());
+        page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json");
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         page.tracing().stop();
         //waifor tracingComplete

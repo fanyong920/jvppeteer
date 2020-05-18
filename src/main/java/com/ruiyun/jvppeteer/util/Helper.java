@@ -39,7 +39,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -170,7 +169,6 @@ public class Helper {
      * @param path    文件存放的路径
      */
     public static final void readProtocolStream(CDPSession client, String handler, String path, boolean isNewThread) throws IOException {
-
         if (isNewThread) {
             Helper.commonExecutor().submit(() -> {
                 try {
@@ -182,18 +180,15 @@ public class Helper {
         } else {
             run(client, handler, path);
         }
-
     }
 
     private static void run(CDPSession client, String handler, String path) throws IOException {
         boolean eof = false;
-        File file;
+        File file = null;
         BufferedOutputStream writer = null;
         BufferedInputStream reader = null;
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
-        } else {
-            throw new IllegalArgumentException("path must be not null");
         }
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);
@@ -229,16 +224,15 @@ public class Helper {
                         }
 
                     } finally {
-                        StreamUtil.closeStream(reader);
+                        StreamUtil.closeQuietly(reader);
                     }
                 }
                 eof = eofNode.asBoolean();
             }
             client.send("IO.close", params, false);
-
         } finally {
-            StreamUtil.closeStream(writer);
-            StreamUtil.closeStream(reader);
+            StreamUtil.closeQuietly(writer);
+            StreamUtil.closeQuietly(reader);
         }
     }
 

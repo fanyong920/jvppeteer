@@ -146,4 +146,23 @@ public class Metrics {
     public void setJSHeapTotalSize(int JSHeapTotalSize) {
         this.JSHeapTotalSize = JSHeapTotalSize;
     }
+
+    @Override
+    public String toString() {
+        return "Metrics{" +
+                "Timestamp=" + Timestamp +
+                ", Documents=" + Documents +
+                ", Frames=" + Frames +
+                ", JSEventListeners=" + JSEventListeners +
+                ", Nodes=" + Nodes +
+                ", LayoutCount=" + LayoutCount +
+                ", RecalcStyleCount=" + RecalcStyleCount +
+                ", LayoutDuration=" + LayoutDuration +
+                ", RecalcStyleDuration=" + RecalcStyleDuration +
+                ", ScriptDuration=" + ScriptDuration +
+                ", TaskDuration=" + TaskDuration +
+                ", JSHeapUsedSize=" + JSHeapUsedSize +
+                ", JSHeapTotalSize=" + JSHeapTotalSize +
+                '}';
+    }
 }

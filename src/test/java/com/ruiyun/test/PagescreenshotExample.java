@@ -25,6 +25,15 @@ public class PagescreenshotExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+
+
+//        ScreenshotOptions screenshotOptions = new ScreenshotOptions();
+//        //设置截图范围
+//        Clip clip = new Clip(1.0,1.56,400,400);
+//        screenshotOptions.setClip(clip);
+//        //设置存放的路径
+//        screenshotOptions.setPath("test.png");
+//        page.screenshot(screenshotOptions);
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         //设置截图范围
         Clip clip = new Clip(1.0,1.56,400,400);
@@ -32,5 +41,6 @@ public class PagescreenshotExample {
         //设置存放的路径
         screenshotOptions.setPath("test.png");
         page.screenshot(screenshotOptions);
+
     }
 }

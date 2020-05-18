@@ -36,6 +36,14 @@ public class PDFOptions {
 
     private String path;
 
+    public PDFOptions() {
+        super();
+    }
+
+    public PDFOptions(String path) {
+        this.path = path;
+    }
+
     public double getScale() {
         return scale;
     }

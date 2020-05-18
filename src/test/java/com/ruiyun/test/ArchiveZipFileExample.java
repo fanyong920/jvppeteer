@@ -43,8 +43,8 @@ public class ArchiveZipFileExample {
 
             }
         } finally {
-            StreamUtil.closeStream(wirter);
-            StreamUtil.closeStream(reader);
+            StreamUtil.closeQuietly(wirter);
+            StreamUtil.closeQuietly(reader);
             zipFile.close();
         }
     }

@@ -44,9 +44,8 @@ public class FileUtil {
 	/**
 	 * 移除文件
 	 * @param path
-	 * @throws IOException
 	 */
-	public static void removeFolder(String path) throws IOException{
+	public static void removeFolder(String path) {
 		File file = new File(path);
 		delete(file);
 	}
@@ -54,12 +53,14 @@ public class FileUtil {
 	private static void delete(File file) {
 		if(file.isDirectory()){
 			File[] files = file.listFiles();
-			for (File f : files) {
-				delete(f);
+			if(files != null && files.length > 0){
+				for (File f : files) {
+					delete(f);
+				}
 			}
 			file.deleteOnExit();
 		}else{
-			file.deleteOnExit();
+			 file.deleteOnExit();
 		}
 	}
 
