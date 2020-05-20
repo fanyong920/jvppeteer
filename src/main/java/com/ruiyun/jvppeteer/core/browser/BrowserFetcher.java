@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +43,7 @@ public class BrowserFetcher {
                 private static final long serialVersionUID = 3441562966233820720L;
 
                 {
-                    put("host", "https://storage.googleapis.com");
+                    put("host", "https://npm.taobao.org/mirrors");
                     put("linux", "%s/chromium-browser-snapshots/Linux_x64/%s/%s.zip");
                     put("mac", "%s/chromium-browser-snapshots/Mac/%s/%s.zip");
                     put("win32", "%s/chromium-browser-snapshots/Win/%s/%s.zip");
@@ -163,7 +164,7 @@ public class BrowserFetcher {
 	 * @throws IOException 异常
 	 * @throws InterruptedException 异常
 	 */
-    public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException {
+    public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException, ExecutionException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
         int lastIndexOf = url.lastIndexOf("/");
         String archivePath = Helper.join(this.downloadsFolder, url.substring(lastIndexOf));
@@ -537,57 +538,12 @@ public class BrowserFetcher {
 	 * @param archivePath zip路径
 	 * @param progressCallback 回调函数
 	 */
-    private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) throws IOException {
-        BufferedInputStream bufferedInputStream = null;
-        BufferedOutputStream bufferedOutputStream = null;
-        try {
-            LOGGER.info("Downloading binary from " + url);
-            URL urlR = new URL(url);
-            URLConnection urlConnection = urlR.openConnection();
-            HttpURLConnection httpURLConnection = (HttpURLConnection) urlConnection;
+    private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) throws IOException, ExecutionException, InterruptedException {
 
-            // true -- will setting parameters
-            httpURLConnection.setDoOutput(true);
-            // true--will allow read in from
-            httpURLConnection.setDoInput(true);
-            // will not use caches
-            httpURLConnection.setUseCaches(false);
-            // setting serialized
-//				httpURLConnection.setRequestProperty("Content-type", "application/x-java-serialized-object");
-            // default is GET
-            httpURLConnection.setRequestMethod("GET");
-            httpURLConnection.setRequestProperty("connection", "Keep-Alive");
-            httpURLConnection.setRequestProperty("Charsert", "UTF-8");
-            // 1 min
-            httpURLConnection.setConnectTimeout(60000);
-
-            // connect to server (tcp)
-            httpURLConnection.connect();
-            if (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                throw new RuntimeException("Download failed: server returned code " + httpURLConnection.getResponseCode() + ". URL:" + url);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Downloading binary from " + url);
             }
-            int totalBytes = 0;
-            int downloadedBytes = 0;
-            totalBytes = Integer.parseInt(httpURLConnection.getHeaderField("content-length"), 10);
-            bufferedInputStream = new BufferedInputStream(httpURLConnection.getInputStream());
-            // server
-            File file = new File(archivePath);
-            if (!file.exists()) {
-                FileUtil.createNewFile(file);
-            }
-            bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(file));
-            byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
-            int readLength = -1;
-            while ((readLength = bufferedInputStream.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) > 0) {
-                bufferedOutputStream.write(buffer, 0, readLength);
-                downloadedBytes += readLength;
-                progressCallback.accept(downloadedBytes, totalBytes);
-            }
-
-        } finally {
-            StreamUtil.closeQuietly(bufferedOutputStream);
-            StreamUtil.closeQuietly(bufferedInputStream);
-        }
+            DownloadUtil.download(url,archivePath,progressCallback);
     }
 
 	/**
