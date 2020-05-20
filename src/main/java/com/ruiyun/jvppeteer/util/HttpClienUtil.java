@@ -189,8 +189,4 @@ public class HttpClienUtil implements Constant {
         }
     }
     //TypeReference valueTypeRef
-
-    public static CloseableHttpClient getHttpclient() {
-        return httpclient;
-    }
 }

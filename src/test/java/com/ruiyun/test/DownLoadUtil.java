@@ -1,21 +1,14 @@
 package com.ruiyun.test;
 
-import com.ruiyun.jvppeteer.util.HttpClienUtil;
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
@@ -23,12 +16,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -37,6 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DownLoadUtil {
+
+    private static ThreadPoolExecutor executor = null;
+
     /**
      * 线程池数量
      */
@@ -53,14 +53,14 @@ public class DownLoadUtil {
     private static final int RETRY_TIMES = 5;
 
     /**
-     * 跳过ssl验证配置
+     * 读取数据超时
      */
-    private final static HostnameVerifier DO_NOT_VERIFY = new HostnameVerifier() {
+    private static final int READ_TIME_OUT = 10000;
 
-        public boolean verify(String hostname, SSLSession session) {
-            return true;
-        }
-    };
+    /**
+     * 连接超时设置
+     */
+    private static final int CONNECT_TIME_OUT = 10000;
 
     /**
      * 下载文件的方法
@@ -69,10 +69,10 @@ public class DownLoadUtil {
      * @param folder 文件存放的目录
      */
 
-    public static void download(String url, String folder) throws IOException, InterruptedException {
+    public static void download(String url, String folder) throws IOException, ExecutionException, InterruptedException {
         AtomicInteger atomicInteger = new AtomicInteger(0);
         long contentLength = getContentLength(url);
-        System.out.println("contentLength: " + contentLength);
+
         long taskCount = contentLength % CHUNK_SIZE == 0 ? contentLength / CHUNK_SIZE : contentLength / CHUNK_SIZE + 1;
         int index = url.lastIndexOf("/");
         String fileName = null;
@@ -82,43 +82,57 @@ public class DownLoadUtil {
         } else {
             throw new IllegalArgumentException("download url does not have name");
         }
+//        trustAllHosts();
         ThreadPoolExecutor executor = DownLoadUtil.getExecutor();
-        ExecutorCompletionService service = new ExecutorCompletionService<>(executor);
-        List<Future> futures = new ArrayList<>();
+        CompletionService completionService = new ExecutorCompletionService(executor);
+        List<Future> futureList = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
             String finalFileName = fileName;
-            Future future = service.submit(() -> {
+            Future future = completionService.submit(() -> {
                 //偏移量
-                boolean isSuccess = true;
                 RandomAccessFile file = null;
                 FileChannel channel = null;
                 HttpURLConnection conn = null;
-                HttpsURLConnection conns = null;
-                ReadableByteChannel readableByteChannel = null;
+                BufferedInputStream reader = null;
                 int increment = atomicInteger.getAndIncrement();
                 int seekLength = increment * CHUNK_SIZE;
                 try {
                     file = new RandomAccessFile(finalFileName, "rw");
                     file.seek(seekLength);
-                    channel = file.getChannel();
-                    CloseableHttpClient httpclient = HttpClienUtil.getHttpclient();
-                    HttpGet httpGet = new HttpGet(url);
-                    CloseableHttpResponse execute = httpclient.execute(httpGet);
-                    HttpEntity entity = execute.getEntity();
-                     readableByteChannel = Channels.newChannel(entity.getContent());
-                    channel.transferFrom(readableByteChannel,0,Long.MAX_VALUE);
-                    return true;
-                } catch (FileNotFoundException e) {
-                    isSuccess = false;
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    isSuccess = false;
-                    e.printStackTrace();
-                } finally {
-                    System.out.println("块[" + increment + "]处理下载字节【" + seekLength + "】-" + "【" + (seekLength + CHUNK_SIZE) + "】完成，下载结果：" + isSuccess);
-                    if (!isSuccess) {
-                        executor.shutdownNow();
+
+                    URL uRL = new URL(url);
+                    conn = (HttpURLConnection) uRL.openConnection();
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(10000);
+                    conn.setRequestMethod("GET");
+                    String range = "bytes=" + seekLength + "-" + (seekLength + CHUNK_SIZE);
+                    System.out.println("range:"+range);
+                    conn.setRequestProperty("Range", range);
+
+                    for (int j = 0; j < RETRY_TIMES; j++) {
+                        try {
+                            conn.connect();
+                            reader = new BufferedInputStream(conn.getInputStream());
+                            byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
+                            int read;
+                            while ((read = reader.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) != -1) {
+                                file.write(buffer, 0, read);
+//                                System.out.println(new String(buffer));
+                            }
+                            System.out.println("下载完成：" + increment);
+                            return true;
+                        } catch (Exception e) {
+                            if (j == RETRY_TIMES - 1) {
+                                e.printStackTrace();
+                            }
+                            continue;
+                        }
                     }
+                    return false;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                } finally {
                     StreamUtil.closeQuietly(file);
                     StreamUtil.closeQuietly(channel);
                     StreamUtil.closeQuietly(readableByteChannel);
@@ -128,14 +142,18 @@ public class DownLoadUtil {
                     }
 
                 }
-                return false;
             });
-            futures.add(future);
+            futureList.add(future);
         }
         executor.shutdown();
-        for (int j = 0; j < taskCount; j++) {
-            service.take();
+        for (Future future1 : futureList) {
+            Object result = future1.get();
+            if (!(boolean) result) {
+                System.out.println("下载失败。。。");
+                executor.shutdownNow();
+            }
         }
+
     }
 
     /**
@@ -144,35 +162,36 @@ public class DownLoadUtil {
      * @return
      */
     public static final long getContentLength(String url) throws IOException {
-        CloseableHttpClient httpclient = HttpClienUtil.getHttpclient();
-        HttpHead httpHead = new HttpHead(url);
-        CloseableHttpResponse response = httpclient.execute(httpHead);
+        URL uuuRl = new URL(url);
+        HttpURLConnection conn = null;
         try {
-            if (response.getStatusLine().getStatusCode() >= 200 && response.getStatusLine().getStatusCode() <= 204) {
-                Header[] headers = response.getAllHeaders();
-                for (Header header : headers) {
-                    if ("content-length".equalsIgnoreCase(header.getName())) {
-                        String value = header.getValue();
-                        return Long.parseLong(value);
-                    }
-                }
-                throw new RuntimeException(url + " response not found content-length header: " + response.getStatusLine().getStatusCode());
+            conn = (HttpURLConnection) uuuRl.openConnection();
+            conn.setRequestMethod("HEAD");
+            conn.setConnectTimeout(READ_TIME_OUT);
+            conn.setReadTimeout(CONNECT_TIME_OUT);
+            conn.connect();
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 200 && responseCode <= 204) {
+                return conn.getContentLengthLong();
             } else {
-                throw new RuntimeException(url + " response code: " + response.getStatusLine().getStatusCode());
+                throw new RuntimeException(url + " responseCode: " + responseCode);
             }
         } finally {
-            response.close();
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
     }
 
-    /**
-     * 创建线程池
-     *
-     * @return
-     */
     public static ThreadPoolExecutor getExecutor() {
-        ThreadPoolExecutor executor = new ThreadPoolExecutor(THREAD_COUNT, THREAD_COUNT, 30000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-
+        if (executor == null) {
+            synchronized (DownLoadUtil.class) {
+                if (executor == null) {
+                    executor = new
+                            ThreadPoolExecutor(THREAD_COUNT, THREAD_COUNT, 30000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+                }
+            }
+        }
         return executor;
     }
 
@@ -194,9 +213,7 @@ public class DownLoadUtil {
     }
 
     /**
-     * 安装证书访问SSL地址
-     * 证书要（ssecacerts文件）放入%JAVA_HOME%\jre\lib\security 下即可。
-     * 这种方法比较麻烦，这里只给出代码，不使用。
+     * 信任所有网站
      */
     private static void trustAllHosts() {
         TrustManager[] trustAllCerts = new TrustManager[]{
