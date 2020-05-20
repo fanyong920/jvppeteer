@@ -85,7 +85,10 @@ public class CDPSession extends EventEmitter {
                 }
                 boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
-                    throw new TimeoutException("Wait result for "+(timeout <= 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
+                    throw new TimeoutException("Wait "+method+" for "+(timeout <= 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
+                }
+                if(message.getError() != null){
+                    throw message.getError();
                 }
                 return callbacks.remove(id).getResult();
             }else{
@@ -120,7 +123,10 @@ public class CDPSession extends EventEmitter {
                 message.setCountDownLatch(latch);
                 boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
-                    throw new TimeoutException("Wait result for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                    throw new TimeoutException("Wait "+method+" for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
+                }
+                if(message.getError() != null){
+                    throw message.getError();
                 }
                 return callbacks.remove(id).getResult();
             }
@@ -152,11 +158,11 @@ public class CDPSession extends EventEmitter {
 //                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
                 if (errNode != null) {
                     if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
+                        callback.setError(new ProtocolException(Helper.createProtocolError(node)));
                         callback.getCountDownLatch().countDown();
                         //还没有await 数据以及返回了了
                         callback.setCountDownLatch(null);
                     }
-                    throw new ProtocolException(Helper.createProtocolError(node));
                 }else {
                     JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
                     callback.setResult(result);

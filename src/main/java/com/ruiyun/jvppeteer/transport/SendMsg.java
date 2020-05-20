@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +27,9 @@ public class SendMsg {
 	private JsonNode result;//本次发送消息返回的结果
 
 	private String sessionId;
+
+	//是否有错误
+	private ProtocolException error;
 
 	public long getId() {
 		return id;
@@ -86,13 +90,23 @@ public class SendMsg {
 		return true;
 	}
 
+	public ProtocolException getError() {
+		return error;
+	}
+
+	public void setError(ProtocolException error) {
+		this.error = error;
+	}
+
 	@Override
 	public String toString() {
 		return "SendMsg{" +
 				"id=" + id +
 				", params=" + params +
 				", method='" + method + '\'' +
+				", result=" + result +
 				", sessionId='" + sessionId + '\'' +
+				", error=" + error +
 				'}';
 	}
 }

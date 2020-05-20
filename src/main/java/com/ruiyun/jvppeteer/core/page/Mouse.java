@@ -2,12 +2,21 @@ package com.ruiyun.jvppeteer.core.page;
 
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
 
 public class Mouse {
+
+    private static final int MULTI_THREAD_THRESHOLD = 10;
 
     private CDPSession client;
 
@@ -28,32 +37,51 @@ public class Mouse {
         this.button = "none";
     }
 
-    public void move(int x, int y) {
-        this.move(x,y,1);
+    public void move(int x, int y) throws ExecutionException, InterruptedException {
+        this.move(x, y, 1);
     }
 
-    public void move(int x, int y, int steps) {
+    public void move(int x, int y, int steps) throws ExecutionException, InterruptedException {
         if (steps == 0) {
             steps = 1;
         }
-
         int fromX = this.x, fromY = this.y;
         this.x = x;
         this.y = y;
         Map<String, Object> params = new HashMap<>();
 
-        for (int i = 1; i <= steps; i++) {
-            params.clear();
-            params.put("type", "mouseMoved");
-            params.put("button", this.button);
-            params.put("x", fromX + (this.x - fromX) * (i / steps));
-            params.put("y", fromY + (this.y - fromY) * (i / steps));
-            params.put("modifiers", this.keyboard.getModifiers());
-            this.client.send("Input.dispatchMouseEvent", params, true);
+        if (steps >= MULTI_THREAD_THRESHOLD) {
+            List<Future> futures = new ArrayList<>(steps);
+            CompletionService completionService = new ExecutorCompletionService(Helper.commonExecutor());
+            for (int i = 1; i <= steps; i++) {
+                int finalSteps = steps;
+                int finalI = i;
+                futures.add(completionService.submit(() -> {
+                    stepRun(finalSteps, fromX, fromY, params, finalI);
+                    return true;
+                }));
+            }
+            for (Future future : futures) {
+                future.get();
+            }
+        } else {
+            for (int i = 1; i <= steps; i++) {
+                stepRun(steps, fromX, fromY, params, i);
+            }
         }
     }
 
-    public void click(int x, int y, ClickOptions options) throws InterruptedException {
+    private void stepRun(int steps, int fromX, int fromY, Map<String, Object> params, int i) {
+        params.clear();
+        params.put("type", "mouseMoved");
+        params.put("button", this.button);
+        params.put("x", fromX + (this.x - fromX) * (i / steps));
+        params.put("y", fromY + (this.y - fromY) * (i / steps));
+        params.put("modifiers", this.keyboard.getModifiers());
+        this.client.send("Input.dispatchMouseEvent", params, true);
+    }
+
+    public void click(int x, int y, ClickOptions options) throws InterruptedException, ExecutionException {
         if (options.getDelay() != 0) {
             this.move(x, y, 0);
             this.down(options);
@@ -67,7 +95,7 @@ public class Mouse {
     }
 
     public void up() {
-       this.up(new ClickOptions());
+        this.up(new ClickOptions());
     }
 
     public void up(ClickOptions options) {
@@ -89,9 +117,11 @@ public class Mouse {
         params.put("clickCount", clickCount);
         this.client.send("Input.dispatchMouseEvent", params, true);
     }
+
     public void down() {
         this.down(new ClickOptions());
     }
+
     public void down(ClickOptions options) {
         String button = "left";
         int clickCount = 1;

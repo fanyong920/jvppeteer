@@ -39,24 +39,20 @@ public class Connection extends EventEmitter implements Consumer<String> {
      */
     private int delay;
 
-    private static final AtomicLong adder = new AtomicLong(0);
+    private static final AtomicLong lastId = new AtomicLong(0);
 
-    private Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();//并发
+    private final Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();//并发
 
-    private Map<String, CDPSession> sessions = new HashMap<>();
+    private final Map<String, CDPSession> sessions = new HashMap<>();
 
     private boolean closed;
 
-    private BlockingQueue responseQueue = new LinkedBlockingQueue();//接受消息的堵塞队列
-
     private int port;
 
-    private int lastId;
 
     public Connection(String url, ConnectionTransport transport, int delay) {
         super();
         this.url = url;
-        this.lastId = 0;
         this.transport = transport;
         this.delay = delay;
         if (this.transport instanceof WebSocketTransport) {
@@ -82,16 +78,16 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 if (!hasResult) {
                     throw new TimeoutException("["+message+"] has send ,But wait result for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
                 }
+                if(message.getError() != null){
+                    throw message.getError();
+                }
                 return callbacks.remove(id).getResult();
             }else {
                 return null;
             }
-
-
         } catch (InterruptedException e) {
-            LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
+            throw new ProtocolException(e);
         }
-        return null;
     }
 
     public JsonNode send(String method, Map<String, Object> params, boolean isWait, CountDownLatch outLatch) {
@@ -109,7 +105,10 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 }
                 boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
                 if (!hasResult) {
-                    throw new TimeoutException("Wait result for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
+                    throw new TimeoutException("Wait "+method+" for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
+                }
+                if(message.getError() != null){
+                    throw message.getError();
                 }
                 return callbacks.remove(id).getResult();
             } else {
@@ -118,13 +117,13 @@ public class Connection extends EventEmitter implements Consumer<String> {
             }
 
         } catch (InterruptedException e) {
-            LOGGER.error("Waiting message is interrupted,will not recevie any message about on this send ");
+            throw new ProtocolException(e);
         }
         return null;
     }
 
     public long rawSend(SendMsg message) {
-        long id = adder.incrementAndGet();
+        long id = lastId.incrementAndGet();
         message.setId(id);
 		this.callbacks.put(id, message);
         try {
@@ -195,10 +194,10 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                     if (error != null) {
                         if (sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0) {
+                            sendMsg.setError(new ProtocolException(Helper.createProtocolError(readTree)));
                             sendMsg.getCountDownLatch().countDown();
                             sendMsg.setCountDownLatch(null);
                         }
-                        throw new ProtocolException(Helper.createProtocolError(readTree));
                     } else {
                         JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
                         sendMsg.setResult(result);
@@ -212,8 +211,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     this.emit(method, paramsNode);
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (JsonProcessingException e) {
+            throw new ProtocolException(e);
         }
     }
 
@@ -221,8 +220,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
     /**
      * 从{@link CDPSession}中拿到对应的{@link Connection}
      *
-     * @param client
-     * @returno
+     * @param client cdpsession
+     * @return Connection
      */
     public static Connection fromSession(CDPSession client) {
         return client.getConnection();
@@ -231,8 +230,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
     /**
      * 创建一个{@link CDPSession}
      *
-     * @param targetInfo
-     * @return CDPSession
+     * @param targetInfo target info
+     * @return CDPSession client
      */
     public CDPSession createSession(TargetInfo targetInfo) {
         Map<String, Object> params = new HashMap<>();
@@ -289,8 +288,5 @@ public class Connection extends EventEmitter implements Consumer<String> {
         return closed;
     }
 
-    public void setClosed(boolean closed) {
-        this.closed = closed;
-    }
 }
 

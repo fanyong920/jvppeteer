@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class DOMWorld {
@@ -76,7 +77,7 @@ public class DOMWorld {
                 "      if (document.documentElement)\n" +
                 "        retVal += document.documentElement.outerHTML;\n" +
                 "      return retVal;\n" +
-                "    }", PageEvaluateType.FUNCTION, null);
+                "    }", PageEvaluateType.FUNCTION);
     }
 
     public void setContext(ExecutionContext context) {
@@ -134,15 +135,14 @@ public class DOMWorld {
 
     public ElementHandle $(String selector) {
         ElementHandle document = this.document();
-        ElementHandle value = document.$(selector);
-        return value;
+        return document.$(selector);
     }
 
     private ElementHandle document() {
         if (this.documentPromise != null)
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
-        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
+        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING);
          this.documentPromise = document.asElement();
         return this.documentPromise;
     }
@@ -199,8 +199,7 @@ public class DOMWorld {
             this.frameManager.setNavigateResult(null);
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
             if (await) {
-                if ("Content-success".equals(this.frameManager.getNavigateResult())) {
-                } else if ("timeout".equals(this.frameManager.getNavigateResult())) {
+                if ("timeout".equals(this.frameManager.getNavigateResult())) {
                     throw new TimeoutException("setContent timeout :" + html);
                 } else if ("termination".equals(this.frameManager.getNavigateResult())) {
                     throw new NavigateException("Navigating frame was detached");
@@ -328,7 +327,7 @@ public class DOMWorld {
                 "    }";
     }
 
-    public void click(String selector, ClickOptions options) throws InterruptedException {
+    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.click(options);
@@ -342,7 +341,7 @@ public class DOMWorld {
         handle.dispose();
     }
 
-    public void hover(String selector) {
+    public void hover(String selector) throws ExecutionException, InterruptedException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
         handle.hover();
@@ -430,7 +429,7 @@ public class DOMWorld {
     }
 
     public String title() {
-        return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION,null);
+        return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION);
     }
 
     public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {

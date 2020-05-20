@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -319,11 +320,11 @@ public class ElementHandle extends JSHandle {
         return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
     }
 
-    public void click() throws InterruptedException {
+    public void click() throws InterruptedException, ExecutionException {
         click(new ClickOptions());
     }
 
-    public void click(ClickOptions options) throws InterruptedException {
+    public void click(ClickOptions options) throws InterruptedException, ExecutionException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
         this.page.getMouse().click(point.getX(), point.getY(), options);
@@ -333,7 +334,7 @@ public class ElementHandle extends JSHandle {
         this.evaluate("element => element.focus()", PageEvaluateType.FUNCTION);
     }
 
-    public void hover() {
+    public void hover() throws ExecutionException, InterruptedException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint clickablePoint = this.clickablePoint();
         this.page.getMouse().move(clickablePoint.getX(), clickablePoint.getX(), 0);

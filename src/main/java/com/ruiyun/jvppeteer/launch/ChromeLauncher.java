@@ -61,7 +61,7 @@ public class ChromeLauncher implements Launcher {
         LOGGER.info("Calling " + chromeExecutable + String.join(" ", chromeArguments));
         BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
         try {
-            runner.start(options.getHandleSIGINT(), options.getHandleSIGTERM(), options.getHandleSIGHUP(), options.getDumpio(), usePipe);
+            runner.start(options);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), "");
             Function closeCallback = (s) -> {
                 runner.closeQuietly();

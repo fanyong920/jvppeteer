@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -354,9 +355,8 @@ public class Page extends EventEmitter {
                     }
                     ExceptionDetails value = OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class);
                     page.handleException(value);
-
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
 
             }
@@ -383,11 +383,11 @@ public class Page extends EventEmitter {
                 try {
                     page.emitMetrics(event);
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 } catch (IntrospectionException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         };
@@ -674,7 +674,7 @@ public class Page extends EventEmitter {
      * @param options  参数
      * @throws InterruptedException 异常
      */
-    public void click(String selector, ClickOptions options) throws InterruptedException {
+    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
         this.mainFrame().click(selector, options);
     }
 
@@ -740,7 +740,7 @@ public class Page extends EventEmitter {
     }
 
     public String screenshot() throws IOException {
-       return this.screenshot(new ScreenshotOptions());
+        return this.screenshot(new ScreenshotOptions());
     }
 
     /**
@@ -1087,11 +1087,12 @@ public class Page extends EventEmitter {
         }
         ExecutionContext context = this.frameManager.executionContextById(event.getExecutionContextId());
         List<JSHandle> values = new ArrayList<>();
-        for (int i = 0; i < event.getArgs().size(); i++) {
-            RemoteObject arg = event.getArgs().get(i);
-            JSHandle.createJSHandle(context, arg);
+        if (ValidateUtil.isNotEmpty(event.getArgs())) {
+            for (int i = 0; i < event.getArgs().size(); i++) {
+                RemoteObject arg = event.getArgs().get(i);
+                JSHandle.createJSHandle(context, arg);
+            }
         }
-        ;
         this.addConsoleMessage(event.getType(), values, event.getStackTrace());
     }
 
@@ -1454,7 +1455,7 @@ public class Page extends EventEmitter {
      *
      * @param selector 要hover的元素的选择器。如果有多个匹配的元素，hover第一个。
      */
-    public void hover(String selector) {
+    public void hover(String selector) throws ExecutionException, InterruptedException {
         this.mainFrame().hover(selector);
     }
 
@@ -1502,6 +1503,7 @@ public class Page extends EventEmitter {
     public void pdf(String path) throws IOException {
         this.pdf(new PDFOptions(path));
     }
+
     /**
      * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
@@ -1562,7 +1564,7 @@ public class Page extends EventEmitter {
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
         if (result != null)
-         Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(), false);
+            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(), false);
 
     }
 
@@ -1637,8 +1639,8 @@ public class Page extends EventEmitter {
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
                 if (supportedMetrics.contains(metric.getName())) {
-                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(),Metrics.class);
-                    descriptor.getWriteMethod().invoke(result,metric.getValue());
+                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(), Metrics.class);
+                    descriptor.getWriteMethod().invoke(result, metric.getValue());
                 }
             }
         }

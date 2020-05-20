@@ -375,7 +375,6 @@ public class Helper {
                 }
             }
         }
-
         return MessageFormat.format("({0})({1})", fun, String.join(",", argsList));
     }
 

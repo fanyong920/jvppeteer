@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 
 public class Frame {
@@ -123,7 +124,7 @@ public class Frame {
         return this.mainWorld.addStyleTag(options);
     }
 
-    public void click(String selector, ClickOptions options) throws InterruptedException {
+    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
         this.secondaryWorld.click(selector, options);
     }
 
@@ -131,7 +132,7 @@ public class Frame {
         this.secondaryWorld.focus(selector);
     }
 
-    public void hover(String selector) {
+    public void hover(String selector) throws ExecutionException, InterruptedException {
         this.secondaryWorld.hover(selector);
     }
 

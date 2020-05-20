@@ -117,11 +117,11 @@ public class Worker extends EventEmitter {
         return this.executionContextPromise();
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException, JsonProcessingException {
+    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException {
         return this.executionContextPromise().evaluate(pageFunction,type, args);
     }
 
-    public Object evaluateHandle(String pageFunction,PageEvaluateType type, Object... args) throws InterruptedException, JsonProcessingException {
+    public Object evaluateHandle(String pageFunction,PageEvaluateType type, Object... args) throws InterruptedException {
         return this.executionContextPromise().evaluateHandle(pageFunction,type ,args);
     }
 
