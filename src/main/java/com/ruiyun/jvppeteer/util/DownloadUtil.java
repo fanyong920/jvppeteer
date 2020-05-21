@@ -1,7 +1,10 @@
 package com.ruiyun.jvppeteer.util;
 
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.transport.Connection;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -10,9 +13,15 @@ import javax.net.ssl.X509TrustManager;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.cert.CertificateException;
@@ -30,6 +39,7 @@ import java.util.function.BiConsumer;
 
 public class DownloadUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadUtil.class);
     private static ThreadPoolExecutor executor = null;
 
     /**
@@ -40,7 +50,7 @@ public class DownloadUtil {
     /**
      * 每条线程下载的文件块大小 10M
      */
-    private static final int CHUNK_SIZE = 1024 * 5*1024;
+    private static final int CHUNK_SIZE = 1024 * 1024 * 5;
 
     /**
      * 重试次数
@@ -57,6 +67,8 @@ public class DownloadUtil {
      */
     private static final int CONNECT_TIME_OUT = 10000;
 
+    private static final String FAIL_RESULT = "-1";
+
     /**
      * 下载文件的方法
      *
@@ -68,13 +80,12 @@ public class DownloadUtil {
         long contentLength = getContentLength(url);
 
         long taskCount = contentLength % CHUNK_SIZE == 0 ? contentLength / CHUNK_SIZE : contentLength / CHUNK_SIZE + 1;
-
         DownloadUtil.createFile(filePath, contentLength);
 
         ThreadPoolExecutor executor = DownloadUtil.getExecutor();
         CompletionService completionService = new ExecutorCompletionService(executor);
         List<Future> futureList = new ArrayList<>();
-
+        int downloadCount = 0;
         if (contentLength <= CHUNK_SIZE) {
             Future future = completionService.submit(new DownloadCallable(0, contentLength, filePath, url));
             futureList.add(future);
@@ -91,11 +102,20 @@ public class DownloadUtil {
         }
         executor.shutdown();
         for (Future future1 : futureList) {
-            Object result = future1.get();
-            if (!(boolean) result) {
-
+            String result = (String) future1.get();
+            if (FAIL_RESULT.equals(result)) {
+                LOGGER.error("download fail,url:"+url);
                 Files.delete(Paths.get(filePath));
                 executor.shutdownNow();
+            } else {
+                try {
+                    downloadCount +=Integer.parseInt(result);
+                    if (progressCallback != null){
+                        progressCallback.accept(downloadCount,(int) (contentLength / 1024 / 1024));
+                    }
+                }catch (Exception e){
+                    LOGGER.error("ProgressCallback has some problem",e);
+                }
             }
         }
 
@@ -128,16 +148,13 @@ public class DownloadUtil {
         }
     }
 
+    /**
+     * 创建一个用于下载chrome的线程池
+     * @return 线程池
+     */
     public static ThreadPoolExecutor getExecutor() {
-        if (executor == null) {
-            synchronized (DownloadUtil.class) {
-                if (executor == null) {
-                    executor = new
-                            ThreadPoolExecutor(THREAD_COUNT, THREAD_COUNT, 30000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-                }
-            }
-        }
-        return executor;
+        return new ThreadPoolExecutor(THREAD_COUNT, THREAD_COUNT, 30000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+
     }
 
     /**
@@ -157,39 +174,8 @@ public class DownloadUtil {
         randomAccessFile.close();
     }
 
-    /**
-     * 信任所有网站
-     */
-    private static void trustAllHosts() {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager() {
-                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                        return new java.security.cert.X509Certificate[]{};
-                    }
 
-                    @Override
-                    public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
-                            throws CertificateException {
-                    }
-
-                    @Override
-                    public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
-                            throws CertificateException {
-                    }
-                }};
-
-        // Install the all-trusting trust manager
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL", "SunJSSE");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(NoopHostnameVerifier.INSTANCE);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    static class DownloadCallable implements Callable<Boolean> {
+    static class DownloadCallable implements Callable<String> {
 
         private long startPosition;
 
@@ -207,17 +193,13 @@ public class DownloadUtil {
         }
 
         @Override
-        public Boolean call() throws Exception {
-
-            //偏移量
+        public String call() throws Exception {
             RandomAccessFile file = null;
             HttpURLConnection conn = null;
             BufferedInputStream reader = null;
-
             try {
                 file = new RandomAccessFile(this.filePath, "rw");
                 file.seek(this.startPosition);
-
                 URL uRL = new URL(this.url);
                 conn = (HttpURLConnection) uRL.openConnection();
                 conn.setConnectTimeout(CONNECT_TIME_OUT);
@@ -225,38 +207,39 @@ public class DownloadUtil {
                 conn.setRequestMethod("GET");
                 String range = "bytes=" + startPosition + "-" + endPosition;
                 conn.addRequestProperty("Range", range);
-                conn.addRequestProperty("accept-encoding","gzip, deflate, br");
+                conn.addRequestProperty("accept-encoding", "gzip, deflate, br");
+                ByteBuffer buffer = ByteBuffer.allocate(Constant.DEFAULT_BUFFER_SIZE);
+                FileChannel channel = file.getChannel();
                 for (int j = 0; j < RETRY_TIMES; j++) {
                     try {
                         conn.connect();
-                        reader = new BufferedInputStream(conn.getInputStream());
-                        byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
-                        int read;
-                        while ((read = reader.read(buffer)) != -1) {
-                            file.write(buffer, 0, read);
-//                                System.out.println(new String(buffer));
+                        InputStream inputStream = conn.getInputStream();
+                        ReadableByteChannel readableByteChannel = Channels.newChannel(inputStream);
+                        while (readableByteChannel.read(buffer) != -1) {
+                            buffer.flip();
+                            while (buffer.hasRemaining()) {
+                                channel.write(buffer);
+                            }
+                            buffer.clear();
                         }
-                        System.out.println("下载完成：" + range);
-                        return true;
+
+                        return String.valueOf((endPosition - startPosition) / 1024 / 1024);
                     } catch (Exception e) {
                         if (j == RETRY_TIMES - 1) {
-                            System.out.println("报错的range:" + range);
-                            e.printStackTrace();
+                            LOGGER.error("download url[{}] bytes[{}] fail.",url,range);
                         }
                         continue;
                     }
                 }
-                return false;
+                return FAIL_RESULT;
             } catch (Exception e) {
-                e.printStackTrace();
-                return false;
+                LOGGER.error("download url[{}] bytes[{}] fail.",url,startPosition+"-"+endPosition);
+                return FAIL_RESULT;
             } finally {
-
                 StreamUtil.closeQuietly(reader);
                 StreamUtil.closeQuietly(file);
                 if (conn != null) {
                     conn.disconnect();
-                    conn = null;
                 }
 
             }

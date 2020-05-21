@@ -157,6 +157,10 @@ public class Puppeteer {
         return this.getLauncher().executablePath();
     }
 
+    public BrowserFetcher createBrowserFetcher() {
+        return new BrowserFetcher(this.projectRoot, new FetcherOptions());
+    }
+
     public BrowserFetcher createBrowserFetcher(FetcherOptions options) {
         return new BrowserFetcher(this.projectRoot, options);
     }

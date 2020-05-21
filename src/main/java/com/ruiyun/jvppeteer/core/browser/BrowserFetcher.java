@@ -64,33 +64,34 @@ public class BrowserFetcher {
         }
     };
 
-	/**
-	 * 平台 win linux mac
-	 */
-	private String platform;
-
-	/**
-	 * 下载的域名
-	 */
-	private String downloadHost;
+    /**
+     * 平台 win linux mac
+     */
+    private String platform;
 
     /**
-	 * 下载的文件夹
-	 */
-	private String downloadsFolder;
+     * 下载的域名
+     */
+    private String downloadHost;
 
-	/**
-	 * 目前支持两种产品：chrome or firefix
-	 */
-	private String product;
+    /**
+     * 下载的文件夹
+     */
+    private String downloadsFolder;
+
+    /**
+     * 目前支持两种产品：chrome or firefix
+     */
+    private String product;
 
     public BrowserFetcher() {
     }
 
     /**
      * 创建 BrowserFetcher 对象
+     *
      * @param projectRoot 根目录，储存浏览器得根目录
-     * @param options 下载浏览器得一些配置
+     * @param options     下载浏览器得一些配置
      */
     public BrowserFetcher(String projectRoot, FetcherOptions options) {
         this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chrome").toLowerCase();
@@ -110,24 +111,26 @@ public class BrowserFetcher {
         ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
-	/**
-	 * 检测对应的浏览器版本是否可以下载
-	 * @param revision 浏览器版本
-	 * @param proxy cant be null
-	 * @return boolean
-	 */
+    /**
+     * 检测对应的浏览器版本是否可以下载
+     *
+     * @param revision 浏览器版本
+     * @param proxy    cant be null
+     * @return boolean
+     */
     public boolean canDownload(String revision, Proxy proxy) throws IOException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
         return httpRequest(proxy, url, "HEAD");
     }
 
-	/**
-	 * 发送一个http请求
-	 * @param proxy 代理 可以为null
-	 * @param url 请求的url
-	 * @param method 请求方法 get post head
-	 * @return boolean
-	 */
+    /**
+     * 发送一个http请求
+     *
+     * @param proxy  代理 可以为null
+     * @param url    请求的url
+     * @param method 请求方法 get post head
+     * @return boolean
+     */
     private boolean httpRequest(Proxy proxy, String url, String method) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -147,7 +150,7 @@ public class BrowserFetcher {
                 }
             }
 
-        }  finally {
+        } finally {
             if (conn != null) {
                 conn.disconnect();
                 conn = null;
@@ -156,14 +159,15 @@ public class BrowserFetcher {
         return false;
     }
 
-	/**
-	 * 根据给定得浏览器版本下载浏览器，可以利用下载回调显示下载进度
-	 * @param revision 浏览器版本
-	 * @param progressCallback 下载回调
-	 * @return RevisionInfo
-	 * @throws IOException 异常
-	 * @throws InterruptedException 异常
-	 */
+    /**
+     * 根据给定得浏览器版本下载浏览器，可以利用下载回调显示下载进度
+     *
+     * @param revision         浏览器版本
+     * @param progressCallback 下载回调
+     * @return RevisionInfo
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     */
     public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException, ExecutionException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
         int lastIndexOf = url.lastIndexOf("/");
@@ -180,17 +184,25 @@ public class BrowserFetcher {
             unlinkAsync(archivePath);
         }
         RevisionInfo revisionInfo = this.revisionInfo(revision);
-        if (revisionInfo != null)
-            chmodAsync(revisionInfo.getExecutablePath(), "775");
+        if (revisionInfo != null) {
+//            chmodAsync(revisionInfo.getExecutablePath(), "775");
+            try {
+                File executableFile = new File(revisionInfo.getExecutablePath());
+                executableFile.setExecutable(true, false);
+            } catch (Exception e) {
+                LOGGER.error("Set executablePath:{} file executation permission fail.", revisionInfo.getExecutablePath());
+            }
+        }
         return revisionInfo;
     }
 
-	/**
-	 * 本地存在的浏览器版本
-	 * @return Set<String>
-	 * @throws IOException 异常
-	 */
-	public Set<String> localRevisions() throws IOException {
+    /**
+     * 本地存在的浏览器版本
+     *
+     * @return Set<String>
+     * @throws IOException 异常
+     */
+    public Set<String> localRevisions() throws IOException {
         if (!existsAsync(this.downloadsFolder))
             return new HashSet<>();
         Path path = Paths.get(this.downloadsFolder);
@@ -198,24 +210,26 @@ public class BrowserFetcher {
         return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(entry -> entry.getRevision()).collect(Collectors.toSet());
     }
 
-	/**
-	 * 删除指定版本的浏览器文件
-	 * @param revision 版本
-	 * @throws IOException 异常
-	 */
-	public void remove(String revision) throws IOException {
+    /**
+     * 删除指定版本的浏览器文件
+     *
+     * @param revision 版本
+     * @throws IOException 异常
+     */
+    public void remove(String revision) throws IOException {
         String folderPath = this.getFolderPath(revision);
         ValidateUtil.assertBoolean(existsAsync(folderPath), "Failed to remove: revision " + revision + " is not downloaded");
         Files.delete(Paths.get(folderPath));
     }
 
-	/**
-	 * 根据给定的浏览器产品以及文件夹解析浏览器版本和平台
-	 * @param product win linux mac
-	 * @param folderPath 文件夹路径
-	 * @return RevisionEntry RevisionEntry
-	 */
-	private RevisionEntry parseFolderPath(String product, Path folderPath) {
+    /**
+     * 根据给定的浏览器产品以及文件夹解析浏览器版本和平台
+     *
+     * @param product    win linux mac
+     * @param folderPath 文件夹路径
+     * @return RevisionEntry RevisionEntry
+     */
+    private RevisionEntry parseFolderPath(String product, Path folderPath) {
         Path fileName = folderPath.getFileName();
         String[] split = fileName.toString().split("-");
         if (split.length != 2)
@@ -229,11 +243,11 @@ public class BrowserFetcher {
         return entry;
     }
 
-	/**
-	 * 静态内部类，描述谷歌版本相关内容,在这里
-	 * {@link BrowserFetcher#parseFolderPath(java.lang.String, java.nio.file.Path)}用到
-	 */
-	public static class RevisionEntry {
+    /**
+     * 静态内部类，描述谷歌版本相关内容,在这里
+     * {@link BrowserFetcher#parseFolderPath(java.lang.String, java.nio.file.Path)}用到
+     */
+    public static class RevisionEntry {
 
         private String product;
 
@@ -254,7 +268,7 @@ public class BrowserFetcher {
         }
 
         public void setPlatform(String platform) {
-            if(StringUtil.isNotEmpty(platform)){
+            if (StringUtil.isNotEmpty(platform)) {
                 this.platform = platform;
                 return;
             }
@@ -278,43 +292,47 @@ public class BrowserFetcher {
         }
     }
 
-	/**
-	 * 获取文件夹下所有项目，深度：一级
-	 * @param downloadsFolder 下载文件夹
-	 * @return Stream<Path> Stream<Path>
-	 * @throws IOException 异常
-	 */
-	private Stream<Path> readdirAsync(Path downloadsFolder) throws IOException {
+    /**
+     * 获取文件夹下所有项目，深度：一级
+     *
+     * @param downloadsFolder 下载文件夹
+     * @return Stream<Path> Stream<Path>
+     * @throws IOException 异常
+     */
+    private Stream<Path> readdirAsync(Path downloadsFolder) throws IOException {
         ValidateUtil.assertBoolean(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder.toString() + " is not Directory");
         return Files.list(downloadsFolder);
     }
 
-	/**
-	 * 修改文件权限，与linux上chmod命令一样，并非异步，只是方法名为了与nodejs的puppeteer库一样
-	 * @param executablePath
-	 * @param perms 权限字符串，例如"775",与linux上文件权限一样
-	 * @throws IOException 异常
-	 */
+    /**
+     * 修改文件权限，与linux上chmod命令一样，并非异步，只是方法名为了与nodejs的puppeteer库一样
+     *
+     * @param executablePath
+     * @param perms          权限字符串，例如"775",与linux上文件权限一样
+     * @throws IOException 异常
+     */
     private void chmodAsync(String executablePath, String perms) throws IOException {
         Helper.chmod(executablePath, perms);
     }
 
-	/**
-	 * 删除压缩文件
-	 * @param archivePath zip路径
-	 * @throws IOException 异常
-	 */
-	private void unlinkAsync(String archivePath) throws IOException {
+    /**
+     * 删除压缩文件
+     *
+     * @param archivePath zip路径
+     * @throws IOException 异常
+     */
+    private void unlinkAsync(String archivePath) throws IOException {
         Files.deleteIfExists(Paths.get(archivePath));
     }
 
-	/**
-	 * intall archive file: *.zip,*.tar.bz2,*.dmg
-	 * @param archivePath zip路径
-	 * @param folderPath 存放的路径
-	 * @throws IOException 异常
-	 * @throws InterruptedException 异常
-	 */
+    /**
+     * intall archive file: *.zip,*.tar.bz2,*.dmg
+     *
+     * @param archivePath zip路径
+     * @param folderPath  存放的路径
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     */
     private void install(String archivePath, String folderPath) throws IOException, InterruptedException {
         LOGGER.info("Installing " + archivePath + " to " + folderPath);
         if (archivePath.endsWith(".zip")) {
@@ -329,144 +347,148 @@ public class BrowserFetcher {
         }
     }
 
-	/**
-	 * mount and copy
-	 * @param archivePath zip路径
-	 * @param folderPath 存放路径
-	 * @return string
-	 * @throws IOException 异常
-	 * @throws InterruptedException 异常
-	 */
-	private String mountAndCopy(String archivePath, String folderPath) throws IOException, InterruptedException {
-		String mountPath = null;
-		BufferedReader reader = null;
-		String line;
-		StringWriter stringWriter = null;
-    	try {
-			List<String> arguments = new ArrayList<>();
-			arguments.add("hdiutil");
-			arguments.add("attach");
-			arguments.add("-nobrowse");
-			arguments.add("-noautoopen");
-			arguments.add(archivePath);
-			ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
-			Process process = processBuilder.start();
-			reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			Pattern pattern = Pattern.compile("/Volumes/(.*)", Pattern.MULTILINE);
-			stringWriter = new StringWriter();
-			while ((line = reader.readLine()) != null) {
-				stringWriter.write(line);
-			}
-			process.waitFor();
-			process.destroyForcibly();
-			Matcher matcher = pattern.matcher(stringWriter.toString());
-			while (matcher.find()) {
-				mountPath = matcher.group();
-			}
-		} finally {
-			StreamUtil.closeQuietly(reader);
-			StreamUtil.closeQuietly(stringWriter);
-		}
-		if (StringUtil.isEmpty(mountPath)) {
-			throw new RuntimeException("Could not find volume path in [" + stringWriter.toString() + "]");
-		}
-		Optional<Path> optionl = this.readdirAsync(Paths.get(mountPath)).filter(item -> item.toString().endsWith(".app")).findFirst();
-		if (optionl.isPresent()) {
-			try {
-				Path path = optionl.get();
-				String copyPath = path.toString();
-				LOGGER.info("Copying " + copyPath + " to " + folderPath);
-				List<String> arguments = new ArrayList<>();
-				arguments.add("cp");
-				arguments.add("-R");
-				arguments.add(copyPath);
-				arguments.add(folderPath);
-				ProcessBuilder processBuilder2 = new ProcessBuilder().command(arguments);
-				Process process2 = processBuilder2.start();
-
-				reader = new BufferedReader(new InputStreamReader(process2.getInputStream()));
-				while ((line = reader.readLine()) != null) {
-				}
-				reader.close();
-
-				reader = new BufferedReader(new InputStreamReader(process2.getErrorStream()));
-				while ((line = reader.readLine()) != null) {
-					LOGGER.error(line);
-				}
-				process2.waitFor();
-				process2.destroyForcibly();
-			} finally {
-				StreamUtil.closeQuietly(reader);
-			}
-		}
-		return mountPath;
-	}
-
-	/**
-	 * Install *.app directory from dmg file
-	 * @param archivePath zip路径
-	 * @param folderPath 存放路径
-	 * @throws IOException 异常
-	 * @throws InterruptedException 异常
-	 */
-    private void installDMG(String archivePath, String folderPath) throws IOException, InterruptedException {
-		String mountPath = null;
+    /**
+     * mount and copy
+     *
+     * @param archivePath zip路径
+     * @param folderPath  存放路径
+     * @return string
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     */
+    private String mountAndCopy(String archivePath, String folderPath) throws IOException, InterruptedException {
+        String mountPath = null;
+        BufferedReader reader = null;
+        String line;
+        StringWriter stringWriter = null;
         try {
-			mountPath = mountAndCopy(archivePath, folderPath);
-		} finally {
-			unmount(mountPath);
-		}
+            List<String> arguments = new ArrayList<>();
+            arguments.add("hdiutil");
+            arguments.add("attach");
+            arguments.add("-nobrowse");
+            arguments.add("-noautoopen");
+            arguments.add(archivePath);
+            ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
+            Process process = processBuilder.start();
+            reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            Pattern pattern = Pattern.compile("/Volumes/(.*)", Pattern.MULTILINE);
+            stringWriter = new StringWriter();
+            while ((line = reader.readLine()) != null) {
+                stringWriter.write(line);
+            }
+            process.waitFor();
+            process.destroyForcibly();
+            Matcher matcher = pattern.matcher(stringWriter.toString());
+            while (matcher.find()) {
+                mountPath = matcher.group();
+            }
+        } finally {
+            StreamUtil.closeQuietly(reader);
+            StreamUtil.closeQuietly(stringWriter);
+        }
+        if (StringUtil.isEmpty(mountPath)) {
+            throw new RuntimeException("Could not find volume path in [" + stringWriter.toString() + "]");
+        }
+        Optional<Path> optionl = this.readdirAsync(Paths.get(mountPath)).filter(item -> item.toString().endsWith(".app")).findFirst();
+        if (optionl.isPresent()) {
+            try {
+                Path path = optionl.get();
+                String copyPath = path.toString();
+                LOGGER.info("Copying " + copyPath + " to " + folderPath);
+                List<String> arguments = new ArrayList<>();
+                arguments.add("cp");
+                arguments.add("-R");
+                arguments.add(copyPath);
+                arguments.add(folderPath);
+                ProcessBuilder processBuilder2 = new ProcessBuilder().command(arguments);
+                Process process2 = processBuilder2.start();
+
+                reader = new BufferedReader(new InputStreamReader(process2.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                }
+                reader.close();
+
+                reader = new BufferedReader(new InputStreamReader(process2.getErrorStream()));
+                while ((line = reader.readLine()) != null) {
+                    LOGGER.error(line);
+                }
+                process2.waitFor();
+                process2.destroyForcibly();
+            } finally {
+                StreamUtil.closeQuietly(reader);
+            }
+        }
+        return mountPath;
+    }
+
+    /**
+     * Install *.app directory from dmg file
+     *
+     * @param archivePath zip路径
+     * @param folderPath  存放路径
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     */
+    private void installDMG(String archivePath, String folderPath) throws IOException, InterruptedException {
+        String mountPath = null;
+        try {
+            mountPath = mountAndCopy(archivePath, folderPath);
+        } finally {
+            unmount(mountPath);
+        }
         throw new RuntimeException("Cannot find app in " + mountPath);
     }
 
-	/**
-	 * unmount finally
-	 * @param mountPath mount Path
-	 * @throws IOException 异常
-	 * @throws InterruptedException 异常
-	 */
-	private void unmount(String mountPath) throws IOException, InterruptedException {
-		BufferedReader reader = null;
-		if (StringUtil.isNotEmpty(mountPath)) {
-			List<String> arguments = new ArrayList<>();
-			arguments.add("hdiutil");
-			arguments.add("detach");
-			arguments.add(mountPath);
-			arguments.add("-quiet");
-			try {
-				ProcessBuilder processBuilder3 = new ProcessBuilder().command(arguments);
-				Process process3 = processBuilder3.start();
-				LOGGER.info("Unmounting " + mountPath);
-				String line;
-				reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
-				while ((line = reader.readLine()) != null) {
-				}
-				reader.close();
-				reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));
-				while ((line = reader.readLine()) != null) {
-					LOGGER.error(line);
-				}
-				process3.waitFor();
-				process3.destroyForcibly();
-			} finally {
-				StreamUtil.closeQuietly(reader);
-			}
-		}
-	}
+    /**
+     * unmount finally
+     *
+     * @param mountPath mount Path
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     */
+    private void unmount(String mountPath) throws IOException, InterruptedException {
+        BufferedReader reader = null;
+        if (StringUtil.isNotEmpty(mountPath)) {
+            List<String> arguments = new ArrayList<>();
+            arguments.add("hdiutil");
+            arguments.add("detach");
+            arguments.add(mountPath);
+            arguments.add("-quiet");
+            try {
+                ProcessBuilder processBuilder3 = new ProcessBuilder().command(arguments);
+                Process process3 = processBuilder3.start();
+                LOGGER.info("Unmounting " + mountPath);
+                String line;
+                reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                }
+                reader.close();
+                reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));
+                while ((line = reader.readLine()) != null) {
+                    LOGGER.error(line);
+                }
+                process3.waitFor();
+                process3.destroyForcibly();
+            } finally {
+                StreamUtil.closeQuietly(reader);
+            }
+        }
+    }
 
-	/**
-	 * 解压tar文件
-	 * @param archivePath zip路径
-	 * @param folderPath 存放路径
-	 * @throws IOException 异常
-	 */
-	private void extractTar(String archivePath, String folderPath) throws IOException {
+    /**
+     * 解压tar文件
+     *
+     * @param archivePath zip路径
+     * @param folderPath  存放路径
+     * @throws IOException 异常
+     */
+    private void extractTar(String archivePath, String folderPath) throws IOException {
         BufferedOutputStream wirter = null;
         BufferedInputStream reader = null;
         TarArchiveInputStream tarArchiveInputStream = null;
         try {
             tarArchiveInputStream = new TarArchiveInputStream(new FileInputStream(archivePath));
-            ArchiveEntry nextEntry ;
+            ArchiveEntry nextEntry;
             while ((nextEntry = tarArchiveInputStream.getNextEntry()) != null) {
                 String name = nextEntry.getName();
                 Path path = Paths.get(folderPath, name);
@@ -493,12 +515,13 @@ public class BrowserFetcher {
         }
     }
 
-	/**
-	 * 解压zip文件
-	 * @param archivePath zip路径
-	 * @param folderPath 存放路径
-	 * @throws IOException
-	 */
+    /**
+     * 解压zip文件
+     *
+     * @param archivePath zip路径
+     * @param folderPath  存放路径
+     * @throws IOException
+     */
     private void extractZip(String archivePath, String folderPath) throws IOException {
         BufferedOutputStream wirter = null;
         BufferedInputStream reader = null;
@@ -531,48 +554,50 @@ public class BrowserFetcher {
         }
     }
 
-	/**
-	 * 下载浏览器到具体的路径
+    /**
+     * 下载浏览器到具体的路径
      * ContentTypeapplication/x-zip-compressed
-	 * @param url url
-	 * @param archivePath zip路径
-	 * @param progressCallback 回调函数
-	 */
+     *
+     * @param url              url
+     * @param archivePath      zip路径
+     * @param progressCallback 回调函数
+     */
     private void downloadFile(String url, String archivePath, BiConsumer<Integer, Integer> progressCallback) throws IOException, ExecutionException, InterruptedException {
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Downloading binary from " + url);
-            }
-            DownloadUtil.download(url,archivePath,progressCallback);
+        LOGGER.info("Downloading binary from " + url);
+        DownloadUtil.download(url, archivePath, progressCallback);
+        LOGGER.info("Download successfully from " + url);
     }
 
-	/**
-	 * 创建文件夹
-	 * @param folder 要创建的文件夹
-	 * @throws IOException 创建文件失败
-	 */
-	private void mkdirAsync(String folder) throws IOException {
+    /**
+     * 创建文件夹
+     *
+     * @param folder 要创建的文件夹
+     * @throws IOException 创建文件失败
+     */
+    private void mkdirAsync(String folder) throws IOException {
         File file = new File(folder);
         if (!file.exists()) {
             Files.createDirectory(file.toPath());
         }
     }
 
-	/**
-	 * 根据浏览器版本获取对应浏览器路径
-	 * @param revision 浏览器版本
-	 * @return string
-	 */
-	public String getFolderPath(String revision) {
+    /**
+     * 根据浏览器版本获取对应浏览器路径
+     *
+     * @param revision 浏览器版本
+     * @return string
+     */
+    public String getFolderPath(String revision) {
         return Paths.get(this.downloadsFolder, this.platform + "-" + revision).toString();
     }
 
-	/**
-	 * 获取浏览器版本相关信息
-	 * @param revision 版本
-	 * @return RevisionInfo
-	 */
-	public RevisionInfo revisionInfo(String revision) {
+    /**
+     * 获取浏览器版本相关信息
+     *
+     * @param revision 版本
+     * @return RevisionInfo
+     */
+    public RevisionInfo revisionInfo(String revision) {
         String folderPath = this.getFolderPath(revision);
         String executablePath = "";
         if ("chrome".equals(this.product)) {
@@ -603,22 +628,24 @@ public class BrowserFetcher {
         return new RevisionInfo(revision, executablePath, folderPath, local, url, this.product);
     }
 
-	/**
-	 * 检测给定的路径是否存在
-	 * @param filePath 文件路径
-	 * @return boolean
-	 */
-	public boolean existsAsync(String filePath) {
+    /**
+     * 检测给定的路径是否存在
+     *
+     * @param filePath 文件路径
+     * @return boolean
+     */
+    public boolean existsAsync(String filePath) {
         return Files.exists(Paths.get(filePath));
     }
 
-	/**
-	 * 根据平台信息和版本信息确定要下载的浏览器压缩包
-	 * @param product 产品
-	 * @param platform 平台
-	 * @param revision 版本
-	 * @return
-	 */
+    /**
+     * 根据平台信息和版本信息确定要下载的浏览器压缩包
+     *
+     * @param product  产品
+     * @param platform 平台
+     * @param revision 版本
+     * @return
+     */
     public String archiveName(String product, String platform, String revision) {
         if ("chrome".equals(product)) {
             if ("linux".equals(platform))
@@ -640,14 +667,15 @@ public class BrowserFetcher {
         return null;
     }
 
-	/**
-	 * 确定下载的路径
-	 * @param product 产品：chrome or firefox
-	 * @param platform win linux mac
-	 * @param host 域名地址
-	 * @param revision 版本
-	 * @return
-	 */
+    /**
+     * 确定下载的路径
+     *
+     * @param product  产品：chrome or firefox
+     * @param platform win linux mac
+     * @param host     域名地址
+     * @param revision 版本
+     * @return
+     */
     public String downloadURL(String product, String platform, String host, String revision) {
         return String.format(downloadURLs.get(product).get(platform), host, revision, archiveName(product, platform, revision));
     }

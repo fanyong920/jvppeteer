@@ -82,6 +82,7 @@ public class Helper {
     }
 
     public static final void chmod(String path, String perms) throws IOException {
+
         if (StringUtil.isEmpty(path))
             throw new IllegalArgumentException("Path must not be empty");
 
@@ -113,45 +114,45 @@ public class Helper {
         }
         //group
         if ('1' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.GROUP_EXECUTE);
         } else if ('2' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
+            permissions.add(PosixFilePermission.GROUP_WRITE);
         } else if ('3' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.GROUP_WRITE);
+            permissions.add(PosixFilePermission.GROUP_EXECUTE);
         } else if ('4' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
+            permissions.add(PosixFilePermission.GROUP_READ);
         } else if ('5' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.GROUP_READ);
+            permissions.add(PosixFilePermission.GROUP_EXECUTE);
         } else if ('6' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
+            permissions.add(PosixFilePermission.GROUP_READ);
+            permissions.add(PosixFilePermission.GROUP_WRITE);
         } else if ('7' == chars[1]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.GROUP_READ);
+            permissions.add(PosixFilePermission.GROUP_WRITE);
+            permissions.add(PosixFilePermission.GROUP_EXECUTE);
         }
         //other
         if ('1' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         } else if ('2' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
+            permissions.add(PosixFilePermission.OTHERS_WRITE);
         } else if ('3' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.OTHERS_WRITE);
+            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         } else if ('4' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
+            permissions.add(PosixFilePermission.OTHERS_READ);
         } else if ('5' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.OTHERS_READ);
+            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         } else if ('6' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
+            permissions.add(PosixFilePermission.OTHERS_READ);
             permissions.add(PosixFilePermission.OWNER_WRITE);
         } else if ('7' == chars[2]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.OTHERS_READ);
+            permissions.add(PosixFilePermission.OTHERS_WRITE);
+            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
         }
 
         Files.setPosixFilePermissions(path1, permissions);
