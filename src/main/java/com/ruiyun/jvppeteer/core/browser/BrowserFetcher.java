@@ -202,12 +202,12 @@ public class BrowserFetcher {
      * @return Set<String>
      * @throws IOException 异常
      */
-    public Set<String> localRevisions() throws IOException {
+    public List<String> localRevisions() throws IOException {
         if (!existsAsync(this.downloadsFolder))
-            return new HashSet<>();
+            return new ArrayList<>();
         Path path = Paths.get(this.downloadsFolder);
         Stream<Path> fileNames = this.readdirAsync(path);
-        return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(entry -> entry.getRevision()).collect(Collectors.toSet());
+        return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(entry -> entry.getRevision()).collect(Collectors.toList());
     }
 
     /**

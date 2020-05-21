@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.Helper;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 public class PageEvaluteExample {
 
-    public static void main(String[] args) throws JsonProcessingException {
+    public static void main(String[] args) throws IOException {
         //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";

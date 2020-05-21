@@ -13,6 +13,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,24 +58,24 @@ public class Puppeteer {
      *
      * @return
      */
-    public static Browser launch() {
+    public static Browser launch() throws IOException {
         return Puppeteer.rawLaunch();
     }
 
-    public static Browser launch(boolean headless) {
+    public static Browser launch(boolean headless) throws IOException {
         return Puppeteer.rawLaunch(headless);
     }
 
-    public static Browser launch(LaunchOptions options) {
+    public static Browser launch(LaunchOptions options) throws IOException {
         Puppeteer puppeteer = new Puppeteer();
         return Puppeteer.rawLaunch(options, puppeteer);
     }
 
-    private static Browser rawLaunch() {
+    private static Browser rawLaunch() throws IOException {
         return Puppeteer.rawLaunch(true);
     }
 
-    private static Browser rawLaunch(boolean headless) {
+    private static Browser rawLaunch(boolean headless) throws IOException {
         Puppeteer puppeteer = new Puppeteer();
         return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(), puppeteer);
     }
@@ -103,7 +104,7 @@ public class Puppeteer {
      * The method launches a browser instance with given arguments. The browser will
      * be closed when the parent java process is closed.
      */
-    private static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) {
+    private static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) throws IOException {
         if (!StringUtil.isNotBlank(options.getProduct())) {
             puppeteer.setProductName(options.getProduct());
         }
@@ -153,7 +154,7 @@ public class Puppeteer {
         return chromeArguments;
     }
 
-    public String executablePath() {
+    public String executablePath() throws IOException {
         return this.getLauncher().executablePath();
     }
 

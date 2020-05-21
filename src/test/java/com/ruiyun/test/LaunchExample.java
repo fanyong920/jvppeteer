@@ -1,5 +1,6 @@
 package com.ruiyun.test;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -12,9 +13,9 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 public class LaunchExample {
 	
 	@Test
-	public void test1() {
+	public void test1() throws IOException {
 		ArrayList<String> arrayList = new ArrayList<>();
-		LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
+		LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).build();
 		arrayList.add("--no-sandbox");
 		arrayList.add("--disable-setuid-sandbox");
 		Puppeteer.launch(options);

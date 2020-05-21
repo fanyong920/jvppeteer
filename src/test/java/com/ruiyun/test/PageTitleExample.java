@@ -7,11 +7,12 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
 public class PageTitleExample {
-    public static void main(String[] args) throws JsonProcessingException, InterruptedException, UnsupportedEncodingException {
+    public static void main(String[] args) throws IOException {
         String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();

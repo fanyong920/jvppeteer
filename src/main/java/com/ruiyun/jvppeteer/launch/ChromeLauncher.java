@@ -28,7 +28,10 @@ import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 public class ChromeLauncher implements Launcher {
@@ -52,7 +55,7 @@ public class ChromeLauncher implements Launcher {
     }
 
     @Override
-    public Browser launch(LaunchOptions options) {
+    public Browser launch(LaunchOptions options) throws IOException {
         List<String> chromeArguments = new ArrayList<>();
         String temporaryUserDataDir = defaultArgs(options, chromeArguments);
         String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
@@ -144,60 +147,72 @@ public class ChromeLauncher implements Launcher {
      * @return
      */
     @Override
-    public String resolveExecutablePath(String chromeExecutable) {
+    public String resolveExecutablePath(String chromeExecutable) throws IOException {
         boolean puppeteerCore = getIsPuppeteerCore();
+        FetcherOptions fetcherOptions = new FetcherOptions();
+        fetcherOptions.setProduct(this.product());
+        BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot, fetcherOptions);
         if (!puppeteerCore) {
+            /*指定了启动路径，则启动指定路径的chrome*/
             if (StringUtil.isNotEmpty(chromeExecutable)) {
                 boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
                 if (!assertDir) {
                     throw new IllegalArgumentException("given chromeExecutable \"" + chromeExecutable + "\" is not executable");
                 }
                 return chromeExecutable;
-            } else {
-                for (int i = 0; i < Constant.EXECUTABLE_ENV.length; i++) {
-                    chromeExecutable = env.getEnv(Constant.EXECUTABLE_ENV[i]);
-                    if (StringUtil.isNotEmpty(chromeExecutable)) {
-                        boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
-                        if (!assertDir) {
-                            throw new IllegalArgumentException("given chromeExecutable is not is not executable");
-                        }
+            }
+            /*环境变量中配置了chromeExecutable，就使用环境变量中的路径*/
+            for (int i = 0; i < Constant.EXECUTABLE_ENV.length; i++) {
+                chromeExecutable = env.getEnv(Constant.EXECUTABLE_ENV[i]);
+                if (StringUtil.isNotEmpty(chromeExecutable)) {
+                    boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                    if (!assertDir) {
+                        throw new IllegalArgumentException("given chromeExecutable is not is not executable");
+                    }
+                    return chromeExecutable;
+                }
+            }
+
+            /*环境变量中配置了chrome版本，就用环境变量中的版本*/
+            String revision = env.getEnv(Constant.PUPPETEER_CHROMIUM_REVISION_ENV);
+            if (StringUtil.isNotEmpty(revision)) {
+                RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
+                if (!revisionInfo.getLocal()) {
+                    throw new LaunchException(
+                            "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
+                                    + revisionInfo.getExecutablePath());
+                }
+                return revisionInfo.getExecutablePath();
+            }
+            /*如果下载了chrome，就使用下载的chrome*/
+            List<String> localRevisions = browserFetcher.localRevisions();
+            if (ValidateUtil.isNotEmpty(localRevisions)) {
+                localRevisions.stream().sorted(Comparator.reverseOrder());
+                RevisionInfo revisionInfo = browserFetcher.revisionInfo(localRevisions.get(0));
+                if (!revisionInfo.getLocal()) {
+                    throw new LaunchException(
+                            "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
+                                    + revisionInfo.getExecutablePath());
+                }
+                return revisionInfo.getExecutablePath();
+            }
+
+            /*寻找可能存在的启动路径*/
+            for (int i = 0; i < Constant.PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
+                chromeExecutable = Constant.PROBABLE_CHROME_EXECUTABLE_PATH[i];
+                if (StringUtil.isNotEmpty(chromeExecutable)) {
+                    boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                    if (assertDir) {
                         return chromeExecutable;
                     }
                 }
-
-                for (int i = 0; i < Constant.PROBABLE_CHROME_EXECUTABLE_PATH.length; i++) {
-                    chromeExecutable = Constant.PROBABLE_CHROME_EXECUTABLE_PATH[i];
-                    if (StringUtil.isNotEmpty(chromeExecutable)) {
-                        boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
-                        if (assertDir) {
-                            return chromeExecutable;
-                        }
-                    }
-                }
-
-                throw new RuntimeException(
-                        "Tried to use PUPPETEER_EXECUTABLE_PATH env variable to launch browser but did not find any executable");
             }
         }
-        FetcherOptions fetcherOptions = new FetcherOptions();
-        fetcherOptions.setProduct(this.product());
-        BrowserFetcher browserFetcher = new BrowserFetcher(this.projectRoot, fetcherOptions);
-        String revision = env.getEnv(Constant.PUPPETEER_CHROMIUM_REVISION_ENV);
-        if (StringUtil.isNotEmpty(revision)) {
-            RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
-            if (!revisionInfo.getLocal()) {
-                throw new LaunchException(
-                        "Tried to use PUPPETEER_CHROMIUM_REVISION env variable to launch browser but did not find executable at: "
-                                + revisionInfo.getExecutablePath());
-            }
-            return revisionInfo.getExecutablePath();
-        } else {
-            RevisionInfo revisionInfo = browserFetcher.revisionInfo(this.preferredRevision);
-            if (!revisionInfo.getLocal())
-                throw new LaunchException(MessageFormat.format("Could not find browser revision {0}. Pleaze download a browser binary.", this.preferredRevision));
-            return revisionInfo.getExecutablePath();
-        }
 
+        RevisionInfo revisionInfo = browserFetcher.revisionInfo(this.preferredRevision);
+        if (!revisionInfo.getLocal())
+            throw new LaunchException(MessageFormat.format("Could not find browser revision {0}. Pleaze download a browser binary.", this.preferredRevision));
+        return revisionInfo.getExecutablePath();
     }
 
     @Override
@@ -260,7 +275,7 @@ public class ChromeLauncher implements Launcher {
 
 
     @Override
-    public String executablePath() {
+    public String executablePath() throws IOException {
         return resolveExecutablePath(null);
     }
 

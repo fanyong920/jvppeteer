@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +20,7 @@ import java.util.concurrent.Future;
 
 public class PageFileChooserExample {
 
-    public static void main(String[] args) throws InterruptedException, ExecutionException, UnsupportedEncodingException {
+    public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
         String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
 //        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";

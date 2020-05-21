@@ -7,19 +7,20 @@ import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface Launcher {
 	
 	Environment env = System::getenv;
 	
-	Browser launch(LaunchOptions options);
+	Browser launch(LaunchOptions options) throws IOException;
 	
 	String defaultArgs(ChromeArgOptions options, List<String> chromeArguments);
 	
-	String resolveExecutablePath(String chromeExecutable);
+	String resolveExecutablePath(String chromeExecutable) throws IOException;
 	
 	Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport);
 
-	String executablePath();
+	String executablePath() throws IOException;
 }

@@ -6,10 +6,11 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class BrowserEventExample {
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws IOException {
         String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
