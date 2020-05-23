@@ -193,7 +193,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
 					SendMsg sendMsg = this.callbacks.get(id);
                     JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                     if (error != null) {
-                        if (sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0) {
+                        if (sendMsg.getCountDownLatch() != null) {
                             sendMsg.setError(new ProtocolException(Helper.createProtocolError(readTree)));
                             sendMsg.getCountDownLatch().countDown();
                             sendMsg.setCountDownLatch(null);
@@ -201,7 +201,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     } else {
                         JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
                         sendMsg.setResult(result);
-                        if (sendMsg.getCountDownLatch() != null && sendMsg.getCountDownLatch().getCount() > 0) {
+                        if (sendMsg.getCountDownLatch() != null) {
                             sendMsg.getCountDownLatch().countDown();
 							sendMsg.setCountDownLatch(null);
                         }

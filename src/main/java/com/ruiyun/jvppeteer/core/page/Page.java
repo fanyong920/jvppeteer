@@ -2004,7 +2004,7 @@ public class Page extends EventEmitter {
 
         public void setFileChooser(FileChooser fileChooser) {
             this.fileChooser = fileChooser;
-            if (this.latch != null && this.latch.getCount() > 0) {
+            if (this.latch != null) {
                 this.latch.countDown();
             }
         }

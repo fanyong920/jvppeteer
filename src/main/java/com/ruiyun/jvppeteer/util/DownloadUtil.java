@@ -40,7 +40,6 @@ import java.util.function.BiConsumer;
 public class DownloadUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DownloadUtil.class);
-    private static ThreadPoolExecutor executor = null;
 
     /**
      * 线程池数量
@@ -50,7 +49,7 @@ public class DownloadUtil {
     /**
      * 每条线程下载的文件块大小 10M
      */
-    private static final int CHUNK_SIZE = 1024 * 1024 * 5;
+    private static final int CHUNK_SIZE = 5 << 20;
 
     /**
      * 重试次数
@@ -111,7 +110,7 @@ public class DownloadUtil {
                 try {
                     downloadCount +=Integer.parseInt(result);
                     if (progressCallback != null){
-                        progressCallback.accept(downloadCount,(int) (contentLength / 1024 / 1024));
+                        progressCallback.accept(downloadCount,(int) (contentLength >> 20));
                     }
                 }catch (Exception e){
                     LOGGER.error("ProgressCallback has some problem",e);

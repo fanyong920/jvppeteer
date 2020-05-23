@@ -113,7 +113,7 @@ public class WaitTask {
             this.cleanup();
         }finally {
             promiseDone = true;
-            if(waitPromiseLatch != null && waitPromiseLatch.getCount() > 0){
+            if(waitPromiseLatch != null){
                 waitPromiseLatch.countDown();
             }
         }

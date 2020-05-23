@@ -127,7 +127,7 @@ public class LifecycleWatcher {
     }
     public void lifecycleCallback() {
         this.lifecyclePromise = new Object();
-        if (this.frameManager.getContentLatch() != null && this.frameManager.getContentLatch().getCount() > 0) {
+        if (this.frameManager.getContentLatch() != null) {
             this.frameManager.setNavigateResult("Content-success");
             this.frameManager.getContentLatch().countDown();
         }
@@ -219,7 +219,7 @@ public class LifecycleWatcher {
     }
 
     private void setNavigateResult(String result) {
-        if (this.frameManager.getDocumentLatch() != null && this.frameManager.getDocumentLatch().getCount() > 0 && !"Content-success".equals(result)) {
+        if (this.frameManager.getDocumentLatch() != null && !"Content-success".equals(result)) {
             this.frameManager.setNavigateResult(result);
             this.frameManager.getDocumentLatch().countDown();
         }

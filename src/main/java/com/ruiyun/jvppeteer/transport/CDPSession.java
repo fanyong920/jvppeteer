@@ -155,18 +155,16 @@ public class CDPSession extends EventEmitter {
             SendMsg callback = this.callbacks.get(idLong);
             if (callback != null) {
                 JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
-//                JsonNode errorMsg = errNode.get(RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
                 if (errNode != null) {
-                    if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
+                    if(callback.getCountDownLatch() != null){
                         callback.setError(new ProtocolException(Helper.createProtocolError(node)));
                         callback.getCountDownLatch().countDown();
-                        //还没有await 数据以及返回了了
                         callback.setCountDownLatch(null);
                     }
                 }else {
                     JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
                     callback.setResult(result);
-                    if(callback.getCountDownLatch() != null && callback.getCountDownLatch().getCount() > 0){
+                    if(callback.getCountDownLatch() != null){
                         callback.getCountDownLatch().countDown();
                         callback.setCountDownLatch(null);
                     }

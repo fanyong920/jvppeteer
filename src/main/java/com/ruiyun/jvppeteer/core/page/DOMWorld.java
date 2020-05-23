@@ -97,7 +97,7 @@ public class DOMWorld {
             this.contextPromise = context;
 //        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
 //        this.documentPromise = document.asElement();
-            if(this.waitForContext != null && this.waitForContext.getCount() > 0) {
+            if(this.waitForContext != null) {
                 this.waitForContext.countDown();
             }
     }

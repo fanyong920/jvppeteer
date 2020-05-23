@@ -150,7 +150,7 @@ public class Target {
             this.initializedPromise = true;
             return true;
         } finally {
-            if (initializedCountDown != null && initializedCountDown.getCount() > 0) {
+            if (initializedCountDown != null) {
                 initializedCountDown.countDown();
                 initializedCountDown = null;
             }

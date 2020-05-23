@@ -223,45 +223,10 @@ public class Browser extends EventEmitter {
     public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Function closeCallback, int timeout) throws InterruptedException {
         Browser browser = new Browser(connection, contextIds, ignoreHTTPSErrors, viewport, process, closeCallback);
         Map<String, Object> params = new HashMap<>();
-//		addBrowserListener(browser);
-        //send
         params.put("discover", true);
-
         connection.send("Target.setDiscoverTargets", params, false);
         return browser;
     }
-
-    /**
-     * 浏览器启动时要增加的事件监听
-     * @param browser 当前浏览器
-     * @throws ExecutionException 发布事件可能产生的异常
-     */
-//	private static void addBrowserListener(Browser browser) {
-//		//先存发布者，再发送消息
-//		DefaultBrowserListener<Target> defaultBrowserListener = new DefaultBrowserListener<Target>() {
-//			@Override
-//			public void onBrowserEvent(Target event) {
-//				if("browser".equals(event.getTargetInfo().getType()) && event.getTargetInfo().getAttached()){
-//					Browser brow = (Browser)this.getTarget();
-//					brow.targetCreated(event.getTargetInfo());
-//					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
-//						brow.getDownLatch().countDown();
-//					}
-//				}
-//				if("page".equals(event.getTargetInfo().getType()) && !event.getTargetInfo().getAttached()  && Page.ABOUT_BLANK.equals(event.getTargetInfo().getUrl())){
-//					Browser brow = (Browser)this.getTarget();
-//					brow.targetCreated(event.getTargetInfo());
-//					if(brow.getDownLatch() != null && brow.getDownLatch().getCount() > 0){
-//						brow.getDownLatch().countDown();
-//					}
-//				}
-//			}
-//		};
-//		defaultBrowserListener.setTarget(browser);
-//		defaultBrowserListener.setMothod("Target.targetCreated");
-//		defaultBrowserListener.setResolveType(Target.class);
-//		browser.getConnection().on(defaultBrowserListener.getMothod(),defaultBrowserListener);
-//	}
 
     /**
      * 当前浏览器有target创建时会调用的方法
