@@ -327,7 +327,7 @@ public class ElementHandle extends JSHandle {
     public void click(ClickOptions options) throws InterruptedException, ExecutionException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
-        this.page.getMouse().click(point.getX(), point.getY(), options);
+        this.page.mouse().click(point.getX(), point.getY(), options);
     }
 
     public void focus() {
@@ -337,7 +337,7 @@ public class ElementHandle extends JSHandle {
     public void hover() throws ExecutionException, InterruptedException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint clickablePoint = this.clickablePoint();
-        this.page.getMouse().move(clickablePoint.getX(), clickablePoint.getX(), 0);
+        this.page.mouse().move(clickablePoint.getX(), clickablePoint.getX(), 0);
     }
 
     public List<String> select(List<String> values) {
@@ -375,7 +375,7 @@ public class ElementHandle extends JSHandle {
 
     public void type(String text, int delay) throws InterruptedException {
         this.focus();
-        this.page.getKeyboard().type(text, delay);
+        this.page.keyboard().type(text, delay);
     }
 
     public void press(String key) throws InterruptedException {
@@ -384,7 +384,7 @@ public class ElementHandle extends JSHandle {
 
     public void press(String key, int delay, String text) throws InterruptedException {
         this.focus();
-        this.page.getKeyboard().press(key, delay, text);
+        this.page.keyboard().press(key, delay, text);
     }
 
     public Clip boundingBox() {

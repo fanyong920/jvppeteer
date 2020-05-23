@@ -71,4 +71,5 @@ public class ScreenshotOptions {
     public void setEncoding(String encoding) {
         this.encoding = encoding;
     }
+
 }

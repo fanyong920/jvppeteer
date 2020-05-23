@@ -72,4 +72,14 @@ public class Dialog {
         params.put("accept",false);
          this.client.send("Page.handleJavaScriptDialog",params,true);
     }
+
+    @Override
+    public String toString() {
+        return "Dialog{" +
+                "type='" + type + '\'' +
+                ", message='" + message + '\'' +
+                ", defaultValue='" + defaultValue + '\'' +
+                ", handled=" + handled +
+                '}';
+    }
 }

@@ -48,4 +48,13 @@ public class Location {
     public void setColumnNumber(int columnNumber) {
         this.columnNumber = columnNumber;
     }
+
+    @Override
+    public String toString() {
+        return "Location{" +
+                "url='" + url + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", columnNumber=" + columnNumber +
+                '}';
+    }
 }

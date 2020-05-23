@@ -63,4 +63,14 @@ public class  ConsoleMessage {
     public void setText(String text) {
         this.text = text;
     }
+
+    @Override
+    public String toString() {
+        return "ConsoleMessage{" +
+                "type='" + type + '\'' +
+                ", args=" + args +
+                ", location=" + location +
+                ", text='" + text + '\'' +
+                '}';
+    }
 }

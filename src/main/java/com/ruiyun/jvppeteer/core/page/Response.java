@@ -5,12 +5,14 @@ import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 public class Response {
 
@@ -62,22 +64,24 @@ public class Response {
         this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    public void bodyLoadedPromiseFulfill(RuntimeException e) throws IOException {
+    public void bodyLoadedPromiseFulfill(RuntimeException e) {
         if (e != null) {
             throw e;
         }
         synchronized (Response.class) {
             if (this.contentPromise == null) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("requestId", this.request.getRequestId());
-                JsonNode response = this.client.send("Network.getResponseBody", params, true);
+                Helper.commonExecutor().submit(() -> {
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("requestId", this.request.getRequestId());
+                    JsonNode response = this.client.send("Network.getResponseBody", params, true);
 
-                JsonNode charsetNode = response.get("base64Encoded");
-                if (charsetNode != null) {
-                    this.contentPromise = Base64.decode(response.get("data").asText());
-                } else {
-                    this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
-                }
+                    JsonNode charsetNode = response.get("base64Encoded");
+                    if (charsetNode != null) {
+                        this.contentPromise = Base64.decode(response.get("data").asText());
+                    } else {
+                        this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
+                    }
+                });
             }
         }
     }
@@ -86,7 +90,7 @@ public class Response {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
 
-    public byte[] buffer() throws IOException {
+    public byte[] buffer() {
         if (this.contentPromise == null) {
             bodyLoadedPromiseFulfill(null);
         }

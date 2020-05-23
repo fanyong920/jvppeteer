@@ -467,7 +467,7 @@ public class FrameManager extends EventEmitter {
         long start = System.currentTimeMillis();
         try {
             this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
-            if ("success".equals(navigateResult)) {
+            if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                 if (this.ensureNewDocumentNavigation) {
                     DocumentNavigationPromiseType = "new";
                     if (watcher.newDocumentNavigationPromise() != null) {
@@ -483,20 +483,21 @@ public class FrameManager extends EventEmitter {
                     this.navigateResult = "";
                     this.documentLatch = new CountDownLatch(1);
                     long end = System.currentTimeMillis();
-                    boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
-                    if (!await) {
-                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-                    }
-                    if ("success".equals(navigateResult)) {
+                   // boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
+                   documentLatch.await();
+//                    if (!await) {
+//                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+//                    }
+                    if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                         return watcher.navigationResponse();
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            if ("timeout".equals(navigateResult)) {
+            if (NavigateResult.TIMEOUT.getResult().equals(navigateResult)) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-            } else if ("termination".equals(navigateResult)) {
+            } else if (NavigateResult.TERMINATION.getResult().equals(navigateResult)) {
                 throw new NavigateException("Navigating frame was detached");
             } else {
                 throw new NavigateException("UnNokwn result " + navigateResult);

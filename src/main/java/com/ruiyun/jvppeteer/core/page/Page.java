@@ -679,6 +679,13 @@ public class Page extends EventEmitter {
     }
 
     /**
+     * 关闭浏览器
+     */
+    public void close( ) {
+        this.close(false);
+    }
+
+    /**
      * page.close() 在 beforeunload 处理之前默认不执行
      * <p><strong>注意 如果 runBeforeUnload 设置为true，可能会弹出一个 beforeunload 对话框。 这个对话框需要通过页面的 'dialog' 事件手动处理</strong></p>
      *
@@ -784,6 +791,13 @@ public class Page extends EventEmitter {
         this.frameManager.networkManager().setCacheEnabled(enabled);
     }
 
+    /**
+     * 给页面设置html
+     * @param html 分派给页面的HTML。
+     */
+    public void setContent(String html) {
+        this.setContent(html,new PageNavigateOptions());
+    }
     /**
      * 给页面设置html
      *
@@ -1923,7 +1937,7 @@ public class Page extends EventEmitter {
         this.closed = closed;
     }
 
-    public Mouse getMouse() {
+    public Mouse mouse() {
         return mouse;
     }
 
@@ -1964,7 +1978,7 @@ public class Page extends EventEmitter {
         return touchscreen;
     }
 
-    public Keyboard getKeyboard() {
+    public Keyboard keyboard() {
         return this.keyboard;
     }
 

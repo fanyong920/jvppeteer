@@ -155,7 +155,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("<- RECV " + message);
         }
-//        System.out.println("<- RECV " + message);
+        System.out.println("<- RECV " + message);
         try {
             if (StringUtil.isNotEmpty(message)) {
                 JsonNode readTree = Constant.OBJECTMAPPER.readTree(message);

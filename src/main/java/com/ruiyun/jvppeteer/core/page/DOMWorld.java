@@ -199,9 +199,11 @@ public class DOMWorld {
             this.frameManager.setNavigateResult(null);
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
             if (await) {
-                if ("timeout".equals(this.frameManager.getNavigateResult())) {
+                if(NavigateResult.CONTENT_SUCCESS.getResult().equals(this.frameManager.getNavigateResult())){
+
+                } else if (NavigateResult.TIMEOUT.getResult().equals(this.frameManager.getNavigateResult())) {
                     throw new TimeoutException("setContent timeout :" + html);
-                } else if ("termination".equals(this.frameManager.getNavigateResult())) {
+                } else if (NavigateResult.TERMINATION.getResult().equals(this.frameManager.getNavigateResult())) {
                     throw new NavigateException("Navigating frame was detached");
                 } else {
                     throw new NavigateException("UnNokwn result " + this.frameManager.getNavigateResult());
@@ -223,7 +225,7 @@ public class DOMWorld {
                 ElementHandle handle = (ElementHandle)context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
                return handle.asElement();
             } catch (Exception e) {
-                throw new RuntimeException("Loading script from ${url} failed");
+                throw new RuntimeException("Loading script from ${url} failed",e);
             }
         }
         if (StringUtil.isNotEmpty(options.getPath())) {
