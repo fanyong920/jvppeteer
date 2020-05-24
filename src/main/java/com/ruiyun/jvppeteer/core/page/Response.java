@@ -64,13 +64,13 @@ public class Response {
         this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    public void bodyLoadedPromiseFulfill(RuntimeException e) {
+    public Future bodyLoadedPromiseFulfill(RuntimeException e) {
         if (e != null) {
             throw e;
         }
         synchronized (Response.class) {
             if (this.contentPromise == null) {
-                Helper.commonExecutor().submit(() -> {
+                return Helper.commonExecutor().submit(() -> {
                     Map<String, Object> params = new HashMap<>();
                     params.put("requestId", this.request.getRequestId());
                     JsonNode response = this.client.send("Network.getResponseBody", params, true);
@@ -83,6 +83,7 @@ public class Response {
                     }
                 });
             }
+            return null;
         }
     }
 

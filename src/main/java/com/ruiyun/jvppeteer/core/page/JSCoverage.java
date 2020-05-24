@@ -49,7 +49,7 @@ public class JSCoverage {
     }
 
     public void start(boolean resetOnNavigation, boolean reportAnonymousScripts) {
-        ValidateUtil.assertBoolean(!this.enabled, "JSCoverage is already enabled");
+        ValidateUtil.assertArg(!this.enabled, "JSCoverage is already enabled");
 
         this.resetOnNavigation = resetOnNavigation;
         this.reportAnonymousScripts = reportAnonymousScripts;
@@ -113,7 +113,7 @@ public class JSCoverage {
     }
 
     public List<CoverageEntry> stop() throws JsonProcessingException {
-        ValidateUtil.assertBoolean(this.enabled, "JSCoverage is not enabled");
+        ValidateUtil.assertArg(this.enabled, "JSCoverage is not enabled");
         this.enabled = false;
 
         JsonNode result = this.client.send("Profiler.takePreciseCoverage", null, true);

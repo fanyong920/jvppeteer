@@ -57,7 +57,7 @@ public class Dialog {
      * @param {string=} promptText
      */
     public void  accept(String promptText) {
-        ValidateUtil.assertBoolean(!this.handled, "Cannot accept dialog which is already handled!");
+        ValidateUtil.assertArg(!this.handled, "Cannot accept dialog which is already handled!");
         this.handled = true;
         Map<String,Object> params = new HashMap<>();
         params.put("accept",true);
@@ -66,7 +66,7 @@ public class Dialog {
     }
 
     public void  dismiss() {
-        ValidateUtil.assertBoolean(!this.handled, "Cannot dismiss dialog which is already handled!");
+        ValidateUtil.assertArg(!this.handled, "Cannot dismiss dialog which is already handled!");
         this.handled = true;
         Map<String,Object> params = new HashMap<>();
         params.put("accept",false);

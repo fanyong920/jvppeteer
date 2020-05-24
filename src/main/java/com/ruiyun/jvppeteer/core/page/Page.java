@@ -692,7 +692,7 @@ public class Page extends EventEmitter {
      * @param runBeforeUnload 默认 false. 是否执行 before unload
      */
     public void close(boolean runBeforeUnload) {
-        ValidateUtil.assertBoolean(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
+        ValidateUtil.assertArg(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
 
         if (runBeforeUnload) {
             this.client.send("Page.close", null, false);
@@ -715,7 +715,7 @@ public class Page extends EventEmitter {
         // options.type takes precedence over inferring the type from options.path
         // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
         if (StringUtil.isNotEmpty(options.getType())) {
-            ValidateUtil.assertBoolean("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
+            ValidateUtil.assertArg("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
             screenshotType = options.getType();
         } else if (StringUtil.isNotEmpty(options.getPath())) {
             String mimeType = Files.probeContentType(Paths.get(options.getPath()));
@@ -723,19 +723,19 @@ public class Page extends EventEmitter {
                 screenshotType = "png";
             else if ("image/jpeg".equals(mimeType))
                 screenshotType = "jpeg";
-            ValidateUtil.assertBoolean(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
+            ValidateUtil.assertArg(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
         }
 
         if (StringUtil.isEmpty(screenshotType))
             screenshotType = "png";
         if (options.getQuality() > 0) {
-            ValidateUtil.assertBoolean("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
-            ValidateUtil.assertBoolean(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
+            ValidateUtil.assertArg("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
+            ValidateUtil.assertArg(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
         }
-        ValidateUtil.assertBoolean(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
+        ValidateUtil.assertArg(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
         if (options.getClip() != null) {
-            ValidateUtil.assertBoolean(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
-            ValidateUtil.assertBoolean(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
+            ValidateUtil.assertArg(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
+            ValidateUtil.assertArg(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
         }
         return (String) this.screenshotTaskQueue.postTask((type, op) -> {
             try {
@@ -846,8 +846,8 @@ public class Page extends EventEmitter {
         cookies.replaceAll(cookie -> {
             if (StringUtil.isEmpty(cookie.getUrl()) && startsWithHTTP)
                 cookie.setUrl(pageURL);
-            ValidateUtil.assertBoolean(!ABOUT_BLANK.equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
-            ValidateUtil.assertBoolean(!StringUtil.isNotEmpty(cookie.getUrl()) && !cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
+            ValidateUtil.assertArg(!ABOUT_BLANK.equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
+            ValidateUtil.assertArg(!StringUtil.isNotEmpty(cookie.getUrl()) && !cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
             return cookie;
         });
         List<DeleteCookiesParameters> deleteCookiesParameters = new ArrayList<>();
@@ -1077,7 +1077,7 @@ public class Page extends EventEmitter {
             dialogType = DialogType.Prompt;
         else if ("beforeunload".equals(event.getType()))
             dialogType = DialogType.BeforeUnload;
-        ValidateUtil.assertBoolean(dialogType != null, "Unknown javascript dialog type: " + event.getType());
+        ValidateUtil.assertArg(dialogType != null, "Unknown javascript dialog type: " + event.getType());
         Dialog dialog = new Dialog(this.client, dialogType, event.getMessage(), event.getDefaultPrompt());
         this.emit(Events.PAGE_DIALOG.getName(), dialog);
     }
@@ -1340,7 +1340,7 @@ public class Page extends EventEmitter {
     public void evaluateOnNewDocument(String pageFunction, PageEvaluateType type, Object... args) {
         Map<String, Object> params = new HashMap<>();
         if (PageEvaluateType.STRING.equals(type)) {
-            ValidateUtil.assertBoolean(args.length == 0, "Cannot evaluate a string with arguments");
+            ValidateUtil.assertArg(args.length == 0, "Cannot evaluate a string with arguments");
             params.put("source", pageFunction);
             this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
         } else {
@@ -1531,7 +1531,7 @@ public class Page extends EventEmitter {
         double paperHeight = 11;
         if (StringUtil.isNotEmpty(options.getFormat())) {
             PaperFormats format = PaperFormats.valueOf(options.getFormat().toLowerCase());
-            ValidateUtil.assertBoolean(format != null, "Unknown paper format: " + options.getFormat());
+            ValidateUtil.assertArg(format != null, "Unknown paper format: " + options.getFormat());
             paperWidth = format.getWidth();
             paperHeight = format.getHeight();
         } else {
@@ -1628,7 +1628,7 @@ public class Page extends EventEmitter {
                 valueText = parameter;
             }
             Double value = Double.parseDouble(valueText);
-            ValidateUtil.assertBoolean(!Double.isNaN(value), "Failed to parse parameter value: " + parameter);
+            ValidateUtil.assertArg(!Double.isNaN(value), "Failed to parse parameter value: " + parameter);
             pixels = value * unitToPixels.get(unit);
         } else {
             throw new IllegalArgumentException("page.pdf() Cannot handle parameter type: " + parameter);
@@ -1725,7 +1725,7 @@ public class Page extends EventEmitter {
      * @param type css媒体类型
      */
     public void emulateMedia(String type) {
-        ValidateUtil.assertBoolean("screen".equals(type) || "print".equals(type) || type == null, "Unsupported media type: " + type);
+        ValidateUtil.assertArg("screen".equals(type) || "print".equals(type) || type == null, "Unsupported media type: " + type);
         Map<String, Object> params = new HashMap<>();
         params.put("media", type);
         this.client.send("Emulation.setEmulatedMedia", params, true);
@@ -1741,7 +1741,7 @@ public class Page extends EventEmitter {
 
         features.forEach(mediaFeature -> {
             String name = mediaFeature.getName();
-            ValidateUtil.assertBoolean(pattern.matcher(name).find(), "Unsupported media feature: " + name);
+            ValidateUtil.assertArg(pattern.matcher(name).find(), "Unsupported media feature: " + name);
         });
         params.put("features", features);
         this.client.send("Emulation.setEmulatedMedia", params, true);

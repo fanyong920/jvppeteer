@@ -291,7 +291,7 @@ public class Helper {
     }
 
     public static Object valueFromRemoteObject(RemoteObject remoteObject) {
-        ValidateUtil.assertBoolean(StringUtil.isEmpty(remoteObject.getObjectId()), "Cannot extract value when objectId is given");
+        ValidateUtil.assertArg(StringUtil.isEmpty(remoteObject.getObjectId()), "Cannot extract value when objectId is given");
         if (StringUtil.isNotEmpty(remoteObject.getUnserializableValue())) {
             if ("bigint".equals(remoteObject.getType()))
                 return new BigInteger(remoteObject.getUnserializableValue().replace("n", ""));
@@ -360,7 +360,7 @@ public class Helper {
 
     public static final String evaluationString(String fun, PageEvaluateType type, Object... args) {
         if (PageEvaluateType.STRING.equals(type)) {
-            ValidateUtil.assertBoolean(args.length == 0, "Cannot evaluate a string with arguments");
+            ValidateUtil.assertArg(args.length == 0, "Cannot evaluate a string with arguments");
             return fun;
         }
 
@@ -383,12 +383,8 @@ public class Helper {
         if (COMMON_EXECUTOR == null) {
             synchronized (Helper.class) {
                 if (COMMON_EXECUTOR == null) {
-                    Runtime runtime = Runtime.getRuntime();
-                    int processorNum = runtime.availableProcessors();
-                    if (processorNum < 3) {
-                        processorNum = 3;
-                    }
-                    COMMON_EXECUTOR = new ThreadPoolExecutor(processorNum, processorNum, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+                    int threadCount = Math.max(1, Runtime.getRuntime().availableProcessors());
+                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
                 }
             }
         }

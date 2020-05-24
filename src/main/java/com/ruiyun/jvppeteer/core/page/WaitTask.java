@@ -38,9 +38,9 @@ public class WaitTask {
 
     public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {
         if (Helper.isNumber(polling)) {
-            ValidateUtil.assertBoolean(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
+            ValidateUtil.assertArg(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
         } else {
-            ValidateUtil.assertBoolean("raf".equals(polling) || "mutation".equals(polling), "Unknown polling option: " + polling);
+            ValidateUtil.assertArg("raf".equals(polling) || "mutation".equals(polling), "Unknown polling option: " + polling);
         }
         this.domWorld = domWorld;
         this.polling = polling;

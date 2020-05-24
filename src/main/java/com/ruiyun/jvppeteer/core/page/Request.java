@@ -215,8 +215,8 @@ public class Request {
         // Request interception is not supported for data: urls.
         if (this.url.startsWith("data:"))
             return;
-        ValidateUtil.assertBoolean(this.allowInterception, "Request Interception is not enabled!");
-        ValidateUtil.assertBoolean(!this.interceptionHandled, "Request is already handled!");
+        ValidateUtil.assertArg(this.allowInterception, "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!this.interceptionHandled, "Request is already handled!");
 
         this.interceptionHandled = true;
         Map<String,Object> params = new HashMap<>();
@@ -233,8 +233,8 @@ public class Request {
         // Mocking responses for dataURL requests is not currently supported.
         if (this.url.startsWith("data:"))
             return;
-        ValidateUtil.assertBoolean(this.allowInterception, "Request Interception is not enabled!");
-        ValidateUtil.assertBoolean(!this.interceptionHandled, "Request is already handled!");
+        ValidateUtil.assertArg(this.allowInterception, "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!this.interceptionHandled, "Request is already handled!");
         this.interceptionHandled = true;
         byte[] responseBody = null;
         if(StringUtil.isNotEmpty(body)){
@@ -269,8 +269,8 @@ public class Request {
         if (this.url.startsWith("data:"))
             return;
     String errorReason = errorCode.getName();
-        ValidateUtil.assertBoolean(this.allowInterception, "Request Interception is not enabled!");
-        ValidateUtil.assertBoolean(!this.interceptionHandled, "Request is already handled!");
+        ValidateUtil.assertArg(this.allowInterception, "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!this.interceptionHandled, "Request is already handled!");
         this.interceptionHandled = true;
         Map<String,Object> params = new HashMap<>();
         params.put("requestId",this.interceptionId);

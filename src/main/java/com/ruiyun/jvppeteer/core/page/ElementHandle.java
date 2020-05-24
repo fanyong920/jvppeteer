@@ -168,7 +168,7 @@ public class ElementHandle extends JSHandle {
     public String screenshot(ScreenshotOptions options) throws IOException {
         boolean needsViewportReset = false;
         Clip boundingBox = this.boundingBox();
-        ValidateUtil.assertBoolean(boundingBox != null, "Node is either not visible or not an HTMLElement");
+        ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
         Viewport viewport = this.page.viewport();
         if (viewport != null && (boundingBox.getWidth() > viewport.getWidth() || boundingBox.getHeight() > viewport.getHeight())) {
             Viewport newViewport = new Viewport();
@@ -180,9 +180,9 @@ public class ElementHandle extends JSHandle {
         }
         this.scrollIntoViewIfNeeded();
         boundingBox = this.boundingBox();
-        ValidateUtil.assertBoolean(boundingBox != null, "Node is either not visible or not an HTMLElement");
-        ValidateUtil.assertBoolean(boundingBox.getWidth() != 0, "Node has 0 width.");
-        ValidateUtil.assertBoolean(boundingBox.getHeight() != 0, "Node has 0 height.");
+        ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
+        ValidateUtil.assertArg(boundingBox.getWidth() != 0, "Node has 0 width.");
+        ValidateUtil.assertArg(boundingBox.getHeight() != 0, "Node has 0 height.");
         JsonNode response = this.client.send("Page.getLayoutMetrics", null, true);
         double pageX = response.get("layoutViewport").get("pageX").asDouble();
         double pageY = response.get("layoutViewport").get("pageY").asDouble();
@@ -402,7 +402,7 @@ public class ElementHandle extends JSHandle {
 
     public void uploadFile(List<String> filePaths) {
         boolean isMultiple = (Boolean) this.evaluate("(element) => element.multiple", PageEvaluateType.FUNCTION);
-        ValidateUtil.assertBoolean(filePaths.size() <= 1 || isMultiple, "Multiple file uploads only work with <input type=file multiple>");
+        ValidateUtil.assertArg(filePaths.size() <= 1 || isMultiple, "Multiple file uploads only work with <input type=file multiple>");
         List<String> files = filePaths.stream().map(filePath -> {
             Path absolutePath = Paths.get(filePath).toAbsolutePath();
             boolean readable = Files.isReadable(absolutePath);

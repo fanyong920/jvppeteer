@@ -52,8 +52,8 @@ public class ExecutionContext {
     }
 
     public ElementHandle adoptElementHandle(ElementHandle elementHandle) {
-        ValidateUtil.assertBoolean(elementHandle.executionContext() != this, "Cannot adopt handle that already belongs to this execution context");
-        ValidateUtil.assertBoolean(this.world != null, "Cannot adopt handle without DOMWorld");
+        ValidateUtil.assertArg(elementHandle.executionContext() != this, "Cannot adopt handle that already belongs to this execution context");
+        ValidateUtil.assertArg(this.world != null, "Cannot adopt handle without DOMWorld");
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", elementHandle.getRemoteObject().getObjectId());
         JsonNode nodeInfo = this.client.send("DOM.describeNode", params, true);
@@ -136,8 +136,8 @@ public class ExecutionContext {
     }
 
     public JSHandle queryObjects(JSHandle prototypeHandle) {
-        ValidateUtil.assertBoolean(!prototypeHandle.getDisposed(), "Prototype JSHandle is disposed!");
-        ValidateUtil.assertBoolean(StringUtil.isNotEmpty(prototypeHandle.getRemoteObject().getObjectId()), "Prototype JSHandle must not be referencing primitive value");
+        ValidateUtil.assertArg(!prototypeHandle.getDisposed(), "Prototype JSHandle is disposed!");
+        ValidateUtil.assertArg(StringUtil.isNotEmpty(prototypeHandle.getRemoteObject().getObjectId()), "Prototype JSHandle must not be referencing primitive value");
         Map<String, Object> params = new HashMap<>();
         params.put("prototypeObjectId", prototypeHandle.getRemoteObject().getObjectId());
         JsonNode response = this.client.send("Runtime.queryObjects", params, true);

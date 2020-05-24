@@ -166,7 +166,7 @@ public class NetworkManager extends EventEmitter {
         for(Map.Entry<String,String> entry:extraHTTPHeaders.entrySet()){
 
             String value = entry.getValue();
-            ValidateUtil.assertBoolean(Helper.isString(value), "Expected value of header "+entry.getKey()+" to be String, but "+value.getClass().getCanonicalName()+" is found.");
+            ValidateUtil.assertArg(Helper.isString(value), "Expected value of header "+entry.getKey()+" to be String, but "+value.getClass().getCanonicalName()+" is found.");
             this.extraHTTPHeaders.put(entry.getKey(),value);
         }
         Map<String,Object> params = new HashMap<>();

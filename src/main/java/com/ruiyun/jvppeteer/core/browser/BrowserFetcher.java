@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core.browser;
 
-import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.util.*;
 import com.sun.javafx.PlatformUtil;
@@ -14,7 +13,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,7 +93,7 @@ public class BrowserFetcher {
      */
     public BrowserFetcher(String projectRoot, FetcherOptions options) {
         this.product = (StringUtil.isNotEmpty(options.getProduct()) ? options.getProduct() : "chrome").toLowerCase();
-        ValidateUtil.assertBoolean("chrome".equals(product) || "firefox".equals(product), "Unkown product: " + options.getProduct());
+        ValidateUtil.assertArg("chrome".equals(product) || "firefox".equals(product), "Unkown product: " + options.getProduct());
         this.downloadsFolder = StringUtil.isNotEmpty(options.getPath()) ? options.getPath() : Helper.join(projectRoot, ".local-browser");
         this.downloadHost = StringUtil.isNotEmpty(options.getHost()) ? options.getHost() : downloadURLs.get(this.product).get("host");
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : null;
@@ -218,7 +216,7 @@ public class BrowserFetcher {
      */
     public void remove(String revision) throws IOException {
         String folderPath = this.getFolderPath(revision);
-        ValidateUtil.assertBoolean(existsAsync(folderPath), "Failed to remove: revision " + revision + " is not downloaded");
+        ValidateUtil.assertArg(existsAsync(folderPath), "Failed to remove: revision " + revision + " is not downloaded");
         Files.delete(Paths.get(folderPath));
     }
 
@@ -300,7 +298,7 @@ public class BrowserFetcher {
      * @throws IOException 异常
      */
     private Stream<Path> readdirAsync(Path downloadsFolder) throws IOException {
-        ValidateUtil.assertBoolean(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder.toString() + " is not Directory");
+        ValidateUtil.assertArg(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder.toString() + " is not Directory");
         return Files.list(downloadsFolder);
     }
 

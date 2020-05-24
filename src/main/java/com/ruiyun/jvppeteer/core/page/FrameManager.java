@@ -217,7 +217,7 @@ public class FrameManager extends EventEmitter {
 
     public ExecutionContext executionContextById(int contextId) {
         ExecutionContext context = this.contextIdToContext.get(contextId);
-        ValidateUtil.assertBoolean(context != null, "INTERNAL ERROR: missing context with id = " + contextId);
+        ValidateUtil.assertArg(context != null, "INTERNAL ERROR: missing context with id = " + contextId);
         return context;
     }
 
@@ -342,7 +342,7 @@ public class FrameManager extends EventEmitter {
     private void onFrameAttached(String frameId, String parentFrameId) {
         if (this.frames.get(frameId) != null)
             return;
-        ValidateUtil.assertBoolean(StringUtil.isNotEmpty(parentFrameId), "parentFrameId is null");
+        ValidateUtil.assertArg(StringUtil.isNotEmpty(parentFrameId), "parentFrameId is null");
         Frame parentFrame = this.frames.get(parentFrameId);
         Frame frame = new Frame(this, this.client, parentFrame, frameId);
         this.frames.put(frame.getId(), frame);
@@ -355,7 +355,7 @@ public class FrameManager extends EventEmitter {
     private void onFrameNavigated(FramePayload framePayload) {
         boolean isMainFrame = StringUtil.isEmpty(framePayload.getParentId());
         Frame frame = isMainFrame ? this.mainFrame : this.frames.get(framePayload.getId());
-        ValidateUtil.assertBoolean(isMainFrame || frame != null, "We either navigate top level or have old version of the navigated frame");
+        ValidateUtil.assertArg(isMainFrame || frame != null, "We either navigate top level or have old version of the navigated frame");
 
         // Detach all child frames first.
         if (frame != null) {
@@ -483,11 +483,10 @@ public class FrameManager extends EventEmitter {
                     this.navigateResult = "";
                     this.documentLatch = new CountDownLatch(1);
                     long end = System.currentTimeMillis();
-                   // boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
-                   documentLatch.await();
-//                    if (!await) {
-//                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-//                    }
+                    boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
+                    if (!await) {
+                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+                    }
                     if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                         return watcher.navigationResponse();
                     }
@@ -607,7 +606,7 @@ public class FrameManager extends EventEmitter {
     }
 
     private void assertNoLegacyNavigationOptions(PageNavigateOptions options) {
-        ValidateUtil.assertBoolean(!"networkidle".equals(options.getWaitUntil()), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
+        ValidateUtil.assertArg(!"networkidle".equals(options.getWaitUntil()), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 
     public Frame mainFrame() {

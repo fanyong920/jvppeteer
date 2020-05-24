@@ -99,7 +99,7 @@ public class BrowserContext extends EventEmitter {
 	}
 
 	public void close() {
-		ValidateUtil.assertBoolean(StringUtil.isNotEmpty(this.id), "Non-incognito profiles cannot be closed!");
+		ValidateUtil.assertArg(StringUtil.isNotEmpty(this.id), "Non-incognito profiles cannot be closed!");
 		 this.browser.disposeContext(this.id);
 	}
 	/**
@@ -111,7 +111,7 @@ public class BrowserContext extends EventEmitter {
 	public void overridePermissions(String origin, List<String> permissions) {
 		permissions.replaceAll(item -> {
 			String protocolPermission = this.webPermissionToProtocol.get(item);
-			ValidateUtil.assertBoolean(protocolPermission != null,"Unknown permission: "+item);
+			ValidateUtil.assertArg(protocolPermission != null,"Unknown permission: "+item);
 			return  protocolPermission;
 		});
 		Map<String,Object> params = new HashMap<>();

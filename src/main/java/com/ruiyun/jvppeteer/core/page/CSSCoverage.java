@@ -43,7 +43,7 @@ public class CSSCoverage {
     }
 
     public void start(boolean resetOnNavigation) {
-        ValidateUtil.assertBoolean(!this.enabled, "CSSCoverage is already enabled");
+        ValidateUtil.assertArg(!this.enabled, "CSSCoverage is already enabled");
 
         this.resetOnNavigation = resetOnNavigation;
         this.enabled = true;
@@ -98,7 +98,7 @@ public class CSSCoverage {
     }
 
     public List<CoverageEntry> stop() {
-        ValidateUtil.assertBoolean(this.enabled, "CSSCoverage is not enabled");
+        ValidateUtil.assertArg(this.enabled, "CSSCoverage is not enabled");
         this.enabled = false;
 
 

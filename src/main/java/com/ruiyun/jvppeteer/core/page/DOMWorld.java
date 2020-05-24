@@ -225,7 +225,7 @@ public class DOMWorld {
                 ElementHandle handle = (ElementHandle)context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
                return handle.asElement();
             } catch (Exception e) {
-                throw new RuntimeException("Loading script from ${url} failed",e);
+                throw new RuntimeException("Loading script from "+options.getUrl()+" failed",e);
             }
         }
         if (StringUtil.isNotEmpty(options.getPath())) {
@@ -331,28 +331,28 @@ public class DOMWorld {
 
     public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.click(options);
         handle.dispose();
     }
 
     public void focus(String selector) {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.focus();
         handle.dispose();
     }
 
     public void hover(String selector) throws ExecutionException, InterruptedException {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.hover();
         handle.dispose();
     }
 
     public List<String> select(String selector, List<String> values) {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         List<String> result = handle.select(values);
         handle.dispose();
         return result;
@@ -360,14 +360,14 @@ public class DOMWorld {
 
     public void tap(String selector) {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.tap();
         handle.dispose();
     }
 
     public void type(String selector, String text, int delay) throws InterruptedException {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.assertBoolean(handle != null, "No node found for selector: " + selector);
+        ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.type(text, delay);
         handle.dispose();
     }

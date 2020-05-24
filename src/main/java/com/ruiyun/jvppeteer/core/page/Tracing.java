@@ -52,7 +52,7 @@ public class Tracing implements Constant {
      * @param categories specify custom categories to use instead of default. 指定要使用的自定义类别替换默认值
      */
     public void  start(String path,boolean screenshots, Set<String> categories) {
-        ValidateUtil.assertBoolean(!this.recording, "Cannot start recording trace while already recording trace.");
+        ValidateUtil.assertArg(!this.recording, "Cannot start recording trace while already recording trace.");
        if(categories == null)
            categories = new HashSet<>(DEFAULTCATEGORIES);
         if (screenshots)

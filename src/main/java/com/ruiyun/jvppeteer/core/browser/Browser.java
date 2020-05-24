@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -168,7 +167,7 @@ public class Browser extends EventEmitter {
 
     private void targetInfoChanged(TargetInfoChangedPayload event) {
         Target target = this.targets.get(event.getTargetInfo().getTargetId());
-        ValidateUtil.assertBoolean(target != null, "target should exist before targetInfoChanged");
+        ValidateUtil.assertArg(target != null, "target should exist before targetInfoChanged");
         String previousURL = target.url();
         boolean wasInitialized = target.getIsInitialized();
         target.targetInfoChanged(event.getTargetInfo());
@@ -394,7 +393,7 @@ public class Browser extends EventEmitter {
         JsonNode recevie = this.connection.send("Target.createTarget", params, true);
         if (recevie != null) {
             Target target = this.targets.get(recevie.get(Constant.RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
-            ValidateUtil.assertBoolean(target.waitInitializedPromise(), "Failed to create target for page");
+            ValidateUtil.assertArg(target.waitInitializedPromise(), "Failed to create target for page");
             return target.page();
         } else {
             throw new RuntimeException("can't create new page: ");

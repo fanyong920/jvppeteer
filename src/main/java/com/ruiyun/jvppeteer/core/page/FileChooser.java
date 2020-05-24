@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -40,14 +39,14 @@ public class FileChooser {
      * @param {!Array<string>} filePaths
      */
     public void accept(List<String> filePaths) {
-        ValidateUtil.assertBoolean(!this.handled, "Cannot accept FileChooser which is already handled!");
+        ValidateUtil.assertArg(!this.handled, "Cannot accept FileChooser which is already handled!");
         this.handled = true;
         this.element.uploadFile(filePaths);
     }
 
 
     public void cancel() {
-        ValidateUtil.assertBoolean (!this.handled,"Cannot cancel FileChooser which is already handled!");
+        ValidateUtil.assertArg(!this.handled,"Cannot cancel FileChooser which is already handled!");
         this.handled = true;
     }
 }
