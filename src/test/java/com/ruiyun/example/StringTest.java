@@ -3,6 +3,7 @@ package com.ruiyun.example;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.page.PaperFormats;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import org.junit.Test;
 
@@ -63,5 +64,8 @@ public class StringTest {
         System.out.println(s3);
         String aaa= "asas";
         System.out.println(aaa);
+
+        PaperFormats letter = PaperFormats.valueOf("456");
+        System.out.println(letter);
     }
 }

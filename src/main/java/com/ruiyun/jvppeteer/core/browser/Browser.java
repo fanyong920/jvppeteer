@@ -2,20 +2,20 @@ package com.ruiyun.jvppeteer.core.browser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.core.page.Target;
+import com.ruiyun.jvppeteer.core.page.TargetInfo;
+import com.ruiyun.jvppeteer.core.page.TaskQueue;
+import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.EventHandler;
 import com.ruiyun.jvppeteer.events.Events;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.core.page.TaskQueue;
 import com.ruiyun.jvppeteer.protocol.target.TargetCreatedPayload;
 import com.ruiyun.jvppeteer.protocol.target.TargetDestroyedPayload;
 import com.ruiyun.jvppeteer.protocol.target.TargetInfoChangedPayload;
-import com.ruiyun.jvppeteer.core.page.Target;
-import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -42,10 +42,6 @@ public class Browser extends EventEmitter {
      */
     private Connection connection;
 
-    /**
-     * 当前浏览器的端口
-     */
-    private int port;
 
     /**
      * 是否忽略https错误
@@ -75,28 +71,23 @@ public class Browser extends EventEmitter {
 
     private Process process;
 
-    private TaskQueue screenshotTaskQueue;
+    private TaskQueue<String> screenshotTaskQueue;
 
-    private Function closeCallback;
+    private Function<Object,Object> closeCallback;
 
     private CountDownLatch waitforTargetLatch;
 
 
     public Browser(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors,
-                   Viewport defaultViewport, Process process, Function closeCallback) {
+                   Viewport defaultViewport, Process process, Function<Object,Object> closeCallback) {
         super();
         this.ignoreHTTPSErrors = ignoreHTTPSErrors;
         this.viewport = defaultViewport;
         this.process = process;
-        this.screenshotTaskQueue = new TaskQueue();
+        this.screenshotTaskQueue = new TaskQueue<>();
         this.connection = connection;
         if (closeCallback == null) {
-            closeCallback = new Function() {
-                @Override
-                public Object apply(Object o) {
-                    return null;
-                }
-            };
+            closeCallback = o -> null;
         }
         this.closeCallback = closeCallback;
         this.defaultContext = new BrowserContext(connection, this, null);
@@ -106,7 +97,6 @@ public class Browser extends EventEmitter {
                 contexts.putIfAbsent(contextId, new BrowserContext(this.connection, this, contextId));
             }
         }
-        this.port = this.connection.getPort();
         this.targets = new ConcurrentHashMap<>();
         waitforTargetLatch = new CountDownLatch(1);
         DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
@@ -216,10 +206,9 @@ public class Browser extends EventEmitter {
      * @param contextIds        上下文id集合
      * @param ignoreHTTPSErrors 是否忽略https错误
      * @param viewport          视图
-     * @param timeout           启动超时时间
      * @return 浏览器
      */
-    public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Function closeCallback, int timeout) throws InterruptedException {
+    public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Function<Object, Object> closeCallback) {
         Browser browser = new Browser(connection, contextIds, ignoreHTTPSErrors, viewport, process, closeCallback);
         Map<String, Object> params = new HashMap<>();
         params.put("discover", true);
@@ -233,14 +222,14 @@ public class Browser extends EventEmitter {
      * @param event 创建的target具体信息
      */
     public void targetCreated(TargetCreatedPayload event) {
-        BrowserContext context = null;
+        BrowserContext context;
         TargetInfo targetInfo = event.getTargetInfo();
         if (StringUtil.isNotEmpty(targetInfo.getBrowserContextId()) && this.getContexts().containsKey(targetInfo.getBrowserContextId())) {
             context = this.getContexts().get(targetInfo.getBrowserContextId());
         } else {
             context = this.defaultBrowserContext();
         }
-        Target target = new Target(targetInfo, context, () -> this.getConnection().createSession(targetInfo), this.getIgnoreHTTPSErrors(), this.getViewport(), this.getScreenshotTaskQueue());
+        Target target = new Target(targetInfo, context, () -> this.getConnection().createSession(targetInfo), this.getIgnoreHTTPSErrors(), this.getViewport(), this.screenshotTaskQueue);
         if (this.targets.get(targetInfo.getTargetId()) != null) {
             throw new RuntimeException("Target should not exist befor targetCreated");
         }
@@ -405,11 +394,10 @@ public class Browser extends EventEmitter {
      * <p>浏览器一共有四种事件<p/>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
-     * @param handler
-     * @return
+     * @param handler 事件处理器
      */
-    public void onDisconnected(EventHandler handler) {
-        DefaultBrowserListener listener = new DefaultBrowserListener();
+    public void onDisconnected(EventHandler<Object> handler) {
+        DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
         listener.setMothod("disconnected");
         listener.setHandler(handler);
         this.on(listener.getMothod(), listener);
@@ -420,12 +408,10 @@ public class Browser extends EventEmitter {
      * <p>浏览器一共有四种事件<p/>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
-     * @param handler
-     * @return
+     * @param handler 事件处理器
      */
     public void onTargetchanged(EventHandler<Target> handler) {
-        System.out.println("我是浏览器事件监听，现在监听到 targetchanged");
-        DefaultBrowserListener listener = new DefaultBrowserListener();
+        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetchanged");
         listener.setHandler(handler);
         this.on(listener.getMothod(), listener);
@@ -436,12 +422,10 @@ public class Browser extends EventEmitter {
      * <p>浏览器一共有四种事件<p/>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
-     * @param handler
-     * @return
+     * @param handler 事件处理器
      */
     public void onTrgetcreated(EventHandler<Target> handler) {
-        System.out.println("我是浏览器事件监听，现在监听到 targetcreated");
-        DefaultBrowserListener listener = new DefaultBrowserListener();
+        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetcreated");
         listener.setHandler(handler);
         this.on(listener.getMothod(), listener);
@@ -452,12 +436,10 @@ public class Browser extends EventEmitter {
      * <p>浏览器一共有四种事件<p/>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
-     * @param handler
-     * @return
+     * @param handler 事件处理器
      */
     public void onTargetdestroyed(EventHandler<Target> handler) {
-        System.out.println("我是浏览器事件监听，现在监听到 targetdestroyed");
-        DefaultBrowserListener listener = new DefaultBrowserListener();
+        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetdestroyed");
         listener.setHandler(handler);
         this.on(listener.getMothod(), listener);
@@ -467,9 +449,6 @@ public class Browser extends EventEmitter {
         return this.targets;
     }
 
-    public int getPort() {
-        return this.port;
-    }
 
     public Map<String, BrowserContext> getContexts() {
         return contexts;
@@ -511,15 +490,8 @@ public class Browser extends EventEmitter {
         this.viewport = viewport;
     }
 
-    public TaskQueue getScreenshotTaskQueue() {
-        return screenshotTaskQueue;
-    }
 
-    public void setScreenshotTaskQueue(TaskQueue screenshotTaskQueue) {
-        this.screenshotTaskQueue = screenshotTaskQueue;
-    }
-
-    public CountDownLatch getWaitforTargetLatch() {
+    private CountDownLatch getWaitforTargetLatch() {
         return waitforTargetLatch;
     }
 

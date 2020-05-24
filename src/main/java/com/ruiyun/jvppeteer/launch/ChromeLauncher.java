@@ -28,10 +28,8 @@ import java.net.URI;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 public class ChromeLauncher implements Launcher {
@@ -70,7 +68,7 @@ public class ChromeLauncher implements Launcher {
                 runner.closeQuietly();
                 return null;
             };
-            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback, options.getTimeout());
+            Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback);
             browser.waitForTarget(t -> "page".equals(t.type()), options);
             return browser;
         } catch (IOException | InterruptedException e) {
@@ -241,7 +239,7 @@ public class ChromeLauncher implements Launcher {
             };
 
             browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
-            return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction, options.getTimeout());
+            return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.core.browser;
 
+import com.ruiyun.jvppeteer.Constant;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.util.*;
 import com.sun.javafx.PlatformUtil;
@@ -33,7 +34,7 @@ public class BrowserFetcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserFetcher.class);
 
-    public static final Map<String, Map<String, String>> downloadURLs = new HashMap() {
+    public static final Map<String, Map<String, String>> downloadURLs = new HashMap<String, Map<String, String>>() {
         private static final long serialVersionUID = -6918778699407093058L;
 
         {
@@ -151,7 +152,6 @@ public class BrowserFetcher {
         } finally {
             if (conn != null) {
                 conn.disconnect();
-                conn = null;
             }
         }
         return false;
@@ -205,7 +205,7 @@ public class BrowserFetcher {
             return new ArrayList<>();
         Path path = Paths.get(this.downloadsFolder);
         Stream<Path> fileNames = this.readdirAsync(path);
-        return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(entry -> entry.getRevision()).collect(Collectors.toList());
+        return fileNames.map(fileName -> parseFolderPath(this.product, fileName)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(RevisionEntry::getRevision).collect(Collectors.toList());
     }
 
     /**
@@ -305,7 +305,7 @@ public class BrowserFetcher {
     /**
      * 修改文件权限，与linux上chmod命令一样，并非异步，只是方法名为了与nodejs的puppeteer库一样
      *
-     * @param executablePath
+     * @param executablePath 执行路径
      * @param perms          权限字符串，例如"775",与linux上文件权限一样
      * @throws IOException 异常
      */
@@ -400,12 +400,13 @@ public class BrowserFetcher {
                 arguments.add(folderPath);
                 ProcessBuilder processBuilder2 = new ProcessBuilder().command(arguments);
                 Process process2 = processBuilder2.start();
-
                 reader = new BufferedReader(new InputStreamReader(process2.getInputStream()));
-                while ((line = reader.readLine()) != null) {
+                while ((line= reader.readLine()) != null) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(line);
+                    }
                 }
                 reader.close();
-
                 reader = new BufferedReader(new InputStreamReader(process2.getErrorStream()));
                 while ((line = reader.readLine()) != null) {
                     LOGGER.error(line);
@@ -459,6 +460,9 @@ public class BrowserFetcher {
                 String line;
                 reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
                 while ((line = reader.readLine()) != null) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(line);
+                    }
                 }
                 reader.close();
                 reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));
@@ -496,7 +500,7 @@ public class BrowserFetcher {
                 } else {
                     reader = new BufferedInputStream(tarArchiveInputStream);
                     int bufferSize = 8192;
-                    int perReadcount = -1;
+                    int perReadcount;
                     FileUtil.createNewFile(file);
                     byte[] buffer = new byte[bufferSize];
                     wirter = new BufferedOutputStream(new FileOutputStream(file));
@@ -518,7 +522,7 @@ public class BrowserFetcher {
      *
      * @param archivePath zip路径
      * @param folderPath  存放路径
-     * @throws IOException
+     * @throws IOException 异常
      */
     private void extractZip(String archivePath, String folderPath) throws IOException {
         BufferedOutputStream wirter = null;
@@ -534,11 +538,11 @@ public class BrowserFetcher {
                     path.toFile().mkdirs();
                 } else {
                     reader = new BufferedInputStream(zipFile.getInputStream(zipEntry));
-                    int bufferSize = 8192;
-                    int perReadcount = -1;
-                    byte[] buffer = new byte[bufferSize];
+
+                    int perReadcount;
+                    byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
                     wirter = new BufferedOutputStream(new FileOutputStream(path.toString()));
-                    while ((perReadcount = reader.read(buffer, 0, bufferSize)) != -1) {
+                    while ((perReadcount = reader.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) != -1) {
                         wirter.write(buffer, 0, perReadcount);
                     }
                     wirter.flush();
@@ -597,7 +601,7 @@ public class BrowserFetcher {
      */
     public RevisionInfo revisionInfo(String revision) {
         String folderPath = this.getFolderPath(revision);
-        String executablePath = "";
+        String executablePath;
         if ("chrome".equals(this.product)) {
             if ("mac".equals(this.platform)) {
                 executablePath = Helper.join(folderPath, archiveName(this.product, this.platform, revision), "Chromium.app", "Contents", "MacOS", "Chromium");
@@ -642,7 +646,7 @@ public class BrowserFetcher {
      * @param product  产品
      * @param platform 平台
      * @param revision 版本
-     * @return
+     * @return 压缩包名字
      */
     public String archiveName(String product, String platform, String revision) {
         if ("chrome".equals(product)) {
@@ -672,7 +676,7 @@ public class BrowserFetcher {
      * @param platform win linux mac
      * @param host     域名地址
      * @param revision 版本
-     * @return
+     * @return 下载浏览器的url
      */
     public String downloadURL(String product, String platform, String host, String revision) {
         return String.format(downloadURLs.get(product).get(platform), host, revision, archiveName(product, platform, revision));

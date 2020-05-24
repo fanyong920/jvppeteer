@@ -30,7 +30,7 @@ public class Target {
     private Viewport viewport;
 
 
-    private TaskQueue<?> screenshotTaskQueue;
+    private TaskQueue<String> screenshotTaskQueue;
 
     private String targetId;
 
@@ -53,7 +53,7 @@ public class Target {
         super();
     }
 
-    public Target(TargetInfo targetInfo, BrowserContext browserContext, SessionFactory sessionFactory, boolean ignoreHTTPSErrors, Viewport defaultViewport, TaskQueue<?> screenshotTaskQueue) {
+    public Target(TargetInfo targetInfo, BrowserContext browserContext, SessionFactory sessionFactory, boolean ignoreHTTPSErrors, Viewport defaultViewport, TaskQueue<String> screenshotTaskQueue) {
         super();
         this.targetInfo = targetInfo;
         this.browserContext = browserContext;
@@ -265,29 +265,12 @@ public class Target {
         this.viewport = viewport;
     }
 
-    public TaskQueue<?> getScreenshotTaskQueue() {
-        return screenshotTaskQueue;
-    }
-
-    public void setScreenshotTaskQueue(TaskQueue<?> screenshotTaskQueue) {
-        this.screenshotTaskQueue = screenshotTaskQueue;
-    }
-
-
     public boolean getIsInitialized() {
         return isInitialized;
     }
 
-    public void setInitialized(boolean initialized) {
-        isInitialized = initialized;
-    }
-
     public String getSessionId() {
         return sessionId;
-    }
-
-    public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
     }
 
     public void targetInfoChanged(TargetInfo targetInfo) {

@@ -69,12 +69,10 @@ public class BrowserContext extends EventEmitter {
 	 * <p>监听浏览器事件：targetchanged<p/>
 	 * <p>浏览器一共有四种事件<p/>
 	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
-	 * @param handler
-	 * @return
+	 * @param handler 事件处理器
 	 */
 	public void onTargetchanged(EventHandler<Target> handler) {
-		System.out.println("我是浏览器事件监听，现在监听到 targetchanged");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
 		disListener.setHandler(handler);
 		this.on("disconnected",disListener);
 	}
@@ -83,12 +81,10 @@ public class BrowserContext extends EventEmitter {
 	 * <p>监听浏览器事件：targetcreated<p/>
 	 * <p>浏览器一共有四种事件<p/>
 	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
-	 * @param handler
-	 * @return
+	 * @param handler 事件处理器
 	 */
 	public void onTrgetcreated(EventHandler<Target> handler) {
-		System.out.println("我是浏览器事件监听，现在监听到 targetcreated");
-		DefaultBrowserListener disListener = new DefaultBrowserListener();
+		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
 		disListener.setHandler(handler);
 		this.on("disconnected",disListener);
 	}
@@ -110,7 +106,7 @@ public class BrowserContext extends EventEmitter {
 	}
 	public void overridePermissions(String origin, List<String> permissions) {
 		permissions.replaceAll(item -> {
-			String protocolPermission = this.webPermissionToProtocol.get(item);
+			String protocolPermission = webPermissionToProtocol.get(item);
 			ValidateUtil.assertArg(protocolPermission != null,"Unknown permission: "+item);
 			return  protocolPermission;
 		});
@@ -121,7 +117,7 @@ public class BrowserContext extends EventEmitter {
 		this.connection.send("Browser.grantPermissions", params,true);
 	}
 	public List<Page> pages(){
-		return this.targets().stream().filter(target -> "page".equals(target.type())).map(target -> target.page()).filter(page -> page != null).collect(Collectors.toList());
+		return this.targets().stream().filter(target -> "page".equals(target.type())).map(Target::page).filter(page -> page != null).collect(Collectors.toList());
 	}
 	/**
 	 * @return {!Array<!Target>} target
