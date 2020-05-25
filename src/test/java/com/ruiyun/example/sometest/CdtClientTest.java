@@ -1,4 +1,4 @@
-package com.ruiyun.example;
+package com.ruiyun.example.sometest;
 
 import com.github.kklisura.cdt.launch.ChromeLauncher;
 import com.github.kklisura.cdt.protocol.commands.Network;

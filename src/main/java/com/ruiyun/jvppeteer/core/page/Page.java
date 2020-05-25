@@ -1958,9 +1958,6 @@ public class Page extends EventEmitter {
         return javascriptEnabled;
     }
 
-    public Touchscreen getTouchscreen() {
-        return touchscreen;
-    }
 
     public Keyboard keyboard() {
         return this.keyboard;

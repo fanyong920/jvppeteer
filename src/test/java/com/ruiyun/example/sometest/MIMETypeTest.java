@@ -1,4 +1,4 @@
-package com.ruiyun.example;
+package com.ruiyun.example.sometest;
 
 import java.io.IOException;
 import java.nio.file.Files;

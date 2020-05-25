@@ -59,12 +59,12 @@ public class DownloadUtil {
     /**
      * 读取数据超时
      */
-    private static final int READ_TIME_OUT = 10000;
+    public static final int READ_TIME_OUT = 10000;
 
     /**
      * 连接超时设置
      */
-    private static final int CONNECT_TIME_OUT = 10000;
+    public static final int CONNECT_TIME_OUT = 10000;
 
     private static final String FAIL_RESULT = "-1";
 

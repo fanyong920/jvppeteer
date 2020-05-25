@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.core.browser;
 
 import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.util.*;
 import com.sun.javafx.PlatformUtil;
@@ -11,12 +12,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
@@ -26,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 
 /**
  * 用于下载chrome浏览器
@@ -176,6 +183,10 @@ public class BrowserFetcher {
         if (!(existsAsync(this.downloadsFolder)))
             mkdirAsync(this.downloadsFolder);
         try {
+            if (progressCallback == null) {
+                progressCallback = defaultDownloadCallback();
+            }
+
             downloadFile(url, archivePath, progressCallback);
             install(archivePath, folderPath);
         } finally {
@@ -183,7 +194,6 @@ public class BrowserFetcher {
         }
         RevisionInfo revisionInfo = this.revisionInfo(revision);
         if (revisionInfo != null) {
-//            chmodAsync(revisionInfo.getExecutablePath(), "775");
             try {
                 File executableFile = new File(revisionInfo.getExecutablePath());
                 executableFile.setExecutable(true, false);
@@ -192,6 +202,89 @@ public class BrowserFetcher {
             }
         }
         return revisionInfo;
+    }
+
+    /**
+     * 指定版本下载chromuim
+     * @param revision 版本
+     * @return 下载后的chromuim包有关信息
+     * @throws IOException 异常
+     * @throws InterruptedException 异常
+     * @throws ExecutionException 异常
+     */
+    public RevisionInfo download(String revision) throws IOException, InterruptedException, ExecutionException {
+       return this.download(revision,null);
+    }
+    /**
+     * 默认的下载回调
+     *
+     * @return 回调函数
+     */
+    private BiConsumer<Integer, Integer> defaultDownloadCallback() {
+        return (integer1, integer2) -> {
+            BigDecimal decimal1 = new BigDecimal(integer1);
+            BigDecimal decimal2 = new BigDecimal(integer2);
+            int percent = decimal1.divide(decimal2).multiply(new BigDecimal(100)).intValue();
+            LOGGER.info("Download progress: total[{}],downloaded[{}],{}", decimal2, decimal1, percent + "%");
+            //System.out.println("Download progress: total[" + decimal2 + "],downloaded[" + decimal1 + "]," + percent + "%");
+        };
+    }
+
+    /**
+     * 下载最新的浏览器版本
+     *
+     * @param progressCallback 下载回调
+     * @return 浏览器版本
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     * @throws ExecutionException   异常
+     */
+    public RevisionInfo download(BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException, ExecutionException {
+        return this.download(fetchRevision(), progressCallback);
+    }
+
+    /**
+     * 下载最新的浏览器版本（使用自带的下载回调）
+     *
+     * @return 浏览器版本
+     * @throws IOException          异常
+     * @throws InterruptedException 异常
+     * @throws ExecutionException   异常
+     */
+    public RevisionInfo download() throws IOException, InterruptedException, ExecutionException {
+        return this.download(fetchRevision(), null);
+    }
+
+    private String fetchRevision() throws IOException {
+        String downloadUrl = downloadURLs.get(product).get(platform);
+        URL urlSend = new URL(String.format(downloadUrl.substring(0, downloadUrl.length() - 9), this.downloadHost));
+        URLConnection conn = urlSend.openConnection();
+        conn.setConnectTimeout(DownloadUtil.CONNECT_TIME_OUT);
+        conn.setReadTimeout(DownloadUtil.READ_TIME_OUT);
+        String pageContent = StreamUtil.toString(conn.getInputStream());
+        return parseRevision(pageContent);
+    }
+
+    /**
+     * 解析得到最新的浏览器版本
+     *
+     * @param pageContent 页面内容
+     * @return
+     */
+    private String parseRevision(String pageContent) {
+        String result = null;
+        Pattern pattern = Pattern.compile("<a href=\"/mirrors/chromium-browser-snapshots/(.*)?/\">");
+        Matcher matcher = pattern.matcher(pageContent);
+        while (matcher.find()) {
+            result = matcher.group(1);
+        }
+        String[] split = result.split("/");
+        if (split.length == 2) {
+            result = split[1];
+        } else {
+            throw new RuntimeException("cant't find latest revision from pageConten:" + pageContent);
+        }
+        return result;
     }
 
     /**
@@ -401,7 +494,7 @@ public class BrowserFetcher {
                 ProcessBuilder processBuilder2 = new ProcessBuilder().command(arguments);
                 Process process2 = processBuilder2.start();
                 reader = new BufferedReader(new InputStreamReader(process2.getInputStream()));
-                while ((line= reader.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(line);
                     }

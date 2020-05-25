@@ -366,7 +366,7 @@ public class ElementHandle extends JSHandle {
     public void tap() {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
-        this.page.getTouchscreen().tap(point.getX(), point.getY());
+        this.page.touchscreen().tap(point.getX(), point.getY());
     }
 
     public void type(String text ) throws InterruptedException {

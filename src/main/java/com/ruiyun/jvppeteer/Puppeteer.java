@@ -159,11 +159,11 @@ public class Puppeteer {
     }
 
     public BrowserFetcher createBrowserFetcher() {
-        return new BrowserFetcher(this.projectRoot, new FetcherOptions());
+        return new BrowserFetcher(this.getProjectRoot(), new FetcherOptions());
     }
 
     public BrowserFetcher createBrowserFetcher(FetcherOptions options) {
-        return new BrowserFetcher(this.projectRoot, options);
+        return new BrowserFetcher(this.getProjectRoot(), options);
     }
 
     private String getProductName() {

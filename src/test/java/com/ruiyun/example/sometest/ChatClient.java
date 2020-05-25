@@ -1,4 +1,4 @@
-package com.ruiyun.example;
+package com.ruiyun.example.sometest;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;

@@ -27,6 +27,8 @@ public class PageAddScriptExample {
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
+
+        //这里自定义了一个页面的html内容
         page.setContent("<!DOCTYPE html>\n" +
                 "<html>\n" +
                 "\t<head>\n" +
@@ -125,6 +127,7 @@ public class PageAddScriptExample {
                 "\t</body>\n" +
                 "</html>\n");
 
+        //添加jquery.js,可以打开F12看看页面的<head>标签内已经出现了jquery.js
         page.addScriptTag(new ScriptTagOptions("https://cdn.bootcss.com/jquery/3.4.1/jquery.js"));
     }
 }
