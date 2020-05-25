@@ -31,13 +31,13 @@ public class Connection extends EventEmitter implements Consumer<String> {
     /**
      * websoket url
      */
-    private String url;
+    private final String url;
 
-    private ConnectionTransport transport;
+    private final ConnectionTransport transport;
     /**
      * The unit is millisecond
      */
-    private int delay;
+    private final int delay;
 
     private static final AtomicLong lastId = new AtomicLong(0);
 
@@ -47,9 +47,6 @@ public class Connection extends EventEmitter implements Consumer<String> {
 
     private boolean closed;
 
-    private int port;
-
-
     public Connection(String url, ConnectionTransport transport, int delay) {
         super();
         this.url = url;
@@ -57,11 +54,6 @@ public class Connection extends EventEmitter implements Consumer<String> {
         this.delay = delay;
         if (this.transport instanceof WebSocketTransport) {
             ((WebSocketTransport) this.transport).addMessageConsumer(this);
-        }
-        if (StringUtil.isNotEmpty(url)) {
-            int start = url.lastIndexOf(":");
-            int end = url.indexOf("/", start);
-            this.port = Integer.parseInt(url.substring(start + 1, end));
         }
     }
 
@@ -155,7 +147,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("<- RECV " + message);
         }
-        System.out.println("<- RECV " + message);
+//        System.out.println("<- RECV " + message);
         try {
             if (StringUtil.isNotEmpty(message)) {
                 JsonNode readTree = Constant.OBJECTMAPPER.readTree(message);
@@ -257,11 +249,6 @@ public class Connection extends EventEmitter implements Consumer<String> {
     @Override
     public void accept(String t) {
         onMessage(t);
-    }
-
-
-    public int getPort() {
-        return port;
     }
 
 

@@ -19,9 +19,9 @@ import java.util.concurrent.Future;
 public class PageFileChooserExample {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+//        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-//        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
@@ -41,7 +41,7 @@ public class PageFileChooserExample {
         FileChooser fileChooser = fileChooserFuture.get();
 
         List<String> paths = new ArrayList<>();
-        paths.add("C:\\Users\\fanyong\\Desktop\\taaa.jpg");
+        paths.add("C:\\Users\\howay\\Desktop\\sunway.png");
         fileChooser.accept(paths);
 
     }

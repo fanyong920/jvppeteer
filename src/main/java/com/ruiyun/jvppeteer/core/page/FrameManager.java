@@ -66,7 +66,7 @@ public class FrameManager extends EventEmitter {
 
     private boolean ensureNewDocumentNavigation;
 
-    private String DocumentNavigationPromiseType = null;
+    private String documentNavigationPromiseType = null;
 
     public FrameManager(CDPSession client, Page page, boolean ignoreHTTPSErrors, TimeoutSettings timeoutSettings) {
         super();
@@ -469,12 +469,12 @@ public class FrameManager extends EventEmitter {
             this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
             if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                 if (this.ensureNewDocumentNavigation) {
-                    DocumentNavigationPromiseType = "new";
+                    documentNavigationPromiseType = "new";
                     if (watcher.newDocumentNavigationPromise() != null) {
                         return watcher.navigationResponse();
                     }
                 } else {
-                    DocumentNavigationPromiseType = "same";
+                    documentNavigationPromiseType = "same";
                     if (watcher.sameDocumentNavigationPromise() != null) {
                         return watcher.navigationResponse();
                     }
@@ -574,8 +574,9 @@ public class FrameManager extends EventEmitter {
             assertNoLegacyNavigationOptions(options);
         }
 
-        this.DocumentNavigationPromiseType = "all";
+        this.documentNavigationPromiseType = "all";
         this.setNavigateResult(null);
+        this.documentLatch = new CountDownLatch(1);
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
         if (watcher.newDocumentNavigationPromise() != null) {
             return watcher.navigationResponse();
@@ -584,7 +585,6 @@ public class FrameManager extends EventEmitter {
             return watcher.navigationResponse();
         }
         try {
-            this.documentLatch = new CountDownLatch(1);
             boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
             if (!await) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
@@ -618,11 +618,11 @@ public class FrameManager extends EventEmitter {
     }
 
     public String getDocumentNavigationPromiseType() {
-        return DocumentNavigationPromiseType;
+        return documentNavigationPromiseType;
     }
 
     public void setDocumentNavigationPromiseType(String documentNavigationPromiseType) {
-        DocumentNavigationPromiseType = documentNavigationPromiseType;
+        documentNavigationPromiseType = documentNavigationPromiseType;
     }
 
     public CountDownLatch getDocumentLatch() {

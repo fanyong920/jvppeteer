@@ -1625,8 +1625,10 @@ public class Page extends EventEmitter {
      * @return 响应
      */
     public Response reload(PageNavigateOptions options) {
+        /*先执行reload命令，不用等待返回*/
+        this.client.send("Page.reload", null, false);
+        /*再等待页面导航结果返回*/
         Response response = this.waitForNavigation(options);
-        this.client.send("Page.reload", null, true);
         return response;
     }
 
