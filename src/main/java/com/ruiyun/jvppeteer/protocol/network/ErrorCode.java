@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.protocol.network;
 
 public enum ErrorCode {
+
     ABORTED("Aborted"),
     ACCESSDENIED("AccessDenied"),
     ADDRESSUNREACHABLE("AddressUnreachable"),

@@ -57,35 +57,16 @@
         <httpasyncclient.version>4.1.4</httpasyncclient.version>
     </properties>
     <dependencies>
-
-
-        <!-- <dependency>
-             <groupId>org.glassfish.tyrus</groupId>
-             <artifactId>tyrus-container-grizzly-client</artifactId>
-             <version>${tyrus.version}</version>
-         </dependency>-->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>org.slf4j</groupId>-->
-        <!--            <artifactId>slf4j-log4j12</artifactId>-->
-        <!--            <version>${log4j12.version}</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>javax.websocket</groupId>-->
-        <!--            <artifactId>javax.websocket-api</artifactId>-->
-        <!--            <version>${websocket.api.version}</version>-->
-        <!--            <scope>provided</scope>-->
-        <!--        </dependency>-->
-
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -112,7 +93,6 @@
             <artifactId>httpasyncclient</artifactId>
             <version>${httpasyncclient.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -125,8 +105,6 @@
             <version>${cdt.version}</version>
             <scope>test</scope>
         </dependency>
-
-
 
     </dependencies>
 

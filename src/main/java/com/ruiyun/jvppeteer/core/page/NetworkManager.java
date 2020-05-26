@@ -38,7 +38,7 @@ public class NetworkManager extends EventEmitter {
 
     private FrameManager frameManager;
 
-    private Map<String,String> extraHTTPHeaders;
+    private Map<String, String> extraHTTPHeaders;
 
     private Map<String, Request> requestIdToRequest;
 
@@ -56,7 +56,7 @@ public class NetworkManager extends EventEmitter {
 
     private boolean userCacheDisabled;
 
-    private Map<String,String> requestIdToInterceptionId;
+    private Map<String, String> requestIdToInterceptionId;
 
     public NetworkManager(CDPSession client, boolean ignoreHTTPSErrors, FrameManager frameManager) {
         this.client = client;
@@ -74,65 +74,65 @@ public class NetworkManager extends EventEmitter {
         this.requestIdToInterceptionId = new HashMap<>();
 
         //TODO
-        DefaultBrowserListener<RequestPausedPayload>  requestPausedListener = new DefaultBrowserListener<RequestPausedPayload>() {
+        DefaultBrowserListener<RequestPausedPayload> requestPausedListener = new DefaultBrowserListener<RequestPausedPayload>() {
             @Override
             public void onBrowserEvent(RequestPausedPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 manager.onRequestPaused(event);
             }
         };
         requestPausedListener.setMothod("Fetch.requestPaused");
         requestPausedListener.setTarget(this);
-        this.client.on(requestPausedListener.getMothod(),requestPausedListener);
+        this.client.on(requestPausedListener.getMothod(), requestPausedListener);
 
-        DefaultBrowserListener<AuthRequiredPayload>  authRequiredListener = new DefaultBrowserListener<AuthRequiredPayload>() {
+        DefaultBrowserListener<AuthRequiredPayload> authRequiredListener = new DefaultBrowserListener<AuthRequiredPayload>() {
             @Override
             public void onBrowserEvent(AuthRequiredPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 manager.onAuthRequired(event);
             }
         };
         authRequiredListener.setMothod("Fetch.authRequired");
         authRequiredListener.setTarget(this);
-        this.client.on(authRequiredListener.getMothod(),authRequiredListener);
+        this.client.on(authRequiredListener.getMothod(), authRequiredListener);
 
-        DefaultBrowserListener<RequestWillBeSentPayload>  requestWillBeSentListener = new DefaultBrowserListener<RequestWillBeSentPayload>() {
+        DefaultBrowserListener<RequestWillBeSentPayload> requestWillBeSentListener = new DefaultBrowserListener<RequestWillBeSentPayload>() {
             @Override
             public void onBrowserEvent(RequestWillBeSentPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 manager.onRequestWillBeSent(event);
             }
         };
         requestWillBeSentListener.setMothod("Network.requestWillBeSent");
         requestWillBeSentListener.setTarget(this);
-        this.client.on(requestWillBeSentListener.getMothod(),requestWillBeSentListener);
+        this.client.on(requestWillBeSentListener.getMothod(), requestWillBeSentListener);
 
-        DefaultBrowserListener<RequestServedFromCachePayload>  requestServedFromCacheListener = new DefaultBrowserListener<RequestServedFromCachePayload>() {
+        DefaultBrowserListener<RequestServedFromCachePayload> requestServedFromCacheListener = new DefaultBrowserListener<RequestServedFromCachePayload>() {
             @Override
             public void onBrowserEvent(RequestServedFromCachePayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 manager.onRequestServedFromCache(event);
             }
         };
         requestServedFromCacheListener.setMothod("Network.requestServedFromCache");
         requestServedFromCacheListener.setTarget(this);
-        this.client.on(requestServedFromCacheListener.getMothod(),requestServedFromCacheListener);
+        this.client.on(requestServedFromCacheListener.getMothod(), requestServedFromCacheListener);
 
-        DefaultBrowserListener<ResponseReceivedPayload>  responseReceivedListener = new DefaultBrowserListener<ResponseReceivedPayload>() {
+        DefaultBrowserListener<ResponseReceivedPayload> responseReceivedListener = new DefaultBrowserListener<ResponseReceivedPayload>() {
             @Override
             public void onBrowserEvent(ResponseReceivedPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 manager.onResponseReceived(event);
             }
         };
         responseReceivedListener.setMothod("Network.responseReceived");
         responseReceivedListener.setTarget(this);
-        this.client.on(responseReceivedListener.getMothod(),responseReceivedListener);
+        this.client.on(responseReceivedListener.getMothod(), responseReceivedListener);
 
-        DefaultBrowserListener<LoadingFinishedPayload>  loadingFinishedListener = new DefaultBrowserListener<LoadingFinishedPayload>() {
+        DefaultBrowserListener<LoadingFinishedPayload> loadingFinishedListener = new DefaultBrowserListener<LoadingFinishedPayload>() {
             @Override
             public void onBrowserEvent(LoadingFinishedPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 try {
                     manager.onLoadingFinished(event);
                 } catch (IOException e) {
@@ -142,12 +142,12 @@ public class NetworkManager extends EventEmitter {
         };
         loadingFinishedListener.setMothod("Network.loadingFinished");
         loadingFinishedListener.setTarget(this);
-        this.client.on(loadingFinishedListener.getMothod(),loadingFinishedListener);
+        this.client.on(loadingFinishedListener.getMothod(), loadingFinishedListener);
 
-        DefaultBrowserListener<LoadingFailedPayload>  loadingFailedListener = new DefaultBrowserListener<LoadingFailedPayload>() {
+        DefaultBrowserListener<LoadingFailedPayload> loadingFailedListener = new DefaultBrowserListener<LoadingFailedPayload>() {
             @Override
             public void onBrowserEvent(LoadingFailedPayload event) {
-                NetworkManager manager =  (NetworkManager)this.getTarget();
+                NetworkManager manager = (NetworkManager) this.getTarget();
                 try {
                     manager.onLoadingFailed(event);
                 } catch (IOException e) {
@@ -157,29 +157,29 @@ public class NetworkManager extends EventEmitter {
         };
         loadingFailedListener.setMothod("Network.loadingFailed");
         loadingFailedListener.setTarget(this);
-        this.client.on(loadingFailedListener.getMothod(),loadingFailedListener);
+        this.client.on(loadingFailedListener.getMothod(), loadingFailedListener);
 
     }
 
-    public void setExtraHTTPHeaders(Map<String,String> extraHTTPHeaders) {
+    public void setExtraHTTPHeaders(Map<String, String> extraHTTPHeaders) {
         this.extraHTTPHeaders = new HashMap<>();
-        for(Map.Entry<String,String> entry:extraHTTPHeaders.entrySet()){
+        for (Map.Entry<String, String> entry : extraHTTPHeaders.entrySet()) {
 
             String value = entry.getValue();
-            ValidateUtil.assertArg(Helper.isString(value), "Expected value of header "+entry.getKey()+" to be String, but "+value.getClass().getCanonicalName()+" is found.");
-            this.extraHTTPHeaders.put(entry.getKey(),value);
+            ValidateUtil.assertArg(Helper.isString(value), "Expected value of header " + entry.getKey() + " to be String, but " + value.getClass().getCanonicalName() + " is found.");
+            this.extraHTTPHeaders.put(entry.getKey(), value);
         }
-        Map<String,Object> params = new HashMap<>();
-        params.put("headers",this.extraHTTPHeaders);
-         this.client.send("Network.setExtraHTTPHeaders", params,true);
+        Map<String, Object> params = new HashMap<>();
+        params.put("headers", this.extraHTTPHeaders);
+        this.client.send("Network.setExtraHTTPHeaders", params, true);
     }
 
     public void initialize() {
-         this.client.send("Network.enable",null,true);
-        if (this.ignoreHTTPSErrors){
-            Map<String,Object> params = new HashMap<>();
-            params.put("ignore",true);
-            this.client.send("Security.setIgnoreCertificateErrors", params,true);
+        this.client.send("Network.enable", null, true);
+        if (this.ignoreHTTPSErrors) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("ignore", true);
+            this.client.send("Security.setIgnoreCertificateErrors", params, true);
         }
 
     }
@@ -189,7 +189,7 @@ public class NetworkManager extends EventEmitter {
         this.updateProtocolRequestInterception();
     }
 
-    public Map<String,String> extraHTTPHeaders(){
+    public Map<String, String> extraHTTPHeaders() {
         return new HashMap<>(this.extraHTTPHeaders);
     }
 
@@ -197,38 +197,41 @@ public class NetworkManager extends EventEmitter {
         if (this.offline == value)
             return;
         this.offline = value;
-        Map<String,Object> params = new HashMap<>();
-        params.put("offline",this.offline);
+        Map<String, Object> params = new HashMap<>();
+        params.put("offline", this.offline);
         // values of 0 remove any active throttling. crbug.com/456324#c9
-        params.put("latency",0);
-        params.put("downloadThroughput",-1);
-        params.put("uploadThroughput",-1);
-         this.client.send("Network.emulateNetworkConditions", params,true);
+        params.put("latency", 0);
+        params.put("downloadThroughput", -1);
+        params.put("uploadThroughput", -1);
+        this.client.send("Network.emulateNetworkConditions", params, true);
     }
+
     public void setUserAgent(String userAgent) {
-        Map<String,Object> params = new HashMap<>();
-        params.put("userAgent",userAgent);
-        this.client.send("Network.setUserAgentOverride", params,true);
+        Map<String, Object> params = new HashMap<>();
+        params.put("userAgent", userAgent);
+        this.client.send("Network.setUserAgentOverride", params, true);
     }
 
     public void setCacheEnabled(boolean enabled) {
         this.userCacheDisabled = !enabled;
         this.updateProtocolCacheDisabled();
     }
+
     public void setRequestInterception(boolean value) {
         this.userRequestInterceptionEnabled = value;
-         this.updateProtocolRequestInterception();
+        this.updateProtocolRequestInterception();
     }
+
     private void updateProtocolCacheDisabled() {
-        Map<String,Object> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
         boolean cacheDisabled = this.userCacheDisabled || this.protocolRequestInterceptionEnabled;
-        params.put("cacheDisabled",cacheDisabled);
-        this.client.send("Network.setCacheDisabled", params,false);
+        params.put("cacheDisabled", cacheDisabled);
+        this.client.send("Network.setCacheDisabled", params, true);
     }
 
     public void updateProtocolRequestInterception() {
         boolean enabled = false;
-        if(this.userRequestInterceptionEnabled || this.credentials != null){
+        if (this.userRequestInterceptionEnabled || this.credentials != null) {
             enabled = true;
         }
         if (enabled == this.protocolRequestInterceptionEnabled)
@@ -236,21 +239,22 @@ public class NetworkManager extends EventEmitter {
         this.protocolRequestInterceptionEnabled = enabled;
         if (enabled) {
             this.updateProtocolCacheDisabled();
-            Map<String,Object> params = new HashMap<>();
-            params.put("handleAuthRequests",true);
+            Map<String, Object> params = new HashMap<>();
+            params.put("handleAuthRequests", true);
             List<Object> patterns = new ArrayList<>();
-            patterns.add(Constant.OBJECTMAPPER.createObjectNode().put("urlPattern","*"));
-            params.put("patterns",patterns);
-            this.client.send("Fetch.enable", params,true);
+            patterns.add(Constant.OBJECTMAPPER.createObjectNode().put("urlPattern", "*"));
+            params.put("patterns", patterns);
+            this.client.send("Fetch.enable", params, true);
         } else {
             this.updateProtocolCacheDisabled();
-            this.client.send("Fetch.disable",null,true);
+            this.client.send("Fetch.disable", null, true);
         }
     }
-   public void  onRequestWillBeSent(RequestWillBeSentPayload event) {
+
+    public void onRequestWillBeSent(RequestWillBeSentPayload event) {
         // Request interception doesn't happen for data URLs with Network Service.
         if (this.protocolRequestInterceptionEnabled && !event.getRequest().getUrl().startsWith("data:")) {
-      String requestId = event.getRequestId();
+            String requestId = event.getRequestId();
             String interceptionId = this.requestIdToInterceptionId.get(requestId);
             if (StringUtil.isNotEmpty(interceptionId)) {
                 this.onRequest(event, interceptionId);
@@ -265,43 +269,43 @@ public class NetworkManager extends EventEmitter {
 
     public void onAuthRequired(AuthRequiredPayload event) {
         /* @type {"Default"|"CancelAuth"|"ProvideCredentials"} */
-        String  response = "Default";
+        String response = "Default";
         if (this.attemptedAuthentications.contains(event.getRequestId())) {
             response = "CancelAuth";
         } else if (this.credentials != null) {
             response = "ProvideCredentials";
             this.attemptedAuthentications.add(event.getRequestId());
         }
-        String  username ,password = null;
+        String username, password = null;
         ObjectNode respParams = null;
-        if(this.credentials != null){
+        if (this.credentials != null) {
             respParams = Constant.OBJECTMAPPER.createObjectNode();
-            if(StringUtil.isNotEmpty(username = credentials.getUsername())){
-                respParams.put("username",username);
+            if (StringUtil.isNotEmpty(username = credentials.getUsername())) {
+                respParams.put("username", username);
             }
-            if(StringUtil.isNotEmpty(password = credentials.getPassword())){
-                respParams.put("password",password);
+            if (StringUtil.isNotEmpty(password = credentials.getPassword())) {
+                respParams.put("password", password);
             }
         }
-        Map<String,Object> params = new HashMap<>();
-        params.put("response","Default");
-        params.put("requestId",event.getRequestId());
-        if(respParams != null)
-        params.put("authChallengeResponse",respParams.toString());
-        this.client.send("Fetch.continueWithAuth",params,false);
+        Map<String, Object> params = new HashMap<>();
+        params.put("response", "Default");
+        params.put("requestId", event.getRequestId());
+        if (respParams != null)
+            params.put("authChallengeResponse", respParams.toString());
+        this.client.send("Fetch.continueWithAuth", params, false);
     }
 
     public void onRequestPaused(RequestPausedPayload event) {
         if (!this.userRequestInterceptionEnabled && this.protocolRequestInterceptionEnabled) {
-            Map<String,Object> params = new HashMap<>();
-            params.put("requestId",event.getRequestId());
-            this.client.send("Fetch.continueRequest", params,false);
+            Map<String, Object> params = new HashMap<>();
+            params.put("requestId", event.getRequestId());
+            this.client.send("Fetch.continueRequest", params, false);
         }
 
         String requestId = event.getNetworkId();
         String interceptionId = event.getRequestId();
         if (StringUtil.isNotEmpty(requestId) && this.requestIdToRequestWillBeSentEvent.containsKey(requestId)) {
-      RequestWillBeSentPayload requestWillBeSentEvent = this.requestIdToRequestWillBeSentEvent.get(requestId);
+            RequestWillBeSentPayload requestWillBeSentEvent = this.requestIdToRequestWillBeSentEvent.get(requestId);
             this.onRequest(requestWillBeSentEvent, interceptionId);
             this.requestIdToRequestWillBeSentEvent.remove(requestId);
         } else {
@@ -323,7 +327,7 @@ public class NetworkManager extends EventEmitter {
                 redirectChain = request.getRedirectChain();
             }
         }
-        Frame frame = StringUtil.isNotEmpty(event.getFrameId())? this.frameManager.getFrame(event.getFrameId()) : null;
+        Frame frame = StringUtil.isNotEmpty(event.getFrameId()) ? this.frameManager.getFrame(event.getFrameId()) : null;
         Request request = new Request(this.client, frame, interceptionId, this.userRequestInterceptionEnabled, event, redirectChain);
         this.requestIdToRequest.put(event.getRequestId(), request);
         this.emit(Events.NETWORK_MANAGER_REQUEST.getName(), request);
@@ -340,8 +344,8 @@ public class NetworkManager extends EventEmitter {
         this.emit(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName(), request);
     }
 
-    public void  onLoadingFinished(LoadingFinishedPayload event) throws IOException {
-    Request request = this.requestIdToRequest.get(event.getRequestId());
+    public void onLoadingFinished(LoadingFinishedPayload event) throws IOException {
+        Request request = this.requestIdToRequest.get(event.getRequestId());
         // For certain requestIds we never receive requestWillBeSent event.
         // @see https://crbug.com/750469
         if (request == null)
@@ -357,13 +361,13 @@ public class NetworkManager extends EventEmitter {
     }
 
     public void onResponseReceived(ResponseReceivedPayload event) {
-    Request request = this.requestIdToRequest.get(event.getRequestId());
+        Request request = this.requestIdToRequest.get(event.getRequestId());
         // FileUpload sends a response without a matching request.
         if (request == null)
             return;
         Response response = new Response(this.client, request, event.getResponse());
         request.setResponse(response);
-        this.emit(Events.NETWORK_MANAGER_RESPONSE.getName(),response);
+        this.emit(Events.NETWORK_MANAGER_RESPONSE.getName(), response);
     }
 
     public void onLoadingFailed(LoadingFailedPayload event) throws IOException {
@@ -372,7 +376,7 @@ public class NetworkManager extends EventEmitter {
         // @see https://crbug.com/750469
         if (request == null)
             return;
-        request.setFailureText(event.getErrorText()) ;
+        request.setFailureText(event.getErrorText());
         Response response = request.response();
         if (response != null)
             response.bodyLoadedPromiseFulfill(null);
