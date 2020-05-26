@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class BrowserEventExample {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws Exception {
         String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
         LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();

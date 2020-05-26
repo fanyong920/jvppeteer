@@ -394,7 +394,7 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param childFrame
+     * @param childFrame 子frame
      */
     private void removeFramesRecursively(Frame childFrame) {
         if (ValidateUtil.isNotEmpty(childFrame.getChildFrames())) {
@@ -440,7 +440,7 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options) {
+    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options) throws InterruptedException {
         String referer;
         List<String> waitUntil;
         int timeout;
@@ -479,27 +479,23 @@ public class FrameManager extends EventEmitter {
                         return watcher.navigationResponse();
                     }
                 }
-                try {
-                    this.navigateResult = "";
-                    this.documentLatch = new CountDownLatch(1);
-                    long end = System.currentTimeMillis();
-                    boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
-                    if (!await) {
-                        throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-                    }
-                    if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
-                        return watcher.navigationResponse();
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                this.navigateResult = "";
+                this.documentLatch = new CountDownLatch(1);
+                long end = System.currentTimeMillis();
+                boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
+                if (!await) {
+                    throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded at " + url);
+                }
+                if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
+                    return watcher.navigationResponse();
                 }
             }
             if (NavigateResult.TIMEOUT.getResult().equals(navigateResult)) {
-                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
+                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded at " + url);
             } else if (NavigateResult.TERMINATION.getResult().equals(navigateResult)) {
                 throw new NavigateException("Navigating frame was detached");
             } else {
-                throw new NavigateException("UnNokwn result " + navigateResult);
+                throw new NavigateException("Unkown result " + navigateResult);
             }
         } finally {
             watcher.dispose();
@@ -552,18 +548,13 @@ public class FrameManager extends EventEmitter {
     }
 
     public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options) {
-        String referer;
         List<String> waitUntil;
         int timeout;
         if (options == null) {
-            referer = this.networkManager.extraHTTPHeaders().get("referer");
             waitUntil = new ArrayList<>();
             waitUntil.add("load");
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
-            if (StringUtil.isEmpty(referer = options.getReferer())) {
-                referer = this.networkManager.extraHTTPHeaders().get("referer");
-            }
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
                 waitUntil.add("load");
@@ -589,11 +580,11 @@ public class FrameManager extends EventEmitter {
             if (!await) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
             }
-            if ("success".equals(navigateResult)) {
+            if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                 return watcher.navigationResponse();
-            } else if ("timeout".equals(navigateResult)) {
+            } else if (NavigateResult.TIMEOUT.getResult().equals(navigateResult)) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-            } else if ("termination".equals(navigateResult)) {
+            } else if (NavigateResult.TERMINATION.getResult().equals(navigateResult)) {
                 throw new NavigateException("Navigating frame was detached");
             } else {
                 throw new NavigateException("UnNokwn result " + navigateResult);
@@ -606,7 +597,7 @@ public class FrameManager extends EventEmitter {
     }
 
     private void assertNoLegacyNavigationOptions(PageNavigateOptions options) {
-        ValidateUtil.assertArg(!"networkidle".equals(options.getWaitUntil()), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
+        ValidateUtil.assertArg(!"networkidle".equals(options.getWaitUntil().get(0)), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 
     public Frame mainFrame() {

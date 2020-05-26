@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class PageGotoExample {
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws Exception {
 //        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"GBK");
 
         String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";

@@ -139,4 +139,21 @@ public class Cookie {
     public void setPriority(String priority) {
         this.priority = priority;
     }
+
+    @Override
+    public String toString() {
+        return "Cookie{" +
+                "name='" + name + '\'' +
+                ", value='" + value + '\'' +
+                ", domain='" + domain + '\'' +
+                ", path='" + path + '\'' +
+                ", expires=" + expires +
+                ", size=" + size +
+                ", httpOnly=" + httpOnly +
+                ", secure=" + secure +
+                ", session=" + session +
+                ", sameSite='" + sameSite + '\'' +
+                ", priority='" + priority + '\'' +
+                '}';
+    }
 }

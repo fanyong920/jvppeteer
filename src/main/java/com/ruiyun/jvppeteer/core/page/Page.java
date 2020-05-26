@@ -818,7 +818,9 @@ public class Page extends EventEmitter {
      */
     public List<Cookie> cookies(List<String> urls) {
         Map<String, Object> params = new HashMap<>();
-        params.put("urls", ValidateUtil.isNotEmpty(urls) ? urls : this.url());
+        if(urls == null) urls = new ArrayList<>();
+        if(urls.size() == 0) urls.add(this.url());
+        params.put("urls",urls);
         JsonNode result = this.client.send("Network.getCookies", params, true);
         JsonNode cookiesNode = result.get("cookies");
         Iterator<JsonNode> elements = cookiesNode.elements();
@@ -835,6 +837,14 @@ public class Page extends EventEmitter {
             }
         }
         return cookies;
+    }
+
+    /**
+     * 返回当前页面的cookies
+     * @return cookies
+     */
+    public List<Cookie> cookies() {
+        return this.cookies(null);
     }
 
     public void setCookie(List<CookieParam> cookies) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
@@ -1226,7 +1236,7 @@ public class Page extends EventEmitter {
      *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options) {
+    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
         return this.frameManager.getMainFrame().goTo(url, options);
     }
 
@@ -1241,7 +1251,7 @@ public class Page extends EventEmitter {
      * @param url 导航到的地址. 地址应该带有http协议, 比如 https://.
      * @return 响应
      */
-    public Response goTo(String url) {
+    public Response goTo(String url) throws InterruptedException {
         return this.frameManager.getMainFrame().goTo(url, null);
     }
 

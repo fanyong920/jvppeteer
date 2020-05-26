@@ -9,6 +9,16 @@ public class Credentials {
 
     private String password;
 
+    public Credentials() {
+        super();
+    }
+
+    public Credentials(String username, String password) {
+        super();
+        this.username = username;
+        this.password = password;
+    }
+
     public String getUsername() {
         return username;
     }

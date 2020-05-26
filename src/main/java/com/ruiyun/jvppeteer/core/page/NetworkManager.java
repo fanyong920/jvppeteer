@@ -238,8 +238,8 @@ public class NetworkManager extends EventEmitter {
             this.updateProtocolCacheDisabled();
             Map<String,Object> params = new HashMap<>();
             params.put("handleAuthRequests",true);
-            List<String> patterns = new ArrayList<>();
-            patterns.add("{urlPattern: \"*\"}");
+            List<Object> patterns = new ArrayList<>();
+            patterns.add(Constant.OBJECTMAPPER.createObjectNode().put("urlPattern","*"));
             params.put("patterns",patterns);
             this.client.send("Fetch.enable", params,true);
         } else {

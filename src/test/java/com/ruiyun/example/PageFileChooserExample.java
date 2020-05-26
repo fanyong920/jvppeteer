@@ -35,11 +35,13 @@ public class PageFileChooserExample {
         Future<FileChooser> fileChooserFuture = page.waitForFileChooser(30000);
         ElementHandle elementHandle = page.$("#form > span.bg.s_ipt_wr.quickdelete-wrap > span.soutu-btn");
         elementHandle.click();
-
+        //点击选择文件的按钮
         ElementHandle button = page.$("#form > div > div.soutu-state-normal > div.upload-wrap > input");
         button.click();
+        //等待一个选择文件的弹窗事件返回
         FileChooser fileChooser = fileChooserFuture.get();
 
+        //选择本地的文件
         List<String> paths = new ArrayList<>();
         paths.add("C:\\Users\\howay\\Desktop\\sunway.png");
         fileChooser.accept(paths);

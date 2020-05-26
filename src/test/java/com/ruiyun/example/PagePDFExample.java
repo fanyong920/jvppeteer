@@ -1,19 +1,18 @@
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.Puppeteer;
+import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.page.Page;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 public class PagePDFExample {
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";

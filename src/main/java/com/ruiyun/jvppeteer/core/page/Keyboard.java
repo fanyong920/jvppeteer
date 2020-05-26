@@ -335,7 +335,7 @@ public class Keyboard {
     public void type(String text, int delay) throws InterruptedException {
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            if (charIsKey(String.valueOf(c)))
+            if (this.charIsKey(String.valueOf(c)))
                 this.press(String.valueOf(c), delay,null);
             else{
                 if (delay > 0)

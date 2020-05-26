@@ -8,15 +8,12 @@ import com.ruiyun.jvppeteer.options.OptionsBuilder;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import com.ruiyun.jvppeteer.protocol.performance.Metrics;
 
-import java.beans.IntrospectionException;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class PageMetricsExample {
 
-    public static void main(String[] args) throws IOException, IllegalAccessException, IntrospectionException, InvocationTargetException {
+    public static void main(String[] args) throws Exception {
         String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
 
        // String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";

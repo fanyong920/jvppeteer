@@ -29,7 +29,7 @@ public class SendMsg {
 	private String sessionId;
 
 	//是否有错误
-	private ProtocolException error;
+	private String errorText;
 
 	public long getId() {
 		return id;
@@ -90,12 +90,12 @@ public class SendMsg {
 		return true;
 	}
 
-	public ProtocolException getError() {
-		return error;
+	public String getErrorText() {
+		return errorText;
 	}
 
-	public void setError(ProtocolException error) {
-		this.error = error;
+	public void setErrorText(String errorText) {
+		this.errorText = errorText;
 	}
 
 	@Override
@@ -104,9 +104,10 @@ public class SendMsg {
 				"id=" + id +
 				", params=" + params +
 				", method='" + method + '\'' +
+				", countDownLatch=" + countDownLatch +
 				", result=" + result +
 				", sessionId='" + sessionId + '\'' +
-				", error=" + error +
+				", errorText='" + errorText + '\'' +
 				'}';
 	}
 }

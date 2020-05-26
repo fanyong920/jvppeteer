@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,8 +88,8 @@ public class CDPSession extends EventEmitter {
                 if(!hasResult){
                     throw new TimeoutException("Wait "+method+" for "+(timeout <= 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
                 }
-                if(message.getError() != null){
-                    throw message.getError();
+                if(StringUtil.isNotEmpty(message.getErrorText())){
+                    throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
             }else{
@@ -125,8 +126,8 @@ public class CDPSession extends EventEmitter {
                 if(!hasResult){
                     throw new TimeoutException("Wait "+method+" for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
                 }
-                if(message.getError() != null){
-                    throw message.getError();
+                if(StringUtil.isNotEmpty(message.getErrorText())){
+                    throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
             }
@@ -157,7 +158,7 @@ public class CDPSession extends EventEmitter {
                 JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
                 if (errNode != null) {
                     if(callback.getCountDownLatch() != null){
-                        callback.setError(new ProtocolException(Helper.createProtocolError(node)));
+                        callback.setErrorText(Helper.createProtocolError(node));
                         callback.getCountDownLatch().countDown();
                         callback.setCountDownLatch(null);
                     }

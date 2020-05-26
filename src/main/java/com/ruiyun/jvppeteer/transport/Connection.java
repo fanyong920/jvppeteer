@@ -70,8 +70,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 if (!hasResult) {
                     throw new TimeoutException("["+message+"] has send ,But wait result for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
                 }
-                if(message.getError() != null){
-                    throw message.getError();
+                if(StringUtil.isNotEmpty(message.getErrorText())){
+                    throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
             }else {
@@ -99,8 +99,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 if (!hasResult) {
                     throw new TimeoutException("Wait "+method+" for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
                 }
-                if(message.getError() != null){
-                    throw message.getError();
+                if(StringUtil.isNotEmpty(message.getErrorText())){
+                    throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
             } else {
@@ -186,7 +186,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                     if (error != null) {
                         if (sendMsg.getCountDownLatch() != null) {
-                            sendMsg.setError(new ProtocolException(Helper.createProtocolError(readTree)));
+                            sendMsg.setErrorText(Helper.createProtocolError(readTree));
                             sendMsg.getCountDownLatch().countDown();
                             sendMsg.setCountDownLatch(null);
                         }

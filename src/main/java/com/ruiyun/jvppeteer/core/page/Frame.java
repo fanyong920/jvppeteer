@@ -211,7 +211,7 @@ public class Frame {
         this.lifecycleEvents.add("load");
     }
 
-    public Response goTo(String url, PageNavigateOptions options) {
+    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
         return this.frameManager.navigateFrame(this, url, options);
     }
 
