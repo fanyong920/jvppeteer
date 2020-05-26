@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer;
+package com.ruiyun.jvppeteer.core;
 
 /**
  * 环境变量的接口:可以使用System:getEnv来实现

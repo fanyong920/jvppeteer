@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.core.browser;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.core.page.TargetInfo;

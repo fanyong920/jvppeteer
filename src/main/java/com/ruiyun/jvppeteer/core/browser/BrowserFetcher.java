@@ -1,7 +1,6 @@
 package com.ruiyun.jvppeteer.core.browser;
 
-import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.util.*;
 import com.sun.javafx.PlatformUtil;
@@ -13,16 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;

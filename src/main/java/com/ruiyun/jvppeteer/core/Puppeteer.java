@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer;
+package com.ruiyun.jvppeteer.core;
 
 import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ruiyun.jvppeteer.Constant.PRODUCT_ENV;
+import static com.ruiyun.jvppeteer.core.Constant.PRODUCT_ENV;
 
 /**
  * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium

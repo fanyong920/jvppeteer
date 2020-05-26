@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;

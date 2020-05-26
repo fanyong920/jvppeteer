@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.core.page;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserContext;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
@@ -84,9 +84,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import static com.ruiyun.jvppeteer.Constant.OBJECTMAPPER;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_STREAM_PROPERTY;
-import static com.ruiyun.jvppeteer.Constant.supportedMetrics;
+import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
 
 public class Page extends EventEmitter {
 

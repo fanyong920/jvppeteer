@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.transport.factory.SessionFactory;

@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.launch;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.browser.BrowserRunner;

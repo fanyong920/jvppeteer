@@ -1,12 +1,11 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.Puppeteer;
+import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 /**

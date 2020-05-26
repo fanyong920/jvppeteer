@@ -1,15 +1,9 @@
 package com.ruiyun.jvppeteer.util;
 
-import com.ruiyun.jvppeteer.Constant;
-import com.ruiyun.jvppeteer.transport.Connection;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import com.ruiyun.jvppeteer.core.Constant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -18,13 +12,11 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;

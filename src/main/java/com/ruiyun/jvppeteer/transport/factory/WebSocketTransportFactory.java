@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.transport.factory;
 
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import org.java_websocket.drafts.Draft_6455;
 

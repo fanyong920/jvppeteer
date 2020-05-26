@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import com.ruiyun.jvppeteer.Puppeteer;
+import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
 

@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.options;
 
 import java.util.List;
 
-import com.ruiyun.jvppeteer.Environment;
+import com.ruiyun.jvppeteer.core.Environment;
 
 public class LaunchOptions extends BrowserOptions {
 

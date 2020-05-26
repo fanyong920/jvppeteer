@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.launch;
 
-import com.ruiyun.jvppeteer.Environment;
+import com.ruiyun.jvppeteer.core.Environment;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;

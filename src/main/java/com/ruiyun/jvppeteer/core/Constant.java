@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer;
+package com.ruiyun.jvppeteer.core;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude;

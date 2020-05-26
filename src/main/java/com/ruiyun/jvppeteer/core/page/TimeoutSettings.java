@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 
 public class TimeoutSettings implements Constant {
 

@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static com.ruiyun.jvppeteer.Constant.DEFAULT_TIMEOUT;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_ERROR_PROPERTY;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_ID_PROPERTY;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_METHOD_PROPERTY;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_PARAMS_PROPERTY;
-import static com.ruiyun.jvppeteer.Constant.RECV_MESSAGE_RESULT_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.DEFAULT_TIMEOUT;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_ERROR_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_ID_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_METHOD_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_PARAMS_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_RESULT_PROPERTY;
 
 /**
  *The CDPSession instances are used to talk raw Chrome Devtools Protocol:

@@ -1,6 +1,6 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.Puppeteer;
+import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
@@ -25,9 +25,10 @@ public class PageIuputExample {
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
 
 //        ElementHandle elementHandle = page.$("#su");
-        page.type("#su", "我是老梁啊", 0);
 //        elementHandle.type("我是老梁啊");
 //        elementHandle.press("Enter");
+        page.type("#su", "我是老梁啊", 0);
+
 
     }
 }

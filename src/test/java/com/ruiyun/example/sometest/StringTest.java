@@ -2,7 +2,7 @@ package com.ruiyun.example.sometest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.page.PaperFormats;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import org.junit.Test;

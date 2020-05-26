@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.core.browser;
 
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;

@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.Constant;
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
