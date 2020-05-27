@@ -177,7 +177,7 @@ public class Browser extends EventEmitter {
      * @return 所有target
      */
     public List<Target> targets() {
-        return this.targets.values().stream().filter(item -> !item.getIsInitialized()).collect(Collectors.toList());
+        return this.targets.values().stream().filter(item -> item.getIsInitialized()).collect(Collectors.toList());
     }
 
     public Process process() {

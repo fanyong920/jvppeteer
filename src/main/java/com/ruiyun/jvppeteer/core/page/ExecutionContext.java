@@ -112,13 +112,15 @@ public class ExecutionContext {
         params.put("returnByValue", returnByValue);
         params.put("awaitPromise", true);
         params.put("userGesture", true);
-
-        JsonNode callFunctionOnPromise = null;
+        System.out.println("contextId:"+this.contextId);
+        JsonNode callFunctionOnPromise;
         try {
             callFunctionOnPromise = this.client.send("Runtime.callFunctionOn", params, true);
         } catch (Exception e) {
             if (e.getMessage().startsWith("Converting circular structure to JSON"))
                 throw new RuntimeException(e.getMessage() + " Are you passing a nested JSHandle?");
+            else
+                throw new RuntimeException(e);
         }
         if (callFunctionOnPromise == null) {
             return null;
@@ -203,5 +205,9 @@ public class ExecutionContext {
 
     public void setClient(CDPSession client) {
         this.client = client;
+    }
+
+    public int getContextId() {
+        return contextId;
     }
 }

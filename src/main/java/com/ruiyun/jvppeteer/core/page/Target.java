@@ -64,7 +64,7 @@ public class Target {
         this.screenshotTaskQueue = screenshotTaskQueue;
         this.pagePromise = null;
         this.workerPromise = null;
-        this.isInitialized = !"page".equals(this.targetInfo.getType()) || StringUtil.isEmpty(this.targetInfo.getUrl());
+        this.isInitialized = !"page".equals(this.targetInfo.getType()) || !StringUtil.isEmpty(this.targetInfo.getUrl());
         if (isInitialized) {//初始化
             this.initializedPromise = this.initializedCallback(true);
         } else {

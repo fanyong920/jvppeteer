@@ -66,7 +66,7 @@ public class PageEventListenerExample {
             System.out.println("页面的请求结束了..."+request.url());
         });
         page.onResponse((response) -> {
-            System.out.println("页面请求["+response.getUrl()+"]对应的响应是..."+response.getStatus());
+            System.out.println("页面请求["+response.url()+"]对应的响应是..."+response.status());
         });
         page.onWorkercreated((worker) -> {
             System.out.println("页面上有个worker被创建了..."+worker.url());

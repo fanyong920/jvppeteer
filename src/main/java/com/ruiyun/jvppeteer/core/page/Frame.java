@@ -56,6 +56,7 @@ public class Frame {
         this.lifecycleEvents = new HashSet<>();
         this.mainWorld = new DOMWorld(frameManager, this, frameManager.getTimeoutSettings());
         this.secondaryWorld = new DOMWorld(frameManager, this, frameManager.getTimeoutSettings());
+        System.out.println("frameId:"+id+",domword:"+mainWorld+",secondaryWorld"+secondaryWorld);
         this.childFrames = new HashSet<>();
         if (this.parentFrame != null)
             this.parentFrame.getChildFrames().add(this);

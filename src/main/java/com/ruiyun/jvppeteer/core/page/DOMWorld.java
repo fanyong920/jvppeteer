@@ -94,38 +94,38 @@ public class DOMWorld {
     }
 
     private void contextResolveCallback(ExecutionContext context) {
-            this.contextPromise = context;
+        this.contextPromise = context;
 //        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING, null);
 //        this.documentPromise = document.asElement();
-            if(this.waitForContext != null) {
-                this.waitForContext.countDown();
-            }
+        if (this.waitForContext != null) {
+            this.waitForContext.countDown();
+        }
     }
 
     public boolean hasContext() {
-            return hasContext;
+        return hasContext;
     }
 
     public ExecutionContext executionContext() {
         if (this.detached)
             throw new RuntimeException(MessageFormat.format("Execution Context is not available in detached frame {0} (are you trying to evaluate?)", this.frame.getUrl()));
-        if(this.contextPromise == null){
-                this.waitForContext = new CountDownLatch(1);
-                try {
-                    boolean await = this.waitForContext.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-                    if(!await){
-                        throw new TimeoutException("Wait for ExecutionContext time out");
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+        if (this.contextPromise == null) {
+            this.waitForContext = new CountDownLatch(1);
+            try {
+                boolean await = this.waitForContext.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+                if (!await) {
+                    throw new TimeoutException("Wait for ExecutionContext time out");
                 }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         return this.contextPromise;
     }
 
     public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
         ExecutionContext context = this.executionContext();
-        return (JSHandle)context.evaluateHandle(pageFunction, type, args);
+        return (JSHandle) context.evaluateHandle(pageFunction, type, args);
     }
 
     public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
@@ -142,8 +142,8 @@ public class DOMWorld {
         if (this.documentPromise != null)
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
-        JSHandle document = (JSHandle)context.evaluateHandle("document", PageEvaluateType.STRING);
-         this.documentPromise = document.asElement();
+        JSHandle document = (JSHandle) context.evaluateHandle("document", PageEvaluateType.STRING);
+        this.documentPromise = document.asElement();
         return this.documentPromise;
     }
 
@@ -190,7 +190,7 @@ public class DOMWorld {
                 "    }", PageEvaluateType.FUNCTION, html);
         LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
 
-        if(watcher.lifecyclePromise() != null){
+        if (watcher.lifecyclePromise() != null) {
             return;
         }
         try {
@@ -199,7 +199,7 @@ public class DOMWorld {
             this.frameManager.setNavigateResult(null);
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
             if (await) {
-                if(NavigateResult.CONTENT_SUCCESS.getResult().equals(this.frameManager.getNavigateResult())){
+                if (NavigateResult.CONTENT_SUCCESS.getResult().equals(this.frameManager.getNavigateResult())) {
 
                 } else if (NavigateResult.TIMEOUT.getResult().equals(this.frameManager.getNavigateResult())) {
                     throw new TimeoutException("setContent timeout :" + html);
@@ -213,7 +213,7 @@ public class DOMWorld {
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        }finally {
+        } finally {
             watcher.dispose();
         }
     }
@@ -222,10 +222,10 @@ public class DOMWorld {
         if (StringUtil.isNotEmpty(options.getUrl())) {
             try {
                 ExecutionContext context = this.executionContext();
-                ElementHandle handle = (ElementHandle)context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
-               return handle.asElement();
+                ElementHandle handle = (ElementHandle) context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
+                return handle.asElement();
             } catch (Exception e) {
-                throw new RuntimeException("Loading script from "+options.getUrl()+" failed",e);
+                throw new RuntimeException("Loading script from " + options.getUrl() + " failed", e);
             }
         }
         if (StringUtil.isNotEmpty(options.getPath())) {
@@ -238,7 +238,7 @@ public class DOMWorld {
         }
         if (StringUtil.isNotEmpty(options.getContent())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle elementHandle = (ElementHandle)context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, options.getContent(), options.getType());
+            ElementHandle elementHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, options.getContent(), options.getType());
             return elementHandle.asElement();
         }
         throw new IllegalArgumentException("Provide an object with a `url`, `path` or `content` property");
@@ -276,23 +276,23 @@ public class DOMWorld {
 
     public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         if (options != null && StringUtil.isNotEmpty(options.getUrl())) {
-            ExecutionContext context =  this.executionContext();
+            ExecutionContext context = this.executionContext();
             ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, options.getUrl());
             return handle.asElement();
         }
 
         if (options != null && StringUtil.isNotEmpty(options.getPath())) {
-            List<String> contents =  Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
+            List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             String s = options.getPath().replaceAll("\n", "");
-            contents .add("/*# sourceURL=\\"+s) ;
-            ExecutionContext context =  this.executionContext();
+            contents.add("/*# sourceURL=\\" + s);
+            ExecutionContext context = this.executionContext();
             ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, contents);
             return handle.asElement();
         }
 
         if (options != null && StringUtil.isNotEmpty(options.getContent())) {
-            ExecutionContext context =  this.executionContext();
-            ElementHandle handle = (ElementHandle)  context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION,options.getContent());
+            ExecutionContext context = this.executionContext();
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, options.getContent());
             return handle.asElement();
         }
 
@@ -300,7 +300,7 @@ public class DOMWorld {
     }
 
     private String addStyleContent() {
-        return  "async function addStyleContent(content) {\n" +
+        return "async function addStyleContent(content) {\n" +
                 "      const style = document.createElement('style');\n" +
                 "      style.type = 'text/css';\n" +
                 "      style.appendChild(document.createTextNode(content));\n" +
@@ -375,20 +375,21 @@ public class DOMWorld {
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
         return this.waitForSelectorOrXPath(selector, false, options);
     }
+
     //TODO
-    private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath , WaitForSelectorOptions options) {
+    private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath, WaitForSelectorOptions options) {
         boolean waitForVisible = false;
         boolean waitForHidden = false;
-        int  timeout = this.timeoutSettings.timeout();
-        if(options != null){
+        int timeout = this.timeoutSettings.timeout();
+        if (options != null) {
             waitForVisible = options.getVisible();
             waitForHidden = options.getHidden();
-            if(options.getTimeout() > 0){
+            if (options.getTimeout() > 0) {
                 timeout = options.getTimeout();
             }
         }
         String polling = waitForVisible || waitForHidden ? "raf" : "mutation";
-        String title = (isXPath ? "XPath" : "selector") +" "+ "\""+selectorOrXPath+"\""+ (waitForHidden ? " to be hidden":"");
+        String title = (isXPath ? "XPath" : "selector") + " " + "\"" + selectorOrXPath + "\"" + (waitForHidden ? " to be hidden" : "");
 
         QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selectorOrXPath, "(element, selector) =>\n" +
                 "      document.querySelector(selector)");
@@ -420,7 +421,7 @@ public class DOMWorld {
         WaitTask waitTask = new WaitTask(this, predicate, queryHandler, PageEvaluateType.FUNCTION, title, polling, timeout, updatedSelector, isXPath, waitForVisible, waitForHidden);
         JSHandle handle = waitTask.getPromise();
         if (handle.asElement() == null) {
-             handle.dispose();
+            handle.dispose();
             return null;
         }
         return handle.asElement();
@@ -431,19 +432,19 @@ public class DOMWorld {
     }
 
     public String title() {
-        return (String) this.evaluate("() => document.title",PageEvaluateType.FUNCTION);
+        return (String) this.evaluate("() => document.title", PageEvaluateType.FUNCTION);
     }
 
     public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
-        if(StringUtil.isNotEmpty(options.getPolling())){
+        if (StringUtil.isNotEmpty(options.getPolling())) {
             polling = options.getPolling();
         }
-        if(options.getTimeout() > 0){
+        if (options.getTimeout() > 0) {
             timeout = options.getTimeout();
         }
-        return new WaitTask(this,pageFunction,null,type,"function",polling,timeout,args).getPromise();
+        return new WaitTask(this, pageFunction, null, type, "function", polling, timeout, args).getPromise();
     }
 
     public void detach() {

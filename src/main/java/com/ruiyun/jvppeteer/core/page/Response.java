@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import com.sun.xml.internal.ws.util.CompletedFuture;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -21,8 +22,6 @@ public class Response {
     private Request request;
 
     private byte[] contentPromise;
-
-    private boolean bodyLoadedPromise;
 
     private RemoteAddress remoteAddress;
 
@@ -64,7 +63,7 @@ public class Response {
         this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    public Future bodyLoadedPromiseFulfill(RuntimeException e) {
+    protected Future<byte[]> bodyLoadedPromiseFulfill(RuntimeException e) {
         if (e != null) {
             throw e;
         }
@@ -74,16 +73,15 @@ public class Response {
                     Map<String, Object> params = new HashMap<>();
                     params.put("requestId", this.request.requestId());
                     JsonNode response = this.client.send("Network.getResponseBody", params, true);
-
                     JsonNode charsetNode = response.get("base64Encoded");
                     if (charsetNode != null) {
-                        this.contentPromise = Base64.decode(response.get("data").asText());
+                       return this.contentPromise = Base64.decode(response.get("data").asText());
                     } else {
-                        this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
+                       return this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
                     }
                 });
             }
-            return null;
+            return new CompletedFuture<>(this.contentPromise, null);
         }
     }
 
@@ -107,31 +105,35 @@ public class Response {
         String content = this.text();
         return Constant.OBJECTMAPPER.readValue(content, clazz);
     }
+
     public Request request() {
         return this.request;
     }
 
-   public boolean fromCache() {
+    public boolean fromCache() {
         return this.fromDiskCache || this.request.fromMemoryCache();
     }
+
     public String url() {
         return this.url;
     }
+
     public int status() {
         return this.status;
     }
 
-   public String  statusText() {
+    public String statusText() {
         return this.statusText;
     }
 
-    public Map<String,String> headers() {
+    public Map<String, String> headers() {
         return this.headers;
     }
 
     public SecurityDetails securityDetails() {
         return this.securityDetails;
     }
+
     public boolean fromServiceWorker() {
         return this.fromServiceWorker;
     }
@@ -139,91 +141,9 @@ public class Response {
     public Frame frame() {
         return this.request.frame();
     }
-    public CDPSession getClient() {
-        return client;
-    }
 
-    public void setClient(CDPSession client) {
-        this.client = client;
-    }
-
-    public Request getRequest() {
-        return request;
-    }
-
-    public void setRequest(Request request) {
-        this.request = request;
-    }
-
-    public byte[] getContentPromise() {
-        return contentPromise;
-    }
-
-    public void setContentPromise(byte[] contentPromise) {
-        this.contentPromise = contentPromise;
-    }
-
-    public RemoteAddress getRemoteAddress() {
+    public RemoteAddress remoteAddress() {
         return remoteAddress;
     }
 
-    public void setRemoteAddress(RemoteAddress remoteAddress) {
-        this.remoteAddress = remoteAddress;
-    }
-
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getStatusText() {
-        return statusText;
-    }
-
-    public void setStatusText(String statusText) {
-        this.statusText = statusText;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public boolean getIsFromDiskCache() {
-        return fromDiskCache;
-    }
-
-    public void setFromDiskCache(boolean fromDiskCache) {
-        this.fromDiskCache = fromDiskCache;
-    }
-
-    public boolean getIsFromServiceWorker() {
-        return fromServiceWorker;
-    }
-
-    public void setFromServiceWorker(boolean fromServiceWorker) {
-        this.fromServiceWorker = fromServiceWorker;
-    }
-
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
-
-    public SecurityDetails getSecurityDetails() {
-        return securityDetails;
-    }
-
-    public void setSecurityDetails(SecurityDetails securityDetails) {
-        this.securityDetails = securityDetails;
-    }
 }

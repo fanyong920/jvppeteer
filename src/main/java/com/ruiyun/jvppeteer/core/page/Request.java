@@ -223,6 +223,14 @@ public class Request {
         this.continueRequest(null, null, null, null);
     }
 
+    /**
+     * 自定义响应
+     * @param status 响应状态
+     * @param headers 响应头
+     * @param contentType contentType
+     * @param body 响应体
+     * @return Future
+     */
     public Future<JsonNode> respond(int status, Map<String, String> headers, String contentType, String body) {
         return Helper.commonExecutor().submit(() -> {
             // Mocking responses for dataURL requests is not currently supported.

@@ -239,6 +239,7 @@ public class FrameManager extends EventEmitter {
             this.isolatedWorlds.add(contextPayload.getName());
         /*  ${@link ExecutionContext} */
         ExecutionContext context = new ExecutionContext(this.client, contextPayload, world);
+        System.out.println(context.getContextId());
         if (world != null)
             world.setContext(context);
         this.contextIdToContext.put(contextPayload.getId(), context);

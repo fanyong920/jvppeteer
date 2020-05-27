@@ -900,7 +900,7 @@ public class Page extends EventEmitter {
      * @param latitude  Longitude between -180 and 180.
      * @param accuracy  Optional non-negative accuracy value.
      */
-    public void setGeolocation(int longitude, int latitude, int accuracy) {
+    public void setGeolocation(double longitude, double latitude, int accuracy) {
 
         if (longitude < -180 || longitude > 180)
             throw new IllegalArgumentException("Invalid longitude " + longitude + ": precondition -180 <= LONGITUDE <= 180 failed.");
@@ -915,6 +915,14 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setGeolocationOverride", params, true);
     }
 
+    /**
+     * 设置页面的地理位置
+     * @param longitude  纬度 between -90 and 90.
+     * @param latitude  经度 between -180 and 180.
+     */
+    public void setGeolocation(double longitude, double latitude ) {
+       this.setGeolocation(longitude,latitude,0);
+    }
     /**
      * 是否启用js
      * 注意 改变这个值不会影响已经执行的js。下一个跳转会完全起作用。
@@ -1859,7 +1867,7 @@ public class Page extends EventEmitter {
             timeout = this.timeoutSettings.timeout();
         Predicate<Response> predi = response -> {
             if (PageEvaluateType.STRING.equals(type)) {
-                return url.equals(response.getUrl());
+                return url.equals(response.url());
             } else if (PageEvaluateType.FUNCTION.equals(type)) {
                 return predicate.test(response);
             }
