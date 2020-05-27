@@ -50,7 +50,7 @@ public class Response {
         this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(), responsePayload.getRemotePort());
         this.status = responsePayload.getStatus();
         this.statusText = responsePayload.getStatusText();
-        this.url = request.getUrl();
+        this.url = request.url();
         this.fromDiskCache = responsePayload.getFromDiskCache();
         this.fromServiceWorker = responsePayload.getFromServiceWorker();
         this.headers = new HashMap<>();
@@ -72,7 +72,7 @@ public class Response {
             if (this.contentPromise == null) {
                 return Helper.commonExecutor().submit(() -> {
                     Map<String, Object> params = new HashMap<>();
-                    params.put("requestId", this.request.getRequestId());
+                    params.put("requestId", this.request.requestId());
                     JsonNode response = this.client.send("Network.getResponseBody", params, true);
 
                     JsonNode charsetNode = response.get("base64Encoded");
@@ -112,7 +112,7 @@ public class Response {
     }
 
    public boolean fromCache() {
-        return this.fromDiskCache || this.request.getFromMemoryCache();
+        return this.fromDiskCache || this.request.fromMemoryCache();
     }
     public String url() {
         return this.url;
@@ -137,7 +137,7 @@ public class Response {
     }
 
     public Frame frame() {
-        return this.request.getFrame();
+        return this.request.frame();
     }
     public CDPSession getClient() {
         return client;

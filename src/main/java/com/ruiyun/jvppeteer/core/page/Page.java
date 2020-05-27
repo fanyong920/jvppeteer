@@ -181,7 +181,7 @@ public class Page extends EventEmitter {
                 }
                 CDPSession session = Connection.fromSession(page.getClient()).session(event.getSessionId());
                 Worker worker = new Worker(session, event.getTargetInfo().getUrl(), page::addConsoleMessage, page::handleException);
-                page.getWorkers().putIfAbsent(event.getSessionId(), worker);
+                page.workers().putIfAbsent(event.getSessionId(), worker);
                 page.emit(Events.PAGE_WORKERCREATED.getName(), worker);
             }
         };
@@ -194,12 +194,12 @@ public class Page extends EventEmitter {
             @Override
             public void onBrowserEvent(Target event) {
                 Page page = (Page) this.getTarget();
-                Worker worker = page.getWorkers().get(event.getSessionId());
+                Worker worker = page.workers().get(event.getSessionId());
                 if (worker == null) {
                     return;
                 }
                 page.emit(Events.PAGE_WORKERDESTROYED.getName(), worker);
-                page.getWorkers().remove(event.getSessionId());
+                page.workers().remove(event.getSessionId());
             }
         };
         detachedListener.setMothod("Target.detachedFromTarget");
@@ -1166,7 +1166,7 @@ public class Page extends EventEmitter {
             this.reload(null);
     }
 
-    public void initialize() {
+    protected void initialize() {
         frameManager.initialize();
         Map<String, Object> params = new HashMap<>();
         params.put("autoAttach", true);
@@ -1814,7 +1814,7 @@ public class Page extends EventEmitter {
         }
         Predicate<Request> predi = request -> {
             if (PageEvaluateType.STRING.equals(type)) {
-                return url.equals(request.getUrl());
+                return url.equals(request.url());
             } else if (PageEvaluateType.FUNCTION.equals(type)) {
                 return predicate.test(request);
             }
@@ -1897,14 +1897,6 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitForXPath(xpath, options);
     }
 
-    /**
-     * 该方法返回所有与页面关联的 WebWorkers
-     *
-     * @return WebWorkers
-     */
-    public java.util.Collection<Worker> workers() {
-        return this.workers.values();
-    }
 
     /**
      * 返回页面的地址
@@ -1915,19 +1907,24 @@ public class Page extends EventEmitter {
         return this.mainFrame().url();
     }
 
-    public CDPSession getClient() {
+    protected CDPSession getClient() {
         return client;
     }
 
-    public void setClient(CDPSession client) {
+    protected void setClient(CDPSession client) {
         this.client = client;
     }
 
-    public Map<String, Worker> getWorkers() {
-        return workers;
+    /**
+     * 该方法返回所有与页面关联的 WebWorkers
+     *
+     * @return WebWorkers
+     */
+    public Map<String, Worker> workers() {
+        return this.workers;
     }
 
-    public void setClosed(boolean closed) {
+    protected void setClosed(boolean closed) {
         this.closed = closed;
     }
 

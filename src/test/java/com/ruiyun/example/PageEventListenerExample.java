@@ -57,13 +57,13 @@ public class PageEventListenerExample {
             System.out.println("页面有popup事件..."+popup.getMessage());
         });
         page.onRequest((request) -> {
-            System.out.println("页面有请求发出..."+request.getUrl());
+            System.out.println("页面有请求发出..."+request.url());
         });
         page.onRequestfailed((request) -> {
-            System.out.println("页面发出的请求失败了..."+request.getUrl());
+            System.out.println("页面发出的请求失败了..."+request.url());
         });
         page.onRequestfinished((request) -> {
-            System.out.println("页面的请求结束了..."+request.getUrl());
+            System.out.println("页面的请求结束了..."+request.url());
         });
         page.onResponse((response) -> {
             System.out.println("页面请求["+response.getUrl()+"]对应的响应是..."+response.getStatus());

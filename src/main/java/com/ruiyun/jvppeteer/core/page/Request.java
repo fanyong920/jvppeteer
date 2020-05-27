@@ -10,12 +10,11 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
@@ -150,10 +149,10 @@ public class Request {
         }
         this.interceptionId = interceptionId;
         this.allowInterception = allowInterception;
-        this.url = event.getRequest().getUrl();
+        this.url = event.getRequest().url();
         this.resourceType = event.getType().toLowerCase();
-        this.method = event.getRequest().getMethod();
-        this.postData = event.getRequest().getPostData();
+        this.method = event.getRequest().method();
+        this.postData = event.getRequest().postData();
         this.headers = new HashMap<>();
         this.frame = frame;
         this.redirectChain = redirectChain;
@@ -168,36 +167,16 @@ public class Request {
 
     }
 
-    public CDPSession getClient() {
-        return client;
-    }
-
-    public void setClient(CDPSession client) {
-        this.client = client;
-    }
-
-    public Frame getFrame() {
+    public Frame frame() {
         return frame;
     }
 
-    public void setFrame(Frame frame) {
-        this.frame = frame;
-    }
-
-    public String getInterceptionId() {
+    public String interceptionId() {
         return interceptionId;
     }
 
-    public void setInterceptionId(String interceptionId) {
-        this.interceptionId = interceptionId;
-    }
-
-    public boolean getAllowInterception() {
+    public boolean isAllowInterception() {
         return allowInterception;
-    }
-
-    public void setAllowInterception(boolean allowInterception) {
-        this.allowInterception = allowInterception;
     }
 
     /**
@@ -220,13 +199,13 @@ public class Request {
     public Future<JsonNode> continueRequest(String url, String method, String postData, Map<String, String> headers) {
         return Helper.commonExecutor().submit(() -> {
             // Request interception is not supported for data: urls.
-            if (getUrl().startsWith("data:"))
+            if (url().startsWith("data:"))
                 return null;
-            ValidateUtil.assertArg(getAllowInterception(), "Request Interception is not enabled!");
-            ValidateUtil.assertArg(!getInterceptionHandled(), "Request is already handled!");
+            ValidateUtil.assertArg(isAllowInterception(), "Request Interception is not enabled!");
+            ValidateUtil.assertArg(!isInterceptionHandled(), "Request is already handled!");
             setInterceptionHandled(true);
             Map<String, Object> params = new HashMap<>();
-            params.put("requestId", getInterceptionId());
+            params.put("requestId", interceptionId());
             params.put("url", url);
             params.put("method", method);
             params.put("postData", postData);
@@ -247,14 +226,14 @@ public class Request {
     public Future<JsonNode> respond(int status, Map<String, String> headers, String contentType, String body) {
         return Helper.commonExecutor().submit(() -> {
             // Mocking responses for dataURL requests is not currently supported.
-            if (getUrl().startsWith("data:"))
+            if (url().startsWith("data:"))
                 return null;
             ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
             ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
             setInterceptionHandled(true);
             byte[] responseBody = null;
             if (StringUtil.isNotEmpty(body)) {
-                responseBody = body.getBytes("utf-8");
+                responseBody = body.getBytes(StandardCharsets.UTF_8);
             }
             Map<String, String> responseHeaders = new HashMap<>();
             if (headers != null && headers.size() > 0) {
@@ -288,7 +267,7 @@ public class Request {
     public Future<JsonNode> abort(ErrorCode errorCode) {
       return Helper.commonExecutor().submit(() -> {
           // Request interception is not supported for data: urls.
-          if (getUrl().startsWith("data:"))
+          if (url().startsWith("data:"))
               return null;
           String errorReason = errorCode.getName();
           ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
@@ -316,104 +295,63 @@ public class Request {
         this.abort(ErrorCode.FAILED);
     }
 
-
-    public List<Request> getRedirectChain() {
+    public List<Request> redirectChain() {
         return redirectChain;
-    }
-
-    public void setRedirectChain(List<Request> redirectChain) {
-        this.redirectChain = redirectChain;
     }
 
     public Response response() {
         return this.response;
     }
 
-    public String getUrl() {
+    public String url() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
-    public String getMethod() {
+    public String method() {
         return method;
     }
 
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public String getPostData() {
+    public String postData() {
         return postData;
     }
 
-    public void setPostData(String postData) {
-        this.postData = postData;
-    }
-
-    public Map<String, String> getHeaders() {
+    public Map<String, String> headers() {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
-    }
-
-    public Response getResponse() {
-        return response;
-    }
-
-    public void setResponse(Response response) {
+    protected void setResponse(Response response) {
         this.response = response;
     }
 
-    public String getRequestId() {
+    public String requestId() {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
-    public boolean getIsNavigationRequest() {
+    public boolean isNavigationRequest() {
         return isNavigationRequest;
     }
 
-    public void setIsNavigationRequest(boolean isNavigationRequest) {
-        this.isNavigationRequest = isNavigationRequest;
-    }
-
-    public boolean getInterceptionHandled() {
+    public boolean isInterceptionHandled() {
         return interceptionHandled;
     }
 
-    public void setInterceptionHandled(boolean interceptionHandled) {
+    protected void setInterceptionHandled(boolean interceptionHandled) {
         this.interceptionHandled = interceptionHandled;
     }
 
-    public String getFailureText() {
-        return failureText;
-    }
-
-    public void setFailureText(String failureText) {
+    protected void setFailureText(String failureText) {
         this.failureText = failureText;
     }
 
-    public String getResourceType() {
+    public String resourceType() {
         return resourceType;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
-    }
-
-    public boolean getFromMemoryCache() {
+    public boolean fromMemoryCache() {
         return fromMemoryCache;
     }
 
-    public void setFromMemoryCache(boolean fromMemoryCache) {
+    protected void setFromMemoryCache(boolean fromMemoryCache) {
         this.fromMemoryCache = fromMemoryCache;
     }
 

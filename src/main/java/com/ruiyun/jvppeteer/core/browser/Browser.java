@@ -221,11 +221,11 @@ public class Browser extends EventEmitter {
      *
      * @param event 创建的target具体信息
      */
-    public void targetCreated(TargetCreatedPayload event) {
+    protected void targetCreated(TargetCreatedPayload event) {
         BrowserContext context;
         TargetInfo targetInfo = event.getTargetInfo();
-        if (StringUtil.isNotEmpty(targetInfo.getBrowserContextId()) && this.getContexts().containsKey(targetInfo.getBrowserContextId())) {
-            context = this.getContexts().get(targetInfo.getBrowserContextId());
+        if (StringUtil.isNotEmpty(targetInfo.getBrowserContextId()) && this.contexts().containsKey(targetInfo.getBrowserContextId())) {
+            context = this.contexts().get(targetInfo.getBrowserContextId());
         } else {
             context = this.defaultBrowserContext();
         }
@@ -314,7 +314,7 @@ public class Browser extends EventEmitter {
     public Collection<BrowserContext> browserContexts() {
         Collection<BrowserContext> contexts = new ArrayList<>();
         contexts.add(this.defaultBrowserContext());
-        contexts.addAll(this.getContexts().values());
+        contexts.addAll(this.contexts().values());
         return contexts;
     }
 
@@ -349,7 +349,7 @@ public class Browser extends EventEmitter {
         return !this.connection.getClosed();
     }
 
-    public Target find(List<Target> targets, Predicate<Target> predicate) {
+    private Target find(List<Target> targets, Predicate<Target> predicate) {
         if (ValidateUtil.isNotEmpty(targets)) {
             for (Target target : targets) {
                 if (predicate.test(target)) {
@@ -450,44 +450,24 @@ public class Browser extends EventEmitter {
     }
 
 
-    public Map<String, BrowserContext> getContexts() {
+    public Map<String, BrowserContext> contexts() {
         return contexts;
-    }
-
-    public void setContexts(Map<String, BrowserContext> contexts) {
-        this.contexts = contexts;
     }
 
     public BrowserContext defaultBrowserContext() {
         return defaultContext;
     }
 
-    public void setDefaultContext(BrowserContext defaultContext) {
-        this.defaultContext = defaultContext;
-    }
-
-    public Connection getConnection() {
+    protected Connection getConnection() {
         return connection;
     }
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    public boolean getIgnoreHTTPSErrors() {
+    private boolean getIgnoreHTTPSErrors() {
         return ignoreHTTPSErrors;
     }
 
-    public void setIgnoreHTTPSErrors(boolean ignoreHTTPSErrors) {
-        this.ignoreHTTPSErrors = ignoreHTTPSErrors;
-    }
-
-    public Viewport getViewport() {
+    protected Viewport getViewport() {
         return viewport;
-    }
-
-    public void setViewport(Viewport viewport) {
-        this.viewport = viewport;
     }
 
 
@@ -495,7 +475,4 @@ public class Browser extends EventEmitter {
         return waitforTargetLatch;
     }
 
-    public void setWaitforTargetLatch(CountDownLatch waitforTargetLatch) {
-        this.waitforTargetLatch = waitforTargetLatch;
-    }
 }

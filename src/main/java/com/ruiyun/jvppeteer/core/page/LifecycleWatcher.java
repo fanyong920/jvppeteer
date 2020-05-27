@@ -142,7 +142,7 @@ public class LifecycleWatcher {
     }
 
     private void onRequest(Request request) {
-        if (request.getFrame() != this.frame || !request.getIsNavigationRequest())
+        if (request.frame() != this.frame || !request.isNavigationRequest())
             return;
         this.navigationRequest = request;
     }

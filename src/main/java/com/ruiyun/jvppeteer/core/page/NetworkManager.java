@@ -253,7 +253,7 @@ public class NetworkManager extends EventEmitter {
 
     public void onRequestWillBeSent(RequestWillBeSentPayload event) {
         // Request interception doesn't happen for data URLs with Network Service.
-        if (this.protocolRequestInterceptionEnabled && !event.getRequest().getUrl().startsWith("data:")) {
+        if (this.protocolRequestInterceptionEnabled && !event.getRequest().url().startsWith("data:")) {
             String requestId = event.getRequestId();
             String interceptionId = this.requestIdToInterceptionId.get(requestId);
             if (StringUtil.isNotEmpty(interceptionId)) {
@@ -324,7 +324,7 @@ public class NetworkManager extends EventEmitter {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                redirectChain = request.getRedirectChain();
+                redirectChain = request.redirectChain();
             }
         }
         Frame frame = StringUtil.isNotEmpty(event.getFrameId()) ? this.frameManager.getFrame(event.getFrameId()) : null;
@@ -336,10 +336,10 @@ public class NetworkManager extends EventEmitter {
     private void handleRequestRedirect(Request request, ResponsePayload responsePayload) throws IOException {
         Response response = new Response(this.client, request, responsePayload);
         request.setResponse(response);
-        request.getRedirectChain().add(request);
+        request.redirectChain().add(request);
         response.bodyLoadedPromiseFulfill(new RuntimeException("Response body is unavailable for redirect responses"));
-        this.requestIdToRequest.remove(request.getRequestId());
-        this.attemptedAuthentications.remove(request.getInterceptionId());
+        this.requestIdToRequest.remove(request.requestId());
+        this.attemptedAuthentications.remove(request.interceptionId());
         this.emit(Events.NETWORK_MANAGER_RESPONSE.getName(), response);
         this.emit(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName(), request);
     }
@@ -355,8 +355,8 @@ public class NetworkManager extends EventEmitter {
         // event from protocol. @see https://crbug.com/883475
         if (request.response() != null)
             request.response().bodyLoadedPromiseFulfill(null);
-        this.requestIdToRequest.remove(request.getRequestId());
-        this.attemptedAuthentications.remove(request.getInterceptionId());
+        this.requestIdToRequest.remove(request.requestId());
+        this.attemptedAuthentications.remove(request.interceptionId());
         this.emit(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName(), request);
     }
 
@@ -380,8 +380,8 @@ public class NetworkManager extends EventEmitter {
         Response response = request.response();
         if (response != null)
             response.bodyLoadedPromiseFulfill(null);
-        this.requestIdToRequest.remove(request.getRequestId());
-        this.attemptedAuthentications.remove(request.getInterceptionId());
+        this.requestIdToRequest.remove(request.requestId());
+        this.attemptedAuthentications.remove(request.interceptionId());
         this.emit(Events.NETWORK_MANAGER_REQUEST_FAILED.getName(), request);
     }
 
