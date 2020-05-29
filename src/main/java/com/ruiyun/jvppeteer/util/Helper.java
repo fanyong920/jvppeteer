@@ -12,6 +12,8 @@ import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -55,6 +57,8 @@ public class Helper {
      * 单线程，一个浏览器只能有一个trcing 任务
      */
     private static ExecutorService COMMON_EXECUTOR = null;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Helper.class);
 
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
@@ -316,7 +320,17 @@ public class Helper {
             return;
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", remoteObject.getObjectId());
-        client.send("Runtime.releaseObject", params, false);
+        try {
+            client.send("Runtime.releaseObject", params, true);
+        } catch (Exception e) {
+            // Exceptions might happen in case of a page been navigated or closed.
+            //重新导航到某个网页 或者页面已经关闭
+            // Swallow these since they are harmless and we don't leak anything in this case.
+            //在这种情况下不需要将这个错误在线程执行中抛出，打日志记录一下就可以了
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.error("",e);
+            }
+        }
     }
 
     //TODO 验证

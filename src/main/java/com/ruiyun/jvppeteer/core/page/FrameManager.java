@@ -140,11 +140,7 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(ExecutionContextCreatedPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-                try {
-                    frameManager.onExecutionContextCreated(event.getContext());
-                } catch (JsonProcessingException e) {
-                    e.printStackTrace();
-                }
+                frameManager.onExecutionContextCreated(event.getContext());
             }
         };
         executionContextCreatedListener.setTarget(this);
@@ -200,8 +196,10 @@ public class FrameManager extends EventEmitter {
 
     private void onExecutionContextsCleared() {
         for (ExecutionContext context : this.contextIdToContext.values()) {
-            if (context.getWorld() != null)
+            if (context.getWorld() != null) {
+                System.out.println("onExecutionContextsCleared"+context.getContextId());
                 context.getWorld().setContext(null);
+            }
         }
         this.contextIdToContext.clear();
     }
@@ -211,8 +209,10 @@ public class FrameManager extends EventEmitter {
         if (context == null)
             return;
         this.contextIdToContext.remove(executionContextId);
-        if (context.getWorld() != null)
+        if (context.getWorld() != null) {
+            System.out.println("onExecutionContextDestroyed"+context.getContextId());
             context.getWorld().setContext(null);
+        }
     }
 
     public ExecutionContext executionContextById(int contextId) {
@@ -221,7 +221,7 @@ public class FrameManager extends EventEmitter {
         return context;
     }
 
-    private void onExecutionContextCreated(ExecutionContextDescription contextPayload) throws JsonProcessingException {
+    private void onExecutionContextCreated(ExecutionContextDescription contextPayload) {
         String frameId = contextPayload.getAuxData() != null ? contextPayload.getAuxData().getFrameId() : null;
         Frame frame = this.frames.get(frameId);
         DOMWorld world = null;
@@ -239,7 +239,7 @@ public class FrameManager extends EventEmitter {
             this.isolatedWorlds.add(contextPayload.getName());
         /*  ${@link ExecutionContext} */
         ExecutionContext context = new ExecutionContext(this.client, contextPayload, world);
-        System.out.println(context.getContextId());
+        System.out.println("onExecutionContextCreated"+context.getContextId());
         if (world != null)
             world.setContext(context);
         this.contextIdToContext.put(contextPayload.getId(), context);

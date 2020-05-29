@@ -74,33 +74,26 @@ public class ElementHandle extends JSHandle {
 
     public void scrollIntoViewIfNeeded() {
         String pageFunction = "async (element, pageJavascriptEnabled) => {\n" +
-                "            if (!element.isConnected)\n" +
-                "                return 'Node is detached from document';\n" +
-                "            if (element.nodeType !== Node.ELEMENT_NODE)\n" +
-                "                return 'Node is not of type HTMLElement';\n" +
-                "            // force-scroll if page's javascript is disabled.\n" +
-                "            if (!pageJavascriptEnabled) {\n" +
-                "                // Chrome still supports behavior: instant but it's not in the spec so TS shouts\n" +
-                "                // We don't want to make this breaking change in Puppeteer yet so we'll ignore the line.\n" +
-                "                // @ts-ignore\n" +
-                "                element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });\n" +
-                "                return false;\n" +
-                "            }\n" +
-                "            const visibleRatio = await new Promise(resolve => {\n" +
-                "                const observer = new IntersectionObserver(entries => {\n" +
-                "                    resolve(entries[0].intersectionRatio);\n" +
-                "                    observer.disconnect();\n" +
-                "                });\n" +
-                "                observer.observe(element);\n" +
-                "            });\n" +
-                "            if (visibleRatio !== 1.0) {\n" +
-                "                // Chrome still supports behavior: instant but it's not in the spec so TS shouts\n" +
-                "                // We don't want to make this breaking change in Puppeteer yet so we'll ignore the line.\n" +
-                "                // @ts-ignore\n" +
-                "                element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });\n" +
-                "            }\n" +
-                "            return false;\n" +
-                "        }";
+                "  if (!element.isConnected)\n" +
+                "    return 'Node is detached from document';\n" +
+                "  if (element.nodeType !== Node.ELEMENT_NODE)\n" +
+                "    return 'Node is not of type HTMLElement';\n" +
+                "  // force-scroll if page's javascript is disabled.\n" +
+                "  if (!pageJavascriptEnabled) {\n" +
+                "    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });\n" +
+                "    return false;\n" +
+                "  }\n" +
+                "  const visibleRatio = await new Promise(resolve => {\n" +
+                "    const observer = new IntersectionObserver(entries => {\n" +
+                "      resolve(entries[0].intersectionRatio);\n" +
+                "      observer.disconnect();\n" +
+                "    });\n" +
+                "    observer.observe(element);\n" +
+                "  });\n" +
+                "  if (visibleRatio !== 1.0)\n" +
+                "    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });\n" +
+                "  return false;\n" +
+                "}";
         Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
         try {
             if (error != null && (error.getClass().equals(boolean.class) || error.getClass().equals(Boolean.class) ) && (boolean)error)

@@ -37,7 +37,7 @@ public class PageSomeFunctionExample {
         page.tap("#react > div > div.citylist > p > a:nth-child(4)");
 
         String title = page.title();
-        System.out.println("title:"+title);
+        System.out.println("title6666:"+title);
         //启用离线模式，启用后不能连接互联网
 //        page.setOfflineMode(true);
 
