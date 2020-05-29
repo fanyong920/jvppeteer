@@ -104,7 +104,7 @@ public class JSHandle {
         if (this.disposed)
             return;
         this.disposed = true;
-        Helper.releaseObject(this.client, this.remoteObject);
+        Helper.releaseObject(this.client, this.remoteObject,false);
     }
 
     public String toString() {

@@ -1040,7 +1040,7 @@ public class Page extends EventEmitter {
 
     private void onLogEntryAdded(EntryAddedPayload event) {
         if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
-            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, arg));
+            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, (RemoteObject) arg,true));
         if (!"worker".equals(event.getEntry().getSource()))
             this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
     }

@@ -176,14 +176,12 @@ public class FrameManager extends EventEmitter {
             @Override
             public void onBrowserEvent(LifecycleEventPayload event) {
                 FrameManager frameManager = (FrameManager) this.getTarget();
-//                System.out.println("Page.lifecycleEventListener....");
                 frameManager.onLifecycleEvent(event);
             }
         };
         lifecycleEventListener.setTarget(this);
         lifecycleEventListener.setMothod("Page.lifecycleEvent");
         this.client.on(lifecycleEventListener.getMothod(), lifecycleEventListener);
-
     }
 
     private void onLifecycleEvent(LifecycleEventPayload event) {
@@ -197,7 +195,6 @@ public class FrameManager extends EventEmitter {
     private void onExecutionContextsCleared() {
         for (ExecutionContext context : this.contextIdToContext.values()) {
             if (context.getWorld() != null) {
-                System.out.println("onExecutionContextsCleared"+context.getContextId());
                 context.getWorld().setContext(null);
             }
         }
@@ -210,7 +207,6 @@ public class FrameManager extends EventEmitter {
             return;
         this.contextIdToContext.remove(executionContextId);
         if (context.getWorld() != null) {
-            System.out.println("onExecutionContextDestroyed"+context.getContextId());
             context.getWorld().setContext(null);
         }
     }
@@ -239,7 +235,6 @@ public class FrameManager extends EventEmitter {
             this.isolatedWorlds.add(contextPayload.getName());
         /*  ${@link ExecutionContext} */
         ExecutionContext context = new ExecutionContext(this.client, contextPayload, world);
-        System.out.println("onExecutionContextCreated"+context.getContextId());
         if (world != null)
             world.setContext(context);
         this.contextIdToContext.put(contextPayload.getId(), context);

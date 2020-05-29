@@ -315,7 +315,18 @@ public class Helper {
         return remoteObject.getValue();
     }
 
-    public static void releaseObject(CDPSession client, RemoteObject remoteObject) {
+    public static void releaseObject(CDPSession client, RemoteObject remoteObject,boolean isAsync) {
+        if(!isAsync){
+            releaseObject(client, remoteObject);
+        }else {
+            Helper.commonExecutor().submit(() -> {
+                releaseObject(client, remoteObject);
+            });
+        }
+
+    }
+
+    private static void releaseObject(CDPSession client, RemoteObject remoteObject) {
         if (StringUtil.isEmpty(remoteObject.getObjectId()))
             return;
         Map<String, Object> params = new HashMap<>();
@@ -328,7 +339,7 @@ public class Helper {
             // Swallow these since they are harmless and we don't leak anything in this case.
             //在这种情况下不需要将这个错误在线程执行中抛出，打日志记录一下就可以了
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("",e);
+                LOGGER.error("", e);
             }
         }
     }

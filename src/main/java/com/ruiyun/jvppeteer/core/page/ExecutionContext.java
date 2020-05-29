@@ -112,7 +112,6 @@ public class ExecutionContext {
         params.put("returnByValue", returnByValue);
         params.put("awaitPromise", true);
         params.put("userGesture", true);
-        System.out.println("contextId:"+this.contextId);
         JsonNode callFunctionOnPromise;
         try {
             callFunctionOnPromise = this.client.send("Runtime.callFunctionOn", params, true);
@@ -126,7 +125,7 @@ public class ExecutionContext {
             return null;
         }
         JsonNode exceptionDetails = callFunctionOnPromise.get("exceptionDetails");
-        RemoteObject remoteObject = null;
+        RemoteObject remoteObject;
         try {
             if (exceptionDetails != null)
                 throw new ProtocolException("Evaluation failed: " + Helper.getExceptionMessage(Constant.OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class)));
