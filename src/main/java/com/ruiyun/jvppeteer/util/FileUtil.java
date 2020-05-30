@@ -2,15 +2,9 @@ package com.ruiyun.jvppeteer.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.EnumSet;
 
 /**
  * 操作文件的一些公告方法
@@ -19,8 +13,8 @@ public class FileUtil {
 
 	/**
 	 * 根据给定的前缀创建临时文件夹
-	 * @param prefix
-	 * @return
+	 * @param prefix 临时文件夹前缀
+	 * @return 临时文件夹路径
 	 */
 	public static String createProfileDir(String prefix){
 		try {
@@ -33,8 +27,8 @@ public class FileUtil {
 
 	/**
 	 * 断言路径是否是可执行的exe文件
-	 * @param executablePath
-	 * @return
+	 * @param executablePath 要断言的文件
+	 * @return 可执行，返回true
 	 */
 	public static boolean assertExecutable(String executablePath){
 		Path path = Paths.get(executablePath);
@@ -43,7 +37,7 @@ public class FileUtil {
 
 	/**
 	 * 移除文件
-	 * @param path
+	 * @param path 要移除的路径
 	 */
 	public static void removeFolder(String path) {
 		File file = new File(path);
@@ -66,8 +60,8 @@ public class FileUtil {
 
 	/**
 	 * 创建一个文件，如果该文件上的有些文件夹路径不存在，会自动创建文件夹。
-	 * @param file
-	 * @throws IOException
+	 * @param file 创建的文件
+	 * @throws IOException 异常
 	 */
 	public static final void createNewFile(File file) throws IOException {
 		if(!file.exists()){
@@ -78,7 +72,7 @@ public class FileUtil {
 
 	/**
 	 * 递归创建文件夹
-	 * @param parent
+	 * @param parent 要创建的文件夹
 	 */
 	public static final void mkdir(File parent){
 		if(!parent.exists()){

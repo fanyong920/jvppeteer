@@ -5,7 +5,6 @@ import com.ruiyun.jvppeteer.util.StreamUtil;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -89,10 +88,9 @@ public class PipeTransport implements ConnectionTransport {
         @Override
         public void run() {
             while (true){
-                System.out.println("11111111--------------------1111111111111111");
                 try {
 
-                    int read = ((PipedInputStream)pipeReader).read();
+                    int read = pipeReader.read();
 
                     if((char)read != '\0'){
                         pendingMessage.append((char)read);

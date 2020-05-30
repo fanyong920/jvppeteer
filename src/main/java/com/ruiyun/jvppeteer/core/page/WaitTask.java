@@ -34,8 +34,6 @@ public class WaitTask {
 
     private Object[] args;
 
-    private boolean promiseDone;
-
     private CountDownLatch waitPromiseLatch;
 
     public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {

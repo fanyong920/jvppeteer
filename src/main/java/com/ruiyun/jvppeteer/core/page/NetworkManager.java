@@ -2,24 +2,23 @@ package com.ruiyun.jvppeteer.core.page;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.core.Constant;
+import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.Events;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.protocol.fetch.AuthRequiredPayload;
+import com.ruiyun.jvppeteer.protocol.fetch.RequestPausedPayload;
 import com.ruiyun.jvppeteer.protocol.network.LoadingFailedPayload;
 import com.ruiyun.jvppeteer.protocol.network.LoadingFinishedPayload;
-import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
-import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.protocol.fetch.RequestPausedPayload;
 import com.ruiyun.jvppeteer.protocol.network.RequestServedFromCachePayload;
 import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentPayload;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.protocol.network.ResponseReceivedPayload;
+import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
+import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -133,11 +132,7 @@ public class NetworkManager extends EventEmitter {
             @Override
             public void onBrowserEvent(LoadingFinishedPayload event) {
                 NetworkManager manager = (NetworkManager) this.getTarget();
-                try {
-                    manager.onLoadingFinished(event);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                manager.onLoadingFinished(event);
             }
         };
         loadingFinishedListener.setMothod("Network.loadingFinished");
@@ -148,11 +143,7 @@ public class NetworkManager extends EventEmitter {
             @Override
             public void onBrowserEvent(LoadingFailedPayload event) {
                 NetworkManager manager = (NetworkManager) this.getTarget();
-                try {
-                    manager.onLoadingFailed(event);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                manager.onLoadingFailed(event);
             }
         };
         loadingFailedListener.setMothod("Network.loadingFailed");
@@ -237,8 +228,8 @@ public class NetworkManager extends EventEmitter {
         if (enabled == this.protocolRequestInterceptionEnabled)
             return;
         this.protocolRequestInterceptionEnabled = enabled;
+        this.updateProtocolCacheDisabled();
         if (enabled) {
-            this.updateProtocolCacheDisabled();
             Map<String, Object> params = new HashMap<>();
             params.put("handleAuthRequests", true);
             List<Object> patterns = new ArrayList<>();
@@ -246,7 +237,6 @@ public class NetworkManager extends EventEmitter {
             params.put("patterns", patterns);
             this.client.send("Fetch.enable", params, true);
         } else {
-            this.updateProtocolCacheDisabled();
             this.client.send("Fetch.disable", null, true);
         }
     }
@@ -276,10 +266,10 @@ public class NetworkManager extends EventEmitter {
             response = "ProvideCredentials";
             this.attemptedAuthentications.add(event.getRequestId());
         }
-        String username, password = null;
-        ObjectNode respParams = null;
+        String username, password;
+        ObjectNode respParams = Constant.OBJECTMAPPER.createObjectNode();
+        respParams.put("response",response);
         if (this.credentials != null) {
-            respParams = Constant.OBJECTMAPPER.createObjectNode();
             if (StringUtil.isNotEmpty(username = credentials.getUsername())) {
                 respParams.put("username", username);
             }
@@ -290,8 +280,7 @@ public class NetworkManager extends EventEmitter {
         Map<String, Object> params = new HashMap<>();
         params.put("response", "Default");
         params.put("requestId", event.getRequestId());
-        if (respParams != null)
-            params.put("authChallengeResponse", respParams.toString());
+        params.put("authChallengeResponse", respParams);
         this.client.send("Fetch.continueWithAuth", params, false);
     }
 
@@ -319,11 +308,7 @@ public class NetworkManager extends EventEmitter {
             Request request = this.requestIdToRequest.get(event.getRequestId());
             // If we connect late to the target, we could have missed the requestWillBeSent event.
             if (request != null) {
-                try {
-                    this.handleRequestRedirect(request, event.getRedirectResponse());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                this.handleRequestRedirect(request, event.getRedirectResponse());
                 redirectChain = request.redirectChain();
             }
         }
@@ -333,7 +318,7 @@ public class NetworkManager extends EventEmitter {
         this.emit(Events.NETWORK_MANAGER_REQUEST.getName(), request);
     }
 
-    private void handleRequestRedirect(Request request, ResponsePayload responsePayload) throws IOException {
+    private void handleRequestRedirect(Request request, ResponsePayload responsePayload) {
         Response response = new Response(this.client, request, responsePayload);
         request.setResponse(response);
         request.redirectChain().add(request);
@@ -344,7 +329,7 @@ public class NetworkManager extends EventEmitter {
         this.emit(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName(), request);
     }
 
-    public void onLoadingFinished(LoadingFinishedPayload event) throws IOException {
+    public void onLoadingFinished(LoadingFinishedPayload event) {
         Request request = this.requestIdToRequest.get(event.getRequestId());
         // For certain requestIds we never receive requestWillBeSent event.
         // @see https://crbug.com/750469
@@ -370,7 +355,7 @@ public class NetworkManager extends EventEmitter {
         this.emit(Events.NETWORK_MANAGER_RESPONSE.getName(), response);
     }
 
-    public void onLoadingFailed(LoadingFailedPayload event) throws IOException {
+    public void onLoadingFailed(LoadingFailedPayload event) {
         Request request = this.requestIdToRequest.get(event.getRequestId());
         // For certain requestIds we never receive requestWillBeSent event.
         // @see https://crbug.com/750469

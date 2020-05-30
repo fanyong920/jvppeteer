@@ -84,7 +84,7 @@ public interface Constant {
 	                "--use-mock-keychain"));}
 	};
 
-	Set<String> supportedMetrics = new HashSet(){
+	Set<String> supportedMetrics = new HashSet<String>(){
 
 		private static final long serialVersionUID = -5224857570151968464L;
 		{
@@ -106,7 +106,7 @@ public interface Constant {
 	/**
 	 * fastjson的一个实例
 	 */
-	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);;
+	ObjectMapper OBJECTMAPPER = new ObjectMapper().setVisibility(PropertyAccessor.FIELD, Visibility.ANY).configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
 	/**
 	 * 从浏览器的websocket接受到消息中有以下这些字段，在处理消息用到这些字段

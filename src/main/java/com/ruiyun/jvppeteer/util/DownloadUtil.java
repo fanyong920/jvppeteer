@@ -4,7 +4,6 @@ import com.ruiyun.jvppeteer.core.Constant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,7 +62,7 @@ public class DownloadUtil {
     /**
      * 下载文件的方法
      *
-     * @param url
+     * @param url 下载的资源定位路径
      * @param filePath 文件路径
      */
 
@@ -74,26 +73,26 @@ public class DownloadUtil {
         DownloadUtil.createFile(filePath, contentLength);
 
         ThreadPoolExecutor executor = DownloadUtil.getExecutor();
-        CompletionService completionService = new ExecutorCompletionService(executor);
-        List<Future> futureList = new ArrayList<>();
+        CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
+        List<Future<String>> futureList = new ArrayList<>();
         int downloadCount = 0;
         if (contentLength <= CHUNK_SIZE) {
-            Future future = completionService.submit(new DownloadCallable(0, contentLength, filePath, url));
+            Future<String> future = completionService.submit(new DownloadCallable(0, contentLength, filePath, url));
             futureList.add(future);
         } else {
             for (int i = 0; i < taskCount; i++) {
                 if (i == taskCount - 1) {
-                    Future future = completionService.submit(new DownloadCallable(i * CHUNK_SIZE, contentLength, filePath, url));
+                    Future<String> future = completionService.submit(new DownloadCallable(i * CHUNK_SIZE, contentLength, filePath, url));
                     futureList.add(future);
                 } else {
-                    Future future = completionService.submit(new DownloadCallable(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE, filePath, url));
+                    Future<String> future = completionService.submit(new DownloadCallable(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE, filePath, url));
                     futureList.add(future);
                 }
             }
         }
         executor.shutdown();
-        for (Future future1 : futureList) {
-            String result = (String) future1.get();
+        for (Future<String> future : futureList) {
+            String result = future.get();
             if (FAIL_RESULT.equals(result)) {
                 LOGGER.error("download fail,url:"+url);
                 Files.delete(Paths.get(filePath));
@@ -115,7 +114,7 @@ public class DownloadUtil {
     /**
      * 获取下载得文件长度
      *
-     * @return
+     * @return 长度
      */
     public static final long getContentLength(String url) throws IOException {
         URL uuuRl = new URL(url);
@@ -151,9 +150,8 @@ public class DownloadUtil {
     /**
      * 创建固定大小的文件
      *
-     * @param path
-     * @param length
-     * @return
+     * @param path 文件路径
+     * @param length 文件大小
      */
     public static void createFile(String path, long length) throws IOException {
         File file = new File(path);
@@ -184,10 +182,9 @@ public class DownloadUtil {
         }
 
         @Override
-        public String call() throws Exception {
+        public String call() {
             RandomAccessFile file = null;
             HttpURLConnection conn = null;
-            BufferedInputStream reader = null;
             try {
                 file = new RandomAccessFile(this.filePath, "rw");
                 file.seek(this.startPosition);
@@ -213,13 +210,11 @@ public class DownloadUtil {
                             }
                             buffer.clear();
                         }
-
-                        return String.valueOf((endPosition - startPosition) / 1024 / 1024);
+                        return String.valueOf((endPosition - startPosition) >> 20);
                     } catch (Exception e) {
                         if (j == RETRY_TIMES - 1) {
                             LOGGER.error("download url[{}] bytes[{}] fail.",url,range);
                         }
-                        continue;
                     }
                 }
                 return FAIL_RESULT;
@@ -227,7 +222,6 @@ public class DownloadUtil {
                 LOGGER.error("download url[{}] bytes[{}] fail.",url,startPosition+"-"+endPosition);
                 return FAIL_RESULT;
             } finally {
-                StreamUtil.closeQuietly(reader);
                 StreamUtil.closeQuietly(file);
                 if (conn != null) {
                     conn.disconnect();

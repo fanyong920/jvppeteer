@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.exception.ProtocolException;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

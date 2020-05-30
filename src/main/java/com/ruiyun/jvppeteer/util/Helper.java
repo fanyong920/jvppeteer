@@ -211,8 +211,8 @@ public class Helper {
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
                 JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
                 JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
-                String dataText = dataNode.asText();
-                if (dataNode != null && StringUtil.isNotEmpty(dataText)) {
+                String dataText;
+                if (dataNode != null && StringUtil.isNotEmpty(dataText = dataNode.asText())) {
                     try {
                         if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
                             bytes = Base64.decode(dataText);
@@ -248,14 +248,15 @@ public class Helper {
         if (exceptionDetails.getException() != null)
             return StringUtil.isNotEmpty(exceptionDetails.getException().getDescription()) ? exceptionDetails.getException().getDescription() : (String) exceptionDetails.getException().getValue();
         String message = exceptionDetails.getText();
+        StringBuilder sb = new StringBuilder(message);
         if (exceptionDetails.getStackTrace() != null) {
             for (CallFrame callframe : exceptionDetails.getStackTrace().getCallFrames()) {
                 String location = callframe.getUrl() + ":" + callframe.getColumnNumber() + ":" + callframe.getColumnNumber();
                 String functionName = StringUtil.isNotEmpty(callframe.getFunctionName()) ? callframe.getFunctionName() : "<anonymous>";
-                message += "\n    at " + functionName + "(" + location + ")";
+                sb.append("\n    at " ).append(functionName).append("(") .append(location).append(")") ;
             }
         }
-        return message;
+        return sb.toString();
     }
 
     public static final Set<DefaultBrowserListener> getConcurrentSet() {
@@ -321,9 +322,7 @@ public class Helper {
         if(!isAsync){
             releaseObject(client, remoteObject);
         }else {
-            Helper.commonExecutor().submit(() -> {
-                releaseObject(client, remoteObject);
-            });
+            Helper.commonExecutor().submit(() -> releaseObject(client, remoteObject));
         }
 
     }
@@ -416,7 +415,7 @@ public class Helper {
                         processors = 4;
                     }
                     int threadCount = Math.max(1, processors);
-                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(),new CommonThreadFactory());
                 }
             }
         }
@@ -432,7 +431,7 @@ public class Helper {
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() :
                     Thread.currentThread().getThreadGroup();
-            namePrefix = "commonpool-" +
+            namePrefix = "jvppeteer-common-pool-" +
                     poolNumber.getAndIncrement() +
                     "-thread-";
         }

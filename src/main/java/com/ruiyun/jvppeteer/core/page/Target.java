@@ -1,12 +1,12 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.events.Events;
-import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
-import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserContext;
+import com.ruiyun.jvppeteer.events.Events;
+import com.ruiyun.jvppeteer.options.Viewport;
+import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.util.concurrent.CountDownLatch;

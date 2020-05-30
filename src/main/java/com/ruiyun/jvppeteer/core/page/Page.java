@@ -1646,8 +1646,7 @@ public class Page extends EventEmitter {
         /*先执行reload命令，不用等待返回*/
         this.client.send("Page.reload", null, false);
         /*再等待页面导航结果返回*/
-        Response response = this.waitForNavigation(options);
-        return response;
+        return this.waitForNavigation(options);
     }
 
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {

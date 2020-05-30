@@ -32,8 +32,7 @@ public class StringUtil {
 	
 	public static int getTimestamp() {
 		synchronized (StringUtil.class) {
-			int nano = LocalDateTime.now().getNano();
-			return nano;
+			return LocalDateTime.now().getNano();
 		}
 	}
 	

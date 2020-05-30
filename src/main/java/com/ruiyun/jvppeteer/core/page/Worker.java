@@ -7,11 +7,11 @@ import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
+import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -26,10 +26,6 @@ public class Worker extends EventEmitter {
     private CDPSession client;
 
     private String url;
-
-    private ConsoleAPI consoleAPICalled;
-
-    private Consumer<ExceptionDetails> exceptionThrown;
 
     private ExecutionContext context;
 
