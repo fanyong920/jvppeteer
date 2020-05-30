@@ -372,12 +372,12 @@ public class DOMWorld {
         handle.dispose();
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
         return this.waitForSelectorOrXPath(selector, false, options);
     }
 
     //TODO
-    private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath, WaitForSelectorOptions options) {
+    private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath, WaitForSelectorOptions options) throws InterruptedException {
         boolean waitForVisible = false;
         boolean waitForHidden = false;
         int timeout = this.timeoutSettings.timeout();
@@ -427,7 +427,7 @@ public class DOMWorld {
         return handle.asElement();
     }
 
-    public ElementHandle waitForXPath(String xpath, WaitForSelectorOptions options) {
+    public ElementHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws InterruptedException {
         return this.waitForSelectorOrXPath(xpath, true, options);
     }
 
@@ -435,7 +435,7 @@ public class DOMWorld {
         return (String) this.evaluate("() => document.title", PageEvaluateType.FUNCTION);
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
         if (StringUtil.isNotEmpty(options.getPolling())) {

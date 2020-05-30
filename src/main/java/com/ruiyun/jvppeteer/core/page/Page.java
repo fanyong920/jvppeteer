@@ -1764,7 +1764,7 @@ public class Page extends EventEmitter {
      * @param args                        传给 pageFunction 的参数
      * @return 代表页面元素的一个实例
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
@@ -1800,7 +1800,7 @@ public class Page extends EventEmitter {
      * @param args         执行的方法的参数
      * @return JSHandle
      */
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
 
@@ -1890,7 +1890,7 @@ public class Page extends EventEmitter {
      * @param options  可选参数
      * @return ElementHandle
      */
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
         return this.mainFrame().waitForSelector(selector, options);
     }
 
@@ -1901,7 +1901,7 @@ public class Page extends EventEmitter {
      * @param options 可选参数
      * @return JSHandle
      */
-    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) {
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws InterruptedException {
         return this.mainFrame().waitForXPath(xpath, options);
     }
 

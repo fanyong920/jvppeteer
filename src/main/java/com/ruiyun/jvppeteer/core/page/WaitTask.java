@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.core.page;
 
+import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WaitTask {
@@ -74,7 +76,7 @@ public class WaitTask {
     }
 
     public void rerun() {
-        try {
+
             int runcount = runCount.incrementAndGet();
             RuntimeException error = null;
             JSHandle success = null;
@@ -90,10 +92,18 @@ public class WaitTask {
             } catch (RuntimeException e) {
                 error = e;
             }
+
             // Ignore timeouts in pageScript - we track timeouts ourselves.
             // If the frame's execution context has already changed, `frame.evaluate` will
             // throw an error - ignore this predicate run altogether.
-            if (error == null && this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success) != null) {
+           boolean isChanged = false;
+            try {
+                this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success);
+            }catch (Exception e){
+                isChanged = true;
+            }
+
+            if (error == null && isChanged) {
                 success.dispose();
                 return;
             }
@@ -110,13 +120,10 @@ public class WaitTask {
             } else {
                 this.promise = success;
             }
-            this.cleanup();
-        }finally {
-            promiseDone = true;
             if(waitPromiseLatch != null){
                 waitPromiseLatch.countDown();
             }
-        }
+            this.cleanup();
     }
 
     private String waitForPredicatePageFunction() {
@@ -219,7 +226,12 @@ public class WaitTask {
         this.domWorld.getWaitTasks().remove(this);
     }
 
-    public JSHandle getPromise() {
+    public JSHandle getPromise() throws InterruptedException {
+        if(promise != null){
+            return promise;
+        }
+        waitPromiseLatch = new CountDownLatch(1);
+        waitPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
         return promise;
     }
 

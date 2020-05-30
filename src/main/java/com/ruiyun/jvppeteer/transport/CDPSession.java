@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +37,7 @@ public class CDPSession extends EventEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
 
-    private Map<Long, SendMsg> callbacks = new HashMap<>();
+    private Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();
 
     private String targetType;
 
@@ -97,7 +98,7 @@ public class CDPSession extends EventEmitter {
                     message.setCountDownLatch(outLatch);
             }
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return null;
@@ -150,6 +151,7 @@ public class CDPSession extends EventEmitter {
     }
 
     public void onMessage(JsonNode node) {
+//        System.out.println("this.client rece:"+this.hashCode());
         JsonNode id = node.get(RECV_MESSAGE_ID_PROPERTY);
         if(id != null) {
             Long idLong = id.asLong();

@@ -456,7 +456,7 @@ public class FrameManager extends EventEmitter {
             if ((timeout = options.getTimeout()) <= 0) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
-            assertNoLegacyNavigationOptions(options);
+            assertNoLegacyNavigationOptions(waitUntil);
         }
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
 
@@ -558,7 +558,7 @@ public class FrameManager extends EventEmitter {
             if ((timeout = options.getTimeout()) <= 0) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
-            assertNoLegacyNavigationOptions(options);
+            assertNoLegacyNavigationOptions(waitUntil);
         }
 
         this.documentNavigationPromiseType = "all";
@@ -592,8 +592,8 @@ public class FrameManager extends EventEmitter {
         }
     }
 
-    private void assertNoLegacyNavigationOptions(PageNavigateOptions options) {
-        ValidateUtil.assertArg(!"networkidle".equals(options.getWaitUntil().get(0)), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
+    private void assertNoLegacyNavigationOptions(List<String> waitUtil) {
+        ValidateUtil.assertArg(!"networkidle".equals(waitUtil.get(0)), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 
     public Frame mainFrame() {

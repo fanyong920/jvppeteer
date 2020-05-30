@@ -153,7 +153,7 @@ public class Frame {
      * @param type
      * @return
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         String xPathPattern = "//";
 
         if (type.equals(PageEvaluateType.STRING)) {
@@ -171,7 +171,7 @@ public class Frame {
         throw new IllegalArgumentException("Unsupported target type: " + selectorOrFunctionOrTimeout);
     }
 
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
         ElementHandle handle = this.secondaryWorld.waitForSelector(selector, options);
         if (handle == null)
             return null;
@@ -181,7 +181,7 @@ public class Frame {
         return result;
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args)   {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args) throws InterruptedException {
         return this.mainWorld.waitForFunction(pageFunction, type, options, args);
     }
 
@@ -196,7 +196,7 @@ public class Frame {
         this.url = framePayload.getUrl();
     }
 
-    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) {
+    public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws InterruptedException {
         ElementHandle handle = this.secondaryWorld.waitForXPath(xpath, options);
         if (handle == null)
             return null;

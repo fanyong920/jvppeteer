@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class Response {
@@ -67,41 +68,43 @@ public class Response {
         if (e != null) {
             throw e;
         }
-        synchronized (Response.class) {
-            if (this.contentPromise == null) {
-                return Helper.commonExecutor().submit(() -> {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("requestId", this.request.requestId());
-                    JsonNode response = this.client.send("Network.getResponseBody", params, true);
-                    JsonNode charsetNode = response.get("base64Encoded");
-                    if (charsetNode != null) {
-                       return this.contentPromise = Base64.decode(response.get("data").asText());
-                    } else {
-                       return this.contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
-                    }
-                });
-            }
-            return new CompletedFuture<>(this.contentPromise, null);
+        if (this.contentPromise == null) {
+            return Helper.commonExecutor().submit(() -> {
+                //System.out.println("threadname="+Thread.currentThread().getName()+"this.client send:"+this.client.hashCode());
+                Map<String, Object> params = new HashMap<>();
+                params.put("requestId", request.requestId());
+                JsonNode response = this.client.send("Network.getResponseBody", params, true);
+                JsonNode charsetNode = response.get("base64Encoded");
+                if (charsetNode != null) {
+                     contentPromise = Base64.decode(response.get("data").asText());
+                } else {
+                   contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
+                }
+                return contentPromise;
+            });
         }
+        return new CompletedFuture<>(this.contentPromise, null);
+
     }
 
     public boolean ok() {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
 
-    public byte[] buffer() {
+    public byte[] buffer() throws ExecutionException, InterruptedException {
         if (this.contentPromise == null) {
-            bodyLoadedPromiseFulfill(null);
+            Future<byte[]> future = bodyLoadedPromiseFulfill(null);
+            future.get();
         }
         return this.contentPromise;
     }
 
-    public String text() throws IOException {
+    public String text() throws IOException, ExecutionException, InterruptedException {
         byte[] content = this.buffer();
         return new String(content, "utf-8");
     }
 
-    public <T> T json(Class<T> clazz) throws IOException {
+    public <T> T json(Class<T> clazz) throws IOException, ExecutionException, InterruptedException {
         String content = this.text();
         return Constant.OBJECTMAPPER.readValue(content, clazz);
     }

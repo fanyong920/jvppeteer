@@ -43,7 +43,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
 
     private final Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();//并发
 
-    private final Map<String, CDPSession> sessions = new HashMap<>();
+    private final Map<String, CDPSession> sessions = new ConcurrentHashMap<>();
 
     private boolean closed;
 
@@ -137,7 +137,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
      * @param message 从浏览器接受到的消息
      */
     public void onMessage(String message) {
-        if (delay >= 0) {
+        if (delay > 0) {
             try {
                 Thread.sleep(delay);
             } catch (InterruptedException e) {
@@ -203,7 +203,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     this.emit(method, paramsNode);
                 }
             }
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             throw new ProtocolException(e);
         }
     }

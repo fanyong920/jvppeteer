@@ -32,12 +32,13 @@ public class PageSomeFunctionExample {
 
         page.setJavaScriptEnabled(true);
         page.goTo("https://www.meituan.com/");
-
+        String title = page.title();
+        System.out.println("title1:"+title);
         //点击 深圳 按钮
         page.tap("#react > div > div.citylist > p > a:nth-child(4)");
 
-        String title = page.title();
-        System.out.println("title6666:"+title);
+         title = page.title();
+        System.out.println("title2:"+title);
         //启用离线模式，启用后不能连接互联网
 //        page.setOfflineMode(true);
 
