@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -23,6 +24,8 @@ public class Response {
     private Request request;
 
     private byte[] contentPromise;
+
+    private CountDownLatch contentPromiseLatch ;
 
     private RemoteAddress remoteAddress;
 
@@ -47,6 +50,7 @@ public class Response {
         this.client = client;
         this.request = request;
         this.contentPromise = null;
+        this.contentPromiseLatch = new CountDownLatch(1);
         this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(), responsePayload.getRemotePort());
         this.status = responsePayload.getStatus();
         this.statusText = responsePayload.getStatusText();
@@ -64,26 +68,19 @@ public class Response {
         this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    protected Future<byte[]> bodyLoadedPromiseFulfill(RuntimeException e) {
+    protected void bodyLoadedPromiseFulfill(RuntimeException e) {
         if (e != null) {
             throw e;
         }
-        if (this.contentPromise == null) {
-            return Helper.commonExecutor().submit(() -> {
-                //System.out.println("threadname="+Thread.currentThread().getName()+"this.client send:"+this.client.hashCode());
-                Map<String, Object> params = new HashMap<>();
-                params.put("requestId", request.requestId());
-                JsonNode response = this.client.send("Network.getResponseBody", params, true);
-                JsonNode charsetNode = response.get("base64Encoded");
-                if (charsetNode != null) {
-                     contentPromise = Base64.decode(response.get("data").asText());
-                } else {
-                   contentPromise = response.get("data").asText().getBytes(StandardCharsets.UTF_8);
-                }
-                return contentPromise;
-            });
+        if(this.contentPromiseLatch != null){
+            this.contentPromiseLatch.countDown();
         }
-        return new CompletedFuture<>(this.contentPromise, null);
+//        if (this.contentPromise == null) {
+//            return Helper.commonExecutor().submit(
+//                return contentPromise;
+//            });
+//        }
+//        return new CompletedFuture<>(this.contentPromise, null);
 
     }
 
@@ -91,20 +88,19 @@ public class Response {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
 
-    public byte[] buffer() throws ExecutionException, InterruptedException {
+    public byte[] buffer() {
         if (this.contentPromise == null) {
-            Future<byte[]> future = bodyLoadedPromiseFulfill(null);
-            future.get();
+           this.contentPromiseLatch.countDown();
         }
         return this.contentPromise;
     }
 
-    public String text() throws IOException, ExecutionException, InterruptedException {
+    public String text() {
         byte[] content = this.buffer();
-        return new String(content, "utf-8");
+        return new String(content, StandardCharsets.UTF_8);
     }
 
-    public <T> T json(Class<T> clazz) throws IOException, ExecutionException, InterruptedException {
+    public <T> T json(Class<T> clazz) throws IOException {
         String content = this.text();
         return Constant.OBJECTMAPPER.readValue(content, clazz);
     }

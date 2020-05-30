@@ -59,7 +59,7 @@ public class CrawlerTaobaoItem {
         LinkedBlockingQueue<Page> pages = new LinkedBlockingQueue<>();
         for (int i = 0; i < threadCount; i++) {
             Page page = browser.newPage();
-            //拦截请求,可选
+            //拦截请求,可选，但是存在线程切换比较严重，建议不拦截
 //            page.onRequest(request -> {
 //                if ("image".equals(request.resourceType()) || "media".equals(request.resourceType())) {
 //                    //遇到多媒体或者图片资源请求，拒绝，加载页面加载
@@ -109,7 +109,6 @@ public class CrawlerTaobaoItem {
                 PageNavigateOptions navigateOptions = new PageNavigateOptions();
                 //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
                 navigateOptions.setWaitUntil(Arrays.asList("domcontentloaded"));
-                System.out.println("gotothreadName:"+Thread.currentThread().getName());
                 page.goTo("https://item.taobao.com/item.htm?id=541605195654", navigateOptions);
                 String content = page.content();
                 return parseItem(content);

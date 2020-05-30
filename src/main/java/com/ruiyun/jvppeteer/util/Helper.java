@@ -410,7 +410,12 @@ public class Helper {
         if (COMMON_EXECUTOR == null) {
             synchronized (Helper.class) {
                 if (COMMON_EXECUTOR == null) {
-                    int threadCount = Math.max(1, Runtime.getRuntime().availableProcessors());
+                    //考虑到线程切换中，严重影响到性能，尽量减少线程数量
+                    int processors = Runtime.getRuntime().availableProcessors();
+                    if(processors > 4){
+                        processors = 4;
+                    }
+                    int threadCount = Math.max(1, processors);
                     COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
                 }
             }
