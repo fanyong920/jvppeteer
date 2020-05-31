@@ -36,10 +36,6 @@ public class ExecutionContext {
 
     private int contextId;
 
-    private static final NashornScriptEngine javaScrptEngine = (NashornScriptEngine) new ScriptEngineManager().getEngineByName("nashorn");
-    static {
-//        javaScrptEngine.compile()
-    }
     public ExecutionContext(CDPSession client, ExecutionContextDescription contextPayload, DOMWorld world) {
         this.client = client;
         this.world = world;
