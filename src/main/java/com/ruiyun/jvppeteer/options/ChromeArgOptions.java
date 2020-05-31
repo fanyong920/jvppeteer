@@ -7,7 +7,7 @@ public class ChromeArgOptions extends Timeoutable {
 	 * 是否是无厘头
 	 * <br/>
      * Whether to run browser in headless mode.
-     * @default true unless the devtools option is true.
+     * 默认是 true unless the devtools option is true.
      */
     private boolean headless = true;
     /**

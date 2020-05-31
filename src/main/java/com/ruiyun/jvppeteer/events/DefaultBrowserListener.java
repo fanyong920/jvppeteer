@@ -31,11 +31,11 @@ public class DefaultBrowserListener<T> implements BrowserListener<T> {
 		this.mothod = mothod;
 	}
 
-	public EventHandler getHandler() {
+	public EventHandler<T> getHandler() {
 		return handler;
 	}
 
-	public void setHandler(EventHandler handler) {
+	public void setHandler(EventHandler<T> handler) {
 		this.handler = handler;
 	}
 
@@ -60,7 +60,7 @@ public class DefaultBrowserListener<T> implements BrowserListener<T> {
 	}
 
 	public void setIsAvaliable(boolean isAvaliable) {
-		isAvaliable = isAvaliable;
+		this.isAvaliable = isAvaliable;
 	}
 
 	@Override

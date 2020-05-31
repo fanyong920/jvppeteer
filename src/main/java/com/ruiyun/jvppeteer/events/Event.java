@@ -9,7 +9,7 @@ public interface Event {
 
     Event removeListener(String method, BrowserListener<?> listener);
 
-    boolean emit(String type, Object parameter);
+    void emit(String type, Object parameter);
 
     default Event addListener(String method, BrowserListener<?> listener) {
         return this.addListener(method, listener, false);

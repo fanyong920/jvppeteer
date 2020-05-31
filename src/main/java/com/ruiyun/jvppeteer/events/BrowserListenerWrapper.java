@@ -1,5 +1,9 @@
 package com.ruiyun.jvppeteer.events;
 
+/**
+ * 包装listener
+ * @param <T>
+ */
 public class BrowserListenerWrapper<T> {
 
     private EventEmitter emitter;

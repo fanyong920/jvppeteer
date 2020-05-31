@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -59,30 +60,31 @@ public interface Constant {
 	/**
 	 * 谷歌浏览器默认启动参数
 	 */
-	List<String> DEFAULT_ARGS = new ArrayList<String>() {
+	List<String> DEFAULT_ARGS = Collections.unmodifiableList(new ArrayList<String>() {
 		private static final long serialVersionUID = 1L;
-		{addAll(Arrays.asList( 
-					"--disable-background-networking",
-	                "--disable-background-timer-throttling",
-	                "--disable-breakpad",
-	                "--disable-browser-side-navigation",
-	                "--disable-client-side-phishing-detection",
-	                "--disable-default-apps",
-	                "--disable-dev-shm-usage",
-	                "--disable-extensions",
-	                "--disable-features=site-per-process",
-	                "--disable-hang-monitor",
-	                "--disable-popup-blocking",
-	                "--disable-prompt-on-repost",
-	                "--disable-sync",
-	                "--disable-translate",
-	                "--metrics-recording-only",
-	                "--no-first-run",
-	                "--safebrowsing-disable-auto-update",
-	                "--enable-automation",
-	                "--password-store=basic",
-	                "--use-mock-keychain"));}
-	};
+		{addAll(Arrays.asList(
+				"--disable-background-networking",
+				"--disable-background-timer-throttling",
+				"--disable-breakpad",
+				"--disable-browser-side-navigation",
+				"--disable-client-side-phishing-detection",
+				"--disable-default-apps",
+				"--disable-dev-shm-usage",
+				"--disable-extensions",
+				"--disable-features=site-per-process",
+				"--disable-hang-monitor",
+				"--disable-popup-blocking",
+				"--disable-prompt-on-repost",
+				"--disable-sync",
+				"--disable-translate",
+				"--metrics-recording-only",
+				"--no-first-run",
+				"--safebrowsing-disable-auto-update",
+				"--enable-automation",
+				"--password-store=basic",
+				"--use-mock-keychain"));}
+	});
+
 
 	Set<String> supportedMetrics = new HashSet<String>(){
 

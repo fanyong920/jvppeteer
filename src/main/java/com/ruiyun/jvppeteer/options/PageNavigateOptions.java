@@ -29,6 +29,22 @@ public class PageNavigateOptions {
      */
     private List<String> waitUntil;
 
+    public PageNavigateOptions() {
+        super();
+    }
+
+    public PageNavigateOptions(String referer, List<String> waitUntil) {
+        super();
+        this.referer = referer;
+        this.waitUntil = waitUntil;
+    }
+
+    public PageNavigateOptions(String referer, int timeout, List<String> waitUntil) {
+        this.referer = referer;
+        this.timeout = timeout;
+        this.waitUntil = waitUntil;
+    }
+
     public String getReferer() {
         return referer;
     }

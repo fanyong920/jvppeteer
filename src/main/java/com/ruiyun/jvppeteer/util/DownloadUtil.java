@@ -38,7 +38,7 @@ public class DownloadUtil {
     private static final int THREAD_COUNT = 5;
 
     /**
-     * 每条线程下载的文件块大小 10M
+     * 每条线程下载的文件块大小 5M
      */
     private static final int CHUNK_SIZE = 5 << 20;
 

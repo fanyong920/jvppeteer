@@ -8,6 +8,9 @@ import java.io.OutputStream;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * 与chromuim通过pipe通信暂时没实现
+ */
 public class PipeTransport implements ConnectionTransport {
 
     private InputStream pipeReader;

@@ -265,7 +265,7 @@ public class BrowserFetcher {
      * 解析得到最新的浏览器版本
      *
      * @param pageContent 页面内容
-     * @return
+     * @return 浏览器版本
      */
     private String parseRevision(String pageContent) {
         String result = null;

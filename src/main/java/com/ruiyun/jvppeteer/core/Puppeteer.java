@@ -1,16 +1,16 @@
 package com.ruiyun.jvppeteer.core;
 
-import com.ruiyun.jvppeteer.options.BrowserOptions;
-import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;
+import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class Puppeteer {
      * <br/>
      * launch Browser by default options
      *
-     * @return
+     * @return 浏览器
      */
     public static Browser launch() throws IOException {
         return Puppeteer.rawLaunch();
@@ -84,12 +84,12 @@ public class Puppeteer {
      * 连接一个已经存在的浏览器实例
      * browserWSEndpoint、browserURL、transport有其中一个就行了
      *
-     * @param options
-     * @param browserWSEndpoint websocket
-     * @param browserURL        http
-     * @param transport
-     * @param product
-     * @return
+     * @param options 连接的浏览器选项
+     * @param browserWSEndpoint websocket http transport 三选一
+     * @param browserURL        websocket http transport 三选一
+     * @param transport  websocket http transport 三选一
+     * @param product 谷歌还是火狐
+     * @return 浏览器实例
      */
     public static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport, String product) {
         Puppeteer puppeteer = new Puppeteer();
@@ -109,8 +109,7 @@ public class Puppeteer {
             puppeteer.setProductName(options.getProduct());
         }
         adapterLauncher(puppeteer);
-        Browser browser = puppeteer.getLauncher().launch(options);
-        return browser;
+        return puppeteer.getLauncher().launch(options);
     }
 
     /**

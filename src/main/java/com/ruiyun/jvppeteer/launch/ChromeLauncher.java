@@ -64,7 +64,7 @@ public class ChromeLauncher implements Launcher {
         try {
             runner.start(options);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), options.getDumpio());
-            Function closeCallback = (s) -> {
+            Function<Object,Object> closeCallback = (s) -> {
                 runner.closeQuietly();
                 return null;
             };
@@ -78,9 +78,9 @@ public class ChromeLauncher implements Launcher {
     }
 
     /**
-     * @param options
-     * @param chromeArguments
-     * @return
+     * @param options 选项
+     * @param chromeArguments 参数
+     * @return 临时文件夹路径
      */
     @Override
     public String defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
@@ -95,7 +95,7 @@ public class ChromeLauncher implements Launcher {
             }
         }
 
-        List<String> args = null;
+        List<String> args;
         if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
             chromeArguments.add("about:blank");
             chromeArguments.addAll(args);
@@ -141,8 +141,8 @@ public class ChromeLauncher implements Launcher {
     /**
      * 解析可执行的chrome路径
      *
-     * @param chromeExecutable
-     * @return
+     * @param chromeExecutable 指定的可执行路径
+     * @return 返回解析后的可执行路径
      */
     @Override
     public String resolveExecutablePath(String chromeExecutable) throws IOException {
@@ -185,7 +185,7 @@ public class ChromeLauncher implements Launcher {
             /*如果下载了chrome，就使用下载的chrome*/
             List<String> localRevisions = browserFetcher.localRevisions();
             if (ValidateUtil.isNotEmpty(localRevisions)) {
-                localRevisions.stream().sorted(Comparator.reverseOrder());
+                localRevisions.sort(Comparator.reverseOrder());
                 RevisionInfo revisionInfo = browserFetcher.revisionInfo(localRevisions.get(0));
                 if (!revisionInfo.getLocal()) {
                     throw new LaunchException(
@@ -232,13 +232,13 @@ public class ChromeLauncher implements Launcher {
             JsonNode result = connection.send("Target.getBrowserContexts", null, true);
 
             JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
-            List<String> browserContextIds = null;
-            Function closeFunction = (t) -> {
+            List<String> browserContextIds;
+            Function<Object,Object> closeFunction = (t) -> {
                 connection.send("Browser.close", null, false);
                 return null;
             };
 
-            browserContextIds = (List<String>) Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
+            browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
             return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

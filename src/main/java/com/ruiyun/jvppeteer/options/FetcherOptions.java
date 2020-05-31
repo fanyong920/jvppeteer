@@ -10,6 +10,18 @@ public class FetcherOptions {
 
     private  String product;
 
+    public FetcherOptions() {
+        super();
+    }
+
+    public FetcherOptions(String platform, String path, String host, String product) {
+        super();
+        this.platform = platform;
+        this.path = path;
+        this.host = host;
+        this.product = product;
+    }
+
     public String getPlatform() {
         return platform;
     }

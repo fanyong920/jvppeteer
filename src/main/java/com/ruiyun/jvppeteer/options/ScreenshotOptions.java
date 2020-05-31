@@ -16,6 +16,21 @@ public class ScreenshotOptions {
 
     private String encoding;
 
+    public ScreenshotOptions() {
+        super();
+    }
+
+    public ScreenshotOptions(String type, String path, boolean fullPage, Clip clip, int quality, boolean omitBackground, String encoding) {
+        super();
+        this.type = type;
+        this.path = path;
+        this.fullPage = fullPage;
+        this.clip = clip;
+        this.quality = quality;
+        this.omitBackground = omitBackground;
+        this.encoding = encoding;
+    }
+
     public String getType() {
         return type;
     }

@@ -13,6 +13,16 @@ public class StyleTagOptions {
 
     private String content;
 
+    public StyleTagOptions() {
+        super();
+    }
+
+    public StyleTagOptions(String url, String path, String content) {
+        this.url = url;
+        this.path = path;
+        this.content = content;
+    }
+
     public String getUrl() {
         return url;
     }

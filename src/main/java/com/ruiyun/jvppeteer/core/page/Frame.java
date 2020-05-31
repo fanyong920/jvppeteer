@@ -211,8 +211,8 @@ public class Frame {
         this.lifecycleEvents.add("load");
     }
 
-    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
-        return this.frameManager.navigateFrame(this, url, options);
+    public Response goTo(String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
+        return this.frameManager.navigateFrame(this, url, options,isAsync);
     }
 
     public String getId() {

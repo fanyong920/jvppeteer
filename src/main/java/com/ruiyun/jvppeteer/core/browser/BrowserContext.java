@@ -13,6 +13,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -117,7 +118,7 @@ public class BrowserContext extends EventEmitter {
 		this.connection.send("Browser.grantPermissions", params,true);
 	}
 	public List<Page> pages(){
-		return this.targets().stream().filter(target -> "page".equals(target.type())).map(Target::page).filter(page -> page != null).collect(Collectors.toList());
+		return this.targets().stream().filter(target -> "page".equals(target.type())).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 	/**
 	 * @return {!Array<!Target>} target

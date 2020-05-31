@@ -356,12 +356,12 @@ public class Helper {
         }
     }
 
-    public static <T> T waitForEvent(EventEmitter eventEmitter, String eventName, Predicate<T> predicate, int timeout, String abortPromise) throws InterruptedException {
+    public static Object waitForEvent(EventEmitter eventEmitter, String eventName, Predicate predicate, int timeout, String abortPromise) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
-        final T[] result = (T[]) new Object[1];
-        DefaultBrowserListener<T> listener = new DefaultBrowserListener<T>() {
+        final Object[] result = {null};
+        DefaultBrowserListener listener = new DefaultBrowserListener() {
             @Override
-            public void onBrowserEvent(T event) {
+            public void onBrowserEvent(Object event) {
                 if (!predicate.test(event))
                     return;
                 result[0] = event;
@@ -369,7 +369,7 @@ public class Helper {
             }
         };
         listener.setMothod(eventName);
-        BrowserListenerWrapper<T> wrapper = addEventListener(eventEmitter, eventName, listener);
+        BrowserListenerWrapper wrapper = addEventListener(eventEmitter, eventName, listener);
         try {
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
             if (!await) {

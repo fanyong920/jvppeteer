@@ -10,6 +10,27 @@ public class WaitForSelectorOptions {
 
     private String polling;
 
+    public WaitForSelectorOptions() {
+        super();
+    }
+
+    public WaitForSelectorOptions(boolean visible, boolean hidden, String polling) {
+        super();
+        this.visible = visible;
+        this.hidden = hidden;
+        this.polling = polling;
+    }
+
+    public WaitForSelectorOptions(boolean visible, boolean hidden, int timeout, String polling) {
+        super();
+        this.visible = visible;
+        this.hidden = hidden;
+        this.timeout = timeout;
+        this.polling = polling;
+    }
+
+
+
     public boolean getVisible() {
         return visible;
     }

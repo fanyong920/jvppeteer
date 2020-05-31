@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.options;
 
 /**
- * 可以模拟的手机设备
+ * 可以模拟的手机设备枚举类
  */
 public enum  Device {
 

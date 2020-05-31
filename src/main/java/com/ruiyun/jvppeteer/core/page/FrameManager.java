@@ -436,7 +436,7 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options) throws InterruptedException {
+    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
         String referer;
         List<String> waitUntil;
         int timeout;
@@ -458,8 +458,15 @@ public class FrameManager extends EventEmitter {
             }
             assertNoLegacyNavigationOptions(waitUntil);
         }
+        if(isAsync){
+            Map<String, Object> params = new HashMap<>();
+            params.put("url", url);
+            params.put("referer", referer);
+            params.put("frameId", frame.getId());
+            this.client.send("Page.navigate", params, false);
+            return null;
+        }
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-
         long start = System.currentTimeMillis();
         try {
             this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
@@ -609,7 +616,7 @@ public class FrameManager extends EventEmitter {
     }
 
     public void setDocumentNavigationPromiseType(String documentNavigationPromiseType) {
-        documentNavigationPromiseType = documentNavigationPromiseType;
+        this.documentNavigationPromiseType = documentNavigationPromiseType;
     }
 
     public CountDownLatch getDocumentLatch() {

@@ -67,11 +67,11 @@ public class EventEmitter implements Event {
     }
 
     @Override
-    public boolean emit(String method, Object params) {
+    public void emit(String method, Object params) {
         ValidateUtil.notNull(method, "method must not be null");
         Set<DefaultBrowserListener> listeners = this.listenerMap.get(method);
         if(ValidateUtil.isEmpty(listeners))
-            return false;
+            return;
         for (DefaultBrowserListener listener : listeners) {
             if(!listener.getIsAvaliable()){
                 listeners.remove(listener);
@@ -109,11 +109,10 @@ public class EventEmitter implements Event {
 //                Constant.executor.execute(() -> );
             } catch (IOException e) {
                 LOGGER.error("publish event error:", e);
-                return false;
+                return;
             }
 
         }
-        return true;
     }
 
     @Override

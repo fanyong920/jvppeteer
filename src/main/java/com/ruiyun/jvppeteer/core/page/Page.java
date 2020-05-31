@@ -98,9 +98,7 @@ public class Page extends EventEmitter {
 
     private Target target;
 
-
     private Keyboard keyboard;
-
 
     private Mouse mouse;
 
@@ -871,7 +869,7 @@ public class Page extends EventEmitter {
     /**
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
-     * ${@link Page#goTo(String, PageNavigateOptions)}
+     * ${@link Page#goTo(String, PageNavigateOptions,boolean)}
      * ${@link Page#goBack(PageNavigateOptions)}
      * ${@link Page#goForward(PageNavigateOptions)}
      * ${@link Page#reload(PageNavigateOptions)}
@@ -1226,6 +1224,14 @@ public class Page extends EventEmitter {
     }
 
     /**
+     * <p>导航到指定的url,异步，不用等返回，可以配合{@link Page#waitForResponse(String)}使用
+     *
+     */
+    public Response goTo(String url, boolean isAsync) throws InterruptedException {
+        return this.goTo(url, new PageNavigateOptions(),isAsync);
+    }
+
+    /**
      * <p>导航到指定的url,因为goto是java的关键字，所以就采用了goTo方法名
      *
      * <p>以下情况此方法将报错：
@@ -1244,8 +1250,32 @@ public class Page extends EventEmitter {
      *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
-        return this.frameManager.getMainFrame().goTo(url, options);
+    public Response goTo(String url, PageNavigateOptions options ) throws InterruptedException {
+        return this.goTo(url, options,true);
+    }
+
+    /**
+     * <p>导航到指定的url,因为goto是java的关键字，所以就采用了goTo方法名
+     *
+     * <p>以下情况此方法将报错：
+     * <p>发生了 SSL 错误 (比如有些自签名的https证书).
+     * <p>目标地址无效
+     * <p>超时
+     * <p>主页面不能加载
+     *
+     * @param url      url
+     * @param options: <p>timeout <number> 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                 <p>waitUntil <string|Array<string>> 满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     *                 <p>load - 页面的load事件触发时
+     *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
+     *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     * @param isAsync 是否是异步，异步代表只是发导航命令出去，并不等待导航结果
+     * @return Response
+     */
+    public Response goTo(String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
+        return this.frameManager.getMainFrame().goTo(url, options,isAsync);
     }
 
     /**
@@ -1260,7 +1290,7 @@ public class Page extends EventEmitter {
      * @return 响应
      */
     public Response goTo(String url) throws InterruptedException {
-        return this.frameManager.getMainFrame().goTo(url, null);
+        return this.goTo(url,false);
     }
 
     /**
@@ -1459,7 +1489,7 @@ public class Page extends EventEmitter {
      * 导航到页面历史的后一个页面。
      * <p>options 的 referer参数不用填，填了也用不上</p>
      *
-     * @param options 可以看{@link Page#goTo(String,PageNavigateOptions)}方法介绍
+     * @param options 可以看{@link Page#goTo(String,PageNavigateOptions,boolean)}方法介绍
      * @return Response 响应
      */
     public Response goForward(PageNavigateOptions options) {
@@ -1585,7 +1615,7 @@ public class Page extends EventEmitter {
     /**
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
-     * ${@link Page#goTo(String, PageNavigateOptions)}
+     * ${@link Page#goTo(String, PageNavigateOptions,boolean)}
      * ${@link Page#goBack(PageNavigateOptions)}
      * ${@link Page#goForward(PageNavigateOptions)}
      * ${@link Page#reload(PageNavigateOptions)}
@@ -1639,7 +1669,7 @@ public class Page extends EventEmitter {
     /**
      * 重新加载页面
      *
-     * @param options 与${@link Page#goTo(String, PageNavigateOptions)}中的options是一样的配置
+     * @param options 与${@link Page#goTo(String, PageNavigateOptions,boolean)}中的options是一样的配置
      * @return 响应
      */
     public Response reload(PageNavigateOptions options) {
@@ -1685,10 +1715,21 @@ public class Page extends EventEmitter {
      * <p>比如你在在代码中使用了Page.click()方法，引起了页面跳转
      * 注意 通过 History API 改变地址会认为是一次跳转。
      *
+     * @return 响应
+     */
+    public Response waitForNavigation() {
+        return this.waitForNavigation(new PageNavigateOptions());
+    }
+
+    /**
+     * 此方法在页面跳转到一个新地址或重新加载时解析，如果你的代码会间接引起页面跳转，这个方法比较有用
+     * <p>比如你在在代码中使用了Page.click()方法，引起了页面跳转
+     * 注意 通过 History API 改变地址会认为是一次跳转。
+     *
      * @param options PageNavigateOptions
      * @return 响应
      */
-    private Response waitForNavigation(PageNavigateOptions options) {
+    public Response waitForNavigation(PageNavigateOptions options) {
         return this.frameManager.mainFrame().waitForNavigation(options);
     }
 
@@ -1758,6 +1799,22 @@ public class Page extends EventEmitter {
      * <p>否则会报错
      *
      * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
+     * @param type                        具体类型，与第一个参数对应，String -> PageEvaluateType.STRING , function ->PageEvaluateType.FUNCTION
+     * @return 代表页面元素的一个实例
+     */
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type) throws InterruptedException {
+        return this.waitFor(selectorOrFunctionOrTimeout, type, new WaitForSelectorOptions());
+    }
+
+    /**
+     * 此方法根据第一个参数的不同有不同的结果：
+     *
+     * <p>如果 selectorOrFunctionOrTimeout 是 string, 那么认为是 css 选择器或者一个xpath, 根据是不是'//'开头, 这时候此方法是 page.waitForSelector 或 page.waitForXPath的简写</p>
+     * <p>如果 selectorOrFunctionOrTimeout 是 function, 那么认为是一个predicate，这时候此方法是page.waitForFunction()的简写</p>
+     * <p>如果 selectorOrFunctionOrTimeout 是 number, 那么认为是超时时间，单位是毫秒，返回的是Promise对象,在指定时间后resolve</p>
+     * <p>否则会报错
+     *
+     * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
      * @param type                        具体类型
      * @param options                     可选的等待参数
      * @param args                        传给 pageFunction 的参数
@@ -1767,6 +1824,19 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
     }
 
+    /**
+     * 等待一个文件选择事件，默认等待时间是30s
+     * @return 文件选择器
+     */
+    public Future<FileChooser> waitForFileChooser() {
+       return this.waitForFileChooser(this.timeoutSettings.timeout());
+    }
+
+    /**
+     * 等待一个文件选择事件，默认等待时间是30s
+     * @param timeout 等待时间
+     * @return 文件选择器
+     */
     public Future<FileChooser> waitForFileChooser(int timeout) {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
@@ -1794,6 +1864,16 @@ public class Page extends EventEmitter {
      * 要在浏览器实例上下文执行方法
      *
      * @param pageFunction 要在浏览器实例上下文执行的方法
+     * @return JSHandle
+     */
+    public JSHandle waitForFunction(String pageFunction) throws InterruptedException {
+        return this.waitForFunction(pageFunction, PageEvaluateType.FUNCTION, new WaitForSelectorOptions());
+    }
+
+    /**
+     * 要在浏览器实例上下文执行方法
+     *
+     * @param pageFunction 要在浏览器实例上下文执行的方法
      * @param type         执行的类型，string or function
      * @param options      可选参数
      * @param args         执行的方法的参数
@@ -1803,6 +1883,20 @@ public class Page extends EventEmitter {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
 
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
+     * <p>当url不为空时， type = PageEvaluateType.STRING </p>
+     * <p>当predicate不为空时， type = PageEvaluateType.FUNCTION </p>
+     *
+     * @param url       等待的请求
+     * @param predicate 方法
+     * @param type      判别到底是url还是方法
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type ) throws InterruptedException {
+       return this.waitForRequest(url,predicate,type,this.timeoutSettings.timeout());
+    }
     /**
      * 等到某个请求，url或者predicate只有有一个不为空
      * <p>当url不为空时， type = PageEvaluateType.STRING </p>
@@ -1830,7 +1924,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Object> listener = null;
         try {
             listener = sessionClosePromise();
-            return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
+            return (Request)Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
         } finally {
             if (listener != null)
                 this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
@@ -1847,6 +1941,43 @@ public class Page extends EventEmitter {
         disConnectLis.setMothod(Events.CDPSESSION_DISCONNECTED.getName());
         this.client.once(disConnectLis.getMothod(), disConnectLis);
         return disConnectLis;
+    }
+
+    /**
+     * 等到某个请求,默认等待的时间是30s
+     *
+     * @param predicate   判断具体某个请求
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Response waitForResponse(Predicate<Response> predicate) throws InterruptedException {
+        return this.waitForResponse(null,predicate,PageEvaluateType.FUNCTION);
+    }
+
+    /**
+     * 等到某个请求,默认等待的时间是30s
+     *
+     * @param url       等待的请求
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Response waitForResponse(String url) throws InterruptedException {
+        return this.waitForResponse(url,null,PageEvaluateType.STRING);
+    }
+
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空,默认等待的时间是30s
+     * <p>当url不为空时， type = PageEvaluateType.STRING </p>
+     * <p>当predicate不为空时， type = PageEvaluateType.FUNCTION </p>
+     *
+     * @param url       等待的请求
+     * @param predicate 方法
+     * @param type      判别到底是url还是方法
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Response waitForResponse(String url, Predicate<Response> predicate, PageEvaluateType type) throws InterruptedException {
+        return this.waitForResponse(url,predicate,type,this.timeoutSettings.timeout());
     }
 
     /**
@@ -1875,11 +2006,21 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Object> listener = null;
         try {
             listener = sessionClosePromise();
-            return Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
+            return (Response)Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
         } finally {
             if (listener != null)
                 this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
         }
+    }
+
+    /**
+     * 等待指定的选择器匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的选择器在超时时间后扔不出现，此方法会报错。
+     *
+     * @param selector 要等待的元素选择器
+     * @return ElementHandle
+     */
+    public ElementHandle waitForSelector(String selector) throws InterruptedException {
+        return this.waitForSelector(selector, new WaitForSelectorOptions());
     }
 
     /**
@@ -1891,6 +2032,16 @@ public class Page extends EventEmitter {
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
         return this.mainFrame().waitForSelector(selector, options);
+    }
+
+    /**
+     * 等待指定的xpath匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的xpath在超时时间后扔不出现，此方法会报错。
+     *
+     * @param xpath   要等待的元素的xpath
+     * @return JSHandle
+     */
+    public JSHandle waitForXPath(String xpath) throws InterruptedException {
+        return this.mainFrame().waitForXPath(xpath, new WaitForSelectorOptions());
     }
 
     /**

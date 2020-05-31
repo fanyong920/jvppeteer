@@ -124,23 +124,23 @@ public class JSHandle {
         return new JSHandle(context, context.getClient(), remoteObject);
     }
 
-    public ExecutionContext getContext() {
+    protected ExecutionContext getContext() {
         return context;
     }
 
-    public void setContext(ExecutionContext context) {
+    protected void setContext(ExecutionContext context) {
         this.context = context;
     }
 
-    public boolean getDisposed() {
+    protected boolean getDisposed() {
         return disposed;
     }
 
-    public void setDisposed(boolean disposed) {
+    protected void setDisposed(boolean disposed) {
         this.disposed = disposed;
     }
 
-    public RemoteObject getRemoteObject() {
+    protected RemoteObject getRemoteObject() {
         return remoteObject;
     }
 }

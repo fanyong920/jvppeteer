@@ -15,6 +15,7 @@ public class ScriptTagOptions {
 
     private String type = "";
 
+
     public ScriptTagOptions() {
         super();
     }

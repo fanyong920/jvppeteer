@@ -7,7 +7,7 @@ public class BrowserOptions extends ChromeArgOptions {
    * <br/>
    * Whether to ignore HTTPS errors during navigation.
    * 
-   * @default false
+   * 默认是false
    */
 	private boolean ignoreHTTPSErrors;
 	/**

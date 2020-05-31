@@ -55,6 +55,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
     private static final List<BrowserRunner> runners = new ArrayList<>();
 
     private static boolean isRegisterShutdownHook = false;
+
     public BrowserRunner(String executablePath, List<String> processArguments, String tempDirectory) {
         super();
         this.executablePath = executablePath;
@@ -99,7 +100,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             synchronized (BrowserRunner.class) {
                 if ((!isRegisterShutdownHook)) {
                     RuntimeShutdownHookRegistry hook = new RuntimeShutdownHookRegistry();
-                    hook.register(new Thread(() -> this.close()));
+                    hook.register(new Thread(this::close));
                 }
             }
         }

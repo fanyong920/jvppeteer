@@ -12,6 +12,15 @@ public class MouseOptions {
 
     private int clickCount;
 
+    public MouseOptions() {
+        super();
+    }
+
+    public MouseOptions(String button, int clickCount) {
+        this.button = button;
+        this.clickCount = clickCount;
+    }
+
     public String getButton() {
         return button;
     }

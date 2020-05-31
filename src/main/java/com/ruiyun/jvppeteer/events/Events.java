@@ -1,5 +1,8 @@
 package com.ruiyun.jvppeteer.events;
 
+/**
+ * 要监听的事件的名字枚举类
+ */
 public enum Events {
 
     PAGE_CLOSE("close"),

@@ -8,8 +8,8 @@ public interface Environment {
 
 	/**
 	 * 根据name获取环境变量中的值
-	 * @param name
-	 * @return
+	 * @param name name
+	 * @return 值
 	 */
 	String getEnv(String name);
 	
