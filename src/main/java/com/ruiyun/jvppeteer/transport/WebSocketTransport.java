@@ -43,7 +43,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	@Override
 	public void onMessage(String message) {
 		ValidateUtil.notNull(this.messageConsumer,"MessageConsumer must be initialized");
-		messageConsumer.accept(message);
+		this.messageConsumer.accept(message);
 	}
 
 	@Override

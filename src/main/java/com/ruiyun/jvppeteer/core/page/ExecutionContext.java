@@ -14,7 +14,10 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +36,10 @@ public class ExecutionContext {
 
     private int contextId;
 
+    private static final NashornScriptEngine javaScrptEngine = (NashornScriptEngine) new ScriptEngineManager().getEngineByName("nashorn");
+    static {
+//        javaScrptEngine.compile()
+    }
     public ExecutionContext(CDPSession client, ExecutionContextDescription contextPayload, DOMWorld world) {
         this.client = client;
         this.world = world;

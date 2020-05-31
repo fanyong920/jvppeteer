@@ -2,8 +2,10 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.page.ElementHandle;
 import com.ruiyun.jvppeteer.core.page.JSHandle;
 import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.core.page.Request;
 import com.ruiyun.jvppeteer.core.page.Response;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.OptionsBuilder;
@@ -25,12 +27,15 @@ public class PageWaitForExample {
         //waitForResponse 必须异步
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",true);
 
-       // JSHandle jsHandle = page.waitFor("#su", PageEvaluateType.STRING);
-        //System.out.println("page.waitFor:"+jsHandle.toString());
+        //JSHandle jsHandle = page.waitFor("#su", PageEvaluateType.STRING);
+       // System.out.println("page.waitFor:"+jsHandle.toString());
 
-        Response response = page.waitForResponse("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png");
-        System.out.println("page.waitForResponse:"+response.status());
+        //Response response = page.waitForResponse("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png");
+       // System.out.println("page.waitForResponse:"+response.status());
 
-        //page.waitForXPath("")
+//        Request request = page.waitForRequest("https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png");
+//        System.out.println(request.requestId()+":"+request.resourceType());
+        ElementHandle elementHandle = page.waitForSelector("#s-top-left > div > a");
+        System.out.println(elementHandle.toString());
     }
 }

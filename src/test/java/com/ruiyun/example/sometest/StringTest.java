@@ -5,8 +5,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.page.PaperFormats;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
+import jdk.nashorn.api.scripting.NashornScriptEngine;
 import org.junit.Test;
 
+import javax.script.Bindings;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -15,7 +22,7 @@ import java.util.regex.Pattern;
 public class StringTest {
 
     @Test
-    public void test1() throws JsonProcessingException {
+    public void test1() throws JsonProcessingException, ScriptException, NoSuchMethodException {
 //        String test = "ws://localhost:364545/browser/asdsadadsdfad-sdad-sada-dasd";
 ////        test = test.replace("ws://localhost:","");
 ////        int end = test.indexOf("/");
@@ -193,5 +200,34 @@ public class StringTest {
 //        sss.stream().sorted(Comparator.reverseOrder());
         sss.sort(Comparator.reverseOrder());
         System.out.println(sss);
+
+        ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+        NashornScriptEngine nashorn = (NashornScriptEngine)scriptEngineManager.getEngineByName("nashorn");
+         nashorn.eval("function validateFunction(functionText){\n" +
+                 "  try {\n" +
+                 "    new Function('(' + functionText + ')');\n" +
+                 "  } catch (error) {\n" +
+                 "    // This means we might have a function shorthand. Try another\n" +
+                 "    // time prefixing 'function '.\n" +
+                 "    if (functionText.startsWith('async '))\n" +
+                 "      functionText =\n" +
+                 "        'async function ' + functionText.substring('async '.length);\n" +
+                 "    else functionText = 'function ' + functionText;\n" +
+                 "    try {\n" +
+                 "      new Function('(' + functionText + ')');\n" +
+                 "    } catch (error) {\n" +
+                 "      // We tried hard to serialize, but there's a weird beast here.\n" +
+                 "      throw new Error('Passed function is not well-serializable!');\n" +
+                 "    }\n" +
+                 "  }\n" +
+                 "  return functionText;\n" +
+                 " }");
+//
+//        Bindings bindings = new SimpleBindings();
+//        bindings.put("functionText","hhhhhhhhhh");
+//        Object eval = nashorn.eval(bindings);
+//        System.out.println(eval);
+        Object o = nashorn.invokeFunction("validateFunction", "() => {}");
+        System.out.println(o);
     }
 }

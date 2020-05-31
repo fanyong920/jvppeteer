@@ -47,7 +47,6 @@ public class QueryHandler {
         String queryHandler = customQueryHandlers().get(name);
         if (StringUtil.isEmpty(queryHandler))
             throw new RuntimeException("Query set to use " + name + ", but no query handler of that name was found");
-
         return new QuerySelector(updatedSelector, queryHandler);
     }
 }

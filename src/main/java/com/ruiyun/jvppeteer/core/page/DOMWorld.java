@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -85,7 +86,7 @@ public class DOMWorld {
             this.contextResolveCallback(context);
             hasContext = true;
             for (WaitTask waitTask : this.waitTasks) {
-                waitTask.rerun();
+                Helper.commonExecutor().submit(waitTask::rerun);
             }
         } else {
             this.documentPromise = null;

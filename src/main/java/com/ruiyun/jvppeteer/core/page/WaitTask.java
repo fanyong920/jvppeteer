@@ -74,54 +74,52 @@ public class WaitTask {
     }
 
     public void rerun() {
+        int runcount = runCount.incrementAndGet();
+        RuntimeException error = null;
+        JSHandle success = null;
+        try {
+            ExecutionContext context = this.domWorld.executionContext();
+            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
 
-            int runcount = runCount.incrementAndGet();
-            RuntimeException error = null;
-            JSHandle success = null;
-            try {
-                ExecutionContext context = this.domWorld.executionContext();
-                success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
-
-                if (this.terminated || runcount != this.runCount.get()) {
-                    if (success != null)
-                        success.dispose();
-                    return;
-                }
-            } catch (RuntimeException e) {
-                error = e;
-            }
-
-            // Ignore timeouts in pageScript - we track timeouts ourselves.
-            // If the frame's execution context has already changed, `frame.evaluate` will
-            // throw an error - ignore this predicate run altogether.
-           boolean isChanged = false;
-            try {
-                this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success);
-            }catch (Exception e){
-                isChanged = true;
-            }
-
-            if (error == null && isChanged) {
-                success.dispose();
+            if (this.terminated || runcount != this.runCount.get()) {
+                if (success != null)
+                    success.dispose();
                 return;
             }
+        } catch (RuntimeException e) {
+            error = e;
+        }
+        // Ignore timeouts in pageScript - we track timeouts ourselves.
+        // If the frame's execution context has already changed, `frame.evaluate` will
+        // throw an error - ignore this predicate run altogether.
+        boolean isChanged = false;
+        try {
+            this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success);
+        } catch (Exception e) {
+            isChanged = true;
+        }
 
-            // When the page is navigated, the promise is rejected.
-            // Try again right away.
-            if (error != null && error.getMessage().contains("Execution context was destroyed")) {
-                return;
-            }
-            if (error != null && error.getMessage().contains("Cannot find context with specified id"))
-                return;
-            if (error != null) {
-                throw error;
-            } else {
-                this.promise = success;
-            }
-            if(waitPromiseLatch != null){
-                waitPromiseLatch.countDown();
-            }
-            this.cleanup();
+        if (error == null && isChanged) {
+            success.dispose();
+            return;
+        }
+
+        // When the page is navigated, the promise is rejected.
+        // Try again right away.
+        if (error != null && error.getMessage().contains("Execution context was destroyed")) {
+            return;
+        }
+        if (error != null && error.getMessage().contains("Cannot find context with specified id"))
+            return;
+        if (error != null) {
+            throw error;
+        } else {
+            this.promise = success;
+        }
+        if (waitPromiseLatch != null) {
+            waitPromiseLatch.countDown();
+        }
+        this.cleanup();
     }
 
     private String waitForPredicatePageFunction() {
@@ -225,7 +223,7 @@ public class WaitTask {
     }
 
     public JSHandle getPromise() throws InterruptedException {
-        if(promise != null){
+        if (promise != null) {
             return promise;
         }
         waitPromiseLatch = new CountDownLatch(1);

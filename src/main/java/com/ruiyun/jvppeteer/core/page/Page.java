@@ -119,7 +119,7 @@ public class Page extends EventEmitter {
 
     private Tracing tracing;
 
-    private Map<String, Function<List<JsonNode>, Object>> pageBindings;
+    private Map<String, Function<List<Object>, Object>> pageBindings;
 
 
     private Coverage coverage;
@@ -1122,20 +1122,22 @@ public class Page extends EventEmitter {
         this.addConsoleMessage(event.getType(), values, event.getStackTrace());
     }
 
-    private void onBindingCalled(BindingCalledPayload event) {
-        String payload = event.getPayload();
-        JsonNode payloadNode = OBJECTMAPPER.valueToTree(payload);
-        List<JsonNode> jsonNodes = new ArrayList<>();
-        Iterator<JsonNode> args = payloadNode.get("args").elements();
-        while (args.hasNext()) {
-            jsonNodes.add(args.next());
+    private void onBindingCalled(BindingCalledPayload event)  {
+        String payloadStr = event.getPayload();
+
+
+        Payload payload;
+        try {
+             payload = OBJECTMAPPER.readValue(payloadStr, Payload.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
         }
         String expression;
         try {
-            Object result = this.pageBindings.get(event.getName()).apply(jsonNodes);
-            expression = Helper.evaluationString(deliverResult(), PageEvaluateType.FUNCTION, payloadNode.get("name").toString(), payloadNode.get("seq").toString(), result);
+            Object result = this.pageBindings.get(event.getName()).apply(payload.getArgs());
+            expression = Helper.evaluationString(deliverResult(), PageEvaluateType.FUNCTION, payload.getName(),payload.getSeq(), result);
         } catch (Exception e) {
-            expression = Helper.evaluationString(deliverError(), PageEvaluateType.FUNCTION, payloadNode.get("name").toString(), payloadNode.get("seq").toString(), e, e.getMessage());
+            expression = Helper.evaluationString(deliverError(), PageEvaluateType.FUNCTION, payload.getName(),payload.getSeq(), e, e.getMessage());
         }
         Map<String, Object> params = new HashMap<>();
         params.put("expression", expression);
@@ -1224,8 +1226,9 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * <p>导航到指定的url,异步，不用等返回，可以配合{@link Page#waitForResponse(String)}使用
-     *
+     * <p>导航到指定的url,异步，不用等返回，可以配合{@link Page#waitForResponse(String)}使用<p/>
+     * 因为如果不异步的话，页面在加载完成时，waitForResponse等waitFor方法会接受不到结果而抛出超时异常
+     * @return null
      */
     public Response goTo(String url, boolean isAsync) throws InterruptedException {
         return this.goTo(url, new PageNavigateOptions(),isAsync);
@@ -1250,7 +1253,7 @@ public class Page extends EventEmitter {
      *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options ) throws InterruptedException {
+    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
         return this.goTo(url, options,true);
     }
 
@@ -1271,7 +1274,7 @@ public class Page extends EventEmitter {
      *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
      *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
      *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
-     * @param isAsync 是否是异步，异步代表只是发导航命令出去，并不等待导航结果
+     * @param isAsync 是否是异步，异步代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
      * @return Response
      */
     public Response goTo(String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
@@ -1404,7 +1407,7 @@ public class Page extends EventEmitter {
      * @param name              挂载到window对象的方法名
      * @param puppeteerFunction 调用name方法时实际执行的方法
      */
-    public void exposeFunction(String name, Function<List<JsonNode>, Object> puppeteerFunction) {
+    public void exposeFunction(String name, Function<List<Object>, Object> puppeteerFunction) {
         if (this.pageBindings.containsKey(name)) {
             throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!", name, name));
         }
@@ -1416,14 +1419,13 @@ public class Page extends EventEmitter {
         params.clear();
         params.put("source", expression);
         this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
-        this.frames().forEach(frame -> frame.evaluate(expression, PageEvaluateType.FUNCTION));
+        this.frames().forEach(frame -> frame.evaluate(expression, PageEvaluateType.STRING));
     }
 
     private String addPageBinding() {
         return "function addPageBinding(bindingName) {\n" +
-                "      const win = /** @type * */ (window);\n" +
-                "      const binding = /** @type function(string):* */ (win[bindingName]);\n" +
-                "\n" +
+                "      const win = (window);\n" +
+                "      const binding = (win[bindingName]);\n" +
                 "      win[bindingName] = (...args) => {\n" +
                 "        const me = window[bindingName];\n" +
                 "        let callbacks = me['callbacks'];\n" +
@@ -1882,6 +1884,26 @@ public class Page extends EventEmitter {
     public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
+     * @param predicate       等待的请求
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Request waitForRequest(Predicate<Request> predicate) throws InterruptedException {
+        ValidateUtil.notNull(predicate,"waitForRequest predicate must not be null");
+        return this.waitForRequest(null,predicate,PageEvaluateType.FUNCTION,this.timeoutSettings.timeout());
+    }
+    /**
+     * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
+     * @param url       等待的请求
+     * @return 要等到的请求
+     * @throws InterruptedException 异常
+     */
+    public Request waitForRequest(String url) throws InterruptedException {
+        ValidateUtil.assertArg(StringUtil.isNotEmpty(url),"waitForRequest url must not be empty");
+        return this.waitForRequest(url,null,PageEvaluateType.STRING,this.timeoutSettings.timeout());
+    }
 
     /**
      * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
@@ -1894,7 +1916,7 @@ public class Page extends EventEmitter {
      * @return 要等到的请求
      * @throws InterruptedException 异常
      */
-    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type ) throws InterruptedException {
+    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type) throws InterruptedException {
        return this.waitForRequest(url,predicate,type,this.timeoutSettings.timeout());
     }
     /**
@@ -2189,5 +2211,37 @@ public class Page extends EventEmitter {
                 }
             }
         }
+    }
+}
+class Payload{
+
+    private List<Object> args;
+
+    private String name;
+
+    private int seq;
+
+    public List<Object> getArgs() {
+        return args;
+    }
+
+    public void setArgs(List<Object> args) {
+        this.args = args;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getSeq() {
+        return seq;
+    }
+
+    public void setSeq(int seq) {
+        this.seq = seq;
     }
 }
