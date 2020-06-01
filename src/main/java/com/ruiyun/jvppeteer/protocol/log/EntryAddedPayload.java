@@ -19,4 +19,11 @@ public class EntryAddedPayload {
     public void setEntry(LogEntry entry) {
         this.entry = entry;
     }
+
+    @Override
+    public String toString() {
+        return "EntryAddedPayload{" +
+                "entry=" + entry +
+                '}';
+    }
 }

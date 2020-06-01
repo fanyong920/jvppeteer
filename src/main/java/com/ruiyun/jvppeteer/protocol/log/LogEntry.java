@@ -132,4 +132,20 @@ public class LogEntry {
     public void setArgs(List<RemoteObject> args) {
         this.args = args;
     }
+
+    @Override
+    public String toString() {
+        return "LogEntry{" +
+                "source='" + source + '\'' +
+                ", level='" + level + '\'' +
+                ", text='" + text + '\'' +
+                ", timestamp=" + timestamp +
+                ", url='" + url + '\'' +
+                ", lineNumber=" + lineNumber +
+                ", stackTrace=" + stackTrace +
+                ", networkRequestId='" + networkRequestId + '\'' +
+                ", workerId='" + workerId + '\'' +
+                ", args=" + args +
+                '}';
+    }
 }

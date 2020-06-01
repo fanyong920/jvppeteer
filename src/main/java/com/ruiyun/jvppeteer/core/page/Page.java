@@ -27,6 +27,7 @@ import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.console.Location;
+import com.ruiyun.jvppeteer.protocol.console.Payload;
 import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
@@ -1116,7 +1117,7 @@ public class Page extends EventEmitter {
         if (ValidateUtil.isNotEmpty(event.getArgs())) {
             for (int i = 0; i < event.getArgs().size(); i++) {
                 RemoteObject arg = event.getArgs().get(i);
-                JSHandle.createJSHandle(context, arg);
+                values.add(JSHandle.createJSHandle(context, arg));
             }
         }
         this.addConsoleMessage(event.getType(), values, event.getStackTrace());
@@ -1124,8 +1125,6 @@ public class Page extends EventEmitter {
 
     private void onBindingCalled(BindingCalledPayload event)  {
         String payloadStr = event.getPayload();
-
-
         Payload payload;
         try {
              payload = OBJECTMAPPER.readValue(payloadStr, Payload.class);
@@ -2211,37 +2210,5 @@ public class Page extends EventEmitter {
                 }
             }
         }
-    }
-}
-class Payload{
-
-    private List<Object> args;
-
-    private String name;
-
-    private int seq;
-
-    public List<Object> getArgs() {
-        return args;
-    }
-
-    public void setArgs(List<Object> args) {
-        this.args = args;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getSeq() {
-        return seq;
-    }
-
-    public void setSeq(int seq) {
-        this.seq = seq;
     }
 }
