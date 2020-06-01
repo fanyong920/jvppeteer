@@ -15,6 +15,8 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -26,6 +28,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ExecutionContext {
+
     public static final String EVALUATION_SCRIPT_URL = "__puppeteer_evaluation_script__";
     //TODO 验证表达式有效性
     public static final Pattern SOURCE_URL_REGEX = Pattern.compile("^[\\040\\t]*//[@#] sourceURL=\\s*(\\S*?)\\s*$", Pattern.MULTILINE);
@@ -105,7 +108,7 @@ public class ExecutionContext {
                 try {
                     argList.add(convertArgument(this, arg));
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         }

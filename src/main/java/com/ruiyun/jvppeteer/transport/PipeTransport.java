@@ -1,6 +1,9 @@
 package com.ruiyun.jvppeteer.transport;
 
+import com.ruiyun.jvppeteer.core.page.Worker;
 import com.ruiyun.jvppeteer.util.StreamUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +15,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * 与chromuim通过pipe通信暂时没实现
  */
 public class PipeTransport implements ConnectionTransport {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Worker.class);
 
     private InputStream pipeReader;
 
@@ -42,7 +47,6 @@ public class PipeTransport implements ConnectionTransport {
     @Override
     public void send(String message) {
         try {
-            System.out.println("pipe send message："+message);
             messageQueue.put(message);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -77,7 +81,7 @@ public class PipeTransport implements ConnectionTransport {
                     pipeWriter.write('\0');
                     pipeWriter.flush();
                 } catch (InterruptedException | IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("pipe transport send message fail ",e);
                 }
             }
         }
@@ -92,9 +96,7 @@ public class PipeTransport implements ConnectionTransport {
         public void run() {
             while (true){
                 try {
-
                     int read = pipeReader.read();
-
                     if((char)read != '\0'){
                         pendingMessage.append((char)read);
 
@@ -105,9 +107,8 @@ public class PipeTransport implements ConnectionTransport {
                     }
                     System.out.println("阻塞了吗"+pendingMessage.toString());
 
-
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("read message from chrome error ",e);
                 }
             }
         }

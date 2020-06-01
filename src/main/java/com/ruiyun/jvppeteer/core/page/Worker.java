@@ -12,6 +12,8 @@ import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
  * The events `workercreated` and `workerdestroyed` are emitted on the page object to signal the worker lifecycle.
  */
 public class Worker extends EventEmitter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Worker.class);
 
     private CDPSession client;
 
@@ -35,60 +39,61 @@ public class Worker extends EventEmitter {
         super();
         this.client = client;
         this.url = url;
-        DefaultBrowserListener<JsonNode> listener = new DefaultBrowserListener<JsonNode>(){
+        DefaultBrowserListener<JsonNode> executionContextListener = new DefaultBrowserListener<JsonNode>() {
             @Override
             public void onBrowserEvent(JsonNode event) {
                 try {
-                    Worker worker = (Worker)this.getTarget();
+                    Worker worker = (Worker) this.getTarget();
                     ExecutionContextDescription contextDescription = Constant.OBJECTMAPPER.treeToValue(event.get("context"), ExecutionContextDescription.class);
-                    ExecutionContext executionContext = new ExecutionContext(client,contextDescription,null);
+                    ExecutionContext executionContext = new ExecutionContext(client, contextDescription, null);
                     worker.executionContextCallback(executionContext);
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    LOGGER.error("executionContextCreated event json process error ",e);
                 }
             }
         };
-        listener.setMothod("Runtime.executionContextCreated");
-        listener.setTarget(this);
-        this.client.once(listener.getMothod(),listener);
+        executionContextListener.setMothod("Runtime.executionContextCreated");
+        executionContextListener.setTarget(this);
+        this.client.once(executionContextListener.getMothod(), executionContextListener);
 
-        this.client.send("Runtime.enable",null,false);
-
-        DefaultBrowserListener<ConsoleAPICalledPayload> consoleLis = new DefaultBrowserListener<ConsoleAPICalledPayload>(){
+        this.client.send("Runtime.enable", null, false);
+        DefaultBrowserListener<ConsoleAPICalledPayload> consoleLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
             @Override
             public void onBrowserEvent(ConsoleAPICalledPayload event) {
-                consoleAPICalled.call(event.getType(),event.getArgs().stream().map(item -> jsHandleFactory(item)).collect(Collectors.toList()),event.getStackTrace());
+                consoleAPICalled.call(event.getType(), event.getArgs().stream().map(item -> jsHandleFactory(item)).collect(Collectors.toList()), event.getStackTrace());
             }
         };
         consoleLis.setMothod("Runtime.consoleAPICalled");
-        this.client.on(consoleLis.getMothod(),consoleLis);
+        this.client.on(consoleLis.getMothod(), consoleLis);
 
-        DefaultBrowserListener<JsonNode> exceptionLis = new DefaultBrowserListener<JsonNode>(){
+        DefaultBrowserListener<JsonNode> exceptionLis = new DefaultBrowserListener<JsonNode>() {
             @Override
             public void onBrowserEvent(JsonNode event) {
                 try {
                     ExceptionDetails exceptionDetails = Constant.OBJECTMAPPER.treeToValue(event.get("exceptionDetails"), ExceptionDetails.class);
                     exceptionThrown.accept(exceptionDetails);
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    LOGGER.error("exceptionThrown event json process error ",e);
                 }
             }
         };
         exceptionLis.setMothod("Runtime.exceptionThrown");
-        this.client.on(exceptionLis.getMothod(),exceptionLis);
+        this.client.on(exceptionLis.getMothod(), exceptionLis);
     }
 
-    public JSHandle jsHandleFactory(RemoteObject remoteObject){
+    public JSHandle jsHandleFactory(RemoteObject remoteObject) {
         return new JSHandle(this.context, client, remoteObject);
     }
-    protected void executionContextCallback(ExecutionContext executionContext){
+
+    protected void executionContextCallback(ExecutionContext executionContext) {
         this.setContext(executionContext);
     }
+
     private ExecutionContext executionContextPromise() throws InterruptedException {
-        if(context == null){
-            this.setContextLatch(new CountDownLatch(1)) ;
+        if (context == null) {
+            this.setContextLatch(new CountDownLatch(1));
             boolean await = this.getContextLatch().await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-            if(!await){
+            if (!await) {
                 throw new TimeoutException("Wait for ExecutionContext timeout");
             }
         }
@@ -106,19 +111,21 @@ public class Worker extends EventEmitter {
     public void setContext(ExecutionContext context) {
         this.context = context;
     }
+
     public String url() {
         return this.url;
     }
+
     public ExecutionContext executionContext() throws InterruptedException {
         return this.executionContextPromise();
     }
 
     public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException {
-        return this.executionContextPromise().evaluate(pageFunction,type, args);
+        return this.executionContextPromise().evaluate(pageFunction, type, args);
     }
 
-    public Object evaluateHandle(String pageFunction,PageEvaluateType type, Object... args) throws InterruptedException {
-        return this.executionContextPromise().evaluateHandle(pageFunction,type ,args);
+    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException {
+        return this.executionContextPromise().evaluateHandle(pageFunction, type, args);
     }
 
 

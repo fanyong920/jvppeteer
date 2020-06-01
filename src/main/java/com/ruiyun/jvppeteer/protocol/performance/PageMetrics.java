@@ -21,4 +21,12 @@ public class PageMetrics {
     public void setMetrics(Metrics metrics) {
         this.metrics = metrics;
     }
+
+    @Override
+    public String toString() {
+        return "PageMetrics{" +
+                "title='" + title + '\'' +
+                ", metrics=" + metrics +
+                '}';
+    }
 }

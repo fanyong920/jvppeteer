@@ -181,7 +181,7 @@ public class Helper {
                 try {
                     run(client, handler, path);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("method readProtocolStream error",e);
                 }
             });
         } else {
@@ -253,7 +253,7 @@ public class Helper {
             for (CallFrame callframe : exceptionDetails.getStackTrace().getCallFrames()) {
                 String location = callframe.getUrl() + ":" + callframe.getColumnNumber() + ":" + callframe.getColumnNumber();
                 String functionName = StringUtil.isNotEmpty(callframe.getFunctionName()) ? callframe.getFunctionName() : "<anonymous>";
-                sb.append("\n    at " ).append(functionName).append("(") .append(location).append(")") ;
+                sb.append("\n    at ").append(functionName).append("(").append(location).append(")");
             }
         }
         return sb.toString();
@@ -272,7 +272,6 @@ public class Helper {
         if (ValidateUtil.isEmpty(eventListeners)) {
             return;
         }
-
         for (int i = 0; i < eventListeners.size(); i++) {
             BrowserListenerWrapper wrapper = eventListeners.get(i);
             wrapper.getEmitter().removeListener(wrapper.getEventName(), wrapper.getHandler());
@@ -318,10 +317,10 @@ public class Helper {
         return remoteObject.getValue();
     }
 
-    public static void releaseObject(CDPSession client, RemoteObject remoteObject,boolean isAsync) {
-        if(!isAsync){
+    public static void releaseObject(CDPSession client, RemoteObject remoteObject, boolean isAsync) {
+        if (!isAsync) {
             releaseObject(client, remoteObject);
-        }else {
+        } else {
             Helper.commonExecutor().submit(() -> releaseObject(client, remoteObject));
         }
 
@@ -389,7 +388,6 @@ public class Helper {
             ValidateUtil.assertArg(args.length == 0, "Cannot evaluate a string with arguments");
             return fun;
         }
-
         List<String> argsList = new ArrayList<>();
         for (Object arg : args) {
             if (arg == null) {
@@ -398,7 +396,7 @@ public class Helper {
                 try {
                     argsList.add(Constant.OBJECTMAPPER.writeValueAsString(arg));
                 } catch (JsonProcessingException e) {
-                    e.printStackTrace();
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -411,16 +409,17 @@ public class Helper {
                 if (COMMON_EXECUTOR == null) {
                     //考虑到线程切换中，严重影响到性能，尽量减少线程数量
                     int processors = Runtime.getRuntime().availableProcessors();
-                    if(processors > 4){
+                    if (processors > 4) {
                         processors = 4;
                     }
                     int threadCount = Math.max(1, processors);
-                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(),new CommonThreadFactory());
+                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), new CommonThreadFactory());
                 }
             }
         }
         return COMMON_EXECUTOR;
     }
+
     static class CommonThreadFactory implements ThreadFactory {
         private static final AtomicInteger poolNumber = new AtomicInteger(1);
         private final ThreadGroup group;
@@ -440,8 +439,7 @@ public class Helper {
             Thread t = new Thread(group, r,
                     namePrefix + threadNumber.getAndIncrement(),
                     0);
-            if (t.isDaemon())
-                t.setDaemon(false);
+            t.setDaemon(true);
             if (t.getPriority() != Thread.NORM_PRIORITY)
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;

@@ -120,7 +120,7 @@ public class Page extends EventEmitter {
 
     private Tracing tracing;
 
-    private Map<String, Function<List<Object>, Object>> pageBindings;
+    private Map<String, Function<List<?>, Object>> pageBindings;
 
 
     private Coverage coverage;
@@ -446,6 +446,13 @@ public class Page extends EventEmitter {
         this.on(listener.getMothod(), listener);
     }
 
+    /**
+     * frame attach的时候触发
+     * <p>注意不要在这个事件内直接调用Frame中会暂停线程的方法</p>
+     * <p>不然的话，websocket的read线程会被阻塞，程序无法正常运行</p>
+     * <p>可以在将这些方法的调用移动到另外一个线程中</p>
+     * @param handler 事件处理器
+     */
     public void onFrameattached(EventHandler<Frame> handler) {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
@@ -453,6 +460,13 @@ public class Page extends EventEmitter {
         this.on(listener.getMothod(), listener);
     }
 
+    /**
+     * frame detached的时候触发
+     * <p>注意不要在这个事件内直接调用Frame中会暂停线程的方法</p>
+     * <p>不然的话，websocket的read线程会被阻塞，程序无法正常运行</p>
+     * <p>可以在将这些方法的调用移动到另外一个线程中</p>
+     * @param handler 事件处理器
+     */
     public void onFramedetached(EventHandler<Frame> handler) {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
@@ -460,6 +474,12 @@ public class Page extends EventEmitter {
         this.on(listener.getMothod(), listener);
     }
 
+    /**
+     * <p>注意不要在这个事件内直接调用Frame中会暂停线程的方法</p>
+     * <p>不然的话，websocket的read线程会被阻塞，程序无法正常运行</p>
+     * <p>可以在将这些方法的调用移动到另外一个线程中</p>
+     * @param handler 事件处理器
+     */
     public void onFramenavigated(EventHandler<Frame> handler) {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
@@ -523,13 +543,24 @@ public class Page extends EventEmitter {
         this.on(listener.getMothod(), listener);
     }
 
+    /**
+     * <p>注意不要在这个事件内直接调用Worker中会暂停线程的方法</p>
+     * <p>不然的话，websocket的read线程会被阻塞，程序无法正常运行</p>
+     * <p>可以在将这些方法的调用移动到另外一个线程中</p>
+     * @param handler 事件处理器
+     */
     public void onWorkercreated(EventHandler<Worker> handler) {
         DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_WORKERCREATED.getName());
         this.on(listener.getMothod(), listener);
     }
-
+    /**
+     * <p>注意不要在这个事件内直接调用Worker中会暂停线程的方法</p>
+     * <p>不然的话，websocket的read线程会被阻塞，程序无法正常运行</p>
+     * <p>可以在将这些方法的调用移动到另外一个线程中</p>
+     * @param handler 事件处理器
+     */
     public void onWorkerdestroyed(EventHandler<Worker> handler) {
         DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
@@ -1406,7 +1437,7 @@ public class Page extends EventEmitter {
      * @param name              挂载到window对象的方法名
      * @param puppeteerFunction 调用name方法时实际执行的方法
      */
-    public void exposeFunction(String name, Function<List<Object>, Object> puppeteerFunction) {
+    public void exposeFunction(String name, Function<List<?>, Object> puppeteerFunction) {
         if (this.pageBindings.containsKey(name)) {
             throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!", name, name));
         }
@@ -1534,7 +1565,7 @@ public class Page extends EventEmitter {
                 Metric value = OBJECTMAPPER.treeToValue(next, Metric.class);
                 metrics.add(value);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         return this.buildMetricsObject(metrics);

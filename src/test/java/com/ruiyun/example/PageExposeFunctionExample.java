@@ -27,9 +27,7 @@ public class PageExposeFunctionExample {
         });
         page.exposeFunction("md5",(text) -> {
             AtomicReference<String> result= new AtomicReference<>("");
-            text.forEach(arg -> {
-                result.updateAndGet(v -> v + arg);
-            });
+            text.forEach(arg -> result.updateAndGet(v -> v + arg));
             return getMD5(result.get());
         });
         page.evaluate("async () => {\n" +

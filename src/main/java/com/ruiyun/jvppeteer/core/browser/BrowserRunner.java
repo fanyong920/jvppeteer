@@ -173,10 +173,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             try {
                 process.waitFor();
             } catch (InterruptedException e) {
-
+                LOGGER.error("waitFor process error ",e);
             }
         }
-
         //delete user-data-dir
         try {
             if (StringUtil.isNotEmpty(tempDirectory)) {
@@ -192,9 +191,8 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("kill chrome process error ",e);
         }
-
     }
 
     /**

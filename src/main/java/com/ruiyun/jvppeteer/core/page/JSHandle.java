@@ -66,13 +66,12 @@ public class JSHandle {
         Iterator<JsonNode> iterator = response.get("result").iterator();
         while (iterator.hasNext()) {
             JsonNode property = iterator.next();
-
             if (!property.get("enumerable").asBoolean())
                 continue;
             try {
                 result.put(property.get("name").asText(), createJSHandle(this.context, Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         return result;
@@ -89,7 +88,7 @@ public class JSHandle {
             try {
                 return Helper.valueFromRemoteObject(Constant.OBJECTMAPPER.treeToValue(response.get("result"), RemoteObject.class));
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
         return Helper.valueFromRemoteObject(this.remoteObject);

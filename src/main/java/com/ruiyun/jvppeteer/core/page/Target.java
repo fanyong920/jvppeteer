@@ -107,7 +107,8 @@ public class Target {
 
     /**
      * 如果目标不是 "page" 或 "background_page" 类型，则返回 null。
-     * @return  Page
+     *
+     * @return Page
      */
     public Page page() {
         String type;
@@ -119,6 +120,7 @@ public class Target {
 
     /**
      * 确定目标是怎么样的类型。 可以是 "page"，"background_page"，"service_worker"，"browser" 或 "其他"。
+     *
      * @return 目标类型
      */
     public String type() {
@@ -171,6 +173,7 @@ public class Target {
 
     /**
      * 获取打开此目标的目标。 顶级目标返回null。
+     *
      * @return Target
      */
     public Target opener() {
@@ -183,6 +186,7 @@ public class Target {
 
     /**
      * 返回目标的url
+     *
      * @return url
      */
     public String url() {
@@ -191,6 +195,7 @@ public class Target {
 
     /**
      * 获取目标所属的浏览器。
+     *
      * @return Browser
      */
     public Browser browser() {
@@ -239,6 +244,7 @@ public class Target {
 
     /**
      * 目标所属的浏览器上下文。
+     *
      * @return 浏览器上下文
      */
     public BrowserContext browserContext() {
@@ -282,14 +288,9 @@ public class Target {
         }
     }
 
-    public boolean WaiforisClosedPromise() {
+    public boolean WaiforisClosedPromise() throws InterruptedException {
         this.isClosedPromiseLatch = new CountDownLatch(1);
-        try {
-            return this.isClosedPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return this.isClosedPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
 }
