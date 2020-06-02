@@ -9,7 +9,7 @@ import com.ruiyun.jvppeteer.options.BrowserOptions;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.OptionsBuilder;
+import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
@@ -77,7 +77,7 @@ public class Puppeteer {
 
     private static Browser rawLaunch(boolean headless) throws IOException {
         Puppeteer puppeteer = new Puppeteer();
-        return Puppeteer.rawLaunch(new OptionsBuilder().withHeadless(headless).build(), puppeteer);
+        return Puppeteer.rawLaunch(new LaunchOptionsBuilder().withHeadless(headless).build(), puppeteer);
     }
 
     /**

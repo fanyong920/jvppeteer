@@ -324,6 +324,7 @@ public class ElementHandle extends JSHandle {
     public void click(boolean isBlock) throws InterruptedException, ExecutionException {
         click(new ClickOptions(),isBlock);
     }
+
     public void click(ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
@@ -373,10 +374,23 @@ public class ElementHandle extends JSHandle {
         return (List<String>) this.evaluate(pageFunction, PageEvaluateType.FUNCTION, values);
     }
 
-    public void tap() {
+    /**
+     *
+     * @param isBlock 是否是阻塞的，阻塞的话会在当前线程内完成
+     */
+    public void tap(boolean isBlock) {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
-        this.page.touchscreen().tap(point.getX(), point.getY());
+        if(isBlock){
+            this.page.touchscreen().tap(point.getX(), point.getY());
+        }else {
+            Helper.commonExecutor().submit(() -> this.page.touchscreen().tap(point.getX(), point.getY()));
+        }
+
+    }
+
+    public void tap() {
+        this.tap(true);
     }
 
     public void type(String text) throws InterruptedException {

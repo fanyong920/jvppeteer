@@ -4,7 +4,7 @@ import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.OptionsBuilder;
+import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.util.ArrayList;
@@ -53,7 +53,7 @@ public class AutoCommentExample {
 
     private static Browser lauch(String path) throws Exception {
         ArrayList<String> arrayList = new ArrayList<>();
-        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).withUserDataDir("C:\\Users\\howay\\AppData\\Local\\Google\\Chrome\\User Data").build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).withUserDataDir("C:\\Users\\howay\\AppData\\Local\\Google\\Chrome\\User Data").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         return Puppeteer.launch(options);

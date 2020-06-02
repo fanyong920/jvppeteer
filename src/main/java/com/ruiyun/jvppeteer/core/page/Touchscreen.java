@@ -27,34 +27,6 @@ public class Touchscreen {
         params.put("awaitPromise", true);
         this.client.send("Runtime.evaluate", params, true);
 
-        class TouchPoint {
-
-            private long x;
-
-            private long y;
-
-            public TouchPoint(long x, long y) {
-                this.x = Math.round(x);
-                this.y = Math.round(y);
-            }
-
-            public long getX() {
-                return x;
-            }
-
-            public void setX(long x) {
-                this.x = x;
-            }
-
-            public long getY() {
-                return y;
-            }
-
-            public void setY(long y) {
-                this.y = y;
-            }
-        }
-
         TouchPoint touchPoint = new TouchPoint(x, y);
         List<TouchPoint> touchPoints = new ArrayList<>();
         touchPoints.add(touchPoint);
@@ -69,5 +41,32 @@ public class Touchscreen {
         params.put("touchPoints", new ArrayList<>());
         params.put("modifiers", this.keyboard.getModifiers());
         this.client.send("Input.dispatchTouchEvent", params, true);
+    }
+    static class TouchPoint {
+
+        private long x;
+
+        private long y;
+
+        public TouchPoint(long x, long y) {
+            this.x = Math.round(x);
+            this.y = Math.round(y);
+        }
+
+        public long getX() {
+            return x;
+        }
+
+        public void setX(long x) {
+            this.x = x;
+        }
+
+        public long getY() {
+            return y;
+        }
+
+        public void setY(long y) {
+            this.y = y;
+        }
     }
 }

@@ -6,11 +6,8 @@ import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.OptionsBuilder;
+import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.util.Helper;
-import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.htmlparser.Node;
@@ -22,12 +19,10 @@ import org.htmlparser.tags.ScriptTag;
 import org.htmlparser.util.NodeList;
 import org.htmlparser.util.ParserException;
 
-import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -46,7 +41,7 @@ public class CrawlerTaobaoItem {
         //指定启动路径，启动浏览器
         String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(), "UTF-8");
         ArrayList<String> argList = new ArrayList<>();
-        LaunchOptions options = new OptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
         argList.add("--no-sandbox");
         argList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

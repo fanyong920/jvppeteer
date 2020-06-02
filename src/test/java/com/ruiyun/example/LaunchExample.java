@@ -8,14 +8,14 @@ import org.junit.Test;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.OptionsBuilder;
+import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 
 public class LaunchExample {
 	
 	@Test
 	public void test1() throws IOException {
 		ArrayList<String> arrayList = new ArrayList<>();
-		LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).build();
+		LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).build();
 		arrayList.add("--no-sandbox");
 		arrayList.add("--disable-setuid-sandbox");
 		Puppeteer.launch(options);

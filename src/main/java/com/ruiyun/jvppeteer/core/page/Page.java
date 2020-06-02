@@ -696,6 +696,17 @@ public class Page extends EventEmitter {
      * 此方法找到一个匹配 selector 选择器的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 点击它。 如果选择器没有匹配任何元素，此方法将会报错。
      *默认是阻塞的，会等待点击完成指令返回
      * @param selector 选择器
+     * @param isBlock 是否是阻塞的，不阻塞的时候可以配合waitFor方法使用
+     * @throws InterruptedException 异常
+     */
+    public void click(String selector,boolean isBlock) throws InterruptedException, ExecutionException {
+        this.click(selector, new ClickOptions(),isBlock);
+    }
+
+    /**
+     * 此方法找到一个匹配 selector 选择器的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 点击它。 如果选择器没有匹配任何元素，此方法将会报错。
+     *默认是阻塞的，会等待点击完成指令返回
+     * @param selector 选择器
      * @throws InterruptedException 异常
      */
     public void click(String selector) throws InterruptedException, ExecutionException {
@@ -1398,9 +1409,19 @@ public class Page extends EventEmitter {
      * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.touchscreen 来点击元素的中间位置 如果没有匹配的元素，此方法会报错
      *
      * @param selector 要点击的元素的选择器。如果有多个匹配的元素，点击第一个
+     * @param isBlock 是否阻塞，如果是false,那么将在另外的线程中完成，可以配合waitFor方法
+     */
+    public void tap(String selector,boolean isBlock) {
+        this.mainFrame().tap(selector,isBlock);
+    }
+
+    /**
+     * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.touchscreen 来点击元素的中间位置 如果没有匹配的元素，此方法会报错
+     *
+     * @param selector 要点击的元素的选择器。如果有多个匹配的元素，点击第一个
      */
     public void tap(String selector) {
-        this.mainFrame().tap(selector);
+        this.tap(selector,true);
     }
 
 
@@ -2169,6 +2190,18 @@ public class Page extends EventEmitter {
 
     public Accessibility accessibility() {
         return this.accessibility;
+    }
+
+    /**
+     * 每个字符输入后都会触发 keydown, keypress/input 和 keyup 事件
+     * <p>要点击特殊按键，比如 Control 或 ArrowDown，用 keyboard.press</p>
+     *
+     * @param selector 要输入内容的元素选择器。如果有多个匹配的元素，输入到第一个匹配的元素。
+     * @param text     要输入的内容
+     * @throws InterruptedException 异常
+     */
+    public void type(String selector, String text ) throws InterruptedException {
+        this.mainFrame().type(selector, text, 0);
     }
 
     /**

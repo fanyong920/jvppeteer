@@ -570,7 +570,7 @@ public class FrameManager extends EventEmitter {
 
         this.documentNavigationPromiseType = "all";
         this.setNavigateResult(null);
-        this.documentLatch = new CountDownLatch(1);
+
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
         if (watcher.newDocumentNavigationPromise() != null) {
             return watcher.navigationResponse();
@@ -579,6 +579,7 @@ public class FrameManager extends EventEmitter {
             return watcher.navigationResponse();
         }
         try {
+            this.documentLatch = new CountDownLatch(1);
             boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
             if (!await) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");

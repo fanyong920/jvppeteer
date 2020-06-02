@@ -140,8 +140,8 @@ public class Frame {
         return this.secondaryWorld.select(selector, values);
     }
 
-    public void tap(String selector) {
-        this.secondaryWorld.tap(selector);
+    public void tap(String selector,boolean isBlock) {
+        this.secondaryWorld.tap(selector,isBlock);
     }
 
     public void type(String selector, String text, int delay) throws InterruptedException {

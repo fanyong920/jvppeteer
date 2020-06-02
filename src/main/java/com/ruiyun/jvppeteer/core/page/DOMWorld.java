@@ -369,11 +369,18 @@ public class DOMWorld {
         return result;
     }
 
-    public void tap(String selector) {
+    public void tap(String selector,boolean isBlock) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
-        handle.tap();
-        handle.dispose();
+        if(isBlock){
+            handle.tap();
+            handle.dispose();
+        }else {
+            Helper.commonExecutor().submit(() -> {
+                handle.tap();
+                handle.dispose();
+            });
+        }
     }
 
     public void type(String selector, String text, int delay) throws InterruptedException {
