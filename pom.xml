@@ -4,7 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ruiyun</groupId>
     <artifactId>jvppeteer</artifactId>
+    <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
+    <modules>
+        <module>example</module>
+    </modules>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <inceptionYear>2020</inceptionYear>
@@ -41,20 +45,12 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <log4j12.version>1.7.29</log4j12.version>
         <logback.version>1.2.3</logback.version>
         <junit.version>4.12</junit.version>
         <websocket.api.version>1.1</websocket.api.version>
-        <tyrus.version>1.13.1</tyrus.version>
         <jackson.version>2.10.0</jackson.version>
-        <cdt.version>2.1.0</cdt.version>
         <java.webSocket.version>1.5.0</java.webSocket.version>
-        <httpclient.version>4.5.12</httpclient.version>
-        <guava.version>28.2-jre</guava.version>
         <commons.compress.version>1.19</commons.compress.version>
-        <jsoup.version>1.11.3</jsoup.version>
-        <htmlunit.version>2.38.0</htmlunit.version>
-        <httpasyncclient.version>4.1.4</httpasyncclient.version>
     </properties>
     <dependencies>
         <dependency>
@@ -78,45 +74,10 @@
             <version>${java.webSocket.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
             <version>${commons.compress.version}</version>
         </dependency>
-        <!-- 用于下载chrome浏览器压缩包 -->
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpasyncclient</artifactId>
-            <version>${httpasyncclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.kklisura.cdt</groupId>
-            <artifactId>cdt-java-client</artifactId>
-            <version>${cdt.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.sourceforge.htmlunit</groupId>
-            <artifactId>htmlunit</artifactId>
-            <version>2.38.0</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.htmlparser/htmlparser -->
-        <dependency>
-            <groupId>org.htmlparser</groupId>
-            <artifactId>htmlparser</artifactId>
-            <version>2.1</version>
-            <scope>test</scope>
-        </dependency>
+
     </dependencies>
 </project>

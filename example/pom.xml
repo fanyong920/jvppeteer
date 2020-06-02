@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.ruiyun</groupId>
+    <artifactId>example</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <junit.version>4.12</junit.version>
+        <cdt.version>2.1.0</cdt.version>
+        <httpclient.version>4.5.12</httpclient.version>
+        <guava.version>28.2-jre</guava.version>
+        <jsoup.version>1.11.3</jsoup.version>
+        <htmlunit.version>2.38.0</htmlunit.version>
+        <httpasyncclient.version>4.1.4</httpasyncclient.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.kklisura.cdt</groupId>
+            <artifactId>cdt-java-client</artifactId>
+            <version>${cdt.version}</version>
+
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.htmlunit</groupId>
+            <artifactId>htmlunit</artifactId>
+            <version>2.38.0</version>
+
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.htmlparser/htmlparser -->
+        <dependency>
+            <groupId>org.htmlparser</groupId>
+            <artifactId>htmlparser</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <artifactId>jvppeteer</artifactId>
+            <groupId>com.ruiyun</groupId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
