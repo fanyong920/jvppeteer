@@ -436,7 +436,7 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
+    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
         String referer;
         List<String> waitUntil;
         int timeout;
@@ -458,7 +458,7 @@ public class FrameManager extends EventEmitter {
             }
             assertNoLegacyNavigationOptions(waitUntil);
         }
-        if(isAsync){
+        if(!isBlock){
             Map<String, Object> params = new HashMap<>();
             params.put("url", url);
             params.put("referer", referer);

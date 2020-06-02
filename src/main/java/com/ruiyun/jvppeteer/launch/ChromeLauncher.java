@@ -55,7 +55,30 @@ public class ChromeLauncher implements Launcher {
     @Override
     public Browser launch(LaunchOptions options) throws IOException {
         List<String> chromeArguments = new ArrayList<>();
-        String temporaryUserDataDir = defaultArgs(options, chromeArguments);
+        String temporaryUserDataDir = null;
+        defaultArgs(options, chromeArguments);
+
+        List<String> ignoreDefaultArgs;
+        if (options != null && ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
+            chromeArguments.removeAll(ignoreDefaultArgs);
+        }
+        boolean isCustomUserDir = false;
+        boolean isCustomRemoteDebugger = false;
+        for (String arg : chromeArguments) {
+            if (arg.startsWith("--remote-debugging-")) {
+                isCustomRemoteDebugger = true;
+            } else if (arg.startsWith("--user-data-dir")) {
+                isCustomUserDir = true;
+            }
+        }
+        if (!isCustomUserDir) {
+            temporaryUserDataDir = FileUtil.createProfileDir(Constant.PROFILE_PREFIX);
+            chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
+        }
+        if (!isCustomRemoteDebugger) {
+            chromeArguments.add(options.getPipe() ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
+        }
+
         String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 
@@ -79,63 +102,36 @@ public class ChromeLauncher implements Launcher {
 
     /**
      * @param options 选项
-     * @param chromeArguments 参数
-     * @return 临时文件夹路径
+     * @param chromeArguments 要启动的参数集合
      */
     @Override
-    public String defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
-        String temporaryUserDataDir = null;
-        boolean pipe = false;
-        LaunchOptions launchOptions = null;
-        if (options instanceof LaunchOptions) {
-            launchOptions = (LaunchOptions) options;
-            pipe = launchOptions.getPipe();
-            if (!launchOptions.getIgnoreAllDefaultArgs()) {
-                chromeArguments.addAll(Constant.DEFAULT_ARGS);
-            }
+    public void defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
+        LaunchOptions launchOptions;
+        if(StringUtil.isNotEmpty(options.getUserDataDir())){
+            chromeArguments.add("--user-data-dir="+options.getUserDataDir());
         }
-
-        List<String> args;
-        if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
-            chromeArguments.add("about:blank");
-            chromeArguments.addAll(args);
-        }
-
         boolean devtools = options.getDevtools();
         boolean headless = options.getHeadless();
         if (devtools) {
             chromeArguments.add("--auto-open-devtools-for-tabs");
             headless = false;
         }
-
         if (headless) {
             chromeArguments.add("--headless");
             chromeArguments.add("--hide-scrollbars");
             chromeArguments.add("--mute-audio");
         }
-        List<String> ignoreDefaultArgs;
-        if (launchOptions != null && ValidateUtil.isNotEmpty(ignoreDefaultArgs = launchOptions.getIgnoreDefaultArgs())) {
-            chromeArguments.removeAll(ignoreDefaultArgs);
+        List<String> args;
+        if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
+            chromeArguments.add("about:blank");
+            chromeArguments.addAll(args);
         }
-
-        boolean isCustomUserDir = false;
-        boolean isCustomRemoteDebugger = false;
-        for (String arg : chromeArguments) {
-            if (arg.startsWith("--remote-debugging-")) {
-                isCustomRemoteDebugger = true;
-            }
-            if (arg.startsWith("--user-data-dir")) {
-                isCustomUserDir = true;
+        if (options instanceof LaunchOptions) {
+            launchOptions = (LaunchOptions) options;
+            if (!launchOptions.getIgnoreAllDefaultArgs()) {
+                chromeArguments.addAll(Constant.DEFAULT_ARGS);
             }
         }
-        if (!isCustomUserDir) {
-            temporaryUserDataDir = FileUtil.createProfileDir(Constant.PROFILE_PREFIX);
-            chromeArguments.add("--user-data-dir=" + temporaryUserDataDir);
-        }
-        if (!isCustomRemoteDebugger) {
-            chromeArguments.add(pipe ? "--remote-debugging-pipe" : "--remote-debugging-port=0");
-        }
-        return temporaryUserDataDir;
     }
 
     /**

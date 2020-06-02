@@ -13,7 +13,7 @@ public class BroswerCloseExample {
     public static void main(String[] args) throws Exception {
         String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
-        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
+        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

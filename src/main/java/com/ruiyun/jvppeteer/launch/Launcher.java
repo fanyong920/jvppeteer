@@ -16,7 +16,7 @@ public interface Launcher {
 	
 	Browser launch(LaunchOptions options) throws IOException;
 	
-	String defaultArgs(ChromeArgOptions options, List<String> chromeArguments);
+	void defaultArgs(ChromeArgOptions options, List<String> chromeArguments);
 	
 	String resolveExecutablePath(String chromeExecutable) throws IOException;
 	

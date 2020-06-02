@@ -99,13 +99,24 @@ public class JSHandle {
         return null;
     }
 
+    /**
+     * 阻塞释放elementHandle
+     */
     public void dispose() {
+        this.dispose(true);
+    }
+
+    /**
+     * 释放elementhandle
+     * 当在websocket信息回调中处理时需要isBlock=false
+     * @param isBlock 是否是异步
+     */
+    public void dispose(boolean isBlock) {
         if (this.disposed)
             return;
         this.disposed = true;
-        Helper.releaseObject(this.client, this.remoteObject,false);
+        Helper.releaseObject(this.client, this.remoteObject,isBlock);
     }
-
     public String toString() {
         if (StringUtil.isNotEmpty(this.remoteObject.getObjectId())) {
             String type = StringUtil.isNotEmpty(this.remoteObject.getSubtype()) ? this.remoteObject.getSubtype() : this.remoteObject.getType();

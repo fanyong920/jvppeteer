@@ -231,10 +231,9 @@ public class DOMWorld {
         }
         if (StringUtil.isNotEmpty(options.getPath())) {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
-
-            contents.add("//# sourceURL=" + options.getPath().replaceAll("\n", ""));
+            String content = String.join("\n",contents)+"//# sourceURL=" + options.getPath().replaceAll("\n", "");
             ExecutionContext context = this.executionContext();
-            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, contents, options.getType());
+            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, content, options.getType());
             return evaluateHandle.asElement();
         }
         if (StringUtil.isNotEmpty(options.getContent())) {
@@ -284,10 +283,9 @@ public class DOMWorld {
 
         if (options != null && StringUtil.isNotEmpty(options.getPath())) {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
-            String s = options.getPath().replaceAll("\n", "");
-            contents.add("/*# sourceURL=\\" + s);
+            String content = String.join("\n",contents)+"/*# sourceURL=" + options.getPath().replaceAll("\n", "")+"*/";
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, contents);
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, content);
             return handle.asElement();
         }
 
@@ -330,11 +328,23 @@ public class DOMWorld {
                 "    }";
     }
 
-    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
+    public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
-        handle.click(options);
-        handle.dispose();
+        if(isBlock){
+            handle.click(options,true);
+            handle.dispose();
+            return;
+        }
+        Helper.commonExecutor().submit(() -> {
+            try {
+                handle.click(options,true);
+                handle.dispose();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+        });
     }
 
     public void focus(String selector) {

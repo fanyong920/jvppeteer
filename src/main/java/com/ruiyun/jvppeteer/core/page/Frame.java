@@ -124,8 +124,8 @@ public class Frame {
         return this.mainWorld.addStyleTag(options);
     }
 
-    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
-        this.secondaryWorld.click(selector, options);
+    public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
+        this.secondaryWorld.click(selector, options,isBlock);
     }
 
     public void focus(String selector) {
@@ -211,8 +211,8 @@ public class Frame {
         this.lifecycleEvents.add("load");
     }
 
-    public Response goTo(String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
-        return this.frameManager.navigateFrame(this, url, options,isAsync);
+    public Response goTo(String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
+        return this.frameManager.navigateFrame(this, url, options,isBlock);
     }
 
     public String getId() {

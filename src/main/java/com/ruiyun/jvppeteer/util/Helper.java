@@ -317,8 +317,8 @@ public class Helper {
         return remoteObject.getValue();
     }
 
-    public static void releaseObject(CDPSession client, RemoteObject remoteObject, boolean isAsync) {
-        if (!isAsync) {
+    public static void releaseObject(CDPSession client, RemoteObject remoteObject, boolean isBlock) {
+        if (isBlock) {
             releaseObject(client, remoteObject);
         } else {
             Helper.commonExecutor().submit(() -> releaseObject(client, remoteObject));

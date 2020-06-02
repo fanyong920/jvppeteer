@@ -694,13 +694,24 @@ public class Page extends EventEmitter {
 
     /**
      * 此方法找到一个匹配 selector 选择器的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 点击它。 如果选择器没有匹配任何元素，此方法将会报错。
+     *默认是阻塞的，会等待点击完成指令返回
+     * @param selector 选择器
+     * @throws InterruptedException 异常
+     */
+    public void click(String selector) throws InterruptedException, ExecutionException {
+        this.click(selector, new ClickOptions(),true);
+    }
+
+    /**
+     * 此方法找到一个匹配 selector 选择器的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 点击它。 如果选择器没有匹配任何元素，此方法将会报错。
      *
      * @param selector 选择器
      * @param options  参数
+     * @param isBlock 是否是阻塞的，为true代表阻塞，为false代表不阻塞，不阻塞可以配合waitForNavigate等方法使用
      * @throws InterruptedException 异常
      */
-    public void click(String selector, ClickOptions options) throws InterruptedException, ExecutionException {
-        this.mainFrame().click(selector, options);
+    public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
+        this.mainFrame().click(selector, options,isBlock);
     }
 
     /**
@@ -1070,7 +1081,7 @@ public class Page extends EventEmitter {
 
     private void onLogEntryAdded(EntryAddedPayload event) {
         if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
-            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, (RemoteObject) arg,true));
+            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, (RemoteObject) arg,false));
         if (!"worker".equals(event.getEntry().getSource()))
             this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
     }
@@ -1218,7 +1229,7 @@ public class Page extends EventEmitter {
 
     private void addConsoleMessage(String type, List<JSHandle> args, StackTrace stackTrace) {
         if (this.getListenerCount(Events.PAGE_CONSOLE.getName()) == 0) {
-            args.forEach(JSHandle::dispose);
+            args.forEach(arg -> arg.dispose(false));
             return;
         }
         List<String> textTokens = new ArrayList<>();
@@ -1256,12 +1267,14 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * <p>导航到指定的url,异步，不用等返回，可以配合{@link Page#waitForResponse(String)}使用<p/>
-     * 因为如果不异步的话，页面在加载完成时，waitForResponse等waitFor方法会接受不到结果而抛出超时异常
-     * @return null
+     * <p>导航到指定的url,可以配置是否阻塞，可以配合{@link Page#waitForResponse(String)}使用<p/>
+     * 因为如果不阻塞的话，页面在加载完成时，waitForResponse等waitFor方法会接受不到结果而抛出超时异常
+     * @param url 导航的地址
+     * @param isBlock true代表阻塞
+     * @return 不阻塞的话返回null
      */
-    public Response goTo(String url, boolean isAsync) throws InterruptedException {
-        return this.goTo(url, new PageNavigateOptions(),isAsync);
+    public Response goTo(String url, boolean isBlock) throws InterruptedException {
+        return this.goTo(url, new PageNavigateOptions(),isBlock);
     }
 
     /**
@@ -1304,11 +1317,11 @@ public class Page extends EventEmitter {
      *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
      *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
      *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
-     * @param isAsync 是否是异步，异步代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
+     * @param isBlock 是否阻塞，不阻塞代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options,boolean isAsync) throws InterruptedException {
-        return this.frameManager.getMainFrame().goTo(url, options,isAsync);
+    public Response goTo(String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
+        return this.frameManager.getMainFrame().goTo(url, options,isBlock);
     }
 
     /**
@@ -1323,7 +1336,7 @@ public class Page extends EventEmitter {
      * @return 响应
      */
     public Response goTo(String url) throws InterruptedException {
-        return this.goTo(url,false);
+        return this.goTo(url,true);
     }
 
     /**

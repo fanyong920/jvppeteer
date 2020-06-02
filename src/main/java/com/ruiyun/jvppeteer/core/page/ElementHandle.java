@@ -13,6 +13,7 @@ import com.ruiyun.jvppeteer.protocol.input.BoxModel;
 import com.ruiyun.jvppeteer.protocol.input.ClickablePoint;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -96,7 +97,7 @@ public class ElementHandle extends JSHandle {
                 "}";
         Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
         try {
-            if (error != null && (error.getClass().equals(boolean.class) || error.getClass().equals(Boolean.class) ) && (boolean)error)
+            if (error != null && (error.getClass().equals(boolean.class) || error.getClass().equals(Boolean.class)) && (boolean) error)
                 throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -109,8 +110,6 @@ public class ElementHandle extends JSHandle {
         params.put("objectId", this.remoteObject.getObjectId());
         JsonNode result = this.client.send("DOM.getContentQuads", params, true);
         JsonNode layoutMetrics = this.client.send("Page.getLayoutMetrics", null, true);
-
-
         if (result == null || result.get("quads").size() == 0)
             throw new RuntimeException("Node is either not visible or not an HTMLElement");
         // Filter out quads that have too small area to click into.
@@ -123,9 +122,8 @@ public class ElementHandle extends JSHandle {
         while (elements.hasNext()) {
             JsonNode quadNode = elements.next();
             List<Integer> quad = new ArrayList<>();
-
             Iterator<JsonNode> iterator = quadNode.elements();
-            while (iterator.hasNext()){
+            while (iterator.hasNext()) {
                 quad.add(iterator.next().asInt());
             }
             List<ClickablePoint> clickOptions = this.fromProtocolQuad(quad);
@@ -313,14 +311,33 @@ public class ElementHandle extends JSHandle {
         return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
     }
 
+
     public void click() throws InterruptedException, ExecutionException {
-        click(new ClickOptions());
+        click(new ClickOptions(),true);
     }
 
-    public void click(ClickOptions options) throws InterruptedException, ExecutionException {
+    /**
+     * 点击元素，可配置是否阻塞，如果阻塞，则等会点击结果返回，不阻塞的话，会放在另外一个线程中运行
+     * @throws InterruptedException 打断异常
+     * @throws ExecutionException 异常
+     */
+    public void click(boolean isBlock) throws InterruptedException, ExecutionException {
+        click(new ClickOptions(),isBlock);
+    }
+    public void click(ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
-        this.page.mouse().click(point.getX(), point.getY(), options);
+        if(!isBlock){
+            Helper.commonExecutor().submit(() -> {
+                try {
+                    this.page.mouse().click(point.getX(), point.getY(), options);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }else {
+            this.page.mouse().click(point.getX(), point.getY(), options);
+        }
     }
 
     public void focus() {
@@ -362,8 +379,8 @@ public class ElementHandle extends JSHandle {
         this.page.touchscreen().tap(point.getX(), point.getY());
     }
 
-    public void type(String text ) throws InterruptedException {
-        type(text,0);
+    public void type(String text) throws InterruptedException {
+        type(text, 0);
     }
 
     public void type(String text, int delay) throws InterruptedException {
@@ -372,7 +389,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public void press(String key) throws InterruptedException {
-        this.press(key,0,null);
+        this.press(key, 0, null);
     }
 
     public void press(String key, int delay, String text) throws InterruptedException {
