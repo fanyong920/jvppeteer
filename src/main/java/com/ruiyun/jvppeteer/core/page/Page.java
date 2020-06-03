@@ -1092,7 +1092,7 @@ public class Page extends EventEmitter {
 
     private void onLogEntryAdded(EntryAddedPayload event) {
         if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
-            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, (RemoteObject) arg,false));
+            event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, arg,false));
         if (!"worker".equals(event.getEntry().getSource()))
             this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
     }
@@ -1620,7 +1620,6 @@ public class Page extends EventEmitter {
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
      *
      * @param options 选项
-     * @return Object Future or String
      * @throws IOException 异常
      */
     public void pdf(PDFOptions options) throws IOException {
@@ -2200,7 +2199,7 @@ public class Page extends EventEmitter {
      * @param text     要输入的内容
      * @throws InterruptedException 异常
      */
-    public void type(String selector, String text ) throws InterruptedException {
+    public void type(String selector, String text) throws InterruptedException {
         this.mainFrame().type(selector, text, 0);
     }
 

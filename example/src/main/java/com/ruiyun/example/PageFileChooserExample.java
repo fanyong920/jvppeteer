@@ -12,6 +12,7 @@ import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -30,7 +31,7 @@ public class PageFileChooserExample {
 
         Page page = browser.newPage();
         PageNavigateOptions options1 = new PageNavigateOptions();
-        options1.setWaitUntil(Arrays.asList("domcontentloaded"));
+        options1.setWaitUntil(Collections.singletonList("domcontentloaded"));
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         Future<FileChooser> fileChooserFuture = page.waitForFileChooser(30000);
         ElementHandle elementHandle = page.$("#form > span.bg.s_ipt_wr.quickdelete-wrap > span.soutu-btn");

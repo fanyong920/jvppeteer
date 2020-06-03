@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
 
 public class PageMouseExample {
@@ -29,7 +30,7 @@ public class PageMouseExample {
 
         PageNavigateOptions navigateOptions = new PageNavigateOptions();
         //dom加载完毕就算导航完成
-        navigateOptions.setWaitUntil(Arrays.asList("domcontentloaded"));
+        navigateOptions.setWaitUntil(Collections.singletonList("domcontentloaded"));
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3", navigateOptions);
 
         // Using ‘page.mouse’ to trace a 100x100 square.

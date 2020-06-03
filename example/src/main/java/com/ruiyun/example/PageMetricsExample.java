@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.protocol.performance.Metrics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class PageMetricsExample {
 
@@ -28,7 +29,7 @@ public class PageMetricsExample {
 
         PageNavigateOptions navigateOptions = new PageNavigateOptions();
         //dom加载完毕就算导航完成
-        navigateOptions.setWaitUntil(Arrays.asList("domcontentloaded"));
+        navigateOptions.setWaitUntil(Collections.singletonList("domcontentloaded"));
         //page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",navigateOptions);
         page.goTo("https://detail.tmall.com/item.htm?id=616839388072",navigateOptions);
 

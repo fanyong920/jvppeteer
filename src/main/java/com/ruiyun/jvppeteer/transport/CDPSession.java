@@ -37,11 +37,11 @@ public class CDPSession extends EventEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
 
-    private Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();
+    private final Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();
 
-    private String targetType;
+    private final String targetType;
 
-    private String sessionId;
+    private final String sessionId;
 
     private Connection connection;
 

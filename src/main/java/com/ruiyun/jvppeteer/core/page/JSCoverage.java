@@ -125,7 +125,6 @@ public class JSCoverage {
         Helper.removeEventListeners(this.eventListeners);
 
         List<CoverageEntry> coverage = new ArrayList<>();
-        /** @type Protocol.Profiler.takePreciseCoverageReturnValue */
         TakePreciseCoverageReturnValue profileResponse = Constant.OBJECTMAPPER.treeToValue(result, TakePreciseCoverageReturnValue.class);
         if (ValidateUtil.isEmpty(profileResponse.getResult())) {
             return coverage;

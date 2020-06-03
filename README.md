@@ -128,7 +128,7 @@ page.tracing().stop();
 
 在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面包含页面性能的具体数据，可以用Chrome浏览器开发者工具打开该json文件，并分析性能。
 
-**更多的例子请看**[这里](https://github.com/fanyong920/jvppeteer/tree/master/src/test/java/com/ruiyun/example)
+**更多的例子请看**[这里](https://github.com/fanyong920/jvppeteer/tree/master/example/src/main/java/com/ruiyun/example)
 
 ### 资源
 

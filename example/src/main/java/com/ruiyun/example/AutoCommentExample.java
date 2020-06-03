@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +21,7 @@ public class AutoCommentExample {
         Page page = browser.newPage();
         PageNavigateOptions navigateOptions = new PageNavigateOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        navigateOptions.setWaitUntil(Arrays.asList("domcontentloaded"));
+        navigateOptions.setWaitUntil(Collections.singletonList("domcontentloaded"));
         page.goTo("https://www.csdn.net/", navigateOptions);
         String content = page.content();
 

@@ -97,7 +97,7 @@ public class ElementHandle extends JSHandle {
                 "}";
         Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
         try {
-            if (error != null && (error.getClass().equals(boolean.class) || error.getClass().equals(Boolean.class)) && (boolean) error)
+            if (error != null && error.getClass().equals(Boolean.class) && (boolean) error)
                 throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);

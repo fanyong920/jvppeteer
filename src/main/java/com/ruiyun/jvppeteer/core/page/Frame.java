@@ -149,15 +149,14 @@ public class Frame {
     }
 
     /**
-     * @param selectorOrFunctionOrTimeout
-     * @param type
-     * @return
+     * @param selectorOrFunctionOrTimeout 元素选择器，函数或者超时时间
+     * @param type string function timeout
+     * @return 元素处理器
      */
     public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         String xPathPattern = "//";
 
         if (type.equals(PageEvaluateType.STRING)) {
-            /** @type {string} */
             String string = selectorOrFunctionOrTimeout;
             if (string.startsWith(xPathPattern))
                 return this.waitForXPath(string, options);

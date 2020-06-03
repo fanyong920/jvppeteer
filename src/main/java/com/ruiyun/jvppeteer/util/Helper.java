@@ -11,6 +11,7 @@ import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.sun.istack.internal.NotNull;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,19 +282,13 @@ public class Helper {
     public static final boolean isString(Object value) {
         if (value == null)
             return false;
-        if (value.getClass().equals(String.class)) {
-            return true;
-        }
-        return false;
+        return value.getClass().equals(String.class);
     }
 
     public static final boolean isNumber(String s) {
         Pattern pattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
         Matcher matcher = pattern.matcher(s);
-        if (matcher.matches()) {
-            return true;
-        }
-        return false;
+        return matcher.matches();
     }
 
     public static Object valueFromRemoteObject(RemoteObject remoteObject) {
@@ -435,7 +430,7 @@ public class Helper {
                     "-thread-";
         }
 
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@NotNull Runnable r) {
             Thread t = new Thread(group, r,
                     namePrefix + threadNumber.getAndIncrement(),
                     0);

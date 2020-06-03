@@ -18,27 +18,27 @@ public class Viewport {
      * 设置设备的缩放（可以认为是 dpr）。默认是 1
      * <br/>
      * Specify device scale factor (can be thought of as dpr).
-     * @default 1
+     *默认是  1
      */
     private Number deviceScaleFactor = 1;
     /**
      * 是否在页面中设置了 meta viewport 标签。默认是 false
      * Whether the meta viewport tag is taken into account.
-     * @default false
+     * 默认是  false
      */
     private boolean isMobile;
     /**
      * 指定viewport是否支持触摸事件。默认是 false。
      * <br/>
      * Specifies if viewport supports touch events.
-     * @default false
+     * 默认是  false
      */
     private boolean hasTouch ;
     /**
      * 指定视口是否处于横向模式。默认是 false。
      * <br/>
      * Specifies if viewport is in landscape mode.
-     * @default false
+     * 默认是  false
      */
     private boolean isLandscape;
 

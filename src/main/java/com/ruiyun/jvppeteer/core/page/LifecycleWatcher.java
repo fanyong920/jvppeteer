@@ -47,14 +47,14 @@ public class LifecycleWatcher {
         this.navigationRequest = null;
         waitUntil.forEach(value -> {
             if ("domcontentloaded".equals(value)) {
-                this.expectedLifecycle.add( "DOMContentLoaded");
+                this.expectedLifecycle.add("DOMContentLoaded");
             } else if ("networkidle0".equals(value)) {
-                this.expectedLifecycle.add( "networkIdle");
+                this.expectedLifecycle.add("networkIdle");
             } else if ("networkidle2".equals(value)) {
-                this.expectedLifecycle.add(  "networkAlmostIdle");
+                this.expectedLifecycle.add("networkAlmostIdle");
             } else if ("load".equals(value)) {
-                this.expectedLifecycle.add( "load");
-            }else{
+                this.expectedLifecycle.add("load");
+            } else {
                 throw new IllegalArgumentException("Unknown value for options.waitUntil: " + value);
             }
 
@@ -118,13 +118,14 @@ public class LifecycleWatcher {
         this.checkLifecycleComplete();
     }
 
-    public Object sameDocumentNavigationPromise(){
+    public Object sameDocumentNavigationPromise() {
         return this.sameDocumentNavigationPromise;
     }
 
     public Object newDocumentNavigationPromise() {
-        return this.newDocumentNavigationPromise ;
+        return this.newDocumentNavigationPromise;
     }
+
     public void lifecycleCallback() {
         this.lifecyclePromise = new Object();
         if (this.frameManager.getContentLatch() != null) {
@@ -165,27 +166,30 @@ public class LifecycleWatcher {
         if (!this.frame.getLoaderId().equals(this.initialLoaderId))
             this.newDocumentNavigationCompleteCallback();
     }
+
     /**
-     * @param {!Frame} frame
-     * @param {!Array<string>} expectedLifecycle
-     * @return {boolean}
+     * @param  frame frame
+     * @param expectedLifecycle 生命周期集合
+     * @return boolean
      */
     private boolean checkLifecycle(Frame frame, List<String> expectedLifecycle) {
-        if(ValidateUtil.isNotEmpty(expectedLifecycle)){
+        if (ValidateUtil.isNotEmpty(expectedLifecycle)) {
             for (String event : expectedLifecycle) {
                 if (!frame.getLifecycleEvents().contains(event)) return false;
             }
         }
-        if(ValidateUtil.isNotEmpty(frame.childFrames())){
+        if (ValidateUtil.isNotEmpty(frame.childFrames())) {
             for (Frame child : frame.childFrames()) {
                 if (!checkLifecycle(child, expectedLifecycle)) return false;
             }
         }
         return true;
     }
-   public Object lifecyclePromise() {
+
+    public Object lifecyclePromise() {
         return this.lifecyclePromise;
     }
+
     private void terminate(TerminateException e) {
         terminationCallback();
     }
@@ -195,7 +199,6 @@ public class LifecycleWatcher {
     }
 
     public String createTimeoutPromise() {
-
         return null;
     }
 
@@ -212,6 +215,7 @@ public class LifecycleWatcher {
         if ("new".equals(this.frameManager.getDocumentNavigationPromiseType()) || "all".equals(this.frameManager.getDocumentNavigationPromiseType()))
             setNavigateResult("success");
     }
+
     public void sameDocumentNavigationCompleteCallback() {
         this.sameDocumentNavigationPromise = new Object();
         if ("same".equals(this.frameManager.getDocumentNavigationPromiseType()) || "all".equals(this.frameManager.getDocumentNavigationPromiseType()))

@@ -222,7 +222,6 @@ public class BrowserFetcher {
             BigDecimal decimal2 = new BigDecimal(integer2);
             int percent = decimal1.divide(decimal2).multiply(new BigDecimal(100)).intValue();
             LOGGER.info("Download progress: total[{}],downloaded[{}],{}", decimal2, decimal1, percent + "%");
-            //System.out.println("Download progress: total[" + decimal2 + "],downloaded[" + decimal1 + "]," + percent + "%");
         };
     }
 
@@ -274,7 +273,7 @@ public class BrowserFetcher {
         while (matcher.find()) {
             result = matcher.group(1);
         }
-        String[] split = result.split("/");
+        String[] split = Objects.requireNonNull(result).split("/");
         if (split.length == 2) {
             result = split[1];
         } else {

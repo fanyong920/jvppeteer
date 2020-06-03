@@ -169,9 +169,7 @@ public class AXNode {
             return false;
         if (this.focusable && StringUtil.isNotEmpty(this.name))
             return true;
-        if ("heading".equals(this.role) && StringUtil.isNotEmpty(this.name))
-            return true;
-        return false;
+        return "heading".equals(this.role) && StringUtil.isNotEmpty(this.name);
     }
 
     public boolean isControl() {
@@ -222,7 +220,7 @@ public class AXNode {
     }
 
     public SerializedAXNode serialize() throws IntrospectionException, InvocationTargetException, IllegalAccessException {
-        Map<String, Object> properties = new HashMap<String, Object>();
+        Map<String, Object> properties = new HashMap<>();
         List<AXProperty> properties1 = this.payload.getProperties();
         if (ValidateUtil.isNotEmpty(properties1)) {
             for (AXProperty property : properties1)
@@ -293,7 +291,6 @@ public class AXNode {
     }
 
     public static AXNode createTree(List<com.ruiyun.jvppeteer.protocol.accessbility.AXNode> payloads) {
-        /** @type {!Map<string, !AXNode>} */
     Map<String,AXNode> nodeById = new HashMap<>();
         for (com.ruiyun.jvppeteer.protocol.accessbility.AXNode payload : payloads)
         nodeById.put(payload.getNodeId(), new AXNode(payload));

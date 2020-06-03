@@ -20,7 +20,7 @@ public class LaunchOptions extends BrowserOptions {
 	private String executablePath;
 	
 	/**
-	 * @default false
+	 * 默认是false
 	 */
 	private boolean ignoreAllDefaultArgs;
 
@@ -29,19 +29,19 @@ public class LaunchOptions extends BrowserOptions {
 	/**
 
 	 * Close chrome process on Ctrl-C.
-	 * @default true
+	 * 默认是true
 	 */
 	private boolean handleSIGINT = true;
 	
 	/**
 	 * Close chrome process on SIGTERM.
-	 * @default true
+	 * 默认是 true
 	 */
 	private boolean handleSIGTERM = true;
 	
 	/**
 	 * Close chrome process on SIGHUP.
-	 * @default true
+	 * 默认是 true
 	 */
 	private boolean handleSIGHUP = true;
 	
@@ -50,7 +50,7 @@ public class LaunchOptions extends BrowserOptions {
 	 * <br/>
 	 * Whether to pipe browser process stdout and stderr into process.stdout and
 	 * process.stderr.
-	 * @default false
+	 * 默认是 false
 	 */
 	private boolean dumpio ;
 	  
@@ -58,14 +58,14 @@ public class LaunchOptions extends BrowserOptions {
 	  * ָSystem.getEnv()
 	  * <br/>
 	  * Specify environment variables that will be visible to Chromium.
-	  * @default `process.env`.
+	  * 默认是 `process.env`.
 	  */
 	private Environment env;
 	
 	/**
 	 * ͨfalse代表使用websocket通讯，true代表使用websocket通讯
 	 * Connects to the browser over a pipe instead of a WebSocket.
-	 * @default false
+	 * 默认是  false
 	 */
 	private boolean pipe;
 	

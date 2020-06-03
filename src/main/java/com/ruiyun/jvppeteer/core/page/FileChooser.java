@@ -36,7 +36,7 @@ public class FileChooser {
     }
 
     /**
-     * @param {!Array<string>} filePaths
+     * @param filePaths 选择的文件路径
      */
     public void accept(List<String> filePaths) {
         ValidateUtil.assertArg(!this.handled, "Cannot accept FileChooser which is already handled!");

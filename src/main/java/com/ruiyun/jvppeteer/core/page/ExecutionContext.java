@@ -14,12 +14,7 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import jdk.nashorn.api.scripting.NashornScriptEngine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -173,7 +168,7 @@ public class ExecutionContext {
 
         if ("NaN".equals(arg))
             return objectNode.put("unserializableValue", "NaN");
-        JSHandle objectHandle = arg != null && (arg instanceof JSHandle) ? (JSHandle) arg : null;
+        JSHandle objectHandle = arg instanceof JSHandle ? (JSHandle) arg : null;
         if (objectHandle != null) {
             if (objectHandle.getContext() != this)
                 throw new IllegalArgumentException("JSHandles can be evaluated only in the context they were created!");

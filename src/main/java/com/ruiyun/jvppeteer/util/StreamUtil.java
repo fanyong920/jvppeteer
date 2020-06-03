@@ -32,7 +32,7 @@ public class StreamUtil {
 		try {
 			reader = new InputStreamReader(in);
 			int bufferSize = 4096;
-			int perReadcount = -1;
+			int perReadcount;
 			char[] buffer = new char[bufferSize];
 			wirter = new StringWriter();
 			while ((perReadcount = reader.read(buffer, 0, bufferSize)) != -1) {

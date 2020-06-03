@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 public class RequestInterceptionExample {
     public static void main(String[] args) throws Exception {
@@ -34,7 +35,7 @@ public class RequestInterceptionExample {
         page.setRequestInterception(true);
         PageNavigateOptions options1 = new PageNavigateOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        options1.setWaitUntil(Arrays.asList("domcontentloaded"));
+        options1.setWaitUntil(Collections.singletonList("domcontentloaded"));
         page.goTo("https://item.taobao.com/item.htm?id=541605195654",options1);
 
     }

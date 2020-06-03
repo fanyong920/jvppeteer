@@ -15,7 +15,8 @@ public class LaunchExample {
 	@Test
 	public void test1() throws IOException {
 		ArrayList<String> arrayList = new ArrayList<>();
-		LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).build();
+		String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+		LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
 		arrayList.add("--no-sandbox");
 		arrayList.add("--disable-setuid-sandbox");
 		Puppeteer.launch(options);

@@ -59,7 +59,7 @@ public class ChromeLauncher implements Launcher {
         defaultArgs(options, chromeArguments);
 
         List<String> ignoreDefaultArgs;
-        if (options != null && ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
+        if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
             chromeArguments.removeAll(ignoreDefaultArgs);
         }
         boolean isCustomUserDir = false;

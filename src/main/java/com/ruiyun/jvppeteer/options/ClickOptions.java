@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.options;
 import com.ruiyun.jvppeteer.core.page.Frame;
 
 /**
- * {@link Frame#click(String, ClickOptions)}
+ * {@link Frame#click(String, ClickOptions,boolean)}
  */
 public class ClickOptions {
 

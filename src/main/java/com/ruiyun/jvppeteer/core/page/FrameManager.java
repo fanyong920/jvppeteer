@@ -242,7 +242,7 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param frameId
+     * @param frameId frame id
      */
     private void onFrameStoppedLoading(String frameId) {
         Frame frame = this.frames.get(frameId);
@@ -253,7 +253,7 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param frameId
+     * @param frameId frame id
      */
     private void onFrameDetached(String frameId) {
         Frame frame = this.frames.get(frameId);
@@ -262,8 +262,8 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param frameId
-     * @param url
+     * @param frameId frame id
+     * @param url url
      */
     private void onFrameNavigatedWithinDocument(String frameId, String url) {
         Frame frame = this.frames.get(frameId);
@@ -282,7 +282,7 @@ public class FrameManager extends EventEmitter {
         /* @type Protocol.Page.getFrameTreeReturnValue*/
         JsonNode result = this.client.send("Page.getFrameTree", null, true);
 
-        FrameTree frameTree = null;
+        FrameTree frameTree;
         try {
             frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTree.class);
         } catch (JsonProcessingException e) {
@@ -332,8 +332,8 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param {string}  frameId
-     * @param {?string} parentFrameId
+     * @param  frameId frame id
+     * @param  parentFrameId parent frame id
      */
     private void onFrameAttached(String frameId, String parentFrameId) {
         if (this.frames.get(frameId) != null)
@@ -346,7 +346,7 @@ public class FrameManager extends EventEmitter {
     }
 
     /**
-     * @param {!Protocol.Page.Frame} framePayload
+     * @param framePayload frame荷载
      */
     private void onFrameNavigated(FramePayload framePayload) {
         boolean isMainFrame = StringUtil.isEmpty(framePayload.getParentId());

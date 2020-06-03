@@ -18,9 +18,9 @@ public class Mouse {
 
     private static final int MULTI_THREAD_THRESHOLD = 10;
 
-    private CDPSession client;
+    private final CDPSession client;
 
-    private Keyboard keyboard;
+    private final Keyboard keyboard;
 
     private int x;
 
@@ -51,8 +51,8 @@ public class Mouse {
         Map<String, Object> params = new HashMap<>();
 
         if (steps >= MULTI_THREAD_THRESHOLD) {
-            List<Future> futures = new ArrayList<>(steps);
-            CompletionService completionService = new ExecutorCompletionService(Helper.commonExecutor());
+            List<Future<Boolean>> futures = new ArrayList<>(steps);
+            CompletionService<Boolean> completionService = new ExecutorCompletionService<>(Helper.commonExecutor());
             for (int i = 1; i <= steps; i++) {
                 int finalSteps = steps;
                 int finalI = i;
@@ -61,7 +61,7 @@ public class Mouse {
                     return true;
                 }));
             }
-            for (Future future : futures) {
+            for (Future<Boolean> future : futures) {
                 future.get();
             }
         } else {
@@ -85,13 +85,14 @@ public class Mouse {
         if (options.getDelay() != 0) {
             this.move(x, y, 0);
             this.down(options);
-            Thread.sleep(options.getDelay());
-            this.up(options);
+            if(options.getDelay() > 0){
+                Thread.sleep(options.getDelay());
+            }
         } else {
             this.move(x, y, 0);
             this.down(options);
-            this.up(options);
         }
+        this.up(options);
     }
 
     public void up() {

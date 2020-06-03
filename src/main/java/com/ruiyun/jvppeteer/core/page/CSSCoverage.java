@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class CSSCoverage {
 
-    private CDPSession client;
+    private final CDPSession client;
 
     private boolean enabled;
 
@@ -60,7 +60,7 @@ public class CSSCoverage {
         addLis.setMothod("CSS.styleSheetAdded");
         addLis.setTarget(this);
 
-        DefaultBrowserListener clearLis = new DefaultBrowserListener() {
+        DefaultBrowserListener<Object> clearLis = new DefaultBrowserListener<Object>() {
             @Override
             public void onBrowserEvent(Object event) {
                 CSSCoverage cssCoverage = (CSSCoverage) this.getTarget();

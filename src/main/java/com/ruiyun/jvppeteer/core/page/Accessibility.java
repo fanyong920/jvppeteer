@@ -20,7 +20,7 @@ import java.util.Set;
 
 public class Accessibility {
 
-    private CDPSession client;
+    private final CDPSession client;
 
     public Accessibility(CDPSession client) {
         this.client = client;

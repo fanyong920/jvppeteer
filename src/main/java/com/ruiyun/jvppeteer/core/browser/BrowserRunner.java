@@ -76,12 +76,12 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         if (process != null) {
             throw new RuntimeException("This process has previously been started.");
         }
-
         List<String> arguments = new ArrayList<>();
         arguments.add(executablePath);
         arguments.addAll(processArguments);
-        ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
 
+
+        ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
         process = processBuilder.start();
         this.closed = false;
 
@@ -101,6 +101,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                 if ((!isRegisterShutdownHook)) {
                     RuntimeShutdownHookRegistry hook = new RuntimeShutdownHookRegistry();
                     hook.register(new Thread(this::close));
+                    isRegisterShutdownHook = true;
                 }
             }
         }
@@ -212,6 +213,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 //            OutputStream pipeWrite = this.getProcess().getOutputStream();
 //            PipeTransport transport = new PipeTransport(pipeRead, pipeWrite);
 //            this.connection = new Connection("", transport, slowMo);
+
         } else {/*websoket connection*/
             String waitForWSEndpoint = waitForWSEndpoint(timeout, dumpio);
             WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);

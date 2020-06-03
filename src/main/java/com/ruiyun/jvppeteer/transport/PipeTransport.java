@@ -26,13 +26,18 @@ public class PipeTransport implements ConnectionTransport {
 
     private Thread writerThread;
 
-    private BlockingQueue<String> messageQueue = new LinkedBlockingQueue();
+    private BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
 
     private StringBuffer pendingMessage = new StringBuffer();
 
+    private ProcessHandler handler;
 
     public PipeTransport() {
 
+    }
+
+    public PipeTransport(ProcessHandler handler) {
+        this.handler = handler;
     }
 
     public PipeTransport(InputStream pipeReader, OutputStream pipeWriter) {

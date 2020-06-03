@@ -40,40 +40,40 @@ public class Browser extends EventEmitter {
     /**
      * 浏览器对应的websocket client包装类，用于发送和接受消息
      */
-    private Connection connection;
+    private final Connection connection;
 
 
     /**
      * 是否忽略https错误
      */
-    private boolean ignoreHTTPSErrors;
+    private final boolean ignoreHTTPSErrors;
 
     /**
      * 浏览器内的页面视图
      */
-    private Viewport viewport;
+    private final Viewport viewport;
 
 
     /**
      * 当前浏览器内的所有页面，也包括浏览器自己，{@link Page}和 {@link Browser} 都属于target
      */
-    private Map<String, Target> targets;
+    private final Map<String, Target> targets;
 
     /**
      * 默认浏览器上下文
      */
-    private BrowserContext defaultContext;
+    private final BrowserContext defaultContext;
 
     /**
      * 浏览器上下文
      */
-    private Map<String, BrowserContext> contexts;
+    private final Map<String, BrowserContext> contexts;
 
-    private Process process;
+    private final Process process;
 
-    private TaskQueue<String> screenshotTaskQueue;
+    private final TaskQueue<String> screenshotTaskQueue;
 
-    private Function<Object,Object> closeCallback;
+    private final Function<Object,Object> closeCallback;
 
     private CountDownLatch waitforTargetLatch;
 

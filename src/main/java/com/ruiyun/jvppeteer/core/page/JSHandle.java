@@ -62,7 +62,7 @@ public class JSHandle {
         params.put("objectId", this.remoteObject.getObjectId());
         params.put("ownProperties", true);
         JsonNode response = this.client.send("Runtime.getProperties", params, true);
-        Map result = new HashMap<>();
+        Map<String,JSHandle> result = new HashMap<>();
         Iterator<JsonNode> iterator = response.get("result").iterator();
         while (iterator.hasNext()) {
             JsonNode property = iterator.next();

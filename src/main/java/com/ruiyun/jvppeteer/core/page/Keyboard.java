@@ -265,7 +265,7 @@ public class Keyboard {
         keyDefinitions.put("{", new KeyDefinition(219, "{", "BracketLeft"));
         keyDefinitions.put("|", new KeyDefinition(220, "|", "Backslash"));
         keyDefinitions.put("}", new KeyDefinition(221, "}", "BracketRight"));
-        keyDefinitions.put("'", new KeyDefinition(222, "'", "Quote"));
+        keyDefinitions.put("\"", new KeyDefinition(222, "\"", "Quote"));
         keyDefinitions.put("SoftLeft", new KeyDefinition("SoftLeft", "SoftLeft", 4));
         keyDefinitions.put("SoftRight", new KeyDefinition("SoftRight", "SoftRight", 4));
         keyDefinitions.put("Camera", new KeyDefinition(44, "Camera", "Camera", 4));
@@ -273,8 +273,6 @@ public class Keyboard {
         keyDefinitions.put("EndCall", new KeyDefinition(95, "EndCall", "EndCall", 4));
         keyDefinitions.put("VolumeDown", new KeyDefinition(182, "VolumeDown", "VolumeDown", 4));
         keyDefinitions.put("VolumeUp", new KeyDefinition(183, "VolumeUp", "VolumeUp", 4));
-
-
     }
 
     public Keyboard(CDPSession client) {

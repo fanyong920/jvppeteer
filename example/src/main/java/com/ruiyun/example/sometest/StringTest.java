@@ -1,21 +1,14 @@
 package com.ruiyun.example.sometest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.core.page.PaperFormats;
-import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import org.junit.Test;
 
-import javax.script.Bindings;
-import javax.script.CompiledScript;
-import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleBindings;
-import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

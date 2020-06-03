@@ -56,25 +56,21 @@ public class Coverage {
             }
         }
         // Sort points to form a valid parenthesis sequence.
-        points.sort(new Comparator<Point>() {
-            @Override
-            public int compare(Point a, Point b) {
+        points.sort((a, b) -> {
 
-                // Sort with increasing offsets.
-                if (a.getOffset() != b.getOffset())
-                    return a.getOffset() - b.getOffset();
-                // All "end" points should go before "start" points.
-                if (a.getType() != b.getType())
-                    return b.getType() - a.getType();
-                int aLength = a.getRange().getEndOffset() - a.getRange().getStartOffset();
-                int bLength = b.getRange().getEndOffset() - b.getRange().getStartOffset();
-                // For two "start" points, the one with longer range goes first.
-                if (a.getType() == 0)
-                    return bLength - aLength;
-                // For two "end" points, the one with shorter range goes first.
-                return aLength - bLength;
-            }
-
+            // Sort with increasing offsets.
+            if (a.getOffset() != b.getOffset())
+                return a.getOffset() - b.getOffset();
+            // All "end" points should go before "start" points.
+            if (a.getType() != b.getType())
+                return b.getType() - a.getType();
+            int aLength = a.getRange().getEndOffset() - a.getRange().getStartOffset();
+            int bLength = b.getRange().getEndOffset() - b.getRange().getStartOffset();
+            // For two "start" points, the one with longer range goes first.
+            if (a.getType() == 0)
+                return bLength - aLength;
+            // For two "end" points, the one with shorter range goes first.
+            return aLength - bLength;
         });
 
         LinkedList<Integer> hitCountStack = new LinkedList<>();

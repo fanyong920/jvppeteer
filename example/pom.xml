@@ -18,6 +18,7 @@
         <jsoup.version>1.11.3</jsoup.version>
         <htmlunit.version>2.38.0</htmlunit.version>
         <httpasyncclient.version>4.1.4</httpasyncclient.version>
+        <nuprocess.version>2.0.0</nuprocess.version>
     </properties>
     <dependencies>
         <dependency>
@@ -52,6 +53,12 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>nuprocess</artifactId>
+            <version>${nuprocess.version}</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

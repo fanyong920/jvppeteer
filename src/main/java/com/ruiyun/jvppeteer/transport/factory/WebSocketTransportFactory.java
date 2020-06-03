@@ -9,8 +9,8 @@ import java.net.URI;
 public class WebSocketTransportFactory implements Constant {
 	/**
 	 * create websocket client
-	 * @param url
-	 * @return
+	 * @param url 连接websocket的地址
+	 * @return WebSocketTransport
 	 */
 	public static WebSocketTransport create(String url) throws InterruptedException {
 		WebSocketTransport client = new WebSocketTransport(URI.create(url),new Draft_6455());

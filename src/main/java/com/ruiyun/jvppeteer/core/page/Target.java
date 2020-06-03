@@ -284,7 +284,6 @@ public class Target {
         if (!this.isInitialized && (!"page".equals(this.targetInfo.getType()) || !"".equals(this.targetInfo.getUrl()))) {
             this.isInitialized = true;
             this.initializedCallback(true);
-            return;
         }
     }
 
