@@ -156,4 +156,9 @@ public interface Constant {
 			add("disabled-by-default-v8.cpu_profiler.hires");
 		}
 	};
+
+	/**
+	 * 内置线程池的数量
+	 */
+	String COMMONT_THREAD_POOL_NUM = "jvppeteer_common_thread_number";
 }

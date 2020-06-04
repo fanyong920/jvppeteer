@@ -13,9 +13,9 @@ import java.util.ArrayList;
 
 public class QueryobjectsExample {
     public static void main(String[] args) throws Exception {
-        String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
+        //String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-       // String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");

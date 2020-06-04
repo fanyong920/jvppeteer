@@ -14,7 +14,8 @@ import java.util.ArrayList;
 public class PageEventListenerExample {
 
     public static void main(String[] args) throws Exception {
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+       // String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
 
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();

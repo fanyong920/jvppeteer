@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
 public class CrawlerTaobaoItem {
     public static void main(String[] args) throws Exception {
         //指定启动路径，启动浏览器
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(), "UTF-8");
+        String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(), "UTF-8");
         ArrayList<String> argList = new ArrayList<>();
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
         argList.add("--no-sandbox");

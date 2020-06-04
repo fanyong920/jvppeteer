@@ -15,8 +15,8 @@ import java.util.ArrayList;
 public class PageAddScriptExample {
     public static void main(String[] args) throws Exception {
         // 注入jquery https://cdn.bootcss.com/jquery/3.4.1/jquery.js
-
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+       // String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
 
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();

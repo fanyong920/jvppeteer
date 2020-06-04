@@ -21,6 +21,6 @@ public class PagePDFExample2 {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.pdf("/tmp/test.pdf");
+        page.pdf("test.pdf");
     }
 }

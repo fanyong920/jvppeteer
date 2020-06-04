@@ -10,7 +10,8 @@ import java.util.ArrayList;
 
 public class PageClickExample {
     public static void main(String[] args) throws Exception {
-        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
         //String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
@@ -27,7 +28,7 @@ public class PageClickExample {
         page.type("#kw","我要测试");
 
         //点击搜索
-        page.click("#su",false);
+        page.click("#su");
 
         //等待导航
         page.waitForNavigation();

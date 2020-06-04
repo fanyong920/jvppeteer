@@ -30,14 +30,8 @@ public class PipeTransport implements ConnectionTransport {
 
     private StringBuffer pendingMessage = new StringBuffer();
 
-    private ProcessHandler handler;
-
     public PipeTransport() {
 
-    }
-
-    public PipeTransport(ProcessHandler handler) {
-        this.handler = handler;
     }
 
     public PipeTransport(InputStream pipeReader, OutputStream pipeWriter) {

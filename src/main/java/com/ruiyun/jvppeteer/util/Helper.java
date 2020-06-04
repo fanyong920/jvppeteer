@@ -51,6 +51,8 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.ruiyun.jvppeteer.core.Constant.COMMONT_THREAD_POOL_NUM;
+
 /**
  * 一些公共方法
  */
@@ -402,13 +404,14 @@ public class Helper {
         if (COMMON_EXECUTOR == null) {
             synchronized (Helper.class) {
                 if (COMMON_EXECUTOR == null) {
-                    //考虑到线程切换中，严重影响到性能，尽量减少线程数量
-                    int processors = Runtime.getRuntime().availableProcessors();
-                    if (processors > 4) {
-                        processors = 4;
+                    String customNum = System.getProperty(COMMONT_THREAD_POOL_NUM);
+                    int threadNum = 0;
+                    if(StringUtil.isNotEmpty(customNum)){
+                        threadNum = Integer.parseInt(customNum);
+                    }else {
+                        threadNum = Math.max(1, Runtime.getRuntime().availableProcessors());
                     }
-                    int threadCount = Math.max(1, processors);
-                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadCount, threadCount, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), new CommonThreadFactory());
+                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadNum, threadNum, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), new CommonThreadFactory());
                 }
             }
         }
