@@ -394,7 +394,6 @@ public class DOMWorld {
         return this.waitForSelectorOrXPath(selector, false, options);
     }
 
-    //TODO
     private ElementHandle waitForSelectorOrXPath(String selectorOrXPath, boolean isXPath, WaitForSelectorOptions options) throws InterruptedException {
         boolean waitForVisible = false;
         boolean waitForHidden = false;

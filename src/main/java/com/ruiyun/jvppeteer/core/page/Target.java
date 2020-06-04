@@ -80,7 +80,6 @@ public class Target {
         if (!"service_worker".equals(this.targetInfo.getType()) && !"shared_worker".equals(this.targetInfo.getType()))
             return null;
         if (this.workerPromise == null) {
-            // TODO   puppeteer (einbinder): Make workers send their console logs.this.workerPromise =
             synchronized (this) {
                 if (this.workerPromise == null) {
                     CDPSession client = this.sessionFactory.create();

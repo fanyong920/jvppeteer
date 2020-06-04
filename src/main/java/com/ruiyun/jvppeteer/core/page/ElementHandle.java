@@ -352,7 +352,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public List<String> select(List<String> values) {
-        /* TODO(jacktfranklin@): once ExecutionContext is TypeScript, and
+        /*
          * its evaluate function is properly typed with generics we can
          * return here and remove the typecasting
          */

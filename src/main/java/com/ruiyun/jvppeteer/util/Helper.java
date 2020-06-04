@@ -341,7 +341,6 @@ public class Helper {
         }
     }
 
-    //TODO 验证
     public static final void copyProperties(Object src, Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Class<?> destClass = dest.getClass();
         BeanInfo srcBean = Introspector.getBeanInfo(src.getClass());

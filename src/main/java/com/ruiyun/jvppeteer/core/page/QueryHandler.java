@@ -11,7 +11,6 @@ public class QueryHandler {
 
     private static final Map<String, String> customQueryHandlers = new HashMap<>();
 
-    //TODO 验证方法
     public static void registerCustomQueryHandler(String name, String handler) {
         if (customQueryHandlers.containsKey(name))
             throw new RuntimeException("A custom query handler named " + name + " already exists");
@@ -36,7 +35,6 @@ public class QueryHandler {
     }
 
     public static QuerySelector getQueryHandlerAndSelector(String selector, String defaultQueryHandler) {
-        //TODO 验证
         Pattern pattern = Pattern.compile("^[a-zA-Z]+/");
         Matcher hasCustomQueryHandler = pattern.matcher(selector);
         if (!hasCustomQueryHandler.find())

@@ -23,7 +23,6 @@ public class FirefoxLauncher implements Launcher {
 
 	@Override
 	public Browser launch(LaunchOptions options) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -35,7 +34,6 @@ public class FirefoxLauncher implements Launcher {
 
 	@Override
 	public String resolveExecutablePath(String chromeExecutable) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

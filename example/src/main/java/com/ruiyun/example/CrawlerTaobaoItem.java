@@ -633,8 +633,6 @@ public class CrawlerTaobaoItem {
                     }
                 }
             }
-
-            //TODO:所在地
             if ("C".equals(userType)) {
                 start = Pattern.compile("<meta name=\"keywords\" content=\".*?\"/>");
                 ms = start.matcher(resBuffer.toString());

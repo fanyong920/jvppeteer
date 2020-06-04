@@ -162,7 +162,7 @@ public class Frame {
                 return this.waitForXPath(string, options);
             return this.waitForSelector(string, options);
         }
-        if (Helper.isNumber(selectorOrFunctionOrTimeout))//TODO
+        if (Helper.isNumber(selectorOrFunctionOrTimeout))
 //            return new Promise(fulfill => setTimeout(fulfill, /** @type {number} */ (selectorOrFunctionOrTimeout)));
             return null;
         if (type.equals(PageEvaluateType.FUNCTION))
@@ -190,8 +190,6 @@ public class Frame {
 
     public void navigated(FramePayload framePayload) {
         this.name = framePayload.getName();
-        // TODO(lushnikov): remove this once requestInterception has loaderId exposed.
-//        this.navigationURL = framePayload.getUrl();
         this.url = framePayload.getUrl();
     }
 

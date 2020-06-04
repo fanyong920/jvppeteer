@@ -72,7 +72,6 @@ public class NetworkManager extends EventEmitter {
         this.userCacheDisabled = false;
         this.requestIdToInterceptionId = new HashMap<>();
 
-        //TODO
         DefaultBrowserListener<RequestPausedPayload> requestPausedListener = new DefaultBrowserListener<RequestPausedPayload>() {
             @Override
             public void onBrowserEvent(RequestPausedPayload event) {

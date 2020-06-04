@@ -5,10 +5,7 @@
     <groupId>com.ruiyun</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0-SNAPSHOT</version>
-    <modules>
-        <module>example</module>
-    </modules>
+    <version>1.0.0</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <inceptionYear>2020</inceptionYear>
@@ -22,6 +19,12 @@
             <post>1023079644@qq.com</post>
         </mailingList>
     </mailingLists>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+        </license>
+    </licenses>
     <developers>
         <!--某个项目开发者的信息 -->
         <developer>
@@ -40,13 +43,15 @@
             <timezone>+8</timezone>
         </developer>
     </developers>
+    <scm>
+        <url>https://github.com/fanyong920/jvppeteer.git</url>
+    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <junit.version>4.12</junit.version>
         <websocket.api.version>1.1</websocket.api.version>
         <jackson.version>2.10.0</jackson.version>
         <java.webSocket.version>1.5.0</java.webSocket.version>
@@ -57,11 +62,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
