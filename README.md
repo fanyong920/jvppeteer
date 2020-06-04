@@ -37,6 +37,7 @@
   <artifactId>jvppeteer</artifactId>
   <version>1.0.0</version>
 </dependency>
+ <!--我现在还没发布到maven，只是提前先写出来 -->
 ```
 
 #### Gradle
