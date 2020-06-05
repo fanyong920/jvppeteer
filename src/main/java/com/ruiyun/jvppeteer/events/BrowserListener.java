@@ -5,7 +5,7 @@ import java.util.EventListener;
  * listener event then handler it
  * @author fff
  *
- * @param <T>
+ *
  */
 
 @FunctionalInterface

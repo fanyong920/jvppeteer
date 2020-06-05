@@ -10,7 +10,8 @@ public class WebSocketTransportFactory implements Constant {
 	/**
 	 * create websocket client
 	 * @param url 连接websocket的地址
-	 * @return WebSocketTransport
+	 * @throws InterruptedException 被打断异常
+	 * @return WebSocketTransport websocket客户端
 	 */
 	public static WebSocketTransport create(String url) throws InterruptedException {
 		WebSocketTransport client = new WebSocketTransport(URI.create(url),new Draft_6455());

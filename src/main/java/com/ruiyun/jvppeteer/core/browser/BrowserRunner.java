@@ -66,7 +66,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     /**
      * 启动浏览器进程
-     * <br/>
      * Start your browser
      *
      * @param options 启动参数

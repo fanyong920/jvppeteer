@@ -206,6 +206,8 @@ public class Browser extends EventEmitter {
      * @param contextIds        上下文id集合
      * @param ignoreHTTPSErrors 是否忽略https错误
      * @param viewport          视图
+     * @param closeCallback 关闭浏览器的回调
+     * @param process 浏览器进程
      * @return 浏览器
      */
     public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Function<Object, Object> closeCallback) {
@@ -309,7 +311,8 @@ public class Browser extends EventEmitter {
     }
 
     /**
-     * @return {!Array<!BrowserContext>}
+     * 返回BrowserContext集合
+     * @return BrowserContext集合
      */
     public Collection<BrowserContext> browserContexts() {
         Collection<BrowserContext> contexts = new ArrayList<>();
@@ -390,8 +393,8 @@ public class Browser extends EventEmitter {
     }
 
     /**
-     * <p>监听浏览器事件：disconnected<p/>
-     * <p>浏览器一共有四种事件<p/>
+     * <p>监听浏览器事件disconnected</p>
+     * <p>浏览器一共有四种事件</p>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
      * @param handler 事件处理器
@@ -404,8 +407,8 @@ public class Browser extends EventEmitter {
     }
 
     /**
-     * <p>监听浏览器事件：targetchanged<p/>
-     * <p>浏览器一共有四种事件<p/>
+     * <p>监听浏览器事件targetchanged</p>
+     * <p>浏览器一共有四种事件</p>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
      * @param handler 事件处理器
@@ -418,8 +421,8 @@ public class Browser extends EventEmitter {
     }
 
     /**
-     * <p>监听浏览器事件：targetcreated<p/>
-     * <p>浏览器一共有四种事件<p/>
+     * <p>监听浏览器事件targetcreated</p>
+     * <p>浏览器一共有四种事件</p>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
      * @param handler 事件处理器
@@ -432,8 +435,8 @@ public class Browser extends EventEmitter {
     }
 
     /**
-     * <p>监听浏览器事件：targetcreated<p/>
-     * <p>浏览器一共有四种事件<p/>
+     * <p>监听浏览器事件targetcreated</p>
+     * <p>浏览器一共有四种事件</p>
      * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
      *
      * @param handler 事件处理器

@@ -40,9 +40,6 @@ public class Coverage {
         this.cssCoverage.start(resetOnNavigation);
     }
 
-    /**
-     * @return {!Promise<!Array<!CoverageEntry>>}
-     */
     public List<CoverageEntry> stopCSSCoverage() {
         return  this.cssCoverage.stop();
     }

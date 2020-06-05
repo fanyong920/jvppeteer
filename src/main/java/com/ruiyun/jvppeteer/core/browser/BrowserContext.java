@@ -67,8 +67,8 @@ public class BrowserContext extends EventEmitter {
 	}
 
 	/**
-	 * <p>监听浏览器事件：targetchanged<p/>
-	 * <p>浏览器一共有四种事件<p/>
+	 * <p>监听浏览器事件targetchanged</p>
+	 * <p>浏览器一共有四种事件</p>
 	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
 	 * @param handler 事件处理器
 	 */
@@ -79,8 +79,8 @@ public class BrowserContext extends EventEmitter {
 	}
 
 	/**
-	 * <p>监听浏览器事件：targetcreated<p/>
-	 * <p>浏览器一共有四种事件<p/>
+	 * <p>监听浏览器事件targetcreated</p>
+	 * <p>浏览器一共有四种事件</p>
 	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
 	 * @param handler 事件处理器
 	 */
@@ -121,7 +121,7 @@ public class BrowserContext extends EventEmitter {
 		return this.targets().stream().filter(target -> "page".equals(target.type())).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 	/**
-	 * @return {!Array<!Target>} target
+	 * @return 目标的集合
 	 */
 	public List<Target> targets() {
 		return this.browser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());

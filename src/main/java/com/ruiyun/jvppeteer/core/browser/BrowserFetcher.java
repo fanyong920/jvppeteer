@@ -119,6 +119,7 @@ public class BrowserFetcher {
      * @param revision 浏览器版本
      * @param proxy    cant be null
      * @return boolean
+     * @throws IOException 异常
      */
     public boolean canDownload(String revision, Proxy proxy) throws IOException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
@@ -168,6 +169,7 @@ public class BrowserFetcher {
      * @return RevisionInfo
      * @throws IOException          异常
      * @throws InterruptedException 异常
+     * @throws ExecutionException 异常
      */
     public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException, ExecutionException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
@@ -285,7 +287,7 @@ public class BrowserFetcher {
     /**
      * 本地存在的浏览器版本
      *
-     * @return Set<String>
+     * @return 版本集合
      * @throws IOException 异常
      */
     public List<String> localRevisions() throws IOException {

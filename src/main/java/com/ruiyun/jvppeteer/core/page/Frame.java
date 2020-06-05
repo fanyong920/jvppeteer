@@ -151,6 +151,9 @@ public class Frame {
     /**
      * @param selectorOrFunctionOrTimeout 元素选择器，函数或者超时时间
      * @param type string function timeout
+     * @param options 可配置等待选项
+     * @param args functions时对应的function参数
+     * @throws InterruptedException 打断异常
      * @return 元素处理器
      */
     public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {

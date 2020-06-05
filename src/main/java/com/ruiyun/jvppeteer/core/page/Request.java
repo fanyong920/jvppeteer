@@ -195,6 +195,7 @@ public class Request {
      * @param method   方法 GET POST
      * @param postData 数据 the post data of request
      * @param headers  请求头
+     * @return Future
      */
     public Future<JsonNode> continueRequest(String url, String method, String postData, Map<String, String> headers) {
         return Helper.commonExecutor().submit(() -> {
@@ -270,7 +271,8 @@ public class Request {
     /**
      * 拒绝发请求
      *
-     * @param errorCode errorCode
+     * @param errorCode errorCode错误码
+     * @return Future
      */
     public Future<JsonNode> abort(ErrorCode errorCode) {
       return Helper.commonExecutor().submit(() -> {

@@ -4,64 +4,62 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ruiyun</groupId>
     <artifactId>jvppeteer</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>1.0.0</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
+
     <inceptionYear>2020</inceptionYear>
-    <!--项目相关邮件列表信息 -->
     <mailingLists>
-        <!--该元素描述了项目相关的所有邮件列表。自动产生的网站引用这些信息。 -->
         <mailingList>
-            <!--邮件的名称 -->
             <name>fanyong</name>
-            <!--发送邮件的地址或链接，如果是邮件地址，创建文档时，mailto: 链接会被自动创建 -->
             <post>1023079644@qq.com</post>
         </mailingList>
     </mailingLists>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-        </license>
-    </licenses>
     <developers>
-        <!--某个项目开发者的信息 -->
         <developer>
-            <!--SCM里项目开发者的唯一标识符 -->
             <id>fanyong</id>
-            <!--项目开发者的全名 -->
             <name>fanyong</name>
-            <!--项目开发者的email -->
             <email>1023079644@qq.com</email>
-            <!--项目开发者在项目中扮演的角色，角色元素描述了各种角色 -->
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
             </roles>
-            <!--项目开发者所在时区， -11到12范围内的整数。 -->
             <timezone>+8</timezone>
         </developer>
     </developers>
-    <scm>
-        <url>https://github.com/fanyong920/jvppeteer.git</url>
-    </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
+        <junit.version>4.12</junit.version>
         <websocket.api.version>1.1</websocket.api.version>
         <jackson.version>2.10.0</jackson.version>
         <java.webSocket.version>1.5.0</java.webSocket.version>
         <commons.compress.version>1.19</commons.compress.version>
+
+        <!-- Maven plugin versions -->
+        <bnd.maven.plugin.version>4.3.1</bnd.maven.plugin.version>
+        <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
+        <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
+        <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
+        <maven.shade.plugin.version>3.1.0</maven.shade.plugin.version>
+        <maven.source.plugin.version>3.0.0</maven.source.plugin.version>
+        <nexus.staging.maven.plugin.version>1.6.8</nexus.staging.maven.plugin.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -78,6 +76,65 @@
             <artifactId>commons-compress</artifactId>
             <version>${commons.compress.version}</version>
         </dependency>
-
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>
+                            jar-with-dependencies
+                        </descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <aggregate>true</aggregate>
+                    <charset>UTF-8</charset>
+                    <docencoding>UTF-8</docencoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--配置生成源码包-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
 </project>

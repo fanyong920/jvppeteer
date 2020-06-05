@@ -5,8 +5,8 @@ import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import java.util.function.BiFunction;
 
 /**
- * 截图专用
- * @param <R>
+ * 截图专用的类，
+ *
  */
 public class TaskQueue<R> {
 

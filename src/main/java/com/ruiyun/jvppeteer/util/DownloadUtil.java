@@ -59,13 +59,16 @@ public class DownloadUtil {
 
     private static final String FAIL_RESULT = "-1";
 
-    /**
-     * 下载文件的方法
-     *
-     * @param url 下载的资源定位路径
-     * @param filePath 文件路径
-     */
 
+    /**
+     * 下载
+     * @param url 载的资源定位路径
+     * @param filePath 文件路径
+     * @param progressCallback 下载回调
+     * @throws IOException 异常
+     * @throws ExecutionException 异常
+     * @throws InterruptedException 异常
+     */
     public static void download(String url, String filePath, BiConsumer<Integer, Integer> progressCallback) throws IOException, ExecutionException, InterruptedException {
         long contentLength = getContentLength(url);
 
@@ -113,7 +116,8 @@ public class DownloadUtil {
 
     /**
      * 获取下载得文件长度
-     *
+     * @param url 资源定位路径
+     * @throws IOException 连接异常
      * @return 长度
      */
     public static final long getContentLength(String url) throws IOException {
@@ -152,6 +156,7 @@ public class DownloadUtil {
      *
      * @param path 文件路径
      * @param length 文件大小
+     * @throws IOException 操作文件异常
      */
     public static void createFile(String path, long length) throws IOException {
         File file = new File(path);

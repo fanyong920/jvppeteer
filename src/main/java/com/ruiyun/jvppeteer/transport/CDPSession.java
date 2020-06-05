@@ -62,10 +62,13 @@ public class CDPSession extends EventEmitter {
     }
 
     /**
-     * cdpsession send message
-     * @param method 方法
-     * @param params 参数
-     * @return result
+     * 发送消息到浏览器
+     * @param method 消息签名中的方法
+     * @param params 消息签名中的参数
+     * @param isBlock 是否是阻塞，阻塞的话会等待结果返回
+     * @param outLatch 是否自己提供Countdownlatch
+     * @param timeout 超时时间
+     * @return 结果
      */
     public JsonNode send(String method,Map<String, Object> params,boolean isBlock,CountDownLatch outLatch,int timeout)  {
         if(connection == null){
@@ -107,6 +110,7 @@ public class CDPSession extends EventEmitter {
      * cdpsession send message
      * @param method 方法
      * @param params 参数
+     * @param isBlock 是否阻塞，阻塞会等待结果放回
      * @return result
      */
     public JsonNode send(String method,Map<String, Object> params,boolean isBlock)  {

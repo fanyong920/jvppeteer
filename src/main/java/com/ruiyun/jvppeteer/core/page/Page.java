@@ -582,7 +582,7 @@ public class Page extends EventEmitter {
      * 此方法在页面内执行 document.querySelectorAll。如果没有元素匹配指定选择器，返回值是 []。
      *
      * @param selector 选择器
-     * @return List<ElementHandle>
+     * @return ElementHandle集合
      */
     public List<ElementHandle> $$(String selector) {
         return this.mainFrame().$$(selector);
@@ -646,7 +646,7 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 添加一个指定link(url)的 <link rel="stylesheet"> 标签。 或者添加一个指定代码(content)的 <style type="text/css"> 标签。
+     * 添加一个指定link的 link rel="stylesheet" 标签。 或者添加一个指定代码(content)的 style type="text/css" 标签。
      *
      * @param options link标签
      * @return 注入完成的tag标签。当style的onload触发或者代码被注入到frame。
@@ -698,6 +698,7 @@ public class Page extends EventEmitter {
      * @param selector 选择器
      * @param isBlock 是否是阻塞的，不阻塞的时候可以配合waitFor方法使用
      * @throws InterruptedException 异常
+     * @throws ExecutionException 异常
      */
     public void click(String selector,boolean isBlock) throws InterruptedException, ExecutionException {
         this.click(selector, new ClickOptions(),isBlock);
@@ -708,6 +709,7 @@ public class Page extends EventEmitter {
      *默认是阻塞的，会等待点击完成指令返回
      * @param selector 选择器
      * @throws InterruptedException 异常
+     * @throws ExecutionException 异常
      */
     public void click(String selector) throws InterruptedException, ExecutionException {
         this.click(selector, new ClickOptions(),true);
@@ -720,6 +722,7 @@ public class Page extends EventEmitter {
      * @param options  参数
      * @param isBlock 是否是阻塞的，为true代表阻塞，为false代表不阻塞，不阻塞可以配合waitForNavigate等方法使用
      * @throws InterruptedException 异常
+     * @throws ExecutionException 异常
      */
     public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
         this.mainFrame().click(selector, options,isBlock);
@@ -755,7 +758,9 @@ public class Page extends EventEmitter {
      * <p>截图</p>
      * 备注 在OS X上 截图需要至少1/6秒。查看讨论：https://crbug.com/741689。
      *
-     * @return String
+     * @param options 截图选项
+     * @throws IOException 异常
+     * @return 图片base64的字节
      */
     public String screenshot(ScreenshotOptions options) throws IOException {
         String screenshotType = null;
@@ -851,8 +856,8 @@ public class Page extends EventEmitter {
      * 给页面设置html
      *
      * @param html    分派给页面的HTML。
-     * @param options timeout <number> 加载资源的超时时间，默认值为30秒，传入0禁用超时. 可以使用 page.setDefaultNavigationTimeout(timeout) 或者 page.setDefaultTimeout(timeout) 方法修改默认值
-     *                waitUntil <string|Array<string>> HTML设置成功的标志事件, 默认为 load。 如果给定的是一个事件数组，那么当所有事件之后，给定的内容才被认为设置成功。 事件可以是：
+     * @param options timeout 加载资源的超时时间，默认值为30秒，传入0禁用超时. 可以使用 page.setDefaultNavigationTimeout(timeout) 或者 page.setDefaultTimeout(timeout) 方法修改默认值
+     *                waitUntil  HTML设置成功的标志事件, 默认为 load。 如果给定的是一个事件数组，那么当所有事件之后，给定的内容才被认为设置成功。 事件可以是：
      *                load - load事件触发后，设置HTML内容完成。
      *                domcontentloaded - DOMContentLoaded 事件触发后，设置HTML内容完成。
      *                networkidle0 - 不再有网络连接时（至少500毫秒之后），设置HTML内容完成
@@ -1001,7 +1006,6 @@ public class Page extends EventEmitter {
 
     /**
      * 启用请求拦截器，会激活 request.abort, request.continue 和 request.respond 方法。这提供了修改页面发出的网络请求的功能。
-     * <p></p>
      * 一旦启用请求拦截，每个请求都将停止，除非它继续，响应或中止
      *
      * @param value 是否启用请求拦截器
@@ -1278,10 +1282,12 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * <p>导航到指定的url,可以配置是否阻塞，可以配合{@link Page#waitForResponse(String)}使用<p/>
+     * <p>导航到指定的url,可以配置是否阻塞，可以配合下面这个方法使用，但是不限于这个方法</p>
+     * {@link Page#waitForResponse(String)}
      * 因为如果不阻塞的话，页面在加载完成时，waitForResponse等waitFor方法会接受不到结果而抛出超时异常
      * @param url 导航的地址
      * @param isBlock true代表阻塞
+     * @throws InterruptedException 打断异常
      * @return 不阻塞的话返回null
      */
     public Response goTo(String url, boolean isBlock) throws InterruptedException {
@@ -1298,14 +1304,15 @@ public class Page extends EventEmitter {
      * <p>主页面不能加载
      *
      * @param url      url
-     * @param options: <p>timeout <number> 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
-     *                 <p>waitUntil <string|Array<string>> 满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     * @param options: <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
      *                 <p>load - 页面的load事件触发时
      *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
      *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
      *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
-     *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     *                 <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
+     * @throws InterruptedException 异常
      */
     public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
         return this.goTo(url, options,true);
@@ -1321,14 +1328,15 @@ public class Page extends EventEmitter {
      * <p>主页面不能加载
      *
      * @param url      url
-     * @param options: <p>timeout <number> 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
-     *                 <p>waitUntil <string|Array<string>> 满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     * @param options: <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
      *                 <p>load - 页面的load事件触发时
      *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
      *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
      *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
-     *                 <p>referer <string> Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     *                 <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @param isBlock 是否阻塞，不阻塞代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
+     * @throws InterruptedException 打断异常
      * @return Response
      */
     public Response goTo(String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
@@ -1344,6 +1352,7 @@ public class Page extends EventEmitter {
      * <p>主页面不能加载</p>
      *
      * @param url 导航到的地址. 地址应该带有http协议, 比如 https://.
+     * @throws InterruptedException 打断异常
      * @return 响应
      */
     public Response goTo(String url) throws InterruptedException {
@@ -1352,8 +1361,10 @@ public class Page extends EventEmitter {
 
     /**
      * 删除cookies
-     *
-     * @param cookies 要删除的ciikies
+     * @param cookies 指定删除的cookies
+     * @throws IllegalAccessException 异常
+     * @throws IntrospectionException 异常
+     * @throws InvocationTargetException 异常
      */
     public void deleteCookie(List<DeleteCookiesParameters> cookies) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
         String pageURL = this.url();
@@ -1377,8 +1388,8 @@ public class Page extends EventEmitter {
 
     /**
      * 根据指定的参数和 user agent 生成模拟器。此方法是和下面两个方法效果相同
-     * <p>${@link Page#setViewport(Viewport)}<p/>
-     * <p>${@link Page#setUserAgent(String)}<p/>
+     * <p>${@link Page#setViewport(Viewport)}</p>
+     * <p>${@link Page#setUserAgent(String)}</p>
      *
      * @param options Device 模拟器枚举类
      */
@@ -1566,6 +1577,8 @@ public class Page extends EventEmitter {
      * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 来hover到元素的中间。 如果没有匹配的元素，此方法将会报错。
      *
      * @param selector 要hover的元素的选择器。如果有多个匹配的元素，hover第一个。
+     * @throws ExecutionException 并发异常
+     * @throws InterruptedException 打断异常
      */
     public void hover(String selector) throws ExecutionException, InterruptedException {
         this.mainFrame().hover(selector);
@@ -1608,7 +1621,7 @@ public class Page extends EventEmitter {
     /**
      * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
-     *
+     * @param path pdf存放的路径
      * @throws IOException 异常
      */
     public void pdf(String path) throws IOException {
@@ -1800,7 +1813,7 @@ public class Page extends EventEmitter {
 
     /**
      * 在页面实例上下文中执行方法
-     * 添加一个方法，在以下某个场景被调用：</p>
+     * <p>添加一个方法，在以下某个场景被调用</p>
      * <p>   页面导航完成后</p>
      * <p>   页面的iframe加载或导航完成。这种场景，指定的函数被调用的上下文是新加载的iframe。</p>
      * 指定的函数在所属的页面被创建并且所属页面的任意 script 执行之前被调用。常用于修改页面js环境，比如给 Math.random 设定种子
@@ -1808,6 +1821,7 @@ public class Page extends EventEmitter {
      * @param pageFunction 要在页面实例上下文中执行的方法
      * @param type         是方法字符串还是普通字符串
      * @param args         要在页面实例上下文中执行的方法的参数
+     * @return Object 有可能是JShandle String等
      */
     public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         return this.frameManager.mainFrame().evaluate(pageFunction, type, args);
@@ -1864,8 +1878,9 @@ public class Page extends EventEmitter {
      * <p>否则会报错
      *
      * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
-     * @param type                        具体类型，与第一个参数对应，String -> PageEvaluateType.STRING , function ->PageEvaluateType.FUNCTION
+     * @param type                        具体类型，与第一个参数对应，String 对应 PageEvaluateType的STRING , function对应PageEvaluateType的FUNCTION
      * @return 代表页面元素的一个实例
+     * @throws InterruptedException 异常
      */
     public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type) throws InterruptedException {
         return this.waitFor(selectorOrFunctionOrTimeout, type, new WaitForSelectorOptions());
@@ -1883,6 +1898,7 @@ public class Page extends EventEmitter {
      * @param type                        具体类型
      * @param options                     可选的等待参数
      * @param args                        传给 pageFunction 的参数
+     * @throws InterruptedException 打断异常
      * @return 代表页面元素的一个实例
      */
     public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
@@ -1929,6 +1945,7 @@ public class Page extends EventEmitter {
      * 要在浏览器实例上下文执行方法
      *
      * @param pageFunction 要在浏览器实例上下文执行的方法
+     * @throws InterruptedException 打断异常
      * @return JSHandle
      */
     public JSHandle waitForFunction(String pageFunction) throws InterruptedException {
@@ -1943,6 +1960,7 @@ public class Page extends EventEmitter {
      * @param options      可选参数
      * @param args         执行的方法的参数
      * @return JSHandle
+     * @throws InterruptedException 异常
      */
     public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
@@ -2102,6 +2120,7 @@ public class Page extends EventEmitter {
      * 等待指定的选择器匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的选择器在超时时间后扔不出现，此方法会报错。
      *
      * @param selector 要等待的元素选择器
+     * @throws InterruptedException 打断异常
      * @return ElementHandle
      */
     public ElementHandle waitForSelector(String selector) throws InterruptedException {
@@ -2113,6 +2132,7 @@ public class Page extends EventEmitter {
      *
      * @param selector 要等待的元素选择器
      * @param options  可选参数
+     * @throws InterruptedException 打断异常
      * @return ElementHandle
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
@@ -2123,6 +2143,7 @@ public class Page extends EventEmitter {
      * 等待指定的xpath匹配的元素出现在页面中，如果调用此方法时已经有匹配的元素，那么此方法立即返回。 如果指定的xpath在超时时间后扔不出现，此方法会报错。
      *
      * @param xpath   要等待的元素的xpath
+     * @throws InterruptedException 打断异常
      * @return JSHandle
      */
     public JSHandle waitForXPath(String xpath) throws InterruptedException {
@@ -2134,6 +2155,7 @@ public class Page extends EventEmitter {
      *
      * @param xpath   要等待的元素的xpath
      * @param options 可选参数
+     * @throws InterruptedException 打断异常
      * @return JSHandle
      */
     public JSHandle waitForXPath(String xpath, WaitForSelectorOptions options) throws InterruptedException {
@@ -2226,13 +2248,13 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 获取Viewport
-     * width <number> 宽度，单位是像素
-     * height <number> 高度，单位是像素
-     * deviceScaleFactor <number> 定义设备缩放， (类似于 dpr)。 默认 1。
-     * isMobile <boolean> 要不要包含meta viewport 标签。 默认 false。
-     * hasTouch<boolean> 指定终端是否支持触摸。 默认 false
-     * isLandscape <boolean> 指定终端是不是 landscape 模式。 默认 false。
+     * 获取Viewport,Viewport各个参数的含义：
+     * width 宽度，单位是像素
+     * height  高度，单位是像素
+     * deviceScaleFactor  定义设备缩放， (类似于 dpr)。 默认 1。
+     * isMobile  要不要包含meta viewport 标签。 默认 false。
+     * hasTouch 指定终端是否支持触摸。 默认 false
+     * isLandscape 指定终端是不是 landscape 模式。 默认 false。
      *
      * @return Viewport
      */

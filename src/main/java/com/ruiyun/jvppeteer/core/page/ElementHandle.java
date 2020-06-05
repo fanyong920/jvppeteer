@@ -318,6 +318,7 @@ public class ElementHandle extends JSHandle {
 
     /**
      * 点击元素，可配置是否阻塞，如果阻塞，则等会点击结果返回，不阻塞的话，会放在另外一个线程中运行
+     * @param isBlock 是否阻塞
      * @throws InterruptedException 打断异常
      * @throws ExecutionException 异常
      */

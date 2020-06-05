@@ -171,11 +171,13 @@ public class Helper {
     }
 
     /**
-     * read stream from protocol : example -> tracing  file
+     * read stream from protocol : example for tracing  file
      *
      * @param client  CDPSession
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
+     * @param isNewThread 是否是在新的线程中执行
+     * @throws IOException 操作文件的异常
      */
     public static final void readProtocolStream(CDPSession client, String handler, String path, boolean isNewThread) throws IOException {
         if (isNewThread) {

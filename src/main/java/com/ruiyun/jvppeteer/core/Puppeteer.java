@@ -28,7 +28,7 @@ import static com.ruiyun.jvppeteer.core.Constant.PRODUCT_ENV;
  */
 public class Puppeteer {
 
-    public String productName = null;
+    private String productName = null;
 
     private Launcher launcher;
 
@@ -53,9 +53,8 @@ public class Puppeteer {
 
     /**
      * 以默认参数启动浏览器
-     * <br/>
      * launch Browser by default options
-     *
+     * @throws IOException 异常
      * @return 浏览器
      */
     public static Browser launch() throws IOException {
