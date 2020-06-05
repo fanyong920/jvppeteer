@@ -56,7 +56,7 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.ruiyun</groupId>
+            <groupId>io.github.fanyong920</groupId>
             <artifactId>jvppeteer</artifactId>
             <version>1.0.0</version>
             <scope>compile</scope>
