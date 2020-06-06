@@ -492,9 +492,7 @@ public class BrowserFetcher {
                 Process process2 = processBuilder2.start();
                 reader = new BufferedReader(new InputStreamReader(process2.getInputStream()));
                 while ((line = reader.readLine()) != null) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(line);
-                    }
+                    LOGGER.trace(line);
                 }
                 reader.close();
                 reader = new BufferedReader(new InputStreamReader(process2.getErrorStream()));
@@ -550,9 +548,7 @@ public class BrowserFetcher {
                 String line;
                 reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
                 while ((line = reader.readLine()) != null) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug(line);
-                    }
+                    LOGGER.trace(line);
                 }
                 reader.close();
                 reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));

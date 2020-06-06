@@ -54,7 +54,6 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void onMessage(String message) {
-        System.out.println("pipe message: "+message);
     }
 
     @Override
@@ -104,8 +103,6 @@ public class PipeTransport implements ConnectionTransport {
                         pendingMessage.delete(0,pendingMessage.length());
                         onMessage(message);
                     }
-                    System.out.println("阻塞了吗"+pendingMessage.toString());
-
                 } catch (IOException e) {
                     LOGGER.error("read message from chrome error ",e);
                 }

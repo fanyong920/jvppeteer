@@ -1,6 +1,6 @@
 # Jvppeteer
 <p align = "left">
-<a rel="nofollow" href="https://download-chromium.appspot.com/"><img src ="https://img.shields.io/badge/chromium%20download-latest-blue"  alt="下载最新版本的chromuim" style="max-width:100%;"></a> <a><img alt="maven仓库" src="https://img.shields.io/maven-central/v/com.ruiyun/jvppeteer/1.0.0" style="max-width:100%;"></a> <a href="https://github.com/fanyong920/jvppeteer/issues"><img alt="Issue resolution status" src="https://img.shields.io/github/issues/fanyong920/jvppeteer" style="max-width:100%;"></a>
+<a rel="nofollow" href="https://download-chromium.appspot.com/"><img src ="https://img.shields.io/badge/chromium%20download-latest-blue"  alt="下载最新版本的chromuim" style="max-width:100%;"></a> <a><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.fanyong920/jvppeteer"></a> <a href="https://github.com/fanyong920/jvppeteer/issues"><img alt="Issue resolution status" src="https://img.shields.io/github/issues/fanyong920/jvppeteer" style="max-width:100%;"></a>
     <a href="https://sonarcloud.io/dashboard?id=fanyong920_jvppeteer"><img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=fanyong920_jvppeteer&metric=alert_status" style="max-width:100%;"></a>
 </p>
 
@@ -35,9 +35,8 @@
 <dependency>
   <groupId>com.ruiyun</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
- <!--我现在还没发布到maven，只是提前先写出来 -->
 ```
 
 #### Gradle
@@ -58,28 +57,33 @@ compile "com.ruiyun:jvppeteer:1.0.0-SNAPSHOT"
 
 该库使用[SLF4J](https://www.slf4j.org/)进行日志记录，并且不附带任何默认日志记录实现。
 
-调试日志将使用日志级别进行DEBUG。
+调试日志将使用日志级别进行TRACE。
 
 ### 接下来将给出几个例子：
 
-#### 启动：
+#### 启动浏览器
 
 ```java
 //设置基本的启动配置,这里选择了‘有头’模式启动
-LaunchOptions options = new OptionsBuilder().withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
+ArrayList<String> argList = new ArrayList<>();
+		String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+		LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
+		argList.add("--no-sandbox");
+		argList.add("--disable-setuid-sandbox");
 //启动
-Puppeteer.launch(options);
+		Puppeteer.launch(options);
 ```
 
 在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的Chrome浏览器
 
-#### 导航：
+#### 导航至某个页面
 
 ```java
-ArrayList<String> arrayList = new ArrayList<>();
-        LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(false).build();
-        arrayList.add("--no-sandbox");
-        arrayList.add("--disable-setuid-sandbox");
+String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        ArrayList<String> argList = new ArrayList<>();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
+        argList.add("--no-sandbox");
+        argList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://www.taobao.com/about/");
@@ -88,21 +92,19 @@ ArrayList<String> arrayList = new ArrayList<>();
 
 这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。arrayList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
 
-#### 生成PDF：
+#### 生成页面的PDF
 
 ```java
-ArrayList<String> arrayList = new ArrayList<>();
-String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe;
-//生成pdf必须在无厘头模式下才能生效
-LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
-arrayList.add("--no-sandbox");
-arrayList.add("--disable-setuid-sandbox");
-Browser browser = Puppeteer.launch(options);
-Page page = browser.newPage();
-page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-PDFOptions pdfOptions = new PDFOptions();
-pdfOptions.setPath("test.pdf");
-page.pdf(pdfOptions);
+ArrayList<String> argList = new ArrayList<>();
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        //生成pdf必须在无厘头模式下才能生效
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
+        argList.add("--no-sandbox");
+        argList.add("--disable-setuid-sandbox");
+        Browser browser = Puppeteer.launch(options);
+        Page page = browser.newPage();
+        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+        page.pdf("test.pdf");
 ```
 
 在这个例子中，导航到某个页面后，将整个页面截图，并写成PDF文件。注意，生成PDF必须在headless模式下才能生效
@@ -110,20 +112,20 @@ page.pdf(pdfOptions);
 #### TRACING:性能分析
 
 ```java
-ArrayList<String> arrayList = new ArrayList<>();
-String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+ArrayList<String> argList = new ArrayList<>();
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
-LaunchOptions options = new OptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
-arrayList.add("--no-sandbox");
-arrayList.add("--disable-setuid-sandbox");
-Browser browser = Puppeteer.launch(options);
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
+        argList.add("--no-sandbox");
+        argList.add("--disable-setuid-sandbox");
+        Browser browser = Puppeteer.launch(options);
 
-Page page = browser.newPage();
-//开启追踪
-page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json",true,new HashSet<>());
-page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-//发出追踪结束信号
-page.tracing().stop();
+        Page page = browser.newPage();
+        //开启追踪
+        page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json");
+        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+        page.tracing().stop();
+        //waifor tracingComplete
 ```
 
 在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面包含页面性能的具体数据，可以用Chrome浏览器开发者工具打开该json文件，并分析性能。

@@ -82,7 +82,7 @@ public class ChromeLauncher implements Launcher {
         String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 
-        LOGGER.info("Calling " + chromeExecutable + String.join(" ", chromeArguments));
+        LOGGER.trace("Calling " + chromeExecutable + String.join(" ", chromeArguments));
         BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
         try {
             runner.start(options);

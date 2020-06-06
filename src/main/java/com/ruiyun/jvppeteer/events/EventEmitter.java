@@ -34,7 +34,6 @@ public class EventEmitter implements Event {
         DefaultBrowserListener defaultBrowserListener = (DefaultBrowserListener)listener;
         if(!method.equals(defaultBrowserListener.getMothod())){
             LOGGER.error("addListener fail:{} is not equals listener.getMothod()[{}]",method,defaultBrowserListener.getMothod());
-            System.out.println(MessageFormat.format("addListener fail:{} is not equals listener.getMothod()[{}]",method,defaultBrowserListener.getMothod()));
             return this;
         }
         defaultBrowserListener.setIsOnce(isOnce);

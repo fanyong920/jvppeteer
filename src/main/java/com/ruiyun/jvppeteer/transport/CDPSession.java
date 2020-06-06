@@ -155,7 +155,6 @@ public class CDPSession extends EventEmitter {
     }
 
     public void onMessage(JsonNode node) {
-//        System.out.println("this.client rece:"+this.hashCode());
         JsonNode id = node.get(RECV_MESSAGE_ID_PROPERTY);
         if(id != null) {
             Long idLong = id.asLong();

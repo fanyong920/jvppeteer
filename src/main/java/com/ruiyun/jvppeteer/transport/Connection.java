@@ -120,10 +120,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
 		this.callbacks.put(id, message);
         try {
             String sendMsg = Constant.OBJECTMAPPER.writeValueAsString(message);
-            if (LOGGER.isDebugEnabled())
-                LOGGER.debug("SEND -> " + sendMsg);
-//            System.out.println("SEND -> " + sendMsg);
             transport.send(sendMsg);
+            LOGGER.trace("SEND -> " + sendMsg);
             return id;
         } catch (JsonProcessingException e) {
             LOGGER.error("parse message fail:", e);
@@ -144,10 +142,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 LOGGER.error("slowMo browser Fail:", e);
             }
         }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("<- RECV " + message);
-        }
-//        System.out.println("<- RECV " + message);
+        LOGGER.trace("<- RECV " + message);
         try {
             if (StringUtil.isNotEmpty(message)) {
                 JsonNode readTree = Constant.OBJECTMAPPER.readTree(message);

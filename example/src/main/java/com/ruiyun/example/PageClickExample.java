@@ -26,7 +26,7 @@ public class PageClickExample {
 
         //输入
         page.type("#kw","我要测试");
-
+        System.out.println();
         //点击搜索
         page.click("#su");
 
