@@ -68,14 +68,14 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 #### 1、启动浏览器
 
 ```java
-		//设置基本的启动配置,这里选择了‘有头’模式启动
-		ArrayList<String> argList = new ArrayList<>();
-		String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-		LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
-		argList.add("--no-sandbox");
-		argList.add("--disable-setuid-sandbox");
-		//启动
-		Puppeteer.launch(options);
+	//设置基本的启动配置,这里选择了‘有头’模式启动
+	ArrayList<String> argList = new ArrayList<>();
+	String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+	LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
+	argList.add("--no-sandbox");
+	argList.add("--disable-setuid-sandbox");
+	//启动
+	Puppeteer.launch(options);
 ```
 
 在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的 Chrome 浏览器
