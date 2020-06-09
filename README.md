@@ -50,22 +50,26 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "com.ruiyun:jvppeteer:1.0.0-SNAPSHOT"
+compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 ```
 
 #### Logging
 
 该库使用[SLF4J](https://www.slf4j.org/)进行日志记录，并且不附带任何默认日志记录实现。
 
-调试日志将使用日志级别进行TRACE。
+调试程序将日志级别设置为TRACE。
 
-### 接下来将给出几个例子：
+#### 独立 jar
 
-#### 启动浏览器
+如果您不使用任何依赖项管理工具，则可以在[此处](https://github.com/fanyong920/jvppeteer/releases/latest)找到最新的独立 jar 。
+
+### 快速开始
+
+#### 1、启动浏览器
 
 ```java
-//设置基本的启动配置,这里选择了‘有头’模式启动
-ArrayList<String> argList = new ArrayList<>();
+		//设置基本的启动配置,这里选择了‘有头’模式启动
+		ArrayList<String> argList = new ArrayList<>();
 		String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 		LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
 		argList.add("--no-sandbox");
@@ -76,12 +80,12 @@ ArrayList<String> argList = new ArrayList<>();
 
 在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的Chrome浏览器
 
-#### 导航至某个页面
+#### 2、导航至某个页面
 
 ```java
-String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+		String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> argList = new ArrayList<>();
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
+        LaunchOptions options = new 			LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
         argList.add("--no-sandbox");
         argList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
@@ -92,10 +96,10 @@ String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
 这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。arrayList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
 
-#### 生成页面的PDF
+#### 3、生成页面的PDF
 
 ```java
-ArrayList<String> argList = new ArrayList<>();
+		ArrayList<String> argList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         //生成pdf必须在无厘头模式下才能生效
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
@@ -109,10 +113,10 @@ ArrayList<String> argList = new ArrayList<>();
 
 在这个例子中，导航到某个页面后，将整个页面截图，并写成PDF文件。注意，生成PDF必须在headless模式下才能生效
 
-#### TRACING:性能分析
+#### 4、TRACING:性能分析
 
 ```java
-ArrayList<String> argList = new ArrayList<>();
+		ArrayList<String> argList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
@@ -129,6 +133,31 @@ ArrayList<String> argList = new ArrayList<>();
 ```
 
 在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面包含页面性能的具体数据，可以用Chrome浏览器开发者工具打开该json文件，并分析性能。
+
+#### 5、页面截图
+
+```java
+        ArrayList<String> arrayList = new ArrayList<>();
+        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
+        arrayList.add("--no-sandbox");
+        arrayList.add("--disable-setuid-sandbox");
+        Browser browser = Puppeteer.launch(options);
+        Page page = browser.newPage();
+        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+
+        ScreenshotOptions screenshotOptions = new ScreenshotOptions();
+        //设置截图范围
+        Clip clip = new Clip(1.0,1.56,400,400);
+        screenshotOptions.setClip(clip);
+        //设置存放的路径
+        screenshotOptions.setPath("test.png");
+        page.screenshot(screenshotOptions);
+
+```
+
+页面导航完成后，设置截图范围以及图片保存路径，即可开始截图。
 
 **更多的例子请看**[这里](https://github.com/fanyong920/jvppeteer/tree/master/example/src/main/java/com/ruiyun/example)
 
