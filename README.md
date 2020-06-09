@@ -7,13 +7,13 @@
 
 
 
-**本库的灵感来自[Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer),API也与其基本上保持一致，做这个库是为了方便使用Java操控Chrome 或 Chromium**
+**本库的灵感来自 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer), API 也与其基本上保持一致，做这个库是为了方便使用 Java 操控 Chrome 或 Chromium**
 
 
 
 
-   >Jvppeteer通过[DevTools](https://chromedevtools.github.io/devtools-protocol/)控制 Chromium 或 Chrome。
-   >默认情况下，以headless模式运行，也可以通过配置运行'有头'模式。
+   >Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 控制 Chromium 或 Chrome。
+   >默认情况下，以 headless 模式运行，也可以通过配置运行'有头'模式。
 
 
 你可以在浏览器中手动执行的绝大多数操作都可以使用 Jvppeteer 来完成！ 下面是一些示例：
@@ -21,15 +21,15 @@
 - 生成页面 PDF。
 - 抓取 SPA（单页应用）并生成预渲染内容（即“SSR”（服务器端渲染））。
 - 自动提交表单，进行 UI 测试，键盘输入等。
-- 创建一个时时更新的自动化测试环境。 使用最新的 JavaScript 和浏览器功能直接在最新版本的Chrome中执行测试。
+- 创建一个时时更新的自动化测试环境。 使用最新的 JavaScript 和浏览器功能直接在最新版本的 Chrome 中执行测试。
 - 捕获网站的 [timeline trace](https://developers.google.com/web/tools/chrome-devtools/evaluate-performance/reference)，用来帮助分析性能问题。
 - 测试浏览器扩展。
 
 ## 开始使用
 
-### 以下是使用依赖管理工具（如maven或gradle）的简要指南。
+### 以下是使用依赖管理工具（如 maven 或 gradle）的简要指南。
 #### Maven
-要使用maven,请将此依赖添加到pom.xml文件中：
+要使用 maven,请将此依赖添加到pom.xml文件中：
 
 ```xml
 <dependency>
@@ -41,7 +41,7 @@
 
 #### Gradle
 
-要使用Gradle，请将Maven中央存储库添加到您的存储库列表中:
+要使用 Gradle，请将 Maven 中央存储库添加到您的存储库列表中:
 
 ```
 mavenCentral（）
@@ -55,9 +55,9 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 
 #### Logging
 
-该库使用[SLF4J](https://www.slf4j.org/)进行日志记录，并且不附带任何默认日志记录实现。
+该库使用 [SLF4J](https://www.slf4j.org/) 进行日志记录，并且不附带任何默认日志记录实现。
 
-调试程序将日志级别设置为TRACE。
+调试程序将日志级别设置为 TRACE。
 
 #### 独立 jar
 
@@ -74,16 +74,16 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 		LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
 		argList.add("--no-sandbox");
 		argList.add("--disable-setuid-sandbox");
-//启动
+		//启动
 		Puppeteer.launch(options);
 ```
 
-在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的Chrome浏览器
+在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的 Chrome 浏览器
 
 #### 2、导航至某个页面
 
 ```java
-		String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+	String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> argList = new ArrayList<>();
         LaunchOptions options = new 			LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
         argList.add("--no-sandbox");
@@ -94,12 +94,12 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
         browser.close();
 ```
 
-这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。arrayList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
+这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。argList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
 
-#### 3、生成页面的PDF
+#### 3、生成页面的 PDF
 
 ```java
-		ArrayList<String> argList = new ArrayList<>();
+	ArrayList<String> argList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         //生成pdf必须在无厘头模式下才能生效
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
@@ -113,10 +113,10 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 
 在这个例子中，导航到某个页面后，将整个页面截图，并写成PDF文件。注意，生成PDF必须在headless模式下才能生效
 
-#### 4、TRACING:性能分析
+#### 4、TRACING 性能分析
 
 ```java
-		ArrayList<String> argList = new ArrayList<>();
+	ArrayList<String> argList = new ArrayList<>();
         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
@@ -132,7 +132,7 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
         //waifor tracingComplete
 ```
 
-在这个例子中，将在页面导航完成后，生成一个json格式的文件，里面包含页面性能的具体数据，可以用Chrome浏览器开发者工具打开该json文件，并分析性能。
+在这个例子中，将在页面导航完成后，生成一个 json 格式的文件，里面包含页面性能的具体数据，可以用 Chrome 浏览器开发者工具打开该 json 文件，并分析性能。
 
 #### 5、页面截图
 
@@ -169,4 +169,4 @@ compile "com.ruiyun:jvppeteer:1.0.1-SNAPSHOT"
 
 ### 执照
 
-此仓库中找到的所有内容均已获得Apache许可。有关详细信息，请参见`LICENSE`文件
+此仓库中找到的所有内容均已获得 Apache 许可。有关详细信息，请参见`LICENSE`文件
