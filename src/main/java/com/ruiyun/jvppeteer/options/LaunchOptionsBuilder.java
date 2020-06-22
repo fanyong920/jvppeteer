@@ -16,12 +16,22 @@ public class LaunchOptionsBuilder {
 		options.setExecutablePath(executablePath);
 		return this;
 	}
-	
-	public LaunchOptionsBuilder withIgnoreAllDefaultArgs(boolean ignoreAllDefaultArgs) {
+
+	/**
+	 * 是否忽略所欲的默认启动参数，默认是fasle
+	 * @param ignoreAllDefaultArgs true为忽略所有启动参数
+	 * @return LaunchOptionsBuilder
+	 */
+	public LaunchOptionsBuilder withIgnoreDefaultArgs(boolean ignoreAllDefaultArgs) {
 		options.setIgnoreAllDefaultArgs(ignoreAllDefaultArgs);
 		return this;
 	}
-	
+
+	/**
+	 * 忽略指定的默认启动参数，默认的启动参数见 {@link com.ruiyun.jvppeteer.core.Constant#DEFAULT_ARGS}
+	 * @param ignoreDefaultArgs 要忽略的启动参数
+	 * @return LaunchOptionsBuilder
+	 */
 	public LaunchOptionsBuilder withIgnoreDefaultArgs(List<String> ignoreDefaultArgs) {
 		options.setIgnoreDefaultArgs(ignoreDefaultArgs);
 		return this;

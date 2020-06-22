@@ -20,10 +20,13 @@ public class LaunchOptions extends BrowserOptions {
 	private String executablePath;
 	
 	/**
-	 * 默认是false
+	 * 如果是true，代表忽略所有默认的启动参数，默认的启动参数见{@link com.ruiyun.jvppeteer.core.Constant#DEFAULT_ARGS}，默认是false
 	 */
 	private boolean ignoreAllDefaultArgs;
 
+	/**
+	 * 忽略指定的默认启动参数
+	 */
 	private List<String> ignoreDefaultArgs;
 	
 	/**
