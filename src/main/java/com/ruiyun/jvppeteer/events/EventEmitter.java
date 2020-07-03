@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.text.MessageFormat;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,7 +125,11 @@ public class EventEmitter implements Event {
      */
     private void invokeListener(DefaultBrowserListener listener, Object event){
         try {
-            listener.onBrowserEvent(event);
+            if(listener.getIsSync()){
+                Helper.commonExecutor().submit(() -> {listener.onBrowserEvent(event);});
+            }else {
+                listener.onBrowserEvent(event);
+            }
         } finally {
             if(listener.getIsOnce()){
                 listener.setIsAvaliable(false);

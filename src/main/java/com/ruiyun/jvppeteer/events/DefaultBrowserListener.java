@@ -15,6 +15,9 @@ public class DefaultBrowserListener<T> implements BrowserListener<T> {
 
 	private boolean isAvaliable = true;
 
+	//是否异步
+	private boolean isSync;
+
 	public void setResolveType(Class<T> resolveType) {
 		this.resolveType = resolveType;
 	}
@@ -61,6 +64,14 @@ public class DefaultBrowserListener<T> implements BrowserListener<T> {
 
 	public void setIsAvaliable(boolean isAvaliable) {
 		this.isAvaliable = isAvaliable;
+	}
+
+	public boolean getIsSync() {
+		return isSync;
+	}
+
+	public void setIsSync(boolean isSync) {
+		this.isSync = isSync;
 	}
 
 	@Override

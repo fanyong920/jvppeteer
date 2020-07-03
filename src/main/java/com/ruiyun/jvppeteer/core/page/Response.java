@@ -1,15 +1,19 @@
 package com.ruiyun.jvppeteer.core.page;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class Response {
 
@@ -69,6 +73,7 @@ public class Response {
         if(this.contentPromiseLatch != null){
             this.contentPromiseLatch.countDown();
         }
+
 //        if (this.contentPromise == null) {
 //            return Helper.commonExecutor().submit(
 //                return contentPromise;
@@ -82,19 +87,30 @@ public class Response {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
 
-    public byte[] buffer() {
+    public byte[] buffer() throws InterruptedException {
         if (this.contentPromise == null) {
-           this.contentPromiseLatch.countDown();
+           this.contentPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+           Map<String,Object> params = new HashMap<>();
+           params.put("requestId",this.request.requestId());
+            JsonNode response = this.client.send("Network.getResponseBody", params, true);
+            if(response != null){
+                if(response.get("base64Encoded").asBoolean()){
+                    contentPromise = Base64.decode(response.get("body").asText());
+                }else{
+                    contentPromise =  response.get("body").asText().getBytes(Charset.forName("utf-8"));
+                }
+            }
         }
+
         return this.contentPromise;
     }
 
-    public String text() {
+    public String text() throws InterruptedException {
         byte[] content = this.buffer();
         return new String(content, StandardCharsets.UTF_8);
     }
 
-    public <T> T json(Class<T> clazz) throws IOException {
+    public <T> T json(Class<T> clazz) throws IOException, InterruptedException {
         String content = this.text();
         return Constant.OBJECTMAPPER.readValue(content, clazz);
     }

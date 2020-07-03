@@ -540,6 +540,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Response> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_RESPONSE.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
