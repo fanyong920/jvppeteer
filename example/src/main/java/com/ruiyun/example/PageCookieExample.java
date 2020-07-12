@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.protocol.network.Cookie;
+import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
 
 import java.util.ArrayList;
@@ -13,9 +14,9 @@ import java.util.List;
 
 public class PageCookieExample {
     public static void main(String[] args) throws Exception{
-        //String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
+        String path = new String("F:\\java教程\\49期\\vuejs\\puppeteer\\.local-chromium\\win64-722234\\chrome-win\\chrome.exe".getBytes(),"UTF-8");
 
-      String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+      //String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
         ArrayList<String> arrayList = new ArrayList<>();
         LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
         arrayList.add("--no-sandbox");
@@ -35,5 +36,11 @@ public class PageCookieExample {
         for (Cookie cookie : cookies2) {
             System.out.println(cookie);
         }
+      CookieParam param1 = new CookieParam();
+        param1.setName("cccccccccccsadasdasdas");
+        param1.setValue("asdfghjkl");
+        List<CookieParam> list = new ArrayList<>();
+        list.add(param1);
+        page.setCookie(list);
     }
 }

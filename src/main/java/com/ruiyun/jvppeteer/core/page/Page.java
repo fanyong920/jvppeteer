@@ -912,7 +912,9 @@ public class Page extends EventEmitter {
             if (StringUtil.isEmpty(cookie.getUrl()) && startsWithHTTP)
                 cookie.setUrl(pageURL);
             ValidateUtil.assertArg(!ABOUT_BLANK.equals(cookie.getUrl()), "Blank page can not have cookie " + cookie.getName());
-            ValidateUtil.assertArg(!StringUtil.isNotEmpty(cookie.getUrl()) && !cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
+            if(StringUtil.isNotEmpty(cookie.getUrl())){
+                ValidateUtil.assertArg(!cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
+            }
             return cookie;
         });
         List<DeleteCookiesParameters> deleteCookiesParameters = new ArrayList<>();
