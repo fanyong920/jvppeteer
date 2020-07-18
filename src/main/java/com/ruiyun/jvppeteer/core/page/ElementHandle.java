@@ -156,7 +156,7 @@ public class ElementHandle extends JSHandle {
         return null;
     }
 
-    public String screenshot(ScreenshotOptions options) throws IOException {
+    public String screenshot(ScreenshotOptions options) throws IOException, ExecutionException, InterruptedException {
         boolean needsViewportReset = false;
         Clip boundingBox = this.boundingBox();
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");

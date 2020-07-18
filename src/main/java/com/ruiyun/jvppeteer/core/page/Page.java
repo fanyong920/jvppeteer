@@ -76,11 +76,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -795,6 +798,10 @@ public class Page extends EventEmitter {
                 return screenshotTask(type, op);
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }, screenshotType, options);
     }
@@ -935,7 +942,7 @@ public class Page extends EventEmitter {
      * ${@link Page#goBack(PageNavigateOptions)}
      * ${@link Page#goForward(PageNavigateOptions)}
      * ${@link Page#reload(PageNavigateOptions)}
-     * ${@link Page#waitForNavigation(PageNavigateOptions)}
+     * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
      */
@@ -1017,7 +1024,7 @@ public class Page extends EventEmitter {
         this.frameManager.networkManager().setRequestInterception(value);
     }
 
-    private String screenshotTask(String format, ScreenshotOptions options) throws IOException {
+    private String screenshotTask(String format, ScreenshotOptions options) throws IOException, ExecutionException, InterruptedException {
         Map<String, Object> params = new HashMap<>();
         params.put("targetId", this.target.getTargetId());
         this.client.send("Target.activateTarget", params, true);
@@ -1126,7 +1133,7 @@ public class Page extends EventEmitter {
      * @param screenshotTaskQueue 截图队列
      * @return 页面实例
      */
-    public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue<String> screenshotTaskQueue) {
+    public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue<String> screenshotTaskQueue) throws ExecutionException, InterruptedException {
         Page page = new Page(client, target, ignoreHTTPSErrors, screenshotTaskQueue);
         page.initialize();
         if (viewport != null) {
@@ -1226,11 +1233,10 @@ public class Page extends EventEmitter {
      *
      * @param viewport 设置的视图
      */
-    public void setViewport(Viewport viewport) {
+    public void setViewport(Viewport viewport) throws ExecutionException, InterruptedException {
         boolean needsReload = this.emulationManager.emulateViewport(viewport);
         this.viewport = viewport;
-        if (needsReload)
-            this.reload(null);
+        if (needsReload) this.reload(null);
     }
 
     protected void initialize() {
@@ -1396,9 +1402,26 @@ public class Page extends EventEmitter {
      *
      * @param options Device 模拟器枚举类
      */
-    public void emulate(Device options) {
-        this.setViewport(options.getViewport());
-        this.setUserAgent(options.getUserAgent());
+    public void emulate(Device options) throws ExecutionException, InterruptedException {
+        CompletionService service = new ExecutorCompletionService(Helper.commonExecutor());
+        service.submit(() -> {
+            try {
+                this.setViewport(options.getViewport());
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            return null;
+        });
+        service.submit(() -> {
+            this.setUserAgent(options.getUserAgent());
+            return null;
+        });
+        for (int i= 0; i < 2;i++) {
+            service.take().get();
+        }
+
     }
 
     /**
@@ -1700,7 +1723,7 @@ public class Page extends EventEmitter {
      * ${@link Page#goBack(PageNavigateOptions)}
      * ${@link Page#goForward(PageNavigateOptions)}
      * ${@link Page#reload(PageNavigateOptions)}
-     * ${@link Page#waitForNavigation(PageNavigateOptions)}
+     * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
      */
@@ -1753,11 +1776,23 @@ public class Page extends EventEmitter {
      * @param options 与${@link Page#goTo(String, PageNavigateOptions,boolean)}中的options是一样的配置
      * @return 响应
      */
-    public Response reload(PageNavigateOptions options) {
-        /*先执行reload命令，不用等待返回*/
-        this.client.send("Page.reload", null, false);
+    public Response reload(PageNavigateOptions options) throws ExecutionException, InterruptedException {
+        AtomicBoolean start = new AtomicBoolean(false);
+        Helper.commonExecutor().submit(() -> {
+            /*先执行reload命令，不用等待返回*/
+            while (!start.get()){
+//                break;
+            }
+            this.client.send("Page.reload", null, false);
+        });
+
         /*再等待页面导航结果返回*/
-        return this.waitForNavigation(options);
+        Future<Response> result = Helper.commonExecutor().submit(() -> {
+//            start.set(true);
+           return this.waitForNavigation(options,start);
+        });
+
+        return result.get();
     }
 
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
@@ -1784,7 +1819,7 @@ public class Page extends EventEmitter {
         NavigationEntry entry = history.getEntries().get(history.getCurrentIndex() + delta);
         if (entry == null)
             return null;
-        Response response = this.waitForNavigation(options);
+        Response response = this.waitForNavigation(options,null);
         Map<String, Object> params = new HashMap<>();
         params.put("entryId", entry.getId());
         this.client.send("Page.navigateToHistoryEntry", params, true);
@@ -1799,7 +1834,7 @@ public class Page extends EventEmitter {
      * @return 响应
      */
     public Response waitForNavigation() {
-        return this.waitForNavigation(new PageNavigateOptions());
+        return this.waitForNavigation(new PageNavigateOptions(),null);
     }
 
     /**
@@ -1810,8 +1845,8 @@ public class Page extends EventEmitter {
      * @param options PageNavigateOptions
      * @return 响应
      */
-    public Response waitForNavigation(PageNavigateOptions options) {
-        return this.frameManager.mainFrame().waitForNavigation(options);
+    public Response waitForNavigation(PageNavigateOptions options,AtomicBoolean start) {
+        return this.frameManager.mainFrame().waitForNavigation(options,start);
     }
 
     /**

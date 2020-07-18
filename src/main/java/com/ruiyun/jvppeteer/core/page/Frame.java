@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Frame {
@@ -80,8 +81,8 @@ public class Frame {
         this.url = url;
     }
 
-    public Response waitForNavigation(PageNavigateOptions options) {
-        return this.frameManager.waitForFrameNavigation(this, options);
+    public Response waitForNavigation(PageNavigateOptions options, AtomicBoolean start) {
+        return this.frameManager.waitForFrameNavigation(this, options,start);
     }
 
     public ExecutionContext executionContext() {

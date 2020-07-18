@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class Target {
@@ -66,7 +67,13 @@ public class Target {
         this.workerPromise = null;
         this.isInitialized = !"page".equals(this.targetInfo.getType()) || !StringUtil.isEmpty(this.targetInfo.getUrl());
         if (isInitialized) {//初始化
-            this.initializedPromise = this.initializedCallback(true);
+            try {
+                this.initializedPromise = this.initializedCallback(true);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         } else {
             this.initializedPromise = true;
         }
@@ -112,7 +119,13 @@ public class Target {
     public Page page() {
         String type;
         if (("page".equals(type = this.targetInfo.getType()) || "background_page".equals(type)) && this.pagePromise == null) {
-            this.pagePromise = Page.create(this.sessionFactory.create(), this, this.ignoreHTTPSErrors, this.viewport, this.screenshotTaskQueue);
+            try {
+                this.pagePromise = Page.create(this.sessionFactory.create(), this, this.ignoreHTTPSErrors, this.viewport, this.screenshotTaskQueue);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         return this.pagePromise;
     }
@@ -130,7 +143,7 @@ public class Target {
         return "other";
     }
 
-    public boolean initializedCallback(boolean success) {
+    public boolean initializedCallback(boolean success) throws ExecutionException, InterruptedException {
         try {
             if (!success) {
                 this.initializedPromise = false;
@@ -278,7 +291,7 @@ public class Target {
         return sessionId;
     }
 
-    public void targetInfoChanged(TargetInfo targetInfo) {
+    public void targetInfoChanged(TargetInfo targetInfo) throws ExecutionException, InterruptedException {
         this.targetInfo = targetInfo;
         if (!this.isInitialized && (!"page".equals(this.targetInfo.getType()) || !"".equals(this.targetInfo.getUrl()))) {
             this.isInitialized = true;

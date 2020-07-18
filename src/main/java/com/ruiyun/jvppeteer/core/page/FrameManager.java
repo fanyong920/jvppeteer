@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FrameManager extends EventEmitter {
 
@@ -550,7 +551,7 @@ public class FrameManager extends EventEmitter {
         return this.frames.get(frameId);
     }
 
-    public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options) {
+    public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options, AtomicBoolean start) {
         List<String> waitUntil;
         int timeout;
         if (options == null) {
@@ -579,6 +580,9 @@ public class FrameManager extends EventEmitter {
             return watcher.navigationResponse();
         }
         try {
+            if(start != null){
+                start.set(true);
+            }
             this.documentLatch = new CountDownLatch(1);
             boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
             if (!await) {

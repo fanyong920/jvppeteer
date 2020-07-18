@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -123,9 +124,15 @@ public class Browser extends EventEmitter {
 
         DefaultBrowserListener<TargetDestroyedPayload> targetDestroyedLis = new DefaultBrowserListener<TargetDestroyedPayload>() {
             @Override
-            public void onBrowserEvent(TargetDestroyedPayload event) {
+            public void onBrowserEvent(TargetDestroyedPayload event)  {
                 Browser browser = (Browser) this.getTarget();
-                browser.targetDestroyed(event);
+                try {
+                    browser.targetDestroyed(event);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
         targetDestroyedLis.setTarget(this);
@@ -136,7 +143,13 @@ public class Browser extends EventEmitter {
             @Override
             public void onBrowserEvent(TargetInfoChangedPayload event) {
                 Browser browser = (Browser) this.getTarget();
-                browser.targetInfoChanged(event);
+                try {
+                    browser.targetInfoChanged(event);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
         targetInfoChangedLis.setTarget(this);
@@ -144,7 +157,7 @@ public class Browser extends EventEmitter {
         this.connection.on(targetInfoChangedLis.getMothod(), targetInfoChangedLis);
     }
 
-    private void targetDestroyed(TargetDestroyedPayload event) {
+    private void targetDestroyed(TargetDestroyedPayload event) throws ExecutionException, InterruptedException {
         Target target = this.targets.remove(event.getTargetId());
         target.initializedCallback(false);
         target.closedCallback();
@@ -155,7 +168,7 @@ public class Browser extends EventEmitter {
 
     }
 
-    private void targetInfoChanged(TargetInfoChangedPayload event) {
+    private void targetInfoChanged(TargetInfoChangedPayload event) throws ExecutionException, InterruptedException {
         Target target = this.targets.get(event.getTargetInfo().getTargetId());
         ValidateUtil.assertArg(target != null, "target should exist before targetInfoChanged");
         String previousURL = target.url();
@@ -368,7 +381,7 @@ public class Browser extends EventEmitter {
      *
      * @return 新建页面
      */
-    public Page newPage() {
+    public Page newPage() throws ExecutionException, InterruptedException {
         return this.defaultContext.newPage();
     }
 
@@ -378,7 +391,7 @@ public class Browser extends EventEmitter {
      * @param contextId 上下文id 如果为空，则使用默认上下文
      * @return 新建页面
      */
-    public Page createPageInContext(String contextId) {
+    public Page createPageInContext(String contextId) throws ExecutionException, InterruptedException {
         Map<String, Object> params = new HashMap<>();
         params.put("url", "about:blank");
         params.put("browserContextId", contextId);
