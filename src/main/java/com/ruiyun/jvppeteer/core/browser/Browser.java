@@ -91,7 +91,7 @@ public class Browser extends EventEmitter {
             closeCallback = o -> null;
         }
         this.closeCallback = closeCallback;
-        this.defaultContext = new BrowserContext(connection, this, null);
+        this.defaultContext = new BrowserContext(connection, this, "");
         this.contexts = new HashMap<>();
         if (ValidateUtil.isNotEmpty(contextIds)) {
             for (String contextId : contextIds) {
@@ -394,7 +394,9 @@ public class Browser extends EventEmitter {
     public Page createPageInContext(String contextId) throws ExecutionException, InterruptedException {
         Map<String, Object> params = new HashMap<>();
         params.put("url", "about:blank");
-        params.put("browserContextId", contextId);
+        if(StringUtil.isNotEmpty(contextId)) {
+            params.put("browserContextId", contextId);
+        }
         JsonNode recevie = this.connection.send("Target.createTarget", params, true);
         if (recevie != null) {
             Target target = this.targets.get(recevie.get(Constant.RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
