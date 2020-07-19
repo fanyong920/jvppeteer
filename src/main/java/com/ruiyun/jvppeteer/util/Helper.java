@@ -200,6 +200,7 @@ public class Helper {
         BufferedInputStream reader = null;
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
+            FileUtil.createNewFile(file);
         }
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);

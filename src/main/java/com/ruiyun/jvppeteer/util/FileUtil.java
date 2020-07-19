@@ -75,7 +75,7 @@ public class FileUtil {
 	 * @param parent 要创建的文件夹
 	 */
 	public static final void mkdir(File parent){
-		if(!parent.exists()){
+		if(parent != null && !parent.exists()){
 			mkdir(parent.getParentFile());
 			parent.mkdir();
 		}
