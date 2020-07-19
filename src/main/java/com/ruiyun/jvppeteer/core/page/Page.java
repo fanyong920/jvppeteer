@@ -1132,6 +1132,8 @@ public class Page extends EventEmitter {
      * @param viewport            视图
      * @param screenshotTaskQueue 截图队列
      * @return 页面实例
+     * @throws ExecutionException 并发异常
+     * @throws InterruptedException 线程打断异常
      */
     public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue<String> screenshotTaskQueue) throws ExecutionException, InterruptedException {
         Page page = new Page(client, target, ignoreHTTPSErrors, screenshotTaskQueue);
@@ -1232,6 +1234,8 @@ public class Page extends EventEmitter {
      * <p>注意 在大部分情况下，改变 viewport 会重新加载页面以设置 isMobile 或者 hasTouch</p>
      *
      * @param viewport 设置的视图
+     * @throws ExecutionException 并发异常
+     * @throws InterruptedException 线程被打断异常
      */
     public void setViewport(Viewport viewport) throws ExecutionException, InterruptedException {
         boolean needsReload = this.emulationManager.emulateViewport(viewport);
@@ -1401,6 +1405,8 @@ public class Page extends EventEmitter {
      * <p>${@link Page#setUserAgent(String)}</p>
      *
      * @param options Device 模拟器枚举类
+     * @throws InterruptedException 线程被打断异常
+     * @throws ExecutionException 并发异常
      */
     public void emulate(Device options) throws ExecutionException, InterruptedException {
         CompletionService service = new ExecutorCompletionService(Helper.commonExecutor());
@@ -1775,6 +1781,8 @@ public class Page extends EventEmitter {
      *
      * @param options 与${@link Page#goTo(String, PageNavigateOptions,boolean)}中的options是一样的配置
      * @return 响应
+     * @throws ExecutionException 并发异常
+     * @throws  InterruptedException 线程被打断异常
      */
     public Response reload(PageNavigateOptions options) throws ExecutionException, InterruptedException {
         AtomicBoolean start = new AtomicBoolean(false);
@@ -1845,8 +1853,20 @@ public class Page extends EventEmitter {
      * @param options PageNavigateOptions
      * @return 响应
      */
-    public Response waitForNavigation(PageNavigateOptions options,AtomicBoolean start) {
-        return this.frameManager.mainFrame().waitForNavigation(options,start);
+    public Response waitForNavigation(PageNavigateOptions options) {
+        return this.frameManager.mainFrame().waitForNavigation(options,null);
+    }
+    /**
+     * 此方法在页面跳转到一个新地址或重新加载时解析，如果你的代码会间接引起页面跳转，这个方法比较有用
+     * <p>比如你在在代码中使用了Page.click()方法，引起了页面跳转
+     * 注意 通过 History API 改变地址会认为是一次跳转。
+     *
+     * @param options PageNavigateOptions
+     * @param needReload 是否需要reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
+     * @return 响应
+     */
+    private Response waitForNavigation(PageNavigateOptions options,AtomicBoolean needReload) {
+        return this.frameManager.mainFrame().waitForNavigation(options,needReload);
     }
 
     /**

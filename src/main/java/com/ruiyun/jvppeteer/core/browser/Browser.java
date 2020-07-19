@@ -380,6 +380,8 @@ public class Browser extends EventEmitter {
      * 在当前浏览器上新建一个页面
      *
      * @return 新建页面
+     * @throws ExecutionException 异常
+     * @throws InterruptedException 异常
      */
     public Page newPage() throws ExecutionException, InterruptedException {
         return this.defaultContext.newPage();
@@ -391,7 +393,7 @@ public class Browser extends EventEmitter {
      * @param contextId 上下文id 如果为空，则使用默认上下文
      * @return 新建页面
      */
-    public Page createPageInContext(String contextId) throws ExecutionException, InterruptedException {
+    public Page createPageInContext(String contextId) {
         Map<String, Object> params = new HashMap<>();
         params.put("url", "about:blank");
         if(StringUtil.isNotEmpty(contextId)) {
