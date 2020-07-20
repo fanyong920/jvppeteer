@@ -1514,7 +1514,7 @@ public class Page extends EventEmitter {
      * @param name              挂载到window对象的方法名
      * @param puppeteerFunction 调用name方法时实际执行的方法
      */
-    public void exposeFunction(String name, Function<List<?>, Object> puppeteerFunction) {
+    public void exposeFunction(String name, Function<List<?>, Object> puppeteerFunction) throws InterruptedException, ExecutionException {
         if (this.pageBindings.containsKey(name)) {
             throw new IllegalArgumentException(MessageFormat.format("Failed to add page binding with name {0}: window['{1}'] already exists!", name, name));
         }
@@ -1526,7 +1526,18 @@ public class Page extends EventEmitter {
         params.clear();
         params.put("source", expression);
         this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
-        this.frames().forEach(frame -> frame.evaluate(expression, PageEvaluateType.STRING));
+        List<Frame> frames = this.frames();
+        if(frames.isEmpty()){
+            return;
+        }
+
+        CompletionService completionService = Helper.completionService();
+        frames.forEach(frame -> completionService.submit(() -> {
+            return frame.evaluate(expression, PageEvaluateType.STRING);
+        }));
+        for (int i = 0; i < frames.size(); i++) {
+            completionService.take().get();
+        }
     }
 
     private String addPageBinding() {

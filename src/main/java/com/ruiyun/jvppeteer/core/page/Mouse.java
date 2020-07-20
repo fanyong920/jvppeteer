@@ -49,25 +49,8 @@ public class Mouse {
         this.x = x;
         this.y = y;
         Map<String, Object> params = new HashMap<>();
-
-        if (steps >= MULTI_THREAD_THRESHOLD) {
-            List<Future<Boolean>> futures = new ArrayList<>(steps);
-            CompletionService<Boolean> completionService = new ExecutorCompletionService<>(Helper.commonExecutor());
-            for (int i = 1; i <= steps; i++) {
-                int finalSteps = steps;
-                int finalI = i;
-                futures.add(completionService.submit(() -> {
-                    stepRun(finalSteps, fromX, fromY, params, finalI);
-                    return true;
-                }));
-            }
-            for (Future<Boolean> future : futures) {
-                future.get();
-            }
-        } else {
-            for (int i = 1; i <= steps; i++) {
-                stepRun(steps, fromX, fromY, params, i);
-            }
+        for (int i = 1; i <= steps; i++) {
+            stepRun(steps, fromX, fromY, params, i);
         }
     }
 

@@ -38,8 +38,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadFactory;
@@ -417,6 +419,10 @@ public class Helper {
             }
         }
         return COMMON_EXECUTOR;
+    }
+
+    public static final CompletionService completionService() {
+        return new ExecutorCompletionService(Helper.commonExecutor());
     }
 
     static class CommonThreadFactory implements ThreadFactory {
