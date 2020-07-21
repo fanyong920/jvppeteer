@@ -149,11 +149,10 @@ public class ElementHandle extends JSHandle {
         params.put("objectId", this.remoteObject.getObjectId());
         JsonNode result = this.client.send("DOM.getBoxModel", params, true);
         try {
-            Constant.OBJECTMAPPER.treeToValue(result, GetBoxModelReturnValue.class);
+            return Constant.OBJECTMAPPER.treeToValue(result, GetBoxModelReturnValue.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        return null;
     }
 
     public String screenshot(ScreenshotOptions options) throws IOException, ExecutionException, InterruptedException {

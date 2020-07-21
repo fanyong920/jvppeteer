@@ -22,12 +22,8 @@ public class ResponseInterceptionExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
        page.onResponse((response) -> {
-           try {
-               System.out.println(response.buffer());
-               //System.out.println(new String(response.buffer()));
-           } catch (InterruptedException e) {
-               e.printStackTrace();
-           }
+           System.out.println(response.buffer());
+           //System.out.println(new String(response.buffer()));
        });
         PageNavigateOptions options1 = new PageNavigateOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
