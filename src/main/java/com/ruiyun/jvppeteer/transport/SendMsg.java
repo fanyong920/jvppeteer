@@ -21,6 +21,9 @@ public class SendMsg {
 	private String method;
 
 	@JsonIgnore
+	private boolean needRemove;
+
+	@JsonIgnore
 	private CountDownLatch countDownLatch ;
 
 	private JsonNode result;//本次发送消息返回的结果
@@ -95,6 +98,14 @@ public class SendMsg {
 
 	public void setErrorText(String errorText) {
 		this.errorText = errorText;
+	}
+
+	public boolean getNeedRemove() {
+		return needRemove;
+	}
+
+	public void setNeedRemove(boolean needRemove) {
+		this.needRemove = needRemove;
 	}
 
 	@Override

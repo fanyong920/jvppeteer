@@ -22,7 +22,11 @@ public class ResponseInterceptionExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
        page.onResponse((response) -> {
-           System.out.println(response.buffer());
+           try {
+               System.out.println(response.buffer());
+           } catch (InterruptedException e) {
+               e.printStackTrace();
+           }
            //System.out.println(new String(response.buffer()));
        });
         PageNavigateOptions options1 = new PageNavigateOptions();

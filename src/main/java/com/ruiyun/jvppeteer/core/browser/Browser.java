@@ -274,8 +274,8 @@ public class Browser extends EventEmitter {
                 @Override
                 public void onBrowserEvent(Target event) {
                     boolean test = predicate.test(event);
-                    Browser browser = (Browser) this.getTarget();
                     if (test) {
+                        Browser browser = (Browser) this.getTarget();
                         browser.getWaitforTargetLatch().countDown();
                     }
                 }
@@ -288,8 +288,8 @@ public class Browser extends EventEmitter {
                 @Override
                 public void onBrowserEvent(Target event) {
                     boolean test = predicate.test(event);
-                    Browser browser = (Browser) this.getTarget();
                     if (test) {
+                        Browser browser = (Browser) this.getTarget();
                         browser.getWaitforTargetLatch().countDown();
                     }
                 }

@@ -79,9 +79,9 @@ public class CDPSession extends EventEmitter {
         message.setParams(params);
         message.setSessionId(this.sessionId);
         long id = this.connection.rawSend(message);
-        this.callbacks.putIfAbsent(id,message);
         try {
             if(isBlock){
+                this.callbacks.putIfAbsent(id,message);
                 if(outLatch != null){
                     message.setCountDownLatch(outLatch);
                 }else {
@@ -97,8 +97,11 @@ public class CDPSession extends EventEmitter {
                 }
                 return callbacks.remove(id).getResult();
             }else{
-                if(outLatch != null)
+                if(outLatch != null) {
+                    message.setNeedRemove(true);
                     message.setCountDownLatch(outLatch);
+                    this.callbacks.putIfAbsent(id,message);
+                }
             }
 
         } catch (Exception e) {
@@ -122,9 +125,9 @@ public class CDPSession extends EventEmitter {
         message.setParams(params);
         message.setSessionId(this.sessionId);
         long id = this.connection.rawSend(message);
-        this.callbacks.putIfAbsent(id,message);
         try {
             if(isBlock){
+                this.callbacks.putIfAbsent(id,message);
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
                 boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
@@ -160,21 +163,28 @@ public class CDPSession extends EventEmitter {
             Long idLong = id.asLong();
             SendMsg callback = this.callbacks.get(idLong);
             if (callback != null) {
-                JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
-                if (errNode != null) {
-                    if(callback.getCountDownLatch() != null){
-                        callback.setErrorText(Helper.createProtocolError(node));
-                        callback.getCountDownLatch().countDown();
-                        callback.setCountDownLatch(null);
+                try {
+                    JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
+                    if (errNode != null) {
+                        if(callback.getCountDownLatch() != null){
+                            callback.setErrorText(Helper.createProtocolError(node));
+                            callback.getCountDownLatch().countDown();
+                            callback.setCountDownLatch(null);
+                        }
+                    }else {
+                        JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
+                        callback.setResult(result);
+                        if(callback.getCountDownLatch() != null){
+                            callback.getCountDownLatch().countDown();
+                            callback.setCountDownLatch(null);
+                        }
                     }
-                }else {
-                    JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
-                    callback.setResult(result);
-                    if(callback.getCountDownLatch() != null){
-                        callback.getCountDownLatch().countDown();
-                        callback.setCountDownLatch(null);
+                }finally {//最后把callback都移除掉，免得关闭页面后打印错误
+                    if(callback.getNeedRemove()){
+                        this.callbacks.remove(idLong);
                     }
                 }
+
             }
         }else {
             JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);

@@ -64,6 +64,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         try {
             long id = rawSend(message);
             if (isWait) {
+                this.callbacks.put(id, message);
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
                 boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
@@ -89,6 +90,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         try {
             long id = rawSend(message);
             if (isWait) {
+                this.callbacks.put(id, message);
                 if (outLatch != null) {
                     message.setCountDownLatch(outLatch);
                 } else {
@@ -104,8 +106,11 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 }
                 return callbacks.remove(id).getResult();
             } else {
-                if (outLatch != null)
+                if (outLatch != null){
+                    message.setNeedRemove(true);
                     message.setCountDownLatch(outLatch);
+                    this.callbacks.put(id, message);
+                }
             }
 
         } catch (InterruptedException e) {
@@ -117,7 +122,6 @@ public class Connection extends EventEmitter implements Consumer<String> {
     public long rawSend(SendMsg message) {
         long id = lastId.incrementAndGet();
         message.setId(id);
-		this.callbacks.put(id, message);
         try {
             String sendMsg = Constant.OBJECTMAPPER.writeValueAsString(message);
             transport.send(sendMsg);
@@ -135,6 +139,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
      * @param message 从浏览器接受到的消息
      */
     public void onMessage(String message) {
+
         if (delay > 0) {
             try {
                 Thread.sleep(delay);
@@ -178,19 +183,27 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 } else if (objectId != null) {//long类型的id,说明属于这次发送消息后接受的回应
 					long id = objectId.asLong();
 					SendMsg sendMsg = this.callbacks.get(id);
-                    JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
-                    if (error != null) {
-                        if (sendMsg.getCountDownLatch() != null) {
-                            sendMsg.setErrorText(Helper.createProtocolError(readTree));
-                            sendMsg.getCountDownLatch().countDown();
-                            sendMsg.setCountDownLatch(null);
-                        }
-                    } else {
-                        JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
-                        sendMsg.setResult(result);
-                        if (sendMsg.getCountDownLatch() != null) {
-                            sendMsg.getCountDownLatch().countDown();
-							sendMsg.setCountDownLatch(null);
+					if(sendMsg != null) {
+					    try{
+                            JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
+                            if (error != null) {
+                                if (sendMsg.getCountDownLatch() != null) {
+                                    sendMsg.setErrorText(Helper.createProtocolError(readTree));
+                                    sendMsg.getCountDownLatch().countDown();
+                                    sendMsg.setCountDownLatch(null);
+                                }
+                            } else {
+                                JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
+                                sendMsg.setResult(result);
+                                if (sendMsg.getCountDownLatch() != null) {
+                                    sendMsg.getCountDownLatch().countDown();
+                                    sendMsg.setCountDownLatch(null);
+                                }
+                            }
+                        }finally {
+					        if(sendMsg.getNeedRemove()){
+					            this.callbacks.remove(id);
+                            }
                         }
                     }
                 } else {//是我们监听的事件，把它事件
@@ -256,8 +269,9 @@ public class Connection extends EventEmitter implements Consumer<String> {
         if (this.closed)
             return;
         this.closed = true;
-        for (SendMsg callback : this.callbacks.values())
+        for (SendMsg callback : this.callbacks.values()) {
             LOGGER.error("Protocol error " + callback.getMethod() + " Target closed.");
+        }
         this.callbacks.clear();
         for (CDPSession session : this.sessions.values())
             session.onClosed();
