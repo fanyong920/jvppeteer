@@ -66,31 +66,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
+import static com.ruiyun.jvppeteer.core.Constant.*;
 
 public class Page extends EventEmitter {
 
@@ -1409,25 +1392,8 @@ public class Page extends EventEmitter {
      * @throws ExecutionException 并发异常
      */
     public void emulate(Device options) throws ExecutionException, InterruptedException {
-        CompletionService service = new ExecutorCompletionService(Helper.commonExecutor());
-        service.submit(() -> {
-            try {
-                this.setViewport(options.getViewport());
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            return null;
-        });
-        service.submit(() -> {
-            this.setUserAgent(options.getUserAgent());
-            return null;
-        });
-        for (int i= 0; i < 2;i++) {
-            service.take().get();
-        }
-
+        this.setViewport(options.getViewport());
+        this.setUserAgent(options.getUserAgent());
     }
 
     /**

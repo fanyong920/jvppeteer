@@ -3,14 +3,9 @@ package com.ruiyun.jvppeteer.core.page;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.util.Helper;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
 
 public class EmulationManager {
 
@@ -24,7 +19,7 @@ public class EmulationManager {
         this.client = client;
     }
 
-    public boolean emulateViewport(Viewport viewport) throws ExecutionException, InterruptedException {
+    public boolean emulateViewport(Viewport viewport) {
         boolean mobile = viewport.getIsMobile() || false;
         double width = viewport.getWidth();
         double height = viewport.getHeight();
@@ -41,28 +36,19 @@ public class EmulationManager {
             screenOrientation.setAngle(0);
             screenOrientation.setType("portraitPrimary");
         }
+
         boolean hasTouch = viewport.getHasTouch() || false;
-        Number finalDeviceScaleFactor = deviceScaleFactor;
-        CompletionService service = new ExecutorCompletionService(Helper.commonExecutor());
-        service.submit(() -> {
-            Map<String, Object> params = new HashMap<>();
-            params.put("mobile", mobile);
-            params.put("width", width);
-            params.put("height", height);
-            params.put("deviceScaleFactor", finalDeviceScaleFactor);
-            params.put("screenOrientation", screenOrientation);
-            this.client.send("Emulation.setDeviceMetricsOverride", params, true);
-            return null;
-        });
-        service.submit(() -> {
-            Map<String, Object> params = new HashMap<>();
-            params.put("enabled", hasTouch);
-            this.client.send("Emulation.setTouchEmulationEnabled", params, true);
-            return null;
-        });
-        for (int i = 0; i < 2; i++) {
-            service.take().get();
-        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("mobile", mobile);
+        params.put("width", width);
+        params.put("height", height);
+        params.put("deviceScaleFactor", deviceScaleFactor);
+        params.put("screenOrientation", screenOrientation);
+        this.client.send("Emulation.setDeviceMetricsOverride", params, false);
+        params.clear();
+        params.put("enabled", hasTouch);
+        this.client.send("Emulation.setTouchEmulationEnabled", params, true);
         boolean reloadNeeded = this.emulatingMobile != mobile || this.hasTouch != hasTouch;
         this.emulatingMobile = mobile;
         this.hasTouch = hasTouch;

@@ -263,50 +263,19 @@ public class Browser extends EventEmitter {
      * @return target
      */
     public Target waitForTarget(Predicate<Target> predicate, ChromeArgOptions options) {
-        Target existingTarget = find(targets(), predicate);
-        if (null != existingTarget) {
-            return existingTarget;
-        }
-        DefaultBrowserListener<Target> createLis = null;
-        DefaultBrowserListener<Target> changeLis = null;
-        try {
-            createLis = new DefaultBrowserListener<Target>() {
-                @Override
-                public void onBrowserEvent(Target event) {
-                    boolean test = predicate.test(event);
-                    if (test) {
-                        Browser browser = (Browser) this.getTarget();
-                        browser.getWaitforTargetLatch().countDown();
-                    }
-                }
-            };
-            createLis.setMothod(Events.BROWSER_TARGETCREATED.getName());
-            createLis.setTarget(this);
-            this.on(createLis.getMothod(), createLis);
-
-            changeLis = new DefaultBrowserListener<Target>() {
-                @Override
-                public void onBrowserEvent(Target event) {
-                    boolean test = predicate.test(event);
-                    if (test) {
-                        Browser browser = (Browser) this.getTarget();
-                        browser.getWaitforTargetLatch().countDown();
-                    }
-                }
-            };
-            changeLis.setMothod(Events.BROWSER_TARGETCHANGED.getName());
-            changeLis.setTarget(this);
-            this.on(changeLis.getMothod(), changeLis);
-            this.getWaitforTargetLatch().await(options.getTimeout(), TimeUnit.MILLISECONDS);
-            Target target = find(targets(), predicate);
-            if (target != null) {
-                return target;
+        int timeout = options.getTimeout();
+        long base = System.currentTimeMillis();
+        long now = 0;
+        while (true){
+            long delay = timeout - now;
+            if (delay <= 0) {
+                break;
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            this.removeListener(Events.BROWSER_TARGETCREATED.getName(), createLis);
-            this.removeListener(Events.BROWSER_TARGETCHANGED.getName(), changeLis);
+            Target existingTarget = find(targets(), predicate);
+            if (null != existingTarget) {
+                return existingTarget;
+            }
+            now = System.currentTimeMillis() - base;
         }
         throw new TimeoutException("waiting for target failed: timeout " + options.getTimeout() + "ms exceeded");
     }
