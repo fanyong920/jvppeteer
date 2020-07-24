@@ -8,3 +8,10 @@
 - 2020-07-12解决Page#setCookie失效问题
 - 2020-07-18解决Page#reload过程中可能出现的超时现象
 - 2020-07-18解决Page#newPage失败问题
+
+## Version Release 1.0.3 (2020/07/24)
+
+#### Bugs Fixed
+- 2020-07-21解决ElementHandle#getBoxModel返回null问题
+- 2020-07-23解决页面关闭后log打印异常信息问题
+- 2020-07-24解決newPage出現的超时問題
