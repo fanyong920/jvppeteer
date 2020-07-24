@@ -58,7 +58,7 @@
         <dependency>
             <groupId>io.github.fanyong920</groupId>
             <artifactId>jvppeteer</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.3</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
