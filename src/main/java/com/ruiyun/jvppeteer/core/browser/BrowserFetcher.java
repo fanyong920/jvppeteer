@@ -2,15 +2,26 @@ package com.ruiyun.jvppeteer.core.browser;
 
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.options.FetcherOptions;
-import com.ruiyun.jvppeteer.util.*;
-import com.sun.javafx.PlatformUtil;
-
+import com.ruiyun.jvppeteer.util.DownloadUtil;
+import com.ruiyun.jvppeteer.util.FileUtil;
+import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StreamUtil;
+import com.ruiyun.jvppeteer.util.StringUtil;
+import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
@@ -19,7 +30,13 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -102,11 +119,11 @@ public class BrowserFetcher {
         this.downloadHost = StringUtil.isNotEmpty(options.getHost()) ? options.getHost() : downloadURLs.get(this.product).get("host");
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : null;
         if (platform == null) {
-            if (PlatformUtil.isMac())
+            if (Helper.isMac())
                 this.platform = "mac";
-            else if (PlatformUtil.isLinux())
+            else if (Helper.isLinux())
                 this.platform = "linux";
-            else if (PlatformUtil.isWindows())
+            else if (Helper.isWindows())
                 this.platform = Helper.isWin64() ? "win64" : "win32";
             ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
         }
@@ -361,11 +378,11 @@ public class BrowserFetcher {
                 return;
             }
             if (platform == null) {
-                if (PlatformUtil.isMac())
+                if (Helper.isMac())
                     this.platform = "mac";
-                else if (PlatformUtil.isLinux())
+                else if (Helper.isLinux())
                     this.platform = "linux";
-                else if (PlatformUtil.isWindows())
+                else if (Helper.isWindows())
                     this.platform = Helper.isWin64() ? "win64" : "win32";
                 ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
             }

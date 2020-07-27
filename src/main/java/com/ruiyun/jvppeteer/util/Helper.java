@@ -65,6 +65,10 @@ public class Helper {
     private static ExecutorService COMMON_EXECUTOR = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Helper.class);
+    private static final String os = System.getProperty("os.name");
+    private static final boolean WINDOWS = os.startsWith("Windows");
+    private static final boolean MAC = os.startsWith("Mac");
+    private static final boolean LINUX = os.startsWith("Linux");
 
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
@@ -81,6 +85,28 @@ public class Helper {
         }
         return message;
     }
+
+    /**
+     * Returns true if the operating system is a form of Windows.
+     */
+    public static boolean isWindows(){
+        return WINDOWS;
+    }
+
+    /**
+     * Returns true if the operating system is a form of Mac OS.
+     */
+    public static boolean isMac(){
+        return MAC;
+    }
+
+    /**
+     * Returns true if the operating system is a form of Linux.
+     */
+    public static boolean isLinux(){
+        return LINUX;
+    }
+
 
     public static final boolean isWin64() {
         String arch = System.getProperty("os.arch");
