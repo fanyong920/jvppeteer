@@ -13,15 +13,15 @@ public class PageWaitForExample {
     public static void main(String[] args) throws Exception {
         //String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-         String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        // String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).withDumpio(true).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false)/*.withExecutablePath(path)*/.withDumpio(true).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
-        //waitForResponse 必须异步
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",true);
+        //waitForResponse 必须异步,false表示不阻塞
+        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",false);
 
         //JSHandle jsHandle = page.waitFor("#su", PageEvaluateType.STRING);
        // System.out.println("page.waitFor:"+jsHandle.toString());
