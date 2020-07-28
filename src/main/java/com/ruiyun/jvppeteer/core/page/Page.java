@@ -13,17 +13,7 @@ import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.PageCrashException;
 import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.Clip;
-import com.ruiyun.jvppeteer.options.ClipOverwrite;
-import com.ruiyun.jvppeteer.options.Device;
-import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.options.ScreenshotOptions;
-import com.ruiyun.jvppeteer.options.ScriptTagOptions;
-import com.ruiyun.jvppeteer.options.StyleTagOptions;
-import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.console.Location;
@@ -716,9 +706,9 @@ public class Page extends EventEmitter {
     }
 
     /**
-     * 关闭浏览器
+     * 关闭页面
      */
-    public void close() {
+    public void close() throws InterruptedException {
         this.close(false);
     }
 
@@ -728,7 +718,7 @@ public class Page extends EventEmitter {
      *
      * @param runBeforeUnload 默认 false. 是否执行 before unload
      */
-    public void close(boolean runBeforeUnload) {
+    public void close(boolean runBeforeUnload) throws InterruptedException {
         ValidateUtil.assertArg(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
 
         if (runBeforeUnload) {
@@ -737,7 +727,7 @@ public class Page extends EventEmitter {
             Map<String, Object> params = new HashMap<>();
             params.put("targetId", this.target.getTargetId());
             this.client.getConnection().send("Target.closeTarget", params, true);
-            this.target.waitInitializedPromise();
+            this.target.WaiforisClosedPromise();
         }
     }
 
@@ -789,8 +779,14 @@ public class Page extends EventEmitter {
         }, screenshotType, options);
     }
 
-    public String screenshot() throws IOException {
-        return this.screenshot(new ScreenshotOptions());
+    /**
+     * 屏幕截图
+     * @param path 截图文件全路径
+     * @return base64编码后的图片数据
+     * @throws IOException 异常
+     */
+    public String screenshot(String path) throws IOException {
+        return this.screenshot(new ScreenshotOptions(path));
     }
 
     /**
@@ -1433,7 +1429,11 @@ public class Page extends EventEmitter {
         this.tap(selector,true);
     }
 
-
+    /**
+     * 更改页面的时区，传null将禁用将时区仿真
+     * <a href="https://cs.chromium.org/chromium/src/third_party/icu/source/data/misc/metaZones.txt?rcl=faee8bc70570192d82d2978a71e2a615788597d1">时区id列表</a>
+     * @param timezoneId 时区id
+     */
     public void emulateTimezone(String timezoneId) {
         try {
             Map<String, Object> params = new HashMap<>();
@@ -1447,6 +1447,16 @@ public class Page extends EventEmitter {
                 throw new IllegalArgumentException("Invalid timezone ID: " + timezoneId);
             throw e;
         }
+    }
+
+    /**
+     * 模拟页面上给定的视力障碍,不同视力障碍，截图有不同效果
+     * @param type 视力障碍类型
+     */
+    public void emulateVisionDeficiency(VisionDeficiency type){
+        Map<String,Object> params = new HashMap<>();
+        params.put("type",type.getValue());
+        this.client.send("Emulation.setEmulatedVisionDeficiency",params,true);
     }
 
     public void evaluateOnNewDocument(String pageFunction, PageEvaluateType type, Object... args) {

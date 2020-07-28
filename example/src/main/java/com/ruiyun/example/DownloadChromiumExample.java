@@ -9,7 +9,7 @@ import java.util.function.BiConsumer;
 
 public class DownloadChromiumExample {
     /**
-     * 演示下载chrome功能
+     * 演示下载chrome功能，该方法同样适用于linux,如果在生产环境上不想自己安装chromium，可以使用此方法下载
      * @param args
      * @throws IOException
      * @throws InterruptedException
