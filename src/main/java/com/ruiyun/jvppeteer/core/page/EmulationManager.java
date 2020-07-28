@@ -21,8 +21,8 @@ public class EmulationManager {
 
     public boolean emulateViewport(Viewport viewport) {
         boolean mobile = viewport.getIsMobile() || false;
-        double width = viewport.getWidth();
-        double height = viewport.getHeight();
+        int width = viewport.getWidth();
+        int height = viewport.getHeight();
         Number deviceScaleFactor = 1;
         if (viewport.getDeviceScaleFactor() != null && viewport.getDeviceScaleFactor().intValue() != 0) {
             deviceScaleFactor = viewport.getDeviceScaleFactor();

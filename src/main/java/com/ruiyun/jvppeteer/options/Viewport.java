@@ -7,13 +7,13 @@ public class Viewport {
 	 * <br/>
      * page width in pixels.
      */
-    private Double width = 800.00;
+    private Integer width = 800;
     /**
      * 页面高度像素
      * <br/>
      * page height in pixels.
      */
-    private Double height = 600.00;
+    private Integer height = 600;
     /**
      * 设置设备的缩放（可以认为是 dpr）。默认是 1
      * <br/>
@@ -45,7 +45,7 @@ public class Viewport {
 	public Viewport() {
 	}
 
-	public Viewport(Double width, Double height, Number deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
+	public Viewport(Integer width, Integer height, Number deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
 		this.width = width;
 		this.height = height;
 		this.deviceScaleFactor = deviceScaleFactor;
@@ -54,19 +54,19 @@ public class Viewport {
 		this.isLandscape = isLandscape;
 	}
 
-	public Double getWidth() {
+	public Integer getWidth() {
 		return width;
 	}
 	
-	public void setWidth(Double width) {
+	public void setWidth(Integer width) {
 		this.width = width;
 	}
 	
-	public Double getHeight() {
+	public Integer getHeight() {
 		return height;
 	}
 	
-	public void setHeight(Double height) {
+	public void setHeight(Integer height) {
 		this.height = height;
 	}
 	
