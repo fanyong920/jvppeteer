@@ -1704,9 +1704,11 @@ public class Page extends EventEmitter {
         params.put("pageRanges", options.getPageRanges());
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
-        if (result != null)
-            Helper.readProtocolStream(this.client, result.get(RECV_MESSAGE_STREAM_PROPERTY).asText(), options.getPath(), false);
-
+        if (result != null){
+            JsonNode handle = result.get(RECV_MESSAGE_STREAM_PROPERTY);
+            ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle.result="+result.toString());
+            Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
+        }
     }
 
     /**

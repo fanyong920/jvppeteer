@@ -162,8 +162,8 @@ public class ElementHandle extends JSHandle {
         Viewport viewport = this.page.viewport();
         if (viewport != null && (boundingBox.getWidth() > viewport.getWidth() || boundingBox.getHeight() > viewport.getHeight())) {
             Viewport newViewport = new Viewport();
-            newViewport.setWidth(Math.max(viewport.getWidth(), Math.ceil(boundingBox.getWidth())));
-            newViewport.setHeight(Math.max(viewport.getHeight(), Math.ceil(boundingBox.getHeight())));
+            newViewport.setWidth(Math.max(viewport.getWidth(), (int)Math.ceil(boundingBox.getWidth())));
+            newViewport.setHeight(Math.max(viewport.getHeight(), (int)Math.ceil(boundingBox.getHeight())));
 
             this.page.setViewport(newViewport);
             needsViewportReset = true;

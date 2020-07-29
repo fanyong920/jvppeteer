@@ -10,7 +10,6 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.factory.WebSocketTransportFactory;
-import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -179,20 +178,51 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         //delete user-data-dir
         try {
             if (StringUtil.isNotEmpty(tempDirectory)) {
-                FileUtil.removeFolder(tempDirectory);
+                //remo
+                removeFolderByCmd(tempDirectory);
+//                FileUtil.removeFolder(tempDirectory);
                 //同时把以前没删除干净的文件夹也重新删除一遍  C:\Users\fanyong\AppData\Local\Temp
                 Stream<Path> remainTempDirectories = Files.list(Paths.get(tempDirectory).getParent());
                 remainTempDirectories.forEach(path -> {
                     if (path.getFileName().toString().startsWith(Constant.PROFILE_PREFIX)) {
-                        FileUtil.removeFolder(path.toString());
-                    }
+//                        FileUtil.removeFolder(path.toString());
+                        try {
+                            removeFolderByCmd(path.toString());
+                        } catch (IOException | InterruptedException e) {
 
+                        }
+                    }
                 });
             }
 
         } catch (Exception e) {
             LOGGER.error("kill chrome process error ",e);
         }
+    }
+
+    /**
+     * 通过命令行删除文件夹
+     * @throws IOException
+     */
+    private void removeFolderByCmd(String path) throws IOException, InterruptedException {
+        // rd /s /q
+        Process delProcess = null;
+        if(Helper.isWindows()){
+
+             delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q "+path);
+        }else if(Helper.isLinux() || Helper.isMac()){
+            String[] cmd = new String[] { "/bin/sh", "-c", "rm -rf "+path };
+            delProcess = Runtime.getRuntime().exec(cmd);
+        }
+        delProcess.destroyForcibly();
+        delProcess.waitFor();
+//        List<String> arguments = new ArrayList<>();
+//        arguments.add("rd");
+//        arguments.add("/s");
+//        arguments.add("/q");
+//        arguments.add(path);
+//        ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
+//        processBuilder.start();
     }
 
     /**

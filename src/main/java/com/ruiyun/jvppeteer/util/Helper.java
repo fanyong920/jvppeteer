@@ -267,7 +267,8 @@ public class Helper {
                         StreamUtil.closeQuietly(reader);
                     }
                 }
-                eof = eofNode.asBoolean();
+
+                eof = eofNode == null ? true :eofNode.asBoolean();
             }
             client.send("IO.close", params, false);
         } finally {
