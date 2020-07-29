@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
@@ -169,19 +170,14 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         //kill chrome process
         if (process != null && process.isAlive()) {
             process.destroyForcibly();
-            try {
-                process.waitFor();
-            } catch (InterruptedException e) {
-                LOGGER.error("waitFor process error ",e);
-            }
         }
         //delete user-data-dir
         try {
             if (StringUtil.isNotEmpty(tempDirectory)) {
-                //remo
+
                 removeFolderByCmd(tempDirectory);
 //                FileUtil.removeFolder(tempDirectory);
-                //同时把以前没删除干净的文件夹也重新删除一遍  C:\Users\fanyong\AppData\Local\Temp
+                //同时把以前没删除干净的文件夹也重新删除一遍
                 Stream<Path> remainTempDirectories = Files.list(Paths.get(tempDirectory).getParent());
                 remainTempDirectories.forEach(path -> {
                     if (path.getFileName().toString().startsWith(Constant.PROFILE_PREFIX)) {
@@ -210,13 +206,14 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         }
         Process delProcess = null;
         if(Helper.isWindows()){
-             delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q "+path);
+             delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q " + path);
         }else if(Helper.isLinux() || Helper.isMac()){
-            String[] cmd = new String[] { "/bin/sh", "-c", "rm -rf "+path };
+            String[] cmd = new String[] { "/bin/sh", "-c", "rm -rf " + path};
             delProcess = Runtime.getRuntime().exec(cmd);
         }
-        delProcess.destroyForcibly();
-        delProcess.waitFor();
+       if(!delProcess.waitFor(10000,TimeUnit.MILLISECONDS)) {
+           delProcess.destroyForcibly();
+       }
     }
 
     /**
