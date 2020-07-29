@@ -20,6 +20,10 @@ import java.util.Set;
 public interface Constant {
 
 	/**
+	 * 指定版本
+	 */
+	String VERSION = "768783";
+	/**
 	 * 临时文件夹前缀
 	 */
 	String PROFILE_PREFIX = "puppeteer_dev_chrome_profile-";

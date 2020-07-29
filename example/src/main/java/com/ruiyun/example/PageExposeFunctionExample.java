@@ -13,11 +13,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PageExposeFunctionExample {
     public static void main(String[] args) throws Exception {
-        String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
         ArrayList<String> arrayList = new ArrayList<>();
-        // String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).withDumpio(true).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false)/*.withExecutablePath(path)*/.withDumpio(true).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

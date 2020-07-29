@@ -20,6 +20,10 @@ public class ScreenshotOptions {
         super();
     }
 
+    public ScreenshotOptions(String path) {
+        this.path = path;
+    }
+
     public ScreenshotOptions(String type, String path, boolean fullPage, Clip clip, int quality, boolean omitBackground, String encoding) {
         super();
         this.type = type;

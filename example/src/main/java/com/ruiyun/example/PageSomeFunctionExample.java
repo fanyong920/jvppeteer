@@ -2,6 +2,7 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
@@ -10,11 +11,13 @@ import java.util.ArrayList;
 
 public class PageSomeFunctionExample {
     public static void main(String[] args) throws Exception {
-      //  String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
-        ArrayList<String> arrayList = new ArrayList<>();
-        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).withDumpio(true).build();
+        //自动下载，第一次下载后不会再下载
+        BrowserFetcher.downloadIfNotExist(null);
+
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false)/*.withExecutablePath(path)*/.withDumpio(true).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

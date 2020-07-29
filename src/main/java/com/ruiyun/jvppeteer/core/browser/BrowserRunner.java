@@ -205,10 +205,11 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * @throws IOException
      */
     private void removeFolderByCmd(String path) throws IOException, InterruptedException {
-        // rd /s /q
+        if(StringUtil.isEmpty(path) || "*".equals(path)){
+            return;
+        }
         Process delProcess = null;
         if(Helper.isWindows()){
-
              delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q "+path);
         }else if(Helper.isLinux() || Helper.isMac()){
             String[] cmd = new String[] { "/bin/sh", "-c", "rm -rf "+path };
@@ -216,13 +217,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         }
         delProcess.destroyForcibly();
         delProcess.waitFor();
-//        List<String> arguments = new ArrayList<>();
-//        arguments.add("rd");
-//        arguments.add("/s");
-//        arguments.add("/q");
-//        arguments.add(path);
-//        ProcessBuilder processBuilder = new ProcessBuilder().command(arguments).redirectErrorStream(true);
-//        processBuilder.start();
     }
 
     /**

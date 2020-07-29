@@ -2,6 +2,7 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
@@ -17,6 +18,8 @@ import java.util.regex.Pattern;
 public class AutoCommentExample {
 
     public static void main(String[] args) throws Exception {
+        //自动下载，第一次下载后不会再下载
+        BrowserFetcher.downloadIfNotExist(null);
         Browser browser = lauch("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
         Page page = browser.newPage();
         PageNavigateOptions navigateOptions = new PageNavigateOptions();

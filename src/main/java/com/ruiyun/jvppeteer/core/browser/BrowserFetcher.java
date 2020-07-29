@@ -104,6 +104,19 @@ public class BrowserFetcher {
     private String product;
 
     public BrowserFetcher() {
+        this.product = "chrome";
+        this.downloadsFolder = Helper.join(System.getProperty("user.dir"), ".local-browser");
+        this.downloadHost = downloadURLs.get(this.product).get("host");
+        if (platform == null) {
+            if (Helper.isMac())
+                this.platform = "mac";
+            else if (Helper.isLinux())
+                this.platform = "linux";
+            else if (Helper.isWindows())
+                this.platform = Helper.isWin64() ? "win64" : "win32";
+            ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
+        }
+        ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
     /**
@@ -128,6 +141,20 @@ public class BrowserFetcher {
             ValidateUtil.notNull(this.platform, "Unsupported platform: " + Helper.paltform());
         }
         ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+    }
+
+    /**
+     * <p>下载浏览器，如果项目目录下不存在对应版本时<p/>
+     * <p>如果不指定版本，则使用默认配置版本</p>
+     * @param version 浏览器版本
+     */
+    public static void downloadIfNotExist(String version) throws InterruptedException, ExecutionException, IOException {
+        BrowserFetcher fetcher = new BrowserFetcher();
+        String downLoadVersion = StringUtil.isEmpty(version) ? Constant.VERSION : version;
+        RevisionInfo revisionInfo = fetcher.revisionInfo(downLoadVersion);
+        if(!revisionInfo.getLocal()){
+            fetcher.download(downLoadVersion);
+        }
     }
 
     /**
@@ -216,6 +243,8 @@ public class BrowserFetcher {
                 LOGGER.error("Set executablePath:{} file executation permission fail.", revisionInfo.getExecutablePath());
             }
         }
+        //睡眠5s，让解压程序释放chrome.exe
+        Thread.sleep(5000L);
         return revisionInfo;
     }
 
@@ -759,7 +788,7 @@ public class BrowserFetcher {
                 return "chrome-mac";
             if ("win32".equals(platform) || "win64".equals(platform)) {
                 // Windows archive name changed at r591479.
-                return Integer.parseInt(revision, 10) > 591479 ? "chrome-win" : "chrome-win32";
+                return Integer.parseInt(revision) > 591479 ? "chrome-win" : "chrome-win32";
             }
         } else if ("firefox".equals(product)) {
             if ("linux".equals(platform))

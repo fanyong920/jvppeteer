@@ -2,6 +2,7 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
+import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.JSHandle;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.core.page.Target;
@@ -13,11 +14,12 @@ import java.util.ArrayList;
 
 public class QueryobjectsExample {
     public static void main(String[] args) throws Exception {
-        //String path = new String("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe".getBytes(), "UTF-8");
-        ArrayList<String> arrayList = new ArrayList<>();
-        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
+        //自动下载，第一次下载后不会再下载
+        BrowserFetcher.downloadIfNotExist(null);
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath(path).build();
+        ArrayList<String> arrayList = new ArrayList<>();
+
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false)/*.withExecutablePath(path)*/.build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
