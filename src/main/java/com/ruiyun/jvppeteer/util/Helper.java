@@ -88,6 +88,7 @@ public class Helper {
 
     /**
      * Returns true if the operating system is a form of Windows.
+     * @return windows return  true
      */
     public static boolean isWindows(){
         return WINDOWS;
@@ -95,6 +96,7 @@ public class Helper {
 
     /**
      * Returns true if the operating system is a form of Mac OS.
+     * @return mac return  true
      */
     public static boolean isMac(){
         return MAC;
@@ -102,12 +104,17 @@ public class Helper {
 
     /**
      * Returns true if the operating system is a form of Linux.
+     * @return linux return  true
      */
     public static boolean isLinux(){
         return LINUX;
     }
 
-
+    /**
+     *
+     * 是否是win64
+     * @return true is win64
+     */
     public static final boolean isWin64() {
         String arch = System.getProperty("os.arch");
         return arch.contains("64");

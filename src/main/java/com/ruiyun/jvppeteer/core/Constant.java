@@ -22,7 +22,7 @@ public interface Constant {
 	/**
 	 * 指定版本
 	 */
-	String VERSION = "768783";
+	String VERSION = "722234";
 	/**
 	 * 临时文件夹前缀
 	 */

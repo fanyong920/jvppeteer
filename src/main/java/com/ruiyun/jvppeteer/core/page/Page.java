@@ -707,6 +707,7 @@ public class Page extends EventEmitter {
 
     /**
      * 关闭页面
+     * @throws InterruptedException 异常
      */
     public void close() throws InterruptedException {
         this.close(false);
@@ -717,6 +718,7 @@ public class Page extends EventEmitter {
      * <p><strong>注意 如果 runBeforeUnload 设置为true，可能会弹出一个 beforeunload 对话框。 这个对话框需要通过页面的 'dialog' 事件手动处理</strong></p>
      *
      * @param runBeforeUnload 默认 false. 是否执行 before unload
+     * @throws InterruptedException 异常
      */
     public void close(boolean runBeforeUnload) throws InterruptedException {
         ValidateUtil.assertArg(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
@@ -1489,6 +1491,8 @@ public class Page extends EventEmitter {
      *
      * @param name              挂载到window对象的方法名
      * @param puppeteerFunction 调用name方法时实际执行的方法
+     * @throws ExecutionException 异常
+     * @throws InterruptedException 异常
      */
     public void exposeFunction(String name, Function<List<?>, Object> puppeteerFunction) throws InterruptedException, ExecutionException {
         if (this.pageBindings.containsKey(name)) {
@@ -1706,7 +1710,7 @@ public class Page extends EventEmitter {
         JsonNode result = this.client.send("Page.printToPDF", params, true);
         if (result != null){
             JsonNode handle = result.get(RECV_MESSAGE_STREAM_PROPERTY);
-            ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle.result="+result.toString());
+            ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle. Please check your chrome version. result="+result.toString());
             Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
         }
     }
