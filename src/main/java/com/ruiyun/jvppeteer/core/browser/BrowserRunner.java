@@ -178,17 +178,17 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                 removeFolderByCmd(tempDirectory);
 //                FileUtil.removeFolder(tempDirectory);
                 //同时把以前没删除干净的文件夹也重新删除一遍
-                Stream<Path> remainTempDirectories = Files.list(Paths.get(tempDirectory).getParent());
-                remainTempDirectories.forEach(path -> {
-                    if (path.getFileName().toString().startsWith(Constant.PROFILE_PREFIX)) {
-//                        FileUtil.removeFolder(path.toString());
-                        try {
-                            removeFolderByCmd(path.toString());
-                        } catch (IOException | InterruptedException e) {
-
-                        }
-                    }
-                });
+//                Stream<Path> remainTempDirectories = Files.list(Paths.get(tempDirectory).getParent());
+//                remainTempDirectories.forEach(path -> {
+//                    if (path.getFileName().toString().startsWith(Constant.PROFILE_PREFIX)) {
+////                        FileUtil.removeFolder(path.toString());
+//                        try {
+//                            removeFolderByCmd(path.toString());
+//                        } catch (IOException | InterruptedException e) {
+//
+//                        }
+//                    }
+//                });
             }
 
         } catch (Exception e) {

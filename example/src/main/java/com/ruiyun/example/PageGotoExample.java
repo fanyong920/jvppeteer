@@ -20,8 +20,12 @@ public class PageGotoExample {
         argList.add("--no-sandbox");
         argList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
+        Browser browser2 = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://www.taobao.com/about/");
         browser.close();
+
+        Page page1 = browser2.newPage();
+        page1.goTo("https://www.taobao.com/about/");
     }
 }
