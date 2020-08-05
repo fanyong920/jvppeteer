@@ -1399,7 +1399,7 @@ public class Page extends EventEmitter {
      *
      * @param userAgent userAgent的值
      */
-    private void setUserAgent(String userAgent) {
+    public void setUserAgent(String userAgent) {
         this.frameManager.networkManager().setUserAgent(userAgent);
     }
 
