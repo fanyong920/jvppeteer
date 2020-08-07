@@ -18,13 +18,14 @@ import java.util.Map;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * web socket client 浏览器级别的连接
  *
  * @author fff
  */
-public class Connection extends EventEmitter implements Consumer<String> {
+public class Connection extends EventEmitter implements Consumer<String>, Function {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 
@@ -54,6 +55,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         this.delay = delay;
         if (this.transport instanceof WebSocketTransport) {
             ((WebSocketTransport) this.transport).addMessageConsumer(this);
+            ((WebSocketTransport) this.transport).addOncloseConsumer(this);
         }
     }
 
@@ -284,5 +286,10 @@ public class Connection extends EventEmitter implements Consumer<String> {
         return closed;
     }
 
+    @Override
+    public Object apply(Object o) {
+         this.onClose();
+         return null;
+    }
 }
 

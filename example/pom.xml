@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ruiyun</groupId>
@@ -13,12 +11,17 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <junit.version>4.12</junit.version>
         <cdt.version>2.1.0</cdt.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.2.3</logback.version>
         <httpclient.version>4.5.12</httpclient.version>
         <guava.version>28.2-jre</guava.version>
         <jsoup.version>1.11.3</jsoup.version>
         <htmlunit.version>2.38.0</htmlunit.version>
         <httpasyncclient.version>4.1.4</httpasyncclient.version>
         <nuprocess.version>2.0.0</nuprocess.version>
+        <htmlparse.version>2.1</htmlparse.version>
+        <jvppeteer.version>1.0.4</jvppeteer.version>
+        <htmlunit.version>2.38.0</htmlunit.version>
     </properties>
     <dependencies>
         <dependency>
@@ -35,14 +38,19 @@
         <dependency>
             <groupId>net.sourceforge.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
-            <version>2.38.0</version>
+            <version>${htmlunit.version}</version>
 
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.htmlparser/htmlparser -->
         <dependency>
             <groupId>org.htmlparser</groupId>
             <artifactId>htmlparser</artifactId>
-            <version>2.1</version>
+            <version>${htmlparse.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -58,7 +66,7 @@
         <dependency>
             <groupId>io.github.fanyong920</groupId>
             <artifactId>jvppeteer</artifactId>
-            <version>1.0.4</version>
+            <version>${jvppeteer.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -67,6 +75,16 @@
             <version>${junit.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
 </project>

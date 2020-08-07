@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * websocket client 
@@ -23,6 +24,8 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
 
 	private Consumer<String> messageConsumer = null;
+
+	private Function<Object,Object> onCloseConsumer = null;
 
 	public WebSocketTransport(URI serverUri, Draft draft) {
 		super(serverUri, draft);
@@ -48,7 +51,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	@Override
 	public void onClose() {
-		close();
+		this.onCloseConsumer.apply(null);
 	}
 
 	@Override
@@ -75,6 +78,8 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		this.messageConsumer = consumer;
 	}
 
-
+	public void addOncloseConsumer(Function<Object,Object> consumer) {
+		this.onCloseConsumer = consumer;
+	}
 
 }

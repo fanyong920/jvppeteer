@@ -271,8 +271,8 @@ public class BrowserFetcher {
         return (integer1, integer2) -> {
             BigDecimal decimal1 = new BigDecimal(integer1);
             BigDecimal decimal2 = new BigDecimal(integer2);
-            int percent = decimal1.divide(decimal2).multiply(new BigDecimal(100)).intValue();
-            LOGGER.info("Download progress: total[{}],downloaded[{}],{}", decimal2, decimal1, percent + "%");
+            int percent = decimal1.divide(decimal2,2,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).intValue();
+            LOGGER.info("Download progress: total[{}M],downloaded[{}M],{}", decimal2, decimal1, percent + "%");
         };
     }
 

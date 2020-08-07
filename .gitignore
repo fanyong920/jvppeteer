@@ -2,7 +2,12 @@
 *.class
 .settings/**
 .idea/**
+.local-browser/**
+*.png
+*.jpg
 target/**
+settings.json
+example.iml
 .classpath
 .project
 # Log file
