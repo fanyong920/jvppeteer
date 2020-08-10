@@ -211,47 +211,54 @@ public class Helper {
      * @param client  CDPSession
      * @param handler 发送给websocket的参数
      * @param path    文件存放的路径
-     * @param isNewThread 是否是在新的线程中执行
+     * @param isSync 是否是在新的线程中执行
      * @throws IOException 操作文件的异常
      */
-    public static final void readProtocolStream(CDPSession client, String handler, String path, boolean isNewThread) throws IOException {
-        if (isNewThread) {
-            Helper.commonExecutor().submit(() -> {
+    public static final Object readProtocolStream(CDPSession client, String handler, String path, boolean isSync) throws IOException {
+        if (isSync) {
+            return Helper.commonExecutor().submit(() -> {
                 try {
-                    run(client, handler, path);
+                    printPDF(client, handler, path);
                 } catch (IOException e) {
-                    LOGGER.error("method readProtocolStream error",e);
+                    LOGGER.error("Method readProtocolStream error",e);
                 }
             });
         } else {
-            run(client, handler, path);
+           return printPDF(client, handler, path);
         }
     }
 
-    private static void run(CDPSession client, String handler, String path) throws IOException {
+    private static byte[] printPDF(CDPSession client, String handler, String path) throws IOException {
         boolean eof = false;
         File file = null;
         BufferedOutputStream writer = null;
         BufferedInputStream reader = null;
+
         if (StringUtil.isNotEmpty(path)) {
             file = new File(path);
             FileUtil.createNewFile(file);
         }
+
         Map<String, Object> params = new HashMap<>();
         params.put("handle", handler);
         try {
+
             if (file != null) {
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 writer = new BufferedOutputStream(fileOutputStream);
             }
             byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
             byte[] bytes;
+            List<byte[]> bufs = new ArrayList<>();
+            int byteLength = 0;
+
             while (!eof) {
                 JsonNode response = client.send("IO.read", params, true);
                 JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
                 JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
                 JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
                 String dataText;
+
                 if (dataNode != null && StringUtil.isNotEmpty(dataText = dataNode.asText())) {
                     try {
                         if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
@@ -259,6 +266,8 @@ public class Helper {
                         } else {
                             bytes = dataNode.asText().getBytes();
                         }
+                        bufs.add(bytes);
+                        byteLength += bytes.length;
                         //转成二进制流 io
                         if (file != null) {
                             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
@@ -269,19 +278,37 @@ public class Helper {
                                 writer.flush();
                             }
                         }
-
                     } finally {
                         StreamUtil.closeQuietly(reader);
                     }
                 }
-
                 eof = eofNode == null ? true :eofNode.asBoolean();
             }
-            client.send("IO.close", params, false);
+            client.send("IO.close", params, true);
+
+            return getBytes(bufs, byteLength);
+
         } finally {
             StreamUtil.closeQuietly(writer);
             StreamUtil.closeQuietly(reader);
         }
+    }
+
+    /**
+     * 多个字节数组转成一个字节数组
+     * @param bufs 数组集合
+     * @param byteLength 数组总长度
+     * @return 总数组
+     */
+    private static byte[] getBytes(List<byte[]> bufs, int byteLength) {
+        //返回字节数组
+        byte[] resultBuf = new byte[byteLength];
+        int destPos = 0;
+        for (byte[] buf : bufs) {
+            System.arraycopy(buf,0,resultBuf,destPos,buf.length);
+            destPos += buf.length;
+        }
+        return  resultBuf;
     }
 
 

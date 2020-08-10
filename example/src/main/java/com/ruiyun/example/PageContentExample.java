@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2020-07-15 11:25:30
+ * @LastEditTime: 2020-08-06 09:25:15
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \jvppeteer\example\src\main\java\com\ruiyun\example\PageContentExample.java
+ */
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
@@ -14,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 public class PageContentExample {
 
     public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
-        //自动下载，第一次下载后不会再下载
+
         BrowserFetcher.downloadIfNotExist(null);
 
         ArrayList<String> arrayList = new ArrayList<>();

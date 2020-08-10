@@ -52,6 +52,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.ProtocolException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -759,15 +760,18 @@ public class Page extends EventEmitter {
 
         if (StringUtil.isEmpty(screenshotType))
             screenshotType = "png";
+
         if (options.getQuality() > 0) {
             ValidateUtil.assertArg("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
             ValidateUtil.assertArg(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
         }
+
         ValidateUtil.assertArg(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
         if (options.getClip() != null) {
             ValidateUtil.assertArg(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
             ValidateUtil.assertArg(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
         }
+
         return (String) this.screenshotTaskQueue.postTask((type, op) -> {
             try {
                 return screenshotTask(type, op);
@@ -1658,9 +1662,10 @@ public class Page extends EventEmitter {
      * @param options 选项
      * @throws IOException 异常
      */
-    public void pdf(PDFOptions options) throws IOException {
+    public byte[] pdf(PDFOptions options) throws IOException {
         double paperWidth = 8.5;
         double paperHeight = 11;
+
         if (StringUtil.isNotEmpty(options.getFormat())) {
             PaperFormats format = PaperFormats.valueOf(options.getFormat().toLowerCase());
             paperWidth = format.getWidth();
@@ -1675,11 +1680,14 @@ public class Page extends EventEmitter {
                 paperHeight = height;
             }
         }
+
         Margin margin = options.getMargin();
         Number marginTop, marginLeft, marginBottom, marginRight;
+
         if ((marginTop = convertPrintParameterToInches(margin.getTop())) == null) {
             marginTop = 0;
         }
+
         if ((marginLeft = convertPrintParameterToInches(margin.getLeft())) == null) {
             marginLeft = 0;
         }
@@ -1691,6 +1699,7 @@ public class Page extends EventEmitter {
         if ((marginRight = convertPrintParameterToInches(margin.getRight())) == null) {
             marginRight = 0;
         }
+
         Map<String, Object> params = new HashMap<>();
         params.put("transferMode", "ReturnAsStream");
         params.put("landscape", options.getLandscape());
@@ -1708,11 +1717,13 @@ public class Page extends EventEmitter {
         params.put("pageRanges", options.getPageRanges());
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
         JsonNode result = this.client.send("Page.printToPDF", params, true);
+
         if (result != null){
             JsonNode handle = result.get(RECV_MESSAGE_STREAM_PROPERTY);
             ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle. Please check your chrome version. result="+result.toString());
-            Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
+            return (byte[])Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
         }
+        throw new ProtocolException("Page.printToPDF no response");
     }
 
     /**
