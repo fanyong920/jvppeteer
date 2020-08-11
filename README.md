@@ -35,7 +35,7 @@
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>1.0.4</version>
+  <version>1.0.5</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:1.0.4"
+compile "io.github.fanyong920:jvppeteer:1.0.5"
 ```
 
 #### Logging
@@ -70,12 +70,12 @@ compile "io.github.fanyong920:jvppeteer:1.0.4"
 ```java
 	//设置基本的启动配置,这里选择了‘有头’模式启动
 	ArrayList<String> argList = new ArrayList<>();
-	String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-	LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withPipe(true).withExecutablePath(path).build();
-	argList.add("--no-sandbox");
-	argList.add("--disable-setuid-sandbox");
-	//启动
-	Puppeteer.launch(options);
+    //自动下载，第一次下载后不会再下载
+    BrowserFetcher.downloadIfNotExist(null);
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
+    argList.add("--no-sandbox");
+    argList.add("--disable-setuid-sandbox");
+    Puppeteer.launch(options);
 ```
 
 在这个例子中，我们明确指明了启动路径，程序就会根据指明的路径启动对应的浏览器，如果没有明确指明路径，那么程序会尝试启动默认安装路径下的 Chrome 浏览器
@@ -83,15 +83,20 @@ compile "io.github.fanyong920:jvppeteer:1.0.4"
 #### 2、导航至某个页面
 
 ```java
-	String  path ="D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-        ArrayList<String> argList = new ArrayList<>();
-        LaunchOptions options = new 			LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath(path).build();
-        argList.add("--no-sandbox");
-        argList.add("--disable-setuid-sandbox");
-        Browser browser = Puppeteer.launch(options);
-        Page page = browser.newPage();
-        page.goTo("https://www.taobao.com/about/");
-        browser.close();
+	//自动下载，第一次下载后不会再下载
+    BrowserFetcher.downloadIfNotExist(null);
+    ArrayList<String> argList = new ArrayList<>();
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
+    argList.add("--no-sandbox");
+    argList.add("--disable-setuid-sandbox");
+    Browser browser = Puppeteer.launch(options);
+    Browser browser2 = Puppeteer.launch(options);
+    Page page = browser.newPage();
+    page.goTo("https://www.taobao.com/about/");
+    browser.close();
+
+    Page page1 = browser2.newPage();
+    page1.goTo("https://www.taobao.com/about/");
 ```
 
 这个例子中，浏览器导航到具体某个页面后关闭。在这里并没有指明启动路径。argList是放一些额外的命令行启动参数的，在下面资源章节中我会给出相关资料。
@@ -99,16 +104,21 @@ compile "io.github.fanyong920:jvppeteer:1.0.4"
 #### 3、生成页面的 PDF
 
 ```java
-	ArrayList<String> argList = new ArrayList<>();
-        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-        //生成pdf必须在无厘头模式下才能生效
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
-        argList.add("--no-sandbox");
-        argList.add("--disable-setuid-sandbox");
-        Browser browser = Puppeteer.launch(options);
-        Page page = browser.newPage();
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.pdf("test.pdf");
+	//自动下载，第一次下载后不会再下载
+    BrowserFetcher.downloadIfNotExist(null);
+    ArrayList<String> arrayList = new ArrayList<>();
+    //生成pdf必须在无厘头模式下才能生效
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).build();
+    arrayList.add("--no-sandbox");
+    arrayList.add("--disable-setuid-sandbox");
+    Browser browser = Puppeteer.launch(options);
+    Page page = browser.newPage();
+    page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+    PDFOptions pdfOptions = new PDFOptions();
+    pdfOptions.setPath("test.pdf");
+    page.pdf(pdfOptions);
+    page.close();
+    browser.close();
 ```
 
 在这个例子中，导航到某个页面后，将整个页面截图，并写成PDF文件。注意，生成PDF必须在headless模式下才能生效
@@ -116,20 +126,18 @@ compile "io.github.fanyong920:jvppeteer:1.0.4"
 #### 4、TRACING 性能分析
 
 ```java
-	ArrayList<String> argList = new ArrayList<>();
-        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).withExecutablePath(path).build();
-        argList.add("--no-sandbox");
-        argList.add("--disable-setuid-sandbox");
-        Browser browser = Puppeteer.launch(options);
-
-        Page page = browser.newPage();
-        //开启追踪
-        page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.tracing().stop();
-        //waifor tracingComplete
+	//自动下载，第一次下载后不会再下载
+    BrowserFetcher.downloadIfNotExist(null);
+    ArrayList<String> argList = new ArrayList<>();
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).build();
+    argList.add("--no-sandbox");
+    argList.add("--disable-setuid-sandbox");
+    Browser browser = Puppeteer.launch(options);
+    Page page = browser.newPage();
+    //开启追踪
+    page.tracing().start("C:\\Users\\howay\\Desktop\\trace.json");
+    page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+    page.tracing().stop();
 ```
 
 在这个例子中，将在页面导航完成后，生成一个 json 格式的文件，里面包含页面性能的具体数据，可以用 Chrome 浏览器开发者工具打开该 json 文件，并分析性能。
@@ -137,24 +145,21 @@ compile "io.github.fanyong920:jvppeteer:1.0.4"
 #### 5、页面截图
 
 ```java
-        ArrayList<String> arrayList = new ArrayList<>();
-        String path = "D:\\develop\\project\\toString\\chrome-win\\chrome.exe";
-
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath(path).build();
-        arrayList.add("--no-sandbox");
-        arrayList.add("--disable-setuid-sandbox");
-        Browser browser = Puppeteer.launch(options);
-        Page page = browser.newPage();
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-
-        ScreenshotOptions screenshotOptions = new ScreenshotOptions();
-        //设置截图范围
-        Clip clip = new Clip(1.0,1.56,400,400);
-        screenshotOptions.setClip(clip);
-        //设置存放的路径
-        screenshotOptions.setPath("test.png");
-        page.screenshot(screenshotOptions);
-
+    BrowserFetcher.downloadIfNotExist(null);       
+    ArrayList<String> arrayList = new ArrayList<>();
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).build();
+    arrayList.add("--no-sandbox");
+    arrayList.add("--disable-setuid-sandbox");
+    Browser browser = Puppeteer.launch(options);
+    Page page = browser.newPage();
+    page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+    ScreenshotOptions screenshotOptions = new ScreenshotOptions();
+    //设置截图范围
+    Clip clip = new Clip(1.0,1.56,400,400);
+    screenshotOptions.setClip(clip);
+    //设置存放的路径
+    screenshotOptions.setPath("test.png");
+    page.screenshot(screenshotOptions);
 ```
 
 页面导航完成后，设置截图范围以及图片保存路径，即可开始截图。
