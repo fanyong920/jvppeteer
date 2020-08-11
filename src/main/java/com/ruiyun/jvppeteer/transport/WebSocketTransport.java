@@ -25,8 +25,6 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	private Consumer<String> messageConsumer = null;
 
-	private Function<Object,Object> onCloseConsumer = null;
-
 	public WebSocketTransport(URI serverUri, Draft draft) {
 		super(serverUri, draft);
 	}
@@ -51,7 +49,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	@Override
 	public void onClose() {
-		this.onCloseConsumer.apply(null);
+		this.close();
 	}
 
 	@Override
@@ -78,8 +76,5 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		this.messageConsumer = consumer;
 	}
 
-	public void addOncloseConsumer(Function<Object,Object> consumer) {
-		this.onCloseConsumer = consumer;
-	}
 
 }

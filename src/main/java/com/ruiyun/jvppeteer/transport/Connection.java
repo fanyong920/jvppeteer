@@ -25,7 +25,7 @@ import java.util.function.Function;
  *
  * @author fff
  */
-public class Connection extends EventEmitter implements Consumer<String>, Function {
+public class Connection extends EventEmitter implements Consumer<String> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
 
@@ -55,7 +55,6 @@ public class Connection extends EventEmitter implements Consumer<String>, Functi
         this.delay = delay;
         if (this.transport instanceof WebSocketTransport) {
             ((WebSocketTransport) this.transport).addMessageConsumer(this);
-            ((WebSocketTransport) this.transport).addOncloseConsumer(this);
         }
     }
 
@@ -286,10 +285,5 @@ public class Connection extends EventEmitter implements Consumer<String>, Functi
         return closed;
     }
 
-    @Override
-    public Object apply(Object o) {
-         this.onClose();
-         return null;
-    }
 }
 
