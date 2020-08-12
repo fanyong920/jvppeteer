@@ -184,13 +184,12 @@ public class DOMWorld {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
         }
+        LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
         this.evaluate("(html) => {\n" +
                 "      document.open();\n" +
                 "      document.write(html);\n" +
                 "      document.close();\n" +
                 "    }", PageEvaluateType.FUNCTION, html);
-        LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
-
         if (watcher.lifecyclePromise() != null) {
             return;
         }

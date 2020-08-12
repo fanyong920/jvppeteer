@@ -223,4 +223,15 @@ public class StringTest {
         Object o = nashorn.invokeFunction("validateFunction", "() => {}");
         System.out.println(o);
     }
+
+    @Test
+    public void test3(){
+
+        String test = "/Volumes/sssadsa\r\nsadasdwwwwww";
+        Pattern pattern = Pattern.compile("/Volumes/(.*)", Pattern.MULTILINE);
+        Matcher matcher = pattern.matcher(test);
+        while (matcher.find()) {
+            System.out.println(matcher.group());
+        }
+    }
 }

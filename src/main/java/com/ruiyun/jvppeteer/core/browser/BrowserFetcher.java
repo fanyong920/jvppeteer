@@ -146,16 +146,17 @@ public class BrowserFetcher {
     /**
      * <p>下载浏览器，如果项目目录下不存在对应版本时</p>
      * <p>如果不指定版本，则使用默认配置版本</p>
+     *
      * @param version 浏览器版本
      * @throws InterruptedException 异常
-     * @throws ExecutionException 异常
-     * @throws IOException 异常
+     * @throws ExecutionException   异常
+     * @throws IOException          异常
      */
     public static void downloadIfNotExist(String version) throws InterruptedException, ExecutionException, IOException {
         BrowserFetcher fetcher = new BrowserFetcher();
         String downLoadVersion = StringUtil.isEmpty(version) ? Constant.VERSION : version;
         RevisionInfo revisionInfo = fetcher.revisionInfo(downLoadVersion);
-        if(!revisionInfo.getLocal()){
+        if (!revisionInfo.getLocal()) {
             fetcher.download(downLoadVersion);
         }
     }
@@ -216,7 +217,7 @@ public class BrowserFetcher {
      * @return RevisionInfo
      * @throws IOException          异常
      * @throws InterruptedException 异常
-     * @throws ExecutionException 异常
+     * @throws ExecutionException   异常
      */
     public RevisionInfo download(String revision, BiConsumer<Integer, Integer> progressCallback) throws IOException, InterruptedException, ExecutionException {
         String url = downloadURL(this.product, this.platform, this.downloadHost, revision);
@@ -253,15 +254,17 @@ public class BrowserFetcher {
 
     /**
      * 指定版本下载chromuim
+     *
      * @param revision 版本
      * @return 下载后的chromuim包有关信息
-     * @throws IOException 异常
+     * @throws IOException          异常
      * @throws InterruptedException 异常
-     * @throws ExecutionException 异常
+     * @throws ExecutionException   异常
      */
     public RevisionInfo download(String revision) throws IOException, InterruptedException, ExecutionException {
-       return this.download(revision,null);
+        return this.download(revision, null);
     }
+
     /**
      * 默认的下载回调
      *
@@ -271,7 +274,7 @@ public class BrowserFetcher {
         return (integer1, integer2) -> {
             BigDecimal decimal1 = new BigDecimal(integer1);
             BigDecimal decimal2 = new BigDecimal(integer2);
-            int percent = decimal1.divide(decimal2,2,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).intValue();
+            int percent = decimal1.divide(decimal2, 2, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).intValue();
             LOGGER.info("Download progress: total[{}M],downloaded[{}M],{}", decimal2, decimal1, percent + "%");
         };
     }
@@ -500,6 +503,8 @@ public class BrowserFetcher {
         StringWriter stringWriter = null;
         try {
             List<String> arguments = new ArrayList<>();
+            arguments.add("/bin/sh");
+            arguments.add("-c");
             arguments.add("hdiutil");
             arguments.add("attach");
             arguments.add("-nobrowse");
@@ -533,6 +538,8 @@ public class BrowserFetcher {
                 String copyPath = path.toString();
                 LOGGER.info("Copying " + copyPath + " to " + folderPath);
                 List<String> arguments = new ArrayList<>();
+                arguments.add("/bin/sh");
+                arguments.add("-c");
                 arguments.add("cp");
                 arguments.add("-R");
                 arguments.add(copyPath);
@@ -572,7 +579,7 @@ public class BrowserFetcher {
         } finally {
             unmount(mountPath);
         }
-        throw new RuntimeException("Cannot find app in " + mountPath);
+//        throw new RuntimeException("Cannot find app in " + mountPath);
     }
 
     /**
@@ -584,32 +591,36 @@ public class BrowserFetcher {
      */
     private void unmount(String mountPath) throws IOException, InterruptedException {
         BufferedReader reader = null;
-        if (StringUtil.isNotEmpty(mountPath)) {
-            List<String> arguments = new ArrayList<>();
-            arguments.add("hdiutil");
-            arguments.add("detach");
-            arguments.add(mountPath);
-            arguments.add("-quiet");
-            try {
-                ProcessBuilder processBuilder3 = new ProcessBuilder().command(arguments);
-                Process process3 = processBuilder3.start();
-                LOGGER.info("Unmounting " + mountPath);
-                String line;
-                reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
-                while ((line = reader.readLine()) != null) {
-                    LOGGER.trace(line);
-                }
-                reader.close();
-                reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));
-                while ((line = reader.readLine()) != null) {
-                    LOGGER.error(line);
-                }
-                process3.waitFor();
-                process3.destroyForcibly();
-            } finally {
-                StreamUtil.closeQuietly(reader);
-            }
+        if (StringUtil.isEmpty(mountPath)) {
+            return;
         }
+        List<String> arguments = new ArrayList<>();
+        arguments.add("/bin/sh");
+        arguments.add("-c");
+        arguments.add("hdiutil");
+        arguments.add("detach");
+        arguments.add(mountPath);
+        arguments.add("-quiet");
+        try {
+            ProcessBuilder processBuilder3 = new ProcessBuilder().command(arguments);
+            Process process3 = processBuilder3.start();
+            LOGGER.info("Unmounting " + mountPath);
+            String line;
+            reader = new BufferedReader(new InputStreamReader(process3.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                LOGGER.trace(line);
+            }
+            reader.close();
+            reader = new BufferedReader(new InputStreamReader(process3.getErrorStream()));
+            while ((line = reader.readLine()) != null) {
+                LOGGER.error(line);
+            }
+            process3.waitFor();
+            process3.destroyForcibly();
+        } finally {
+            StreamUtil.closeQuietly(reader);
+        }
+
     }
 
     /**
