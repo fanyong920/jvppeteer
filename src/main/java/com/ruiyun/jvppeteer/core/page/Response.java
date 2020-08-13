@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.io.IOException;
@@ -41,6 +42,8 @@ public class Response {
 
     private SecurityDetails securityDetails;
 
+    private String  bodyLoadedErrorMsg;
+
     public Response() {
     }
 
@@ -66,30 +69,39 @@ public class Response {
         this.securityDetails = responsePayload.getSecurityDetails() != null ? new SecurityDetails(responsePayload.getSecurityDetails()) : null;
     }
 
-    protected void bodyLoadedPromiseFulfill(RuntimeException e) {
-        if (e != null) {
-            throw e;
+    /**
+     * 处理请求体响应
+     * @param errorMsg 错误信息
+     */
+    protected void resolveBody(String errorMsg){
+        this.bodyLoadedPromiseFulfill(errorMsg);
+    }
+
+    protected void bodyLoadedPromiseFulfill(String errorMsg) {
+        if (StringUtil.isNotEmpty(errorMsg)) {
+            bodyLoadedErrorMsg = errorMsg;
         }
         if(this.contentPromiseLatch != null){
             this.contentPromiseLatch.countDown();
         }
-
-//        if (this.contentPromise == null) {
-//            return Helper.commonExecutor().submit(
-//                return contentPromise;
-//            });
-//        }
-//        return new CompletedFuture<>(this.contentPromise, null);
-
     }
 
     public boolean ok() {
         return this.status == 0 || (this.status >= 200 && this.status <= 299);
     }
 
+    /**
+     * 获取该响应的byte数组
+     * @return 字节数组
+     * @throws InterruptedException 被打断异常
+     */
     public byte[] buffer() throws InterruptedException {
         if (this.contentPromise == null) {
            this.contentPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+
+           if(StringUtil.isNotEmpty(this.bodyLoadedErrorMsg)){
+               throw new RuntimeException(this.bodyLoadedErrorMsg);
+           }
            Map<String,Object> params = new HashMap<>();
            params.put("requestId",this.request.requestId());
             JsonNode response = this.client.send("Network.getResponseBody", params, true);

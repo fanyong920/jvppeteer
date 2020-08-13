@@ -321,7 +321,7 @@ public class NetworkManager extends EventEmitter {
         Response response = new Response(this.client, request, responsePayload);
         request.setResponse(response);
         request.redirectChain().add(request);
-        response.bodyLoadedPromiseFulfill(new RuntimeException("Response body is unavailable for redirect responses"));
+        response.resolveBody("Response body is unavailable for redirect responses");
         this.requestIdToRequest.remove(request.requestId());
         this.attemptedAuthentications.remove(request.interceptionId());
         this.emit(Events.NETWORK_MANAGER_RESPONSE.getName(), response);
