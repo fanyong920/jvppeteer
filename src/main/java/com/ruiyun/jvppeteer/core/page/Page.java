@@ -1516,9 +1516,7 @@ public class Page extends EventEmitter {
         }
 
         CompletionService completionService = Helper.completionService();
-        frames.forEach(frame -> completionService.submit(() -> {
-            return frame.evaluate(expression, PageEvaluateType.STRING);
-        }));
+        frames.forEach(frame -> completionService.submit(() -> frame.evaluate(expression, PageEvaluateType.STRING)));
         for (int i = 0; i < frames.size(); i++) {
             completionService.take().get();
         }

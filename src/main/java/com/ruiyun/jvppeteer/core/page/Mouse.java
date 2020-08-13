@@ -2,17 +2,11 @@ package com.ruiyun.jvppeteer.core.page;
 
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
 
 public class Mouse {
 
@@ -37,34 +31,35 @@ public class Mouse {
         this.button = "none";
     }
 
-    public void move(int x, int y) throws ExecutionException, InterruptedException {
+    public void move(int x, int y) {
         this.move(x, y, 1);
     }
 
-    public void move(int x, int y, int steps) throws ExecutionException, InterruptedException {
+    public void move(int x, int y, int steps) {
         if (steps == 0) {
             steps = 1;
         }
         int fromX = this.x, fromY = this.y;
         this.x = x;
         this.y = y;
-        Map<String, Object> params = new HashMap<>();
+
         for (int i = 1; i <= steps; i++) {
-            stepRun(steps, fromX, fromY, params, i);
+            stepRun(steps, fromX, fromY, i);
         }
     }
 
-    private void stepRun(int steps, int fromX, int fromY, Map<String, Object> params, int i) {
-        params.clear();
+    private void stepRun(int steps, int fromX, int fromY, int i) {
+        Map<String, Object> params = new HashMap<>();
         params.put("type", "mouseMoved");
         params.put("button", this.button);
-        params.put("x", fromX + (this.x - fromX) * (i / steps));
-        params.put("y", fromY + (this.y - fromY) * (i / steps));
+        BigDecimal divide = new BigDecimal(i).divide(new BigDecimal(steps), 17, BigDecimal.ROUND_HALF_UP);
+        params.put("x", divide.multiply(new BigDecimal((this.x - fromX))).add(new BigDecimal(fromX)).doubleValue());
+        params.put("y", divide.multiply(new BigDecimal((this.y - fromY))).add(new BigDecimal(fromY)).doubleValue());
         params.put("modifiers", this.keyboard.getModifiers());
         this.client.send("Input.dispatchMouseEvent", params, true);
     }
 
-    public void click(int x, int y, ClickOptions options) throws InterruptedException, ExecutionException {
+    public void click(int x, int y, ClickOptions options) throws InterruptedException {
         if (options.getDelay() != 0) {
             this.move(x, y, 0);
             this.down(options);
