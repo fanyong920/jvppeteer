@@ -16,9 +16,9 @@ public class Mouse {
 
     private final Keyboard keyboard;
 
-    private int x;
+    private double x;
 
-    private int y;
+    private double y;
 
     private String button;
 
@@ -31,24 +31,23 @@ public class Mouse {
         this.button = "none";
     }
 
-    public void move(int x, int y) {
+    public void move(double x, double y) {
         this.move(x, y, 1);
     }
 
-    public void move(int x, int y, int steps) {
+    public void move(double x, double y, int steps) {
         if (steps == 0) {
             steps = 1;
         }
-        int fromX = this.x, fromY = this.y;
+        double fromX = this.x, fromY = this.y;
         this.x = x;
         this.y = y;
-
         for (int i = 1; i <= steps; i++) {
             stepRun(steps, fromX, fromY, i);
         }
     }
 
-    private void stepRun(int steps, int fromX, int fromY, int i) {
+    private void stepRun(double steps, double fromX, double fromY, int i) {
         Map<String, Object> params = new HashMap<>();
         params.put("type", "mouseMoved");
         params.put("button", this.button);
@@ -63,7 +62,7 @@ public class Mouse {
         if (options.getDelay() != 0) {
             this.move(x, y, 0);
             this.down(options);
-            if(options.getDelay() > 0){
+            if (options.getDelay() > 0) {
                 Thread.sleep(options.getDelay());
             }
         } else {
@@ -128,5 +127,37 @@ public class Mouse {
         if ("right".equals(buttonName))
             return 2;
         throw new IllegalArgumentException("Unkown ButtonName: " + buttonName);
+    }
+
+    /**
+     * 触发一个鼠标滚轮事件
+     * @param deltaX
+     * @param deltaY
+     */
+    public void wheel(double deltaX, double deltaY) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("type", "mouseWheel");
+        params.put("x", this.x);
+        params.put("y", this.y);
+        params.put("deltaX", deltaX);
+        params.put("deltaY", deltaY);
+        params.put("modifiers", this.keyboard.getModifiers());
+        params.put("pointerType", "mouse");
+        this.client.send("Input.dispatchMouseEvent", params, true);
+    }
+
+    /**
+     * 触发一个鼠标滚轮事件
+     */
+    public void wheel() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("type", "mouseWheel");
+        params.put("x", this.x);
+        params.put("y", this.y);
+        params.put("deltaX", 0.00);
+        params.put("deltaY", 0.00);
+        params.put("modifiers", this.keyboard.getModifiers());
+        params.put("pointerType", "mouse");
+        this.client.send("Input.dispatchMouseEvent", params, true);
     }
 }

@@ -75,7 +75,10 @@ public enum  Device {
     PIXEL_2("Pixel 2","Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",new Viewport(411,731,2.625,true,true,false)),
     PIXEL_2_LANDSCAPE("Pixel 2 landscape","Mozilla/5.0 (Linux; Android 8.0; Pixel 2 Build/OPD3.170816.012) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",new Viewport(731,411,2.625,true,true,true)),
     PIXEL_2_XL("Pixel 2 XL","Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",new Viewport(411,823,3.5,true,true,false)),
-    PIXEL_2_XL_LANDSCAPE("Pixel 2 XL landscape","Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",new Viewport(823,411,3.5,true,true,true));
+    PIXEL_2_XL_LANDSCAPE("Pixel 2 XL landscape","Mozilla/5.0 (Linux; Android 8.0.0; Pixel 2 XL Build/OPD1.170816.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",new Viewport(823,411,3.5,true,true,true)),
+
+    //添加华为手机,具体屏幕手机尺寸不准确，但是不影响使用
+    HUAWEI_MATE_30_PRO("HUAWEI Mate 30 Pro","Mozilla/5.0(Linux; U; Android 8.0.0; zh-CN; HUAWEI Mate 30 Pro Build/Mate 30 Pro)AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/53.0.2785.49 Mobile MQQBrowser/6.2 TBS/043024 Safari/537.36 MicroMessenger/6.3.16.49_r03ae324.780 NetType",new Viewport(350,900,3.5,true,true,false));
 
     Device(String name,String userAgent,Viewport viewPort) {
         this.name = name;
