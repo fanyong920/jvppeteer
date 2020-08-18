@@ -1465,6 +1465,14 @@ public class Page extends EventEmitter {
         this.client.send("Emulation.setEmulatedVisionDeficiency",params,true);
     }
 
+    /**
+     * 在新dom产生之际执行给定的javascript
+     * <p>当你的js代码为函数时，type={@link PageEvaluateType#FUNCTION}</p>
+     * <p>当你的js代码为字符串时，type={@link PageEvaluateType#STRING}</p>
+     * @param pageFunction js代码
+     * @param type 一般为PageEvaluateType#FUNCTION
+     * @param args 当你js代码是函数时，你的函数的参数
+     */
     public void evaluateOnNewDocument(String pageFunction, PageEvaluateType type, Object... args) {
         Map<String, Object> params = new HashMap<>();
         if (Objects.equals(PageEvaluateType.STRING, type)) {
@@ -1484,7 +1492,7 @@ public class Page extends EventEmitter {
                     }
                 }
             });
-            String source = "(" + pageFunction + ")" + String.join(",", argsList);
+            String source = "(" + pageFunction + ")(" + String.join(",", argsList) + ")";
             params.put("source", source);
         }
         this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
