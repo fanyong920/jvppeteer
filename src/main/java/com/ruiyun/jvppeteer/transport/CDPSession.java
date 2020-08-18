@@ -88,9 +88,9 @@ public class CDPSession extends EventEmitter {
                     CountDownLatch latch = new CountDownLatch(1);
                     message.setCountDownLatch(latch);
                 }
-                boolean hasResult = message.waitForResult(timeout <= 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
+                boolean hasResult = message.waitForResult(timeout > 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
-                    throw new TimeoutException("Wait "+method+" for "+(timeout <= 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
+                    throw new TimeoutException("Wait "+method+" for "+(timeout > 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
                 }
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
