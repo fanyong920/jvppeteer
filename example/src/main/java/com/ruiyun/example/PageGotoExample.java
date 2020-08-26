@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 
 import java.util.ArrayList;
 
@@ -27,5 +28,6 @@ public class PageGotoExample {
 
         Page page1 = browser2.newPage();
         page1.goTo("https://www.taobao.com/about/");
+        System.out.println(page1.$eval("#content > div.right-info > div > div.inner.taobao-intro > p","p => p.value", PageEvaluateType.FUNCTION));
     }
 }

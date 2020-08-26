@@ -262,11 +262,11 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public ElementHandle $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
         ElementHandle elementHandle = this.$(selector);
         if (elementHandle == null)
             throw new RuntimeException("failed to find element matching selector " + selector);
-        ElementHandle result = (ElementHandle) elementHandle.evaluate(pageFunction, type, args);
+        Object result = elementHandle.evaluate(pageFunction, type, args);
         elementHandle.dispose();
         return result;
     }

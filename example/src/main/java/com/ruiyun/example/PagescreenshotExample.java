@@ -41,6 +41,6 @@ public class PagescreenshotExample {
         //设置存放的路径
         screenshotOptions.setPath("test.png");
         page.screenshot(screenshotOptions);
-
+        page.close();
     }
 }
