@@ -66,12 +66,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
             long id = rawSend(message);
             if (isWait) {
                 this.callbacks.put(id, message);
-                CountDownLatch latch = new CountDownLatch(1);
-                message.setCountDownLatch(latch);
-                boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-                if (!hasResult) {
-                    throw new TimeoutException("["+message+"] has send ,But wait result for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
-                }
+                message.setCountDownLatch(new CountDownLatch(1));
+                message.waitForResult(0, TimeUnit.MILLISECONDS);
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
                 }
@@ -95,13 +91,9 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 if (outLatch != null) {
                     message.setCountDownLatch(outLatch);
                 } else {
-                    CountDownLatch latch = new CountDownLatch(1);
-                    message.setCountDownLatch(latch);
+                    message.setCountDownLatch(new CountDownLatch(1));
                 }
-                boolean hasResult = message.waitForResult(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-                if (!hasResult) {
-                    throw new TimeoutException("Wait "+method+" for " + Constant.DEFAULT_TIMEOUT + " MILLISECONDS with no response");
-                }
+                message.waitForResult(0, TimeUnit.MILLISECONDS);
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
                 }

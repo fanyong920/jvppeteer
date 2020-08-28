@@ -130,10 +130,7 @@ public class CDPSession extends EventEmitter {
                 this.callbacks.putIfAbsent(id,message);
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
-                boolean hasResult = message.waitForResult(DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
-                if(!hasResult){
-                    throw new TimeoutException("Wait "+method+" for "+DEFAULT_TIMEOUT+" MILLISECONDS with no response");
-                }
+                message.waitForResult(0,TimeUnit.MILLISECONDS);
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
                 }
