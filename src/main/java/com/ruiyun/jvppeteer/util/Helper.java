@@ -486,6 +486,19 @@ public class Helper {
         return new ExecutorCompletionService(Helper.commonExecutor());
     }
 
+
+    /**
+     * 判断js字符串是否是一个函数
+     * @param pageFunction
+     */
+    public static final boolean isFunction(String pageFunction){
+        pageFunction = pageFunction.trim();
+        if(pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>")){
+            return true;
+        }
+        return false;
+    }
+
     static class CommonThreadFactory implements ThreadFactory {
         private static final AtomicInteger poolNumber = new AtomicInteger(1);
         private final ThreadGroup group;

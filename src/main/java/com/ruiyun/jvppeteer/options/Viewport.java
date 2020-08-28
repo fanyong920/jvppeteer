@@ -45,6 +45,8 @@ public class Viewport {
 	public Viewport() {
 	}
 
+
+
 	public Viewport(int width, int height, Number deviceScaleFactor, boolean isMobile, boolean hasTouch, boolean isLandscape) {
 		this.width = width;
 		this.height = height;

@@ -1466,6 +1466,15 @@ public class Page extends EventEmitter {
     }
 
     /**
+     * 此方法是{@link Page#evaluateOnNewDocument(String, Object...)}的简化版，自动判断参数pageFunction是 Javascript 函数还是 Javascript 的字符串
+     * @param pageFunction 要执行的字符串
+     * @param args 如果是 Javascript 函数的话，对应函数上的参数
+     */
+    public void evaluateOnNewDocument(String pageFunction, Object... args) {
+        this.evaluateOnNewDocument(pageFunction,Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING,args);
+    }
+
+    /**
      * 在新dom产生之际执行给定的javascript
      * <p>当你的js代码为函数时，type={@link PageEvaluateType#FUNCTION}</p>
      * <p>当你的js代码为字符串时，type={@link PageEvaluateType#STRING}</p>
@@ -1879,6 +1888,17 @@ public class Page extends EventEmitter {
         return this.frameManager.mainFrame().waitForNavigation(options,needReload);
     }
 
+
+    /**
+     * 此方法是{@link Page#evaluate(String, Object...)}的简化版，自动判断参数pageFunction是 Javascript 函数还是 Javascript 的字符串
+     * @param pageFunction 要执行的字符串
+     * @param args 如果是 Javascript 函数的话，对应函数上的参数
+     * @return 有可能是JShandle String等
+     */
+    public Object evaluate(String pageFunction,Object... args) {
+        return this.frameManager.mainFrame().evaluate(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
+    }
+
     /**
      * 在页面实例上下文中执行方法
      * <p>添加一个方法，在以下某个场景被调用</p>
@@ -1893,6 +1913,18 @@ public class Page extends EventEmitter {
      */
     public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
         return this.frameManager.mainFrame().evaluate(pageFunction, type, args);
+    }
+
+
+    /**
+     * 此方法是{@link Page#evaluateHandle(String, PageEvaluateType, Object...)}的简化版，自动判断参数pageFunction是 Javascript 函数还是 Javascript 的字符串
+     * @param pageFunction 要执行的字符串
+     * @param args 如果是 Javascript 函数的话，对应函数上的参数
+     * @return JSHandle
+     */
+    public JSHandle evaluateHandle(String pageFunction, Object... args) {
+        ExecutionContext context = this.mainFrame().executionContext();
+        return (JSHandle) context.evaluateHandle(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
     }
 
     /**
@@ -1946,12 +1978,11 @@ public class Page extends EventEmitter {
      * <p>否则会报错
      *
      * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
-     * @param type                        具体类型，与第一个参数对应，String 对应 PageEvaluateType的STRING , function对应PageEvaluateType的FUNCTION
      * @return 代表页面元素的一个实例
      * @throws InterruptedException 异常
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type) throws InterruptedException {
-        return this.waitFor(selectorOrFunctionOrTimeout, type, new WaitForSelectorOptions());
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout) throws InterruptedException {
+        return this.waitFor(selectorOrFunctionOrTimeout, new WaitForSelectorOptions());
     }
 
     /**
@@ -1963,14 +1994,13 @@ public class Page extends EventEmitter {
      * <p>否则会报错
      *
      * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
-     * @param type                        具体类型
      * @param options                     可选的等待参数
      * @param args                        传给 pageFunction 的参数
      * @throws InterruptedException 打断异常
      * @return 代表页面元素的一个实例
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
-        return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, type, options, args);
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, WaitForSelectorOptions options, Object... args) throws InterruptedException {
+        return this.mainFrame().waitFor(selectorOrFunctionOrTimeout, options, args);
     }
 
     /**
@@ -2030,19 +2060,21 @@ public class Page extends EventEmitter {
      * @return JSHandle
      * @throws InterruptedException 异常
      */
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
+    private JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         return this.mainFrame().waitForFunction(pageFunction, type, options, args);
     }
+
     /**
-     * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
+     * 等到某个请求
      * @param predicate       等待的请求
      * @return 要等到的请求
      * @throws InterruptedException 异常
      */
     public Request waitForRequest(Predicate<Request> predicate) throws InterruptedException {
         ValidateUtil.notNull(predicate,"waitForRequest predicate must not be null");
-        return this.waitForRequest(null,predicate,PageEvaluateType.FUNCTION,this.timeoutSettings.timeout());
+        return this.waitForRequest(null,predicate,this.timeoutSettings.timeout());
     }
+
     /**
      * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
      * @param url       等待的请求
@@ -2051,23 +2083,10 @@ public class Page extends EventEmitter {
      */
     public Request waitForRequest(String url) throws InterruptedException {
         ValidateUtil.assertArg(StringUtil.isNotEmpty(url),"waitForRequest url must not be empty");
-        return this.waitForRequest(url,null,PageEvaluateType.STRING,this.timeoutSettings.timeout());
+        return this.waitForRequest(url,null,this.timeoutSettings.timeout());
     }
 
-    /**
-     * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
-     * <p>当url不为空时， type = PageEvaluateType.STRING </p>
-     * <p>当predicate不为空时， type = PageEvaluateType.FUNCTION </p>
-     *
-     * @param url       等待的请求
-     * @param predicate 方法
-     * @param type      判别到底是url还是方法
-     * @return 要等到的请求
-     * @throws InterruptedException 异常
-     */
-    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type) throws InterruptedException {
-       return this.waitForRequest(url,predicate,type,this.timeoutSettings.timeout());
-    }
+
     /**
      * 等到某个请求，url或者predicate只有有一个不为空
      * <p>当url不为空时， type = PageEvaluateType.STRING </p>
@@ -2075,19 +2094,18 @@ public class Page extends EventEmitter {
      *
      * @param url       等待的请求
      * @param predicate 方法
-     * @param type      判别到底是url还是方法
      * @param timeout   超时时间
      * @return 要等到的请求
      * @throws InterruptedException 异常
      */
-    public Request waitForRequest(String url, Predicate<Request> predicate, PageEvaluateType type, int timeout) throws InterruptedException {
+    public Request waitForRequest(String url, Predicate<Request> predicate, int timeout) throws InterruptedException {
         if (timeout <= 0) {
             timeout = this.timeoutSettings.timeout();
         }
         Predicate<Request> predi = request -> {
-            if (PageEvaluateType.STRING.equals(type)) {
+            if (StringUtil.isNotEmpty(url)) {
                 return url.equals(request.url());
-            } else if (PageEvaluateType.FUNCTION.equals(type)) {
+            } else if (predicate != null) {
                 return predicate.test(request);
             }
             return false;
@@ -2122,7 +2140,7 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 异常
      */
     public Response waitForResponse(Predicate<Response> predicate) throws InterruptedException {
-        return this.waitForResponse(null,predicate,PageEvaluateType.FUNCTION);
+        return this.waitForResponse(null,predicate);
     }
 
     /**
@@ -2133,7 +2151,7 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 异常
      */
     public Response waitForResponse(String url) throws InterruptedException {
-        return this.waitForResponse(url,null,PageEvaluateType.STRING);
+        return this.waitForResponse(url,null);
     }
 
     /**
@@ -2143,12 +2161,11 @@ public class Page extends EventEmitter {
      *
      * @param url       等待的请求
      * @param predicate 方法
-     * @param type      判别到底是url还是方法
      * @return 要等到的请求
      * @throws InterruptedException 异常
      */
-    public Response waitForResponse(String url, Predicate<Response> predicate, PageEvaluateType type) throws InterruptedException {
-        return this.waitForResponse(url,predicate,type,this.timeoutSettings.timeout());
+    public Response waitForResponse(String url, Predicate<Response> predicate) throws InterruptedException {
+        return this.waitForResponse(url,predicate,this.timeoutSettings.timeout());
     }
 
     /**
@@ -2158,18 +2175,17 @@ public class Page extends EventEmitter {
      *
      * @param url       等待的请求
      * @param predicate 方法
-     * @param type      判别到底是url还是方法
      * @param timeout   超时时间
      * @return 要等到的请求
      * @throws InterruptedException 异常
      */
-    public Response waitForResponse(String url, Predicate<Response> predicate, PageEvaluateType type, int timeout) throws InterruptedException {
+    public Response waitForResponse(String url, Predicate<Response> predicate, int timeout) throws InterruptedException {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
         Predicate<Response> predi = response -> {
-            if (PageEvaluateType.STRING.equals(type)) {
+            if (StringUtil.isNotEmpty(url)) {
                 return url.equals(response.url());
-            } else if (PageEvaluateType.FUNCTION.equals(type)) {
+            } else if (predicate != null) {
                 return predicate.test(response);
             }
             return false;

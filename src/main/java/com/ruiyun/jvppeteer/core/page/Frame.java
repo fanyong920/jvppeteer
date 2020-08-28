@@ -151,27 +151,27 @@ public class Frame {
 
     /**
      * @param selectorOrFunctionOrTimeout 元素选择器，函数或者超时时间
-     * @param type string function timeout
      * @param options 可配置等待选项
      * @param args functions时对应的function参数
      * @throws InterruptedException 打断异常
      * @return 元素处理器
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, WaitForSelectorOptions options, Object... args) throws InterruptedException {
         String xPathPattern = "//";
 
-        if (type.equals(PageEvaluateType.STRING)) {
-            String string = selectorOrFunctionOrTimeout;
-            if (string.startsWith(xPathPattern))
-                return this.waitForXPath(string, options);
-            return this.waitForSelector(string, options);
-        }
-        if (Helper.isNumber(selectorOrFunctionOrTimeout))
+        if (Helper.isFunction(selectorOrFunctionOrTimeout)) {
+            return this.waitForFunction(selectorOrFunctionOrTimeout, PageEvaluateType.FUNCTION, options, args);
+        }else if (Helper.isNumber(selectorOrFunctionOrTimeout)) {
 //            return new Promise(fulfill => setTimeout(fulfill, /** @type {number} */ (selectorOrFunctionOrTimeout)));
+            Thread.sleep(Long.parseLong(selectorOrFunctionOrTimeout));
             return null;
-        if (type.equals(PageEvaluateType.FUNCTION))
-            return this.waitForFunction(selectorOrFunctionOrTimeout, type, options, args);
-        throw new IllegalArgumentException("Unsupported target type: " + selectorOrFunctionOrTimeout);
+        }else {
+            if (selectorOrFunctionOrTimeout.startsWith(xPathPattern)) {
+                return this.waitForXPath(selectorOrFunctionOrTimeout, options);
+            }
+            return this.waitForSelector(selectorOrFunctionOrTimeout, options);
+        }
+
     }
 
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws InterruptedException {
