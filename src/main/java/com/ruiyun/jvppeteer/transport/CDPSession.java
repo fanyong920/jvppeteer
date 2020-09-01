@@ -78,16 +78,16 @@ public class CDPSession extends EventEmitter {
         message.setMethod(method);
         message.setParams(params);
         message.setSessionId(this.sessionId);
-        long id = this.connection.rawSend(message);
+
         try {
             if(isBlock){
-                this.callbacks.putIfAbsent(id,message);
                 if(outLatch != null){
                     message.setCountDownLatch(outLatch);
                 }else {
                     CountDownLatch latch = new CountDownLatch(1);
                     message.setCountDownLatch(latch);
                 }
+                long id = this.connection.rawSend(message,true,this.callbacks);
                 boolean hasResult = message.waitForResult(timeout > 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
                 if(!hasResult){
                     throw new TimeoutException("Wait "+method+" for "+(timeout > 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
@@ -100,7 +100,9 @@ public class CDPSession extends EventEmitter {
                 if(outLatch != null) {
                     message.setNeedRemove(true);
                     message.setCountDownLatch(outLatch);
-                    this.callbacks.putIfAbsent(id,message);
+                    this.connection.rawSend(message,true,this.callbacks);
+                }else{
+                    this.connection.rawSend(message,false,this.callbacks);
                 }
             }
 
@@ -124,17 +126,19 @@ public class CDPSession extends EventEmitter {
         message.setMethod(method);
         message.setParams(params);
         message.setSessionId(this.sessionId);
-        long id = this.connection.rawSend(message);
+
         try {
             if(isBlock){
-                this.callbacks.putIfAbsent(id,message);
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
+                long id = this.connection.rawSend(message,true,this.callbacks);
                 message.waitForResult(0,TimeUnit.MILLISECONDS);
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
+            }else{
+                this.connection.rawSend(message,false,this.callbacks);
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

@@ -63,16 +63,16 @@ public class Connection extends EventEmitter implements Consumer<String> {
         message.setMethod(method);
         message.setParams(params);
         try {
-            long id = rawSend(message);
             if (isWait) {
-                this.callbacks.put(id, message);
                 message.setCountDownLatch(new CountDownLatch(1));
+                long id = rawSend(message,true,this.callbacks);
                 message.waitForResult(0, TimeUnit.MILLISECONDS);
-                if(StringUtil.isNotEmpty(message.getErrorText())){
+                if (StringUtil.isNotEmpty(message.getErrorText())) {
                     throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
-            }else {
+            } else {
+               rawSend(message,false,this.callbacks);
                 return null;
             }
         } catch (InterruptedException e) {
@@ -85,26 +85,28 @@ public class Connection extends EventEmitter implements Consumer<String> {
         message.setMethod(method);
         message.setParams(params);
         try {
-            long id = rawSend(message);
             if (isWait) {
-                this.callbacks.put(id, message);
                 if (outLatch != null) {
                     message.setCountDownLatch(outLatch);
                 } else {
                     message.setCountDownLatch(new CountDownLatch(1));
                 }
+                long id = this.rawSend(message, true,this.callbacks);
                 message.waitForResult(0, TimeUnit.MILLISECONDS);
-                if(StringUtil.isNotEmpty(message.getErrorText())){
+                if (StringUtil.isNotEmpty(message.getErrorText())) {
                     throw new ProtocolException(message.getErrorText());
                 }
                 return callbacks.remove(id).getResult();
             } else {
-                if (outLatch != null){
+                if (outLatch != null) {
                     message.setNeedRemove(true);
                     message.setCountDownLatch(outLatch);
-                    this.callbacks.put(id, message);
+                    this.rawSend(message, true,this.callbacks);
+                } else {
+                    this.rawSend(message, false,this.callbacks);
                 }
             }
+
 
         } catch (InterruptedException e) {
             throw new ProtocolException(e);
@@ -112,10 +114,20 @@ public class Connection extends EventEmitter implements Consumer<String> {
         return null;
     }
 
-    public long rawSend(SendMsg message) {
+    /**
+     *
+     * @param message 发送的消息内容
+     * @param putCallback 是否应该放进callbacks里面
+     * @param callbacks 对应的callbacks
+     * @return 发送消息的id
+     */
+    public long rawSend(SendMsg message, boolean putCallback,Map<Long, SendMsg> callbacks) {
         long id = lastId.incrementAndGet();
         message.setId(id);
         try {
+            if (putCallback) {
+                callbacks.put(id, message);
+            }
             String sendMsg = Constant.OBJECTMAPPER.writeValueAsString(message);
             transport.send(sendMsg);
             LOGGER.trace("SEND -> " + sendMsg);
@@ -174,10 +186,10 @@ public class Connection extends EventEmitter implements Consumer<String> {
                         cdpSession.onMessage(readTree);
                     }
                 } else if (objectId != null) {//long类型的id,说明属于这次发送消息后接受的回应
-					long id = objectId.asLong();
-					SendMsg sendMsg = this.callbacks.get(id);
-					if(sendMsg != null) {
-					    try{
+                    long id = objectId.asLong();
+                    SendMsg sendMsg = this.callbacks.get(id);
+                    if (sendMsg != null) {
+                        try {
                             JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                             if (error != null) {
                                 if (sendMsg.getCountDownLatch() != null) {
@@ -193,9 +205,9 @@ public class Connection extends EventEmitter implements Consumer<String> {
                                     sendMsg.setCountDownLatch(null);
                                 }
                             }
-                        }finally {
-					        if(sendMsg.getNeedRemove()){
-					            this.callbacks.remove(id);
+                        } finally {
+                            if (sendMsg.getNeedRemove()) {
+                                this.callbacks.remove(id);
                             }
                         }
                     }

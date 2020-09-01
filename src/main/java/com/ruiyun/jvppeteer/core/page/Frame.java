@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -57,7 +58,7 @@ public class Frame {
         this.lifecycleEvents = new HashSet<>();
         this.mainWorld = new DOMWorld(frameManager, this, frameManager.getTimeoutSettings());
         this.secondaryWorld = new DOMWorld(frameManager, this, frameManager.getTimeoutSettings());
-        this.childFrames = new HashSet<>();
+        this.childFrames = new CopyOnWriteArraySet<>();
         if (this.parentFrame != null)
             this.parentFrame.getChildFrames().add(this);
     }

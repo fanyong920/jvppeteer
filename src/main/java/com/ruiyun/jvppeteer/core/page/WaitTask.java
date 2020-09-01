@@ -227,7 +227,7 @@ public class WaitTask {
             return promise;
         }
         waitPromiseLatch = new CountDownLatch(1);
-        waitPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+        waitPromiseLatch.await(this.timeout, TimeUnit.MILLISECONDS);
         return promise;
     }
 

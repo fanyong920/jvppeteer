@@ -436,6 +436,9 @@ public class DOMWorld {
                 "    }";
         WaitTask waitTask = new WaitTask(this, predicate, queryHandler, PageEvaluateType.FUNCTION, title, polling, timeout, updatedSelector, isXPath, waitForVisible, waitForHidden);
         JSHandle handle = waitTask.getPromise();
+        if(handle == null){
+            return null;
+        }
         if (handle.asElement() == null) {
             handle.dispose();
             return null;
