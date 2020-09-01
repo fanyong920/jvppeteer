@@ -51,3 +51,23 @@
 #### New Feature
 
 [添加华为手机设备；添加鼠标滚轮功能](https://github.com/fanyong920/jvppeteer/commit/acc859f9d0163dc600a104d74e63f511a61fc038)
+
+## Version Release 1.0.7 (2020/08/28)
+
+#### Bugs Fixed
+
+- [修复ElementHandle类型转换错误的问题](https://github.com/fanyong920/jvppeteer/commit/13b7dca31eb50a52ebdf52a32ec8ec27d6e20d1b)
+- [修复Page#evaluateOnNewDocument失效问题](https://github.com/fanyong920/jvppeteer/commit/9dce424656d1f2042c12d1b4be8ce2e5af9dfca7)
+- [超时时间判断失效问题](https://github.com/fanyong920/jvppeteer/commit/8c278bc3e914ca15dcff084c55245c69598f3c73)
+
+#### New Feature
+
+- [简化Page#evaluate等方法](https://github.com/fanyong920/jvppeteer/commit/98e30907ecee0cda9ceeadebe5aa4a10d07bc881)
+- [Connection等待时长为无限](https://github.com/fanyong920/jvppeteer/commit/b6695b35d6c8652d0800340d1fcc402c4ae3bf71)
+
+## Version Release 1.0.8 (2020/09/01)
+
+#### Bugs Fixed
+
+- [修改可能出现的无限等待问题](https://github.com/fanyong920/jvppeteer/commit/901fa82db5be2e1df9c85a56e3df013118f7a0d0)
+
