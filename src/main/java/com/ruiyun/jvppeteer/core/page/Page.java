@@ -13,7 +13,18 @@ import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.PageCrashException;
 import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.*;
+import com.ruiyun.jvppeteer.options.ClickOptions;
+import com.ruiyun.jvppeteer.options.Clip;
+import com.ruiyun.jvppeteer.options.ClipOverwrite;
+import com.ruiyun.jvppeteer.options.Device;
+import com.ruiyun.jvppeteer.options.PDFOptions;
+import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.ScreenshotOptions;
+import com.ruiyun.jvppeteer.options.ScriptTagOptions;
+import com.ruiyun.jvppeteer.options.StyleTagOptions;
+import com.ruiyun.jvppeteer.options.Viewport;
+import com.ruiyun.jvppeteer.options.VisionDeficiency;
+import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.console.Location;
@@ -57,14 +68,29 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import static com.ruiyun.jvppeteer.core.Constant.*;
+import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
 
 public class Page extends EventEmitter {
 
@@ -1804,20 +1830,19 @@ public class Page extends EventEmitter {
      * @throws  InterruptedException 线程被打断异常
      */
     public Response reload(PageNavigateOptions options) throws ExecutionException, InterruptedException {
-        AtomicBoolean start = new AtomicBoolean(false);
+        CountDownLatch reloadLatch = new CountDownLatch(1);
         Helper.commonExecutor().submit(() -> {
             /*先执行reload命令，不用等待返回*/
-            while (!start.get()){
-//                break;
+            try {
+                reloadLatch.await();
+            } catch (InterruptedException e) {
+                throw  new RuntimeException(e);
             }
             this.client.send("Page.reload", null, false);
         });
 
         /*再等待页面导航结果返回*/
-        Future<Response> result = Helper.commonExecutor().submit(() -> {
-//            start.set(true);
-           return this.waitForNavigation(options,start);
-        });
+        Future<Response> result = Helper.commonExecutor().submit(() -> this.waitForNavigation(options,reloadLatch));
 
         return result.get();
     }
@@ -1881,11 +1906,11 @@ public class Page extends EventEmitter {
      * 注意 通过 History API 改变地址会认为是一次跳转。
      *
      * @param options PageNavigateOptions
-     * @param needReload 是否需要reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
+     * @param reloadLatch reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
      * @return 响应
      */
-    private Response waitForNavigation(PageNavigateOptions options,AtomicBoolean needReload) {
-        return this.frameManager.mainFrame().waitForNavigation(options,needReload);
+    private Response waitForNavigation(PageNavigateOptions options,CountDownLatch reloadLatch) {
+        return this.frameManager.mainFrame().waitForNavigation(options,reloadLatch);
     }
 
 

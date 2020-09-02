@@ -3,9 +3,9 @@ package com.ruiyun.jvppeteer.core.page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
+import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FrameManager extends EventEmitter {
 
@@ -551,7 +550,7 @@ public class FrameManager extends EventEmitter {
         return this.frames.get(frameId);
     }
 
-    public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options, AtomicBoolean start) {
+    public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options, CountDownLatch reloadLatch) {
         List<String> waitUntil;
         int timeout;
         if (options == null) {
@@ -580,10 +579,14 @@ public class FrameManager extends EventEmitter {
             return watcher.navigationResponse();
         }
         try {
-            if(start != null){
-                start.set(true);
-            }
+
             this.documentLatch = new CountDownLatch(1);
+
+            //可以发出reload的信号
+            if(reloadLatch != null){
+                reloadLatch.countDown();
+            }
+
             boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
             if (!await) {
                 throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
