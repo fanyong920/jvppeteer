@@ -400,9 +400,6 @@ public class Helper {
             //重新导航到某个网页 或者页面已经关闭
             // Swallow these since they are harmless and we don't leak anything in this case.
             //在这种情况下不需要将这个错误在线程执行中抛出，打日志记录一下就可以了
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.error("", e);
-            }
         }
     }
 

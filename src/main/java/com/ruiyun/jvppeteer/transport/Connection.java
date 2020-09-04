@@ -3,11 +3,10 @@ package com.ruiyun.jvppeteer.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
+import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
@@ -15,10 +14,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * web socket client 浏览器级别的连接
@@ -187,27 +187,29 @@ public class Connection extends EventEmitter implements Consumer<String> {
                     }
                 } else if (objectId != null) {//long类型的id,说明属于这次发送消息后接受的回应
                     long id = objectId.asLong();
-                    SendMsg sendMsg = this.callbacks.get(id);
-                    if (sendMsg != null) {
+                    SendMsg callback = this.callbacks.get(id);
+                    if (callback != null) {
                         try {
                             JsonNode error = readTree.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
                             if (error != null) {
-                                if (sendMsg.getCountDownLatch() != null) {
-                                    sendMsg.setErrorText(Helper.createProtocolError(readTree));
-                                    sendMsg.getCountDownLatch().countDown();
-                                    sendMsg.setCountDownLatch(null);
+                                if (callback.getCountDownLatch() != null) {
+                                    callback.setErrorText(Helper.createProtocolError(readTree));
                                 }
                             } else {
                                 JsonNode result = readTree.get(Constant.RECV_MESSAGE_RESULT_PROPERTY);
-                                sendMsg.setResult(result);
-                                if (sendMsg.getCountDownLatch() != null) {
-                                    sendMsg.getCountDownLatch().countDown();
-                                    sendMsg.setCountDownLatch(null);
-                                }
+                                callback.setResult(result);
                             }
                         } finally {
-                            if (sendMsg.getNeedRemove()) {
+
+                            //最后把callback都移除掉，免得关闭页面后打印错误
+                            if (callback.getNeedRemove()) {
                                 this.callbacks.remove(id);
+                            }
+
+                            //放行等待的线程
+                            if (callback.getCountDownLatch() != null) {
+                                callback.getCountDownLatch().countDown();
+                                callback.setCountDownLatch(null);
                             }
                         }
                     }

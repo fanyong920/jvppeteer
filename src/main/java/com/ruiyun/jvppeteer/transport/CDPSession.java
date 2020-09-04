@@ -72,7 +72,7 @@ public class CDPSession extends EventEmitter {
      */
     public JsonNode send(String method,Map<String, Object> params,boolean isBlock,CountDownLatch outLatch,int timeout)  {
         if(connection == null){
-            throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
+            throw new ProtocolException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
         SendMsg  message = new SendMsg();
         message.setMethod(method);
@@ -120,7 +120,7 @@ public class CDPSession extends EventEmitter {
      */
     public JsonNode send(String method,Map<String, Object> params,boolean isBlock)  {
         if(connection == null){
-            throw new RuntimeException("Protocol error ("+method+"): Session closed. Most likely the"+this.targetType+"has been closed.");
+            throw new ProtocolException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
         SendMsg  message = new SendMsg();
         message.setMethod(method);
@@ -169,20 +169,21 @@ public class CDPSession extends EventEmitter {
                     if (errNode != null) {
                         if(callback.getCountDownLatch() != null){
                             callback.setErrorText(Helper.createProtocolError(node));
-                            callback.getCountDownLatch().countDown();
-                            callback.setCountDownLatch(null);
                         }
                     }else {
                         JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
                         callback.setResult(result);
-                        if(callback.getCountDownLatch() != null){
-                            callback.getCountDownLatch().countDown();
-                            callback.setCountDownLatch(null);
-                        }
                     }
-                }finally {//最后把callback都移除掉，免得关闭页面后打印错误
+                }finally {
+                    //最后把callback都移除掉，免得关闭页面后打印错误
                     if(callback.getNeedRemove()){
                         this.callbacks.remove(idLong);
+                    }
+
+                    //放行等待的线程
+                    if(callback.getCountDownLatch() != null){
+                        callback.getCountDownLatch().countDown();
+                        callback.setCountDownLatch(null);
                     }
                 }
 
