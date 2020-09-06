@@ -9,12 +9,21 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessTest {
+
+    @Test
+    public void processTest1() throws InterruptedException {
+        CountDownLatch documentLatch = new CountDownLatch(1);
+        documentLatch.countDown();
+        documentLatch.await();
+        System.out.println("2222");
+    }
 
     @Test
     public void processTest() {

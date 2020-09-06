@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -95,7 +97,7 @@ public class ElementHandle extends JSHandle {
                 "    element.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });\n" +
                 "  return false;\n" +
                 "}";
-        Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, this.page.getJavascriptEnabled());
+        Object error = this.evaluate(pageFunction, PageEvaluateType.FUNCTION, Arrays.asList(this.page.getJavascriptEnabled()));
         try {
             if (error != null && error.getClass().equals(Boolean.class) && (boolean) error)
                 throw new RuntimeException(Constant.OBJECTMAPPER.writeValueAsString(error));
@@ -231,8 +233,8 @@ public class ElementHandle extends JSHandle {
 
     public ElementHandle $(String selector) {
         String defaultHandler = "(element, selector) => element.querySelector(selector)";
-        QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
-        JSHandle handle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector, defaultHandler);
+        JSHandle handle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler().queryOne(), PageEvaluateType.FUNCTION, Arrays.asList(queryHandlerAndSelector.getUpdatedSelector()));
         ElementHandle element = handle.asElement();
         if (element != null)
             return element;
@@ -250,7 +252,7 @@ public class ElementHandle extends JSHandle {
                 "                array.push(item);\n" +
                 "            return array;\n" +
                 "        }";
-        JSHandle arrayHandle = (JSHandle) this.evaluateHandle(pageFunction, PageEvaluateType.FUNCTION, expression);
+        JSHandle arrayHandle = (JSHandle) this.evaluateHandle(pageFunction, PageEvaluateType.FUNCTION, Arrays.asList(expression));
         Map<String, JSHandle> properties = arrayHandle.getProperties();
         arrayHandle.dispose();
         List<ElementHandle> result = new ArrayList<>();
@@ -262,7 +264,7 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
         ElementHandle elementHandle = this.$(selector);
         if (elementHandle == null)
             throw new RuntimeException("failed to find element matching selector " + selector);
@@ -271,11 +273,11 @@ public class ElementHandle extends JSHandle {
         return result;
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object[] args) {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
         String defaultHandler = "(element, selector) => Array.from(element.querySelectorAll(selector))";
-        QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector, defaultHandler);
 
-        ElementHandle arrayHandle = (ElementHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), type, queryHandlerAndSelector.getUpdatedSelector());
+        ElementHandle arrayHandle = (ElementHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler().queryAll(), type, Arrays.asList(queryHandlerAndSelector.getUpdatedSelector()));
         ElementHandle result = (ElementHandle) arrayHandle.evaluate(pageFunction, type, args);
         arrayHandle.dispose();
         return result;
@@ -283,8 +285,8 @@ public class ElementHandle extends JSHandle {
 
     public List<ElementHandle> $$(String selector) {
         String defaultHandler = "(element, selector) => element.querySelectorAll(selector)";
-        QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selector, defaultHandler);
-        JSHandle arrayHandle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler(), PageEvaluateType.FUNCTION, queryHandlerAndSelector.getUpdatedSelector());
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector, defaultHandler);
+        JSHandle arrayHandle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler().queryAll(), PageEvaluateType.FUNCTION,Arrays.asList(queryHandlerAndSelector.getUpdatedSelector()));
         Map<String, JSHandle> properties = arrayHandle.getProperties();
         arrayHandle.dispose();
         List<ElementHandle> result = new ArrayList<>();
@@ -307,7 +309,7 @@ public class ElementHandle extends JSHandle {
                 "            });\n" +
                 "            return visibleRatio > 0;\n" +
                 "        }";
-        return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
+        return (Boolean) this.evaluate(pageFunction, PageEvaluateType.FUNCTION,new ArrayList<>());
     }
 
 
@@ -342,7 +344,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public void focus() {
-        this.evaluate("element => element.focus()", PageEvaluateType.FUNCTION);
+        this.evaluate("element => element.focus()", PageEvaluateType.FUNCTION,new ArrayList<>());
     }
 
     public void hover() throws ExecutionException, InterruptedException {
@@ -371,7 +373,7 @@ public class ElementHandle extends JSHandle {
                 "            return options.filter(option => option.selected).map(option => option.value);\n" +
                 "        }";
 
-        return (List<String>) this.evaluate(pageFunction, PageEvaluateType.FUNCTION, values);
+        return (List<String>) this.evaluate(pageFunction, PageEvaluateType.FUNCTION, Collections.singletonList(values));
     }
 
     /**
@@ -425,7 +427,7 @@ public class ElementHandle extends JSHandle {
     }
 
     public void uploadFile(List<String> filePaths) {
-        boolean isMultiple = (Boolean) this.evaluate("(element) => element.multiple", PageEvaluateType.FUNCTION);
+        boolean isMultiple = (Boolean) this.evaluate("(element) => element.multiple", PageEvaluateType.FUNCTION,new ArrayList<>());
         ValidateUtil.assertArg(filePaths.size() <= 1 || isMultiple, "Multiple file uploads only work with <input type=file multiple>");
         List<String> files = filePaths.stream().map(filePath -> {
             Path absolutePath = Paths.get(filePath).toAbsolutePath();
@@ -450,7 +452,7 @@ public class ElementHandle extends JSHandle {
                     "            element.dispatchEvent(new Event('input', { bubbles: true }));\n" +
                     "            element.dispatchEvent(new Event('change', { bubbles: true }));\n" +
                     "            }";
-            this.evaluate(pageFunction, PageEvaluateType.FUNCTION);
+            this.evaluate(pageFunction, PageEvaluateType.FUNCTION,new ArrayList<>());
         } else {
             params.clear();
             params.put("objectId", objectId);

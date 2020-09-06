@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -78,7 +79,7 @@ public class DOMWorld {
                 "      if (document.documentElement)\n" +
                 "        retVal += document.documentElement.outerHTML;\n" +
                 "      return retVal;\n" +
-                "    }", PageEvaluateType.FUNCTION);
+                "    }", PageEvaluateType.FUNCTION,new ArrayList<>());
     }
 
     public void setContext(ExecutionContext context) {
@@ -124,12 +125,12 @@ public class DOMWorld {
         return this.contextPromise;
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, List<Object>  args) {
         ExecutionContext context = this.executionContext();
         return (JSHandle) context.evaluateHandle(pageFunction, type, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
         ExecutionContext context = this.executionContext();
         return context.evaluate(pageFunction, type, args);
     }
@@ -143,7 +144,7 @@ public class DOMWorld {
         if (this.documentPromise != null)
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
-        JSHandle document = (JSHandle) context.evaluateHandle("document", PageEvaluateType.STRING);
+        JSHandle document = (JSHandle) context.evaluateHandle("document", PageEvaluateType.STRING,null);
         this.documentPromise = document.asElement();
         return this.documentPromise;
     }
@@ -153,12 +154,12 @@ public class DOMWorld {
         return document.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
         ElementHandle document = this.document();
         return document.$eval(selector, pageFunction, type, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args) {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
         ElementHandle document = this.document();
         return document.$$eval(selector, pageFunction, type, args);
     }
@@ -189,7 +190,7 @@ public class DOMWorld {
                 "      document.open();\n" +
                 "      document.write(html);\n" +
                 "      document.close();\n" +
-                "    }", PageEvaluateType.FUNCTION, html);
+                "    }", PageEvaluateType.FUNCTION, Arrays.asList(html));
         if (watcher.lifecyclePromise() != null) {
             return;
         }
@@ -222,7 +223,7 @@ public class DOMWorld {
         if (StringUtil.isNotEmpty(options.getUrl())) {
             try {
                 ExecutionContext context = this.executionContext();
-                ElementHandle handle = (ElementHandle) context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, options.getUrl(), options.getType());
+                ElementHandle handle = (ElementHandle) context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, Arrays.asList(options.getUrl(), options.getType()));
                 return handle.asElement();
             } catch (Exception e) {
                 throw new RuntimeException("Loading script from " + options.getUrl() + " failed", e);
@@ -232,12 +233,12 @@ public class DOMWorld {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             String content = String.join("\n",contents)+"//# sourceURL=" + options.getPath().replaceAll("\n", "");
             ExecutionContext context = this.executionContext();
-            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, content, options.getType());
+            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, Arrays.asList(content, options.getType()));
             return evaluateHandle.asElement();
         }
         if (StringUtil.isNotEmpty(options.getContent())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle elementHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, options.getContent(), options.getType());
+            ElementHandle elementHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, Arrays.asList(options.getContent(), options.getType()));
             return elementHandle.asElement();
         }
         throw new IllegalArgumentException("Provide an object with a `url`, `path` or `content` property");
@@ -276,7 +277,7 @@ public class DOMWorld {
     public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         if (options != null && StringUtil.isNotEmpty(options.getUrl())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, options.getUrl());
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, Arrays.asList(options.getUrl()));
             return handle.asElement();
         }
 
@@ -284,13 +285,13 @@ public class DOMWorld {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             String content = String.join("\n",contents)+"/*# sourceURL=" + options.getPath().replaceAll("\n", "")+"*/";
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, content);
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, Arrays.asList(content));
             return handle.asElement();
         }
 
         if (options != null && StringUtil.isNotEmpty(options.getContent())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, options.getContent());
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, Arrays.asList(options.getContent()));
             return handle.asElement();
         }
 
@@ -407,34 +408,35 @@ public class DOMWorld {
         String polling = waitForVisible || waitForHidden ? "raf" : "mutation";
         String title = (isXPath ? "XPath" : "selector") + " " + "\"" + selectorOrXPath + "\"" + (waitForHidden ? " to be hidden" : "");
 
-        QuerySelector queryHandlerAndSelector = QueryHandler.getQueryHandlerAndSelector(selectorOrXPath, "(element, selector) =>\n" +
-                "      document.querySelector(selector)");
-        String queryHandler = queryHandlerAndSelector.getQueryHandler();
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selectorOrXPath, "(element, selector) =>\n" +
+                "      element.querySelector(selector)");
+        QueryHandler queryHandler = queryHandlerAndSelector.getQueryHandler();
         String updatedSelector = queryHandlerAndSelector.getUpdatedSelector();
         String predicate = "function predicate(selectorOrXPath, isXPath, waitForVisible, waitForHidden) {\n" +
-                "      const node = isXPath\n" +
-                "        ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue\n" +
-                "        : document.querySelector(selectorOrXPath);\n" +
-                "      if (!node)\n" +
-                "        return waitForHidden;\n" +
-                "      if (!waitForVisible && !waitForHidden)\n" +
-                "        return node;\n" +
-                "      const element = /** @type {Element} */ (node.nodeType === Node.TEXT_NODE ? node.parentElement : node);\n" +
-                "\n" +
-                "      const style = window.getComputedStyle(element);\n" +
-                "      const isVisible = style && style.visibility !== 'hidden' && hasVisibleBoundingBox();\n" +
-                "      const success = (waitForVisible === isVisible || waitForHidden === !isVisible);\n" +
-                "      return success ? node : null;\n" +
-                "\n" +
-                "      /**\n" +
-                "       * @return {boolean}\n" +
-                "       */\n" +
-                "      function hasVisibleBoundingBox() {\n" +
-                "        const rect = element.getBoundingClientRect();\n" +
-                "        return !!(rect.top || rect.bottom || rect.width || rect.height);\n" +
-                "      }\n" +
-                "    }";
-        WaitTask waitTask = new WaitTask(this, predicate, queryHandler, PageEvaluateType.FUNCTION, title, polling, timeout, updatedSelector, isXPath, waitForVisible, waitForHidden);
+                "            const node = isXPath\n" +
+                "                ? document.evaluate(selectorOrXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue\n" +
+                "                : predicateQueryHandler\n" +
+                "                    ? predicateQueryHandler(document, selectorOrXPath)\n" +
+                "                    : document.querySelector(selectorOrXPath);\n" +
+                "            if (!node)\n" +
+                "                return waitForHidden;\n" +
+                "            if (!waitForVisible && !waitForHidden)\n" +
+                "                return node;\n" +
+                "            const element = node.nodeType === Node.TEXT_NODE\n" +
+                "                ? node.parentElement\n" +
+                "                : node;\n" +
+                "            const style = window.getComputedStyle(element);\n" +
+                "            const isVisible = style && style.visibility !== 'hidden' && hasVisibleBoundingBox();\n" +
+                "            const success = waitForVisible === isVisible || waitForHidden === !isVisible;\n" +
+                "            return success ? node : null;\n" +
+                "            function hasVisibleBoundingBox() {\n" +
+                "                const rect = element.getBoundingClientRect();\n" +
+                "                return !!(rect.top || rect.bottom || rect.width || rect.height);\n" +
+                "            }\n" +
+                "        }";
+        List<Object> args = new ArrayList<>();
+        args.addAll(Arrays.asList(updatedSelector, isXPath, waitForVisible, waitForHidden));
+        WaitTask waitTask = new WaitTask(this, predicate, queryHandler.queryOne(), PageEvaluateType.FUNCTION, title, polling, timeout,args);
         JSHandle handle = waitTask.getPromise();
         if(handle == null){
             return null;
@@ -451,10 +453,10 @@ public class DOMWorld {
     }
 
     public String title() {
-        return (String) this.evaluate("() => document.title", PageEvaluateType.FUNCTION);
+        return (String) this.evaluate("() => document.title", PageEvaluateType.FUNCTION,new ArrayList<>());
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object... args) throws InterruptedException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
         String polling = "raf";
         int timeout = this.timeoutSettings.timeout();
         if (StringUtil.isNotEmpty(options.getPolling())) {

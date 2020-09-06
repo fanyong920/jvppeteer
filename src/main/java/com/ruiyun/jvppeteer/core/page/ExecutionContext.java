@@ -61,15 +61,15 @@ public class ExecutionContext {
         return this.adoptBackendNodeId(nodeInfo.get("node").get("backendNodeId").asInt());
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+    public Object evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
         return this.evaluateInternal(false, pageFunction, type, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
         return this.evaluateInternal(true, pageFunction, type, args);
     }
 
-    public Object evaluateInternal(boolean returnByValue, String pageFunction, PageEvaluateType type, Object[] args) {
+    public Object evaluateInternal(boolean returnByValue, String pageFunction, PageEvaluateType type, List<Object> args) {
         String suffix = "//# sourceURL=" + ExecutionContext.EVALUATION_SCRIPT_URL;
         if (PageEvaluateType.STRING.equals(type)) {
             int contextId = this.contextId;
@@ -98,7 +98,7 @@ public class ExecutionContext {
         String functionText = pageFunction;
         Map<String, Object> params = new HashMap<>();
         List<Object> argList = new ArrayList<>();
-        if (args != null && args.length > 0) {
+        if (args != null && args.size() > 0) {
             for (Object arg : args) {
                 try {
                     argList.add(convertArgument(this, arg));

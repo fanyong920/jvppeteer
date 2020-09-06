@@ -49,7 +49,7 @@ public class PageEvaluteExample {
                         "      deviceScaleFactor: window.devicePixelRatio\n" +
                         "    };\n" +
                         "  }";
-                Object result = page.evaluate(pageFunction, PageEvaluateType.FUNCTION/*指明pageFunction字符串是一个方法,而不是单单一个字符串*/);
+                Object result = page.evaluate(pageFunction, PageEvaluateType.FUNCTION/*指明pageFunction字符串是一个方法,而不是单单一个字符串*/,null);
                 System.out.println("result:" + Constant.OBJECTMAPPER.writeValueAsString(result));
                 return true;
             });

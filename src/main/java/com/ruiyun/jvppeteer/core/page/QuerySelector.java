@@ -4,13 +4,13 @@ public class QuerySelector {
 
     private String updatedSelector;
 
-    private String queryHandler;
+    private QueryHandler queryHandler;
 
     public QuerySelector() {
         super();
     }
 
-    public QuerySelector(String updatedSelector, String queryHandler) {
+    public QuerySelector(String updatedSelector, QueryHandler queryHandler) {
         super();
         this.updatedSelector = updatedSelector;
         this.queryHandler = queryHandler;
@@ -24,11 +24,11 @@ public class QuerySelector {
         this.updatedSelector = updatedSelector;
     }
 
-    public String getQueryHandler() {
+    public QueryHandler getQueryHandler() {
         return queryHandler;
     }
 
-    public void setQueryHandler(String queryHandler) {
+    public void setQueryHandler(QueryHandler queryHandler) {
         this.queryHandler = queryHandler;
     }
 }

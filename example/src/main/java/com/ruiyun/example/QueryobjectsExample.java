@@ -11,6 +11,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class QueryobjectsExample {
     public static void main(String[] args) throws Exception {
@@ -25,10 +26,10 @@ public class QueryobjectsExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://item.taobao.com/item.htm?id=541605195654");
-        page.evaluate("() => window.map = new Map()", PageEvaluateType.FUNCTION);
-        JSHandle mapPrototype  = page.evaluateHandle("() => Map.prototype", PageEvaluateType.FUNCTION);
+        page.evaluate("() => window.map = new Map()", PageEvaluateType.FUNCTION,new ArrayList<>());
+        JSHandle mapPrototype  = page.evaluateHandle("() => Map.prototype", PageEvaluateType.FUNCTION,new ArrayList<>());
         JSHandle mapInstances  = page.queryObjects(mapPrototype);
-        page.evaluate("maps => maps.length",PageEvaluateType.FUNCTION, mapInstances);
+        page.evaluate("maps => maps.length",PageEvaluateType.FUNCTION, Arrays.asList(mapInstances));
 
         mapPrototype.dispose();
         mapInstances.dispose();

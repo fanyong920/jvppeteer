@@ -33,7 +33,7 @@ public class PageExposeFunctionExample {
                 "    const myString = 'PUPPETEER';\n" +
                 "    const myHash = await window.md5(myString);\n" +
                 "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
-                "  }", PageEvaluateType.FUNCTION);
+                "  }", PageEvaluateType.FUNCTION,null);
     }
 
     public static String getMD5(String info) {

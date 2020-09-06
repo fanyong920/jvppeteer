@@ -28,6 +28,6 @@ public class PageGotoExample {
 
         Page page1 = browser2.newPage();
         page1.goTo("https://www.taobao.com/about/");
-        System.out.println(page1.$eval("#content > div.right-info > div > div.inner.taobao-intro > p","p => p.value", PageEvaluateType.FUNCTION));
+        System.out.println(page1.$eval("#content > div.right-info > div > div.inner.taobao-intro > p","p => p.value", PageEvaluateType.FUNCTION,null));
     }
 }

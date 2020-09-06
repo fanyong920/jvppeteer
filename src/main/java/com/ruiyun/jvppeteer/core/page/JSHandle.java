@@ -9,8 +9,11 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class JSHandle {
@@ -33,24 +36,28 @@ public class JSHandle {
         return this.context;
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
-        return this.executionContext().evaluate(pageFunction, type, this, args);
+    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
+        if(args != null){
+            args = new ArrayList<>();
+        }
+        args.add(this);
+        return this.executionContext().evaluate(pageFunction, type,  args);
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
-        Object[] argsArray = new Object[args.length + 1];
-        argsArray[0] = this;
-        System.arraycopy(args,0,argsArray,1,args.length);
+    public Object evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
+        List<Object> argsArray = new ArrayList<>();
+        argsArray.add(this);
+        argsArray.addAll(args);
         return this.executionContext().evaluateInternal(false, pageFunction, type,argsArray);
     }
 
-    public JSHandle getProperty(String propertyName) throws JsonProcessingException {
+    public JSHandle getProperty(String propertyName) {
         String pageFunction = "(object, propertyName) => {\n" +
                 "            const result = { __proto__: null };\n" +
                 "            result[propertyName] = object[propertyName];\n" +
                 "            return result;\n" +
                 "        }";
-        JSHandle objectHandle = (JSHandle) this.evaluateHandle(pageFunction, PageEvaluateType.FUNCTION, propertyName);
+        JSHandle objectHandle = (JSHandle) this.evaluateHandle(pageFunction, PageEvaluateType.FUNCTION, Arrays.asList(propertyName));
         Map<String, JSHandle> properties = objectHandle.getProperties();
         JSHandle result = properties.get(propertyName);
         objectHandle.dispose();

@@ -90,11 +90,11 @@ public class Frame {
         return this.mainWorld.executionContext();
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) {
+    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
         return this.mainWorld.evaluateHandle(pageFunction, type, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) {
+    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object>args) {
         return this.mainWorld.evaluate(pageFunction, type, args);
     }
 
@@ -106,11 +106,11 @@ public class Frame {
         return this.mainWorld.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, Object... args)   {
+    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args)   {
         return this.mainWorld.$eval(selector, pageFunction, type, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, Object... args)   {
+    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args)   {
         return this.mainWorld.$$eval(selector, pageFunction, type, args);
     }
 
@@ -157,7 +157,7 @@ public class Frame {
      * @throws InterruptedException 打断异常
      * @return 元素处理器
      */
-    public JSHandle waitFor(String selectorOrFunctionOrTimeout, WaitForSelectorOptions options, Object... args) throws InterruptedException {
+    public JSHandle waitFor(String selectorOrFunctionOrTimeout, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
         String xPathPattern = "//";
 
         if (Helper.isFunction(selectorOrFunctionOrTimeout)) {
@@ -185,7 +185,7 @@ public class Frame {
         return result;
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, Object[] args) throws InterruptedException {
+    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
         return this.mainWorld.waitForFunction(pageFunction, type, options, args);
     }
 

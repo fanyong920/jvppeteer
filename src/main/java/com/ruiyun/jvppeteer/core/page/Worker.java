@@ -15,6 +15,7 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -120,11 +121,11 @@ public class Worker extends EventEmitter {
         return this.executionContextPromise();
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException {
+    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) throws InterruptedException {
         return this.executionContextPromise().evaluate(pageFunction, type, args);
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, Object... args) throws InterruptedException {
+    public Object evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) throws InterruptedException {
         return this.executionContextPromise().evaluateHandle(pageFunction, type, args);
     }
 

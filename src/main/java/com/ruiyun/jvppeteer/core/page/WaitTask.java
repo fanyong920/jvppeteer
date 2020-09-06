@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -10,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,11 +34,11 @@ public class WaitTask {
 
     private String predicateBody;
 
-    private Object[] args;
+    private List<Object> args;
 
     private CountDownLatch waitPromiseLatch;
 
-    public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, Object... args) {
+    public WaitTask(DOMWorld domWorld, String predicateBody, String predicateQueryHandlerBody, PageEvaluateType type, String title, String polling, int timeout, List<Object> args) {
         if (Helper.isNumber(polling)) {
             ValidateUtil.assertArg(new BigDecimal(polling).compareTo(new BigDecimal(0)) > 0, "Cannot poll with non-positive interval: " + polling);
         } else {
@@ -58,7 +60,6 @@ public class WaitTask {
                 this.predicateBody = "return (" + predicateBody + ")(...args);";
             }
         }
-
         this.args = args;
         this.runCount = new AtomicInteger(0);
         domWorld.getWaitTasks().add(this);
@@ -78,8 +79,14 @@ public class WaitTask {
         RuntimeException error = null;
         JSHandle success = null;
         try {
+            List<Object> args = new ArrayList<>();
+            args.add(this.predicateBody);
+            args.add(this.polling)  ;
+            args.add(this.timeout)  ;
+            args.addAll(this.args);
             ExecutionContext context = this.domWorld.executionContext();
-            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION, this.predicateBody, this.polling, this.timeout, this.args);
+            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION,args);
+            System.out.println(success);
 
             if (this.terminated || runcount != this.runCount.get()) {
                 if (success != null)
@@ -94,7 +101,7 @@ public class WaitTask {
         // throw an error - ignore this predicate run altogether.
         boolean isChanged = false;
         try {
-            this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, success);
+            this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, Arrays.asList(success));
         } catch (Exception e) {
             isChanged = true;
         }
