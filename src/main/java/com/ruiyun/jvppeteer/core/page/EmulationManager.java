@@ -20,7 +20,7 @@ public class EmulationManager {
     }
 
     public boolean emulateViewport(Viewport viewport) {
-        boolean mobile = viewport.getIsMobile() || false;
+        boolean mobile = viewport.getIsMobile();
         int width = viewport.getWidth();
         int height = viewport.getHeight();
         Number deviceScaleFactor = 1;
@@ -37,7 +37,7 @@ public class EmulationManager {
             screenOrientation.setType("portraitPrimary");
         }
 
-        boolean hasTouch = viewport.getHasTouch() || false;
+        boolean hasTouch = viewport.getHasTouch();
 
         Map<String, Object> params = new HashMap<>();
         params.put("mobile", mobile);

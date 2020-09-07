@@ -31,10 +31,10 @@ public class LoginTaobaoExample {
 //        pages.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36");
 
         //设置参数防止检测
-        pages.evaluateOnNewDocument("() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => undefined } }) }", PageEvaluateType.FUNCTION);
-        pages.evaluateOnNewDocument("() =>{ window.navigator.chrome = { runtime: {},  }; }", PageEvaluateType.FUNCTION);
-        pages.evaluateOnNewDocument("() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }", PageEvaluateType.FUNCTION);
-        pages.evaluateOnNewDocument("() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }", PageEvaluateType.FUNCTION);
+        pages.evaluateOnNewDocument("() =>{ Object.defineProperties(navigator,{ webdriver:{ get: () => undefined } }) }");
+        pages.evaluateOnNewDocument("() =>{ window.navigator.chrome = { runtime: {},  }; }");
+        pages.evaluateOnNewDocument("() =>{ Object.defineProperty(navigator, 'languages', { get: () => ['en-US', 'en'] }); }");
+        pages.evaluateOnNewDocument("() =>{ Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5,6], }); }");
 
         String url = "https://login.taobao.com/member/login.jhtml";
         pages.goTo(url);

@@ -490,10 +490,7 @@ public class Helper {
      */
     public static final boolean isFunction(String pageFunction){
         pageFunction = pageFunction.trim();
-        if(pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>")){
-            return true;
-        }
-        return false;
+        return pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>");
     }
 
     static class CommonThreadFactory implements ThreadFactory {

@@ -98,7 +98,7 @@ public class ExecutionContext {
         String functionText = pageFunction;
         Map<String, Object> params = new HashMap<>();
         List<Object> argList = new ArrayList<>();
-        if (args != null && args.size() > 0) {
+        if (ValidateUtil.isNotEmpty(args)) {
             for (Object arg : args) {
                 try {
                     argList.add(convertArgument(this, arg));

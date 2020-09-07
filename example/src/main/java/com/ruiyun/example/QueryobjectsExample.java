@@ -26,10 +26,10 @@ public class QueryobjectsExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
         page.goTo("https://item.taobao.com/item.htm?id=541605195654");
-        page.evaluate("() => window.map = new Map()", PageEvaluateType.FUNCTION,new ArrayList<>());
-        JSHandle mapPrototype  = page.evaluateHandle("() => Map.prototype", PageEvaluateType.FUNCTION,new ArrayList<>());
+        page.evaluate("() => window.map = new Map()");
+        JSHandle mapPrototype  = page.evaluateHandle("() => Map.prototype");
         JSHandle mapInstances  = page.queryObjects(mapPrototype);
-        page.evaluate("maps => maps.length",PageEvaluateType.FUNCTION, Arrays.asList(mapInstances));
+        page.evaluate("maps => maps.length");
 
         mapPrototype.dispose();
         mapInstances.dispose();

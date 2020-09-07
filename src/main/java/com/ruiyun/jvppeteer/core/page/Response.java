@@ -109,7 +109,7 @@ public class Response {
                 if(response.get("base64Encoded").asBoolean()){
                     contentPromise = Base64.decode(response.get("body").asText());
                 }else{
-                    contentPromise =  response.get("body").asText().getBytes(Charset.forName("utf-8"));
+                    contentPromise =  response.get("body").asText().getBytes(StandardCharsets.UTF_8);
                 }
             }
         }

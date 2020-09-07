@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,7 +34,7 @@ public class PageExposeFunctionExample {
                 "    const myString = 'PUPPETEER';\n" +
                 "    const myHash = await window.md5(myString);\n" +
                 "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
-                "  }", PageEvaluateType.FUNCTION,null);
+                "  }");
     }
 
     public static String getMD5(String info) {
@@ -42,7 +43,7 @@ public class PageExposeFunctionExample {
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             //update(byte[])方法，输入原数据
             //类似StringBuilder对象的append()方法，追加模式，属于一个累计更改的过程
-            md5.update(info.getBytes("UTF-8"));
+            md5.update(info.getBytes(StandardCharsets.UTF_8));
             //digest()被调用后,MessageDigest对象就被重置，即不能连续再次调用该方法计算原数据的MD5值。可以手动调用reset()方法重置输入源。
             //digest()返回值16位长度的哈希值，由byte[]承接
             byte[] md5Array = md5.digest();
