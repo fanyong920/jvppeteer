@@ -425,6 +425,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_CLOSE.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -432,6 +433,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<ConsoleMessage> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_CONSOLE.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -439,6 +441,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Dialog> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_DIALOG.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -446,6 +449,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Error> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_ERROR.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -460,6 +464,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_FRAMEATTACHED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -474,6 +479,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_FRAMEDETACHED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -487,6 +493,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_FRAMENAVIGATED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -494,6 +501,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_LOAD.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -501,6 +509,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<PageMetrics> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_METRICS.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -508,6 +517,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<RuntimeException> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_ERROR.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -515,6 +525,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Error> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_POPUP.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -522,6 +533,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_REQUEST.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -529,6 +541,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_REQUESTFAILED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -536,6 +549,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_REQUESTFINISHED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -557,6 +571,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_WORKERCREATED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
     /**
@@ -569,6 +584,7 @@ public class Page extends EventEmitter {
         DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
         listener.setHandler(handler);
         listener.setMothod(Events.PAGE_WORKERDESTROYED.getName());
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -620,12 +636,22 @@ public class Page extends EventEmitter {
      *
      * @param selector     选择器
      * @param pageFunction 在浏览器实例上下文中要执行的方法
-     * @param type         具体类型
+     * @return pageFunction 的返回值
+     */
+    public Object $eval(String selector, String pageFunction) {
+        return this.mainFrame().$eval(selector, pageFunction, PageEvaluateType.FUNCTION, new ArrayList<>());
+    }
+
+    /**
+     * 此方法在页面内执行 document.querySelector，然后把匹配到的元素作为第一个参数传给 pageFunction。
+     *
+     * @param selector     选择器
+     * @param pageFunction 在浏览器实例上下文中要执行的方法
      * @param args         要传给 pageFunction 的参数。（比如你的代码里生成了一个变量，在页面中执行方法时需要用到，可以通过这个 args 传进去）
      * @return pageFunction 的返回值
      */
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.mainFrame().$eval(selector, pageFunction, type, args);
+    public Object $eval(String selector, String pageFunction , List<Object> args) {
+        return this.mainFrame().$eval(selector, pageFunction, PageEvaluateType.FUNCTION, args);
     }
 
     /**
