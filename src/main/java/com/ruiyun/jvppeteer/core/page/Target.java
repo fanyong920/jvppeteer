@@ -67,13 +67,7 @@ public class Target {
         this.workerPromise = null;
         this.isInitialized = !"page".equals(this.targetInfo.getType()) || !StringUtil.isEmpty(this.targetInfo.getUrl());
         if (isInitialized) {//初始化
-            try {
-                this.initializedPromise = this.initializedCallback(true);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            this.initializedPromise = this.initializedCallback(true);
         } else {
             this.initializedPromise = true;
         }
@@ -121,9 +115,7 @@ public class Target {
         if (("page".equals(type = this.targetInfo.getType()) || "background_page".equals(type)) && this.pagePromise == null) {
             try {
                 this.pagePromise = Page.create(this.sessionFactory.create(), this, this.ignoreHTTPSErrors, this.viewport, this.screenshotTaskQueue);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
+            } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -143,7 +135,7 @@ public class Target {
         return "other";
     }
 
-    public boolean initializedCallback(boolean success) throws ExecutionException, InterruptedException {
+    public boolean initializedCallback(boolean success) {
         try {
             if (!success) {
                 this.initializedPromise = false;

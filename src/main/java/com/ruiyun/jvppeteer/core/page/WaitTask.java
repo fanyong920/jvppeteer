@@ -85,7 +85,7 @@ public class WaitTask {
             args.add(this.timeout)  ;
             args.addAll(this.args);
             ExecutionContext context = this.domWorld.executionContext();
-            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(), PageEvaluateType.FUNCTION,args);
+            success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(),args);
             System.out.println(success);
 
             if (this.terminated || runcount != this.runCount.get()) {
@@ -101,7 +101,7 @@ public class WaitTask {
         // throw an error - ignore this predicate run altogether.
         boolean isChanged = false;
         try {
-            this.domWorld.evaluate("s => !s", PageEvaluateType.FUNCTION, Arrays.asList(success));
+            this.domWorld.evaluate("s => !s", Arrays.asList(success));
         } catch (Exception e) {
             isChanged = true;
         }

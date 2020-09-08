@@ -389,6 +389,7 @@ public class Browser extends EventEmitter {
         DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
         listener.setMothod("disconnected");
         listener.setHandler(handler);
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -403,6 +404,7 @@ public class Browser extends EventEmitter {
         DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetchanged");
         listener.setHandler(handler);
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -417,6 +419,7 @@ public class Browser extends EventEmitter {
         DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetcreated");
         listener.setHandler(handler);
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 
@@ -431,6 +434,7 @@ public class Browser extends EventEmitter {
         DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
         listener.setMothod("targetdestroyed");
         listener.setHandler(handler);
+        listener.setIsSync(true);
         this.on(listener.getMothod(), listener);
     }
 

@@ -36,19 +36,19 @@ public class JSHandle {
         return this.context;
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
+    public Object evaluate(String pageFunction, List<Object> args) {
         if(args != null){
             args = new ArrayList<>();
         }
         args.add(this);
-        return this.executionContext().evaluate(pageFunction, type,  args);
+        return this.executionContext().evaluate(pageFunction, args);
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
+    public Object evaluateHandle(String pageFunction, List<Object> args) {
         List<Object> argsArray = new ArrayList<>();
         argsArray.add(this);
         argsArray.addAll(args);
-        return this.executionContext().evaluateInternal(false, pageFunction, type,argsArray);
+        return this.executionContext().evaluateHandle(pageFunction,argsArray);
     }
 
     public JSHandle getProperty(String propertyName) {
@@ -57,7 +57,7 @@ public class JSHandle {
                 "            result[propertyName] = object[propertyName];\n" +
                 "            return result;\n" +
                 "        }";
-        JSHandle objectHandle = (JSHandle) this.evaluateHandle(pageFunction, PageEvaluateType.FUNCTION, Arrays.asList(propertyName));
+        JSHandle objectHandle = (JSHandle) this.evaluateHandle(pageFunction, Arrays.asList(propertyName));
         Map<String, JSHandle> properties = objectHandle.getProperties();
         JSHandle result = properties.get(propertyName);
         objectHandle.dispose();

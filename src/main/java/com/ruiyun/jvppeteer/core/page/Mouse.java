@@ -52,8 +52,8 @@ public class Mouse {
         params.put("type", "mouseMoved");
         params.put("button", this.button);
         BigDecimal divide = new BigDecimal(i).divide(new BigDecimal(steps), 17, BigDecimal.ROUND_HALF_UP);
-        params.put("x", divide.multiply(new BigDecimal((this.x - fromX))).add(new BigDecimal(fromX)).doubleValue());
-        params.put("y", divide.multiply(new BigDecimal((this.y - fromY))).add(new BigDecimal(fromY)).doubleValue());
+        params.put("x", divide.multiply(BigDecimal.valueOf(this.x - fromX)).add(new BigDecimal(fromX)).doubleValue());
+        params.put("y", divide.multiply(BigDecimal.valueOf(this.y - fromY)).add(new BigDecimal(fromY)).doubleValue());
         params.put("modifiers", this.keyboard.getModifiers());
         this.client.send("Input.dispatchMouseEvent", params, true);
     }

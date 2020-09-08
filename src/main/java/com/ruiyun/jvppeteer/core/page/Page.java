@@ -613,12 +613,22 @@ public class Page extends EventEmitter {
      *
      * @param selector     一个框架选择器
      * @param pageFunction 在浏览器实例上下文中要执行的方法
-     * @param type         字符串代表的是方法还是单纯的字符串
+     * @return pageFunction 的返回值
+     */
+    public Object $$eval(String selector, String pageFunction) {
+        return this.$$eval(selector, pageFunction, new ArrayList<>());
+    }
+
+    /**
+     * 此方法在页面内执行 Array.from(document.querySelectorAll(selector))，然后把匹配到的元素数组作为第一个参数传给 pageFunction。
+     *
+     * @param selector     一个框架选择器
+     * @param pageFunction 在浏览器实例上下文中要执行的方法
      * @param args         要传给 pageFunction 的参数。（比如你的代码里生成了一个变量，在页面中执行方法时需要用到，可以通过这个 args 传进去）
      * @return pageFunction 的返回值
      */
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.mainFrame().$$eval(selector, pageFunction, type, args);
+    public Object $$eval(String selector, String pageFunction, List<Object> args) {
+        return this.mainFrame().$$eval(selector, pageFunction, args);
     }
 
     /**
@@ -639,7 +649,7 @@ public class Page extends EventEmitter {
      * @return pageFunction 的返回值
      */
     public Object $eval(String selector, String pageFunction) {
-        return this.mainFrame().$eval(selector, pageFunction, PageEvaluateType.FUNCTION, new ArrayList<>());
+        return this.$eval(selector, pageFunction, new ArrayList<>());
     }
 
     /**
@@ -651,7 +661,7 @@ public class Page extends EventEmitter {
      * @return pageFunction 的返回值
      */
     public Object $eval(String selector, String pageFunction , List<Object> args) {
-        return this.mainFrame().$eval(selector, pageFunction, PageEvaluateType.FUNCTION, args);
+        return this.mainFrame().$eval(selector, pageFunction, args);
     }
 
     /**
@@ -1585,7 +1595,7 @@ public class Page extends EventEmitter {
         }
 
         CompletionService completionService = Helper.completionService();
-        frames.forEach(frame -> completionService.submit(() -> frame.evaluate(expression, PageEvaluateType.STRING,null)));
+        frames.forEach(frame -> completionService.submit(() -> frame.evaluate(expression,null)));
         for (int i = 0; i < frames.size(); i++) {
             completionService.take().get();
         }
@@ -1947,35 +1957,20 @@ public class Page extends EventEmitter {
      * @return 有可能是JShandle String等
      */
     public Object evaluate(String pageFunction) {
-        return this.evaluate(pageFunction, new ArrayList<Object>());
+        return this.evaluate(pageFunction, new ArrayList<>());
     }
 
     /**
      * 执行一段 JavaScript代码
-     * 此方法是{@link Page#evaluate(String, PageEvaluateType, List)}的简化版，自动判断参数pageFunction是 Javascript 函数还是 Javascript 的字符串
      * @param pageFunction 要执行的字符串
      * @param args 如果是 Javascript 函数的话，对应函数上的参数
      * @return 有可能是JShandle String等
      */
     public Object evaluate(String pageFunction,List<Object> args) {
-        return this.evaluate(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
+        return this.mainFrame().evaluate(pageFunction, args);
     }
 
-    /**
-     * 在页面实例上下文中执行方法
-     * <p>添加一个方法，在以下某个场景被调用</p>
-     * <p>   页面导航完成后</p>
-     * <p>   页面的iframe加载或导航完成。这种场景，指定的函数被调用的上下文是新加载的iframe。</p>
-     * 指定的函数在所属的页面被创建并且所属页面的任意 script 执行之前被调用。常用于修改页面js环境，比如给 Math.random 设定种子
-     *
-     * @param pageFunction 要在页面实例上下文中执行的方法
-     * @param type         是方法字符串还是普通字符串
-     * @param args         要在页面实例上下文中执行的方法的参数
-     * @return Object 有可能是JShandle String等
-     */
-    private Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.frameManager.mainFrame().evaluate(pageFunction, type, args);
-    }
+
 
     /**
      *此方法和 page.evaluate 的唯一区别是此方法返回的是页内类型(JSHandle)
@@ -1984,31 +1979,21 @@ public class Page extends EventEmitter {
      * @return JSHandle
      */
     public JSHandle evaluateHandle(String pageFunction) {
-        return this.evaluateHandle(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, new ArrayList<>());
+        return this.evaluateHandle(pageFunction,new ArrayList<>());
     }
 
-    /**
-     *此方法和 page.evaluate 的唯一区别是此方法返回的是页内类型(JSHandle)
-     * 此方法是{@link Page#evaluateHandle(String, PageEvaluateType, List)}的简化版，自动判断参数pageFunction是 Javascript 函数还是 Javascript 的字符串
-     * @param pageFunction 要执行的字符串
-     * @param args 如果是 Javascript 函数的话，对应函数上的参数
-     * @return JSHandle
-     */
-    public JSHandle evaluateHandle(String pageFunction, List<Object> args) {
-        return this.evaluateHandle(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
-    }
+
 
     /**
      * 此方法和 page.evaluate 的唯一区别是此方法返回的是页内类型(JSHandle)
      *
      * @param pageFunction 要在页面实例上下文中执行的方法
-     * @param type         是方法字符串还是普通字符串
      * @param args         要在页面实例上下文中执行的方法的参数
      * @return 代表页面元素的实例
      */
-    private JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
+    private JSHandle evaluateHandle(String pageFunction, List<Object> args) {
         ExecutionContext context = this.mainFrame().executionContext();
-        return (JSHandle) context.evaluateHandle(pageFunction, type, args);
+        return (JSHandle) context.evaluateHandle(pageFunction, args);
     }
 
     /**
@@ -2116,7 +2101,7 @@ public class Page extends EventEmitter {
      * @return JSHandle
      */
     public JSHandle waitForFunction(String pageFunction) throws InterruptedException {
-        return this.waitForFunction(pageFunction, PageEvaluateType.FUNCTION, new WaitForSelectorOptions(),new ArrayList<>());
+        return this.waitForFunction(pageFunction, new WaitForSelectorOptions());
     }
 
     /**
@@ -2127,7 +2112,7 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 异常
      */
     public JSHandle waitForFunction(String pageFunction, List<Object> args) throws InterruptedException {
-        return this.waitForFunction(pageFunction, PageEvaluateType.FUNCTION, new WaitForSelectorOptions(), new ArrayList<>());
+        return this.waitForFunction(pageFunction, new WaitForSelectorOptions(), args);
     }
 
     /**
@@ -2139,7 +2124,7 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 异常
      */
     public JSHandle waitForFunction(String pageFunction, WaitForSelectorOptions options) throws InterruptedException {
-        return this.waitForFunction(pageFunction, PageEvaluateType.FUNCTION, options, new ArrayList<>());
+        return this.waitForFunction(pageFunction, options, new ArrayList<>());
     }
 
     /**
@@ -2152,22 +2137,10 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 异常
      */
     public JSHandle waitForFunction(String pageFunction, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
-        return this.waitForFunction(pageFunction, PageEvaluateType.FUNCTION, options, args);
+        return this.mainFrame().waitForFunction(pageFunction, options, args);
     }
 
-    /**
-     * 要在浏览器实例上下文执行方法
-     *
-     * @param pageFunction 要在浏览器实例上下文执行的方法
-     * @param type         执行的类型，string or function
-     * @param options      可选参数
-     * @param args         执行的方法的参数
-     * @return JSHandle
-     * @throws InterruptedException 异常
-     */
-    private JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
-        return this.mainFrame().waitForFunction(pageFunction, type, options, args);
-    }
+
 
     /**
      * 等到某个请求

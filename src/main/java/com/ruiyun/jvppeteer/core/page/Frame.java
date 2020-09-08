@@ -90,12 +90,12 @@ public class Frame {
         return this.mainWorld.executionContext();
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.mainWorld.evaluateHandle(pageFunction, type, args);
+    public JSHandle evaluateHandle(String pageFunction, List<Object> args) {
+        return this.mainWorld.evaluateHandle(pageFunction, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object>args) {
-        return this.mainWorld.evaluate(pageFunction, type, args);
+    public Object evaluate(String pageFunction, List<Object>args) {
+        return this.mainWorld.evaluate(pageFunction, args);
     }
 
     public ElementHandle $(String selector) {
@@ -106,13 +106,14 @@ public class Frame {
         return this.mainWorld.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args)   {
-        return this.mainWorld.$eval(selector, pageFunction, type, args);
+    public Object $eval(String selector, String pageFunction, List<Object> args)   {
+        return this.mainWorld.$eval(selector, pageFunction, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args)   {
-        return this.mainWorld.$$eval(selector, pageFunction, type, args);
+    public Object $$eval(String selector, String pageFunction,List<Object> args)   {
+        return this.mainWorld.$$eval(selector, pageFunction, args);
     }
+
 
     public List<ElementHandle> $$(String selector) {
         return this.mainWorld.$$(selector);
@@ -161,7 +162,7 @@ public class Frame {
         String xPathPattern = "//";
 
         if (Helper.isFunction(selectorOrFunctionOrTimeout)) {
-            return this.waitForFunction(selectorOrFunctionOrTimeout, PageEvaluateType.FUNCTION, options, args);
+            return this.waitForFunction(selectorOrFunctionOrTimeout, options, args);
         }else if (Helper.isNumber(selectorOrFunctionOrTimeout)) {
 //            return new Promise(fulfill => setTimeout(fulfill, /** @type {number} */ (selectorOrFunctionOrTimeout)));
             Thread.sleep(Long.parseLong(selectorOrFunctionOrTimeout));
@@ -185,8 +186,8 @@ public class Frame {
         return result;
     }
 
-    public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
-        return this.mainWorld.waitForFunction(pageFunction, type, options, args);
+    public JSHandle waitForFunction(String pageFunction,  WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
+        return this.mainWorld.waitForFunction(pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, options, args);
     }
 
     public String title() {

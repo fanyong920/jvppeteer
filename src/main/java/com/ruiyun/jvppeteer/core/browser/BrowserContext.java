@@ -41,6 +41,7 @@ public class BrowserContext extends EventEmitter {
 	public BrowserContext() {
 		super();
 	}
+
 	private static final Map<String,String> webPermissionToProtocol = new HashMap<>(32);
 
 	static {
@@ -60,6 +61,7 @@ public class BrowserContext extends EventEmitter {
 		webPermissionToProtocol.put("payment-handler","paymentHandler");
 		webPermissionToProtocol.put("midi-sysex","midiSysex");
 	}
+
 	public BrowserContext(Connection connection, Browser browser, String contextId) {
 		super();
 		this.connection = connection;
@@ -76,7 +78,8 @@ public class BrowserContext extends EventEmitter {
 	public void onTargetchanged(EventHandler<Target> handler) {
 		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
 		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		disListener.setIsSync(true);
+		this.on("targetchanged",disListener);
 	}
 
 	/**
@@ -88,8 +91,10 @@ public class BrowserContext extends EventEmitter {
 	public void onTrgetcreated(EventHandler<Target> handler) {
 		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
 		disListener.setHandler(handler);
-		this.on("disconnected",disListener);
+		disListener.setIsSync(true);
+		this.on("targetcreated",disListener);
 	}
+
 	public void clearPermissionOverrides() {
 		Map<String,Object> params = new HashMap<>();
 		params.put("browserContextId",this.id);

@@ -61,12 +61,12 @@ public class ExecutionContext {
         return this.adoptBackendNodeId(nodeInfo.get("node").get("backendNodeId").asInt());
     }
 
-    public Object evaluateHandle(String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.evaluateInternal(false, pageFunction, type, args);
+    public Object evaluateHandle(String pageFunction, List<Object> args) {
+        return this.evaluateInternal(false, pageFunction, Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
-        return this.evaluateInternal(true, pageFunction, type, args);
+    public Object evaluate(String pageFunction,  List<Object> args) {
+        return this.evaluateInternal(true, pageFunction,Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
     }
 
     public Object evaluateInternal(boolean returnByValue, String pageFunction, PageEvaluateType type, List<Object> args) {

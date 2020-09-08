@@ -79,7 +79,7 @@ public class DOMWorld {
                 "      if (document.documentElement)\n" +
                 "        retVal += document.documentElement.outerHTML;\n" +
                 "      return retVal;\n" +
-                "    }", PageEvaluateType.FUNCTION,new ArrayList<>());
+                "    }", new ArrayList<>());
     }
 
     public void setContext(ExecutionContext context) {
@@ -125,14 +125,14 @@ public class DOMWorld {
         return this.contextPromise;
     }
 
-    public JSHandle evaluateHandle(String pageFunction, PageEvaluateType type, List<Object>  args) {
+    public JSHandle evaluateHandle(String pageFunction, List<Object>  args) {
         ExecutionContext context = this.executionContext();
-        return (JSHandle) context.evaluateHandle(pageFunction, type, args);
+        return (JSHandle) context.evaluateHandle(pageFunction, args);
     }
 
-    public Object evaluate(String pageFunction, PageEvaluateType type, List<Object> args) {
+    public Object evaluate(String pageFunction, List<Object> args) {
         ExecutionContext context = this.executionContext();
-        return context.evaluate(pageFunction, type, args);
+        return context.evaluate(pageFunction, args);
     }
 
     public ElementHandle $(String selector) {
@@ -144,7 +144,7 @@ public class DOMWorld {
         if (this.documentPromise != null)
             return this.documentPromise;
         ExecutionContext context = this.executionContext();
-        JSHandle document = (JSHandle) context.evaluateHandle("document", PageEvaluateType.STRING,null);
+        JSHandle document = (JSHandle) context.evaluateHandle("document",null);
         this.documentPromise = document.asElement();
         return this.documentPromise;
     }
@@ -154,14 +154,14 @@ public class DOMWorld {
         return document.$x(expression);
     }
 
-    public Object $eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
+    public Object $eval(String selector, String pageFunction, List<Object> args) {
         ElementHandle document = this.document();
-        return document.$eval(selector, pageFunction, type, args);
+        return document.$eval(selector, pageFunction, args);
     }
 
-    public Object $$eval(String selector, String pageFunction, PageEvaluateType type, List<Object> args) {
+    public Object $$eval(String selector, String pageFunction, List<Object> args) {
         ElementHandle document = this.document();
-        return document.$$eval(selector, pageFunction, type, args);
+        return document.$$eval(selector,pageFunction,args);
     }
 
     public List<ElementHandle> $$(String selector) {
@@ -190,7 +190,7 @@ public class DOMWorld {
                 "      document.open();\n" +
                 "      document.write(html);\n" +
                 "      document.close();\n" +
-                "    }", PageEvaluateType.FUNCTION, Arrays.asList(html));
+                "    }", Arrays.asList(html));
         if (watcher.lifecyclePromise() != null) {
             return;
         }
@@ -223,7 +223,7 @@ public class DOMWorld {
         if (StringUtil.isNotEmpty(options.getUrl())) {
             try {
                 ExecutionContext context = this.executionContext();
-                ElementHandle handle = (ElementHandle) context.evaluateHandle(addScriptUrl(), PageEvaluateType.FUNCTION, Arrays.asList(options.getUrl(), options.getType()));
+                ElementHandle handle = (ElementHandle) context.evaluateHandle(addScriptUrl(), Arrays.asList(options.getUrl(), options.getType()));
                 return handle.asElement();
             } catch (Exception e) {
                 throw new RuntimeException("Loading script from " + options.getUrl() + " failed", e);
@@ -233,12 +233,12 @@ public class DOMWorld {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             String content = String.join("\n",contents)+"//# sourceURL=" + options.getPath().replaceAll("\n", "");
             ExecutionContext context = this.executionContext();
-            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, Arrays.asList(content, options.getType()));
+            ElementHandle evaluateHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), Arrays.asList(content, options.getType()));
             return evaluateHandle.asElement();
         }
         if (StringUtil.isNotEmpty(options.getContent())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle elementHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), PageEvaluateType.FUNCTION, Arrays.asList(options.getContent(), options.getType()));
+            ElementHandle elementHandle = (ElementHandle) context.evaluateHandle(addScriptContent(), Arrays.asList(options.getContent(), options.getType()));
             return elementHandle.asElement();
         }
         throw new IllegalArgumentException("Provide an object with a `url`, `path` or `content` property");
@@ -277,7 +277,7 @@ public class DOMWorld {
     public ElementHandle addStyleTag(StyleTagOptions options) throws IOException {
         if (options != null && StringUtil.isNotEmpty(options.getUrl())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), PageEvaluateType.FUNCTION, Arrays.asList(options.getUrl()));
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleUrl(), Arrays.asList(options.getUrl()));
             return handle.asElement();
         }
 
@@ -285,13 +285,13 @@ public class DOMWorld {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             String content = String.join("\n",contents)+"/*# sourceURL=" + options.getPath().replaceAll("\n", "")+"*/";
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, Arrays.asList(content));
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), Arrays.asList(content));
             return handle.asElement();
         }
 
         if (options != null && StringUtil.isNotEmpty(options.getContent())) {
             ExecutionContext context = this.executionContext();
-            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), PageEvaluateType.FUNCTION, Arrays.asList(options.getContent()));
+            ElementHandle handle = (ElementHandle) context.evaluateHandle(addStyleContent(), Arrays.asList(options.getContent()));
             return handle.asElement();
         }
 
@@ -453,7 +453,7 @@ public class DOMWorld {
     }
 
     public String title() {
-        return (String) this.evaluate("() => document.title", PageEvaluateType.FUNCTION,new ArrayList<>());
+        return (String) this.evaluate("() => document.title", new ArrayList<>());
     }
 
     public JSHandle waitForFunction(String pageFunction, PageEvaluateType type, WaitForSelectorOptions options, List<Object> args) throws InterruptedException {
