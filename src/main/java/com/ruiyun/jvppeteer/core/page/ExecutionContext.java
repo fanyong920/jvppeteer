@@ -69,7 +69,7 @@ public class ExecutionContext {
         return this.evaluateInternal(true, pageFunction,Helper.isFunction(pageFunction) ? PageEvaluateType.FUNCTION : PageEvaluateType.STRING, args);
     }
 
-    public Object evaluateInternal(boolean returnByValue, String pageFunction, PageEvaluateType type, List<Object> args) {
+    private Object evaluateInternal(boolean returnByValue, String pageFunction, PageEvaluateType type, List<Object> args) {
         String suffix = "//# sourceURL=" + ExecutionContext.EVALUATION_SCRIPT_URL;
         if (PageEvaluateType.STRING.equals(type)) {
             int contextId = this.contextId;

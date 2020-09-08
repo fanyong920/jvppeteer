@@ -1,5 +1,8 @@
-package com.ruiyun.jvppeteer.core.page;
+package com.ruiyun.jvppeteer.util;
 
+
+import com.ruiyun.jvppeteer.core.page.QueryHandler;
+import com.ruiyun.jvppeteer.core.page.QuerySelector;
 
 import java.util.HashMap;
 import java.util.Map;
