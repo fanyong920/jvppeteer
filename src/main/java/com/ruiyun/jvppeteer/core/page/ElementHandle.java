@@ -327,7 +327,7 @@ public class ElementHandle extends JSHandle {
         click(new ClickOptions(),isBlock);
     }
 
-    public void click(ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
+    public void click(ClickOptions options,boolean isBlock) throws InterruptedException {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
         if(!isBlock){

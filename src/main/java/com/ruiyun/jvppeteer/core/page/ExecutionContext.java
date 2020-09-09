@@ -100,11 +100,7 @@ public class ExecutionContext {
         List<Object> argList = new ArrayList<>();
         if (ValidateUtil.isNotEmpty(args)) {
             for (Object arg : args) {
-                try {
-                    argList.add(convertArgument(this, arg));
-                } catch (JsonProcessingException e) {
-                    throw new RuntimeException(e);
-                }
+                argList.add(convertArgument(this, arg));
             }
         }
         params.put("functionDeclaration", functionText + "\n" + suffix + "\n");
@@ -150,7 +146,7 @@ public class ExecutionContext {
         }
     }
 
-    public Object convertArgument(ExecutionContext th, Object arg) throws JsonProcessingException {
+    public Object convertArgument(ExecutionContext th, Object arg) {
         ObjectNode objectNode = Constant.OBJECTMAPPER.createObjectNode();
         if (arg == null) {
             return null;

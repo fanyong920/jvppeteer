@@ -329,7 +329,7 @@ public class DOMWorld {
                 "    }";
     }
 
-    public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException, ExecutionException {
+    public void click(String selector, ClickOptions options,boolean isBlock) throws InterruptedException {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         if(isBlock){
