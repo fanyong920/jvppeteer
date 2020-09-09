@@ -86,7 +86,6 @@ public class WaitTask {
             args.addAll(this.args);
             ExecutionContext context = this.domWorld.executionContext();
             success = (JSHandle) context.evaluateHandle(waitForPredicatePageFunction(),args);
-            System.out.println(success);
 
             if (this.terminated || runcount != this.runCount.get()) {
                 if (success != null)
