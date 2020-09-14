@@ -117,7 +117,7 @@ public class JSHandle {
      * 当在websocket信息回调中处理时需要isBlock=false
      * @param isBlock 是否是异步
      */
-    public void dispose(boolean isBlock) {
+    private void dispose(boolean isBlock) {
         if (this.disposed)
             return;
         this.disposed = true;

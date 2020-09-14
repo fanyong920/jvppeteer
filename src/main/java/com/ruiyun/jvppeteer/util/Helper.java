@@ -381,20 +381,20 @@ public class Helper {
 
     public static void releaseObject(CDPSession client, RemoteObject remoteObject, boolean isBlock) {
         if (isBlock) {
-            releaseObject(client, remoteObject);
+            doReleaseObject(client, remoteObject,isBlock);
         } else {
-            Helper.commonExecutor().submit(() -> releaseObject(client, remoteObject));
+            Helper.commonExecutor().submit(() -> doReleaseObject(client, remoteObject,isBlock));
         }
 
     }
 
-    private static void releaseObject(CDPSession client, RemoteObject remoteObject) {
+    private static void doReleaseObject(CDPSession client, RemoteObject remoteObject,boolean isBlock) {
         if (StringUtil.isEmpty(remoteObject.getObjectId()))
             return;
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", remoteObject.getObjectId());
         try {
-            client.send("Runtime.releaseObject", params, true);
+            client.send("Runtime.releaseObject", params, isBlock);
         } catch (Exception e) {
             // Exceptions might happen in case of a page been navigated or closed.
             //重新导航到某个网页 或者页面已经关闭
