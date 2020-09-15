@@ -87,7 +87,7 @@ public class FrameManager extends EventEmitter {
         };
         frameAttachedListener.setTarget(this);
         frameAttachedListener.setMothod("Page.frameAttached");
-        this.client.on(frameAttachedListener.getMothod(), frameAttachedListener);
+        this.client.addListener(frameAttachedListener.getMothod(), frameAttachedListener);
         //2 Page.frameNavigated
         DefaultBrowserListener<FrameNavigatedPayload> frameNavigatedListener = new DefaultBrowserListener<FrameNavigatedPayload>() {
             @Override
@@ -98,7 +98,8 @@ public class FrameManager extends EventEmitter {
         };
         frameNavigatedListener.setTarget(this);
         frameNavigatedListener.setMothod("Page.frameNavigated");
-        this.client.on(frameNavigatedListener.getMothod(), frameNavigatedListener);
+        this.client.addListener(frameNavigatedListener.getMothod(), frameNavigatedListener);
+
         //3 Page.navigatedWithinDocument
         DefaultBrowserListener<NavigatedWithinDocumentPayload> navigatedWithinDocumentListener = new DefaultBrowserListener<NavigatedWithinDocumentPayload>() {
             @Override
@@ -109,7 +110,7 @@ public class FrameManager extends EventEmitter {
         };
         navigatedWithinDocumentListener.setTarget(this);
         navigatedWithinDocumentListener.setMothod("Page.navigatedWithinDocument");
-        this.client.on(navigatedWithinDocumentListener.getMothod(), navigatedWithinDocumentListener);
+        this.client.addListener(navigatedWithinDocumentListener.getMothod(), navigatedWithinDocumentListener);
 
         //4 Page.frameDetached
         DefaultBrowserListener<FrameDetachedPayload> frameDetachedListener = new DefaultBrowserListener<FrameDetachedPayload>() {
@@ -121,7 +122,7 @@ public class FrameManager extends EventEmitter {
         };
         frameDetachedListener.setTarget(this);
         frameDetachedListener.setMothod("Page.frameDetached");
-        this.client.on(frameDetachedListener.getMothod(), frameDetachedListener);
+        this.client.addListener(frameDetachedListener.getMothod(), frameDetachedListener);
 
         //5 Page.frameStoppedLoading
         DefaultBrowserListener<FrameStoppedLoadingPayload> frameStoppedLoadingListener = new DefaultBrowserListener<FrameStoppedLoadingPayload>() {
@@ -133,7 +134,7 @@ public class FrameManager extends EventEmitter {
         };
         frameStoppedLoadingListener.setTarget(this);
         frameStoppedLoadingListener.setMothod("Page.frameStoppedLoading");
-        this.client.on(frameStoppedLoadingListener.getMothod(), frameStoppedLoadingListener);
+        this.client.addListener(frameStoppedLoadingListener.getMothod(), frameStoppedLoadingListener);
 
         //6 Runtime.executionContextCreated
         DefaultBrowserListener<ExecutionContextCreatedPayload> executionContextCreatedListener = new DefaultBrowserListener<ExecutionContextCreatedPayload>() {
@@ -145,7 +146,7 @@ public class FrameManager extends EventEmitter {
         };
         executionContextCreatedListener.setTarget(this);
         executionContextCreatedListener.setMothod("Runtime.executionContextCreated");
-        this.client.on(executionContextCreatedListener.getMothod(), executionContextCreatedListener);
+        this.client.addListener(executionContextCreatedListener.getMothod(), executionContextCreatedListener);
 
         //7 Runtime.executionContextDestroyed
         DefaultBrowserListener<ExecutionContextDestroyedPayload> executionContextDestroyedListener = new DefaultBrowserListener<ExecutionContextDestroyedPayload>() {
@@ -157,7 +158,7 @@ public class FrameManager extends EventEmitter {
         };
         executionContextDestroyedListener.setTarget(this);
         executionContextDestroyedListener.setMothod("Runtime.executionContextDestroyed");
-        this.client.on(executionContextDestroyedListener.getMothod(), executionContextDestroyedListener);
+        this.client.addListener(executionContextDestroyedListener.getMothod(), executionContextDestroyedListener);
 
         //8 Runtime.executionContextsCleared
         DefaultBrowserListener<Object> executionContextsClearedListener = new DefaultBrowserListener<Object>() {
@@ -169,7 +170,7 @@ public class FrameManager extends EventEmitter {
         };
         executionContextsClearedListener.setTarget(this);
         executionContextsClearedListener.setMothod("Runtime.executionContextsCleared");
-        this.client.on(executionContextsClearedListener.getMothod(), executionContextsClearedListener);
+        this.client.addListener(executionContextsClearedListener.getMothod(), executionContextsClearedListener);
 
         //9 Page.lifecycleEvent
         DefaultBrowserListener<LifecycleEventPayload> lifecycleEventListener = new DefaultBrowserListener<LifecycleEventPayload>() {
@@ -181,7 +182,7 @@ public class FrameManager extends EventEmitter {
         };
         lifecycleEventListener.setTarget(this);
         lifecycleEventListener.setMothod("Page.lifecycleEvent");
-        this.client.on(lifecycleEventListener.getMothod(), lifecycleEventListener);
+        this.client.addListener(lifecycleEventListener.getMothod(), lifecycleEventListener);
     }
 
     private void onLifecycleEvent(LifecycleEventPayload event) {

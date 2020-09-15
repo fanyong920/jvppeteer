@@ -1,7 +1,5 @@
 package com.ruiyun.jvppeteer.protocol.network;
 
-import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
-
 /**
  * Fired when HTTP response is available.
  */

@@ -332,7 +332,7 @@ public class Helper {
     }
 
     public static final <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler) {
-        emitter.on(eventName, handler);
+        emitter.addListener(eventName, handler);
         return new BrowserListenerWrapper<>(emitter, eventName, handler);
     }
 
@@ -380,15 +380,6 @@ public class Helper {
     }
 
     public static void releaseObject(CDPSession client, RemoteObject remoteObject, boolean isBlock) {
-        if (isBlock) {
-            doReleaseObject(client, remoteObject,isBlock);
-        } else {
-            Helper.commonExecutor().submit(() -> doReleaseObject(client, remoteObject,isBlock));
-        }
-
-    }
-
-    private static void doReleaseObject(CDPSession client, RemoteObject remoteObject,boolean isBlock) {
         if (StringUtil.isEmpty(remoteObject.getObjectId()))
             return;
         Map<String, Object> params = new HashMap<>();

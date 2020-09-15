@@ -219,7 +219,9 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 }
             }
         } catch (Exception e) {
-            throw new ProtocolException(e);
+            ProtocolException protocolException =  new ProtocolException();
+            protocolException.initCause(e);
+            throw protocolException;
         }
     }
 

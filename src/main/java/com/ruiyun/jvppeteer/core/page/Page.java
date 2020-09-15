@@ -181,7 +181,7 @@ public class Page extends EventEmitter {
                     client.send("Target.detachFromTarget", params, false);
                     return;
                 }
-                CDPSession session = Connection.fromSession(page.getClient()).session(event.getSessionId());
+                CDPSession session = Connection.fromSession(page.client()).session(event.getSessionId());
                 Worker worker = new Worker(session, event.getTargetInfo().getUrl(), page::addConsoleMessage, page::handleException);
                 page.workers().putIfAbsent(event.getSessionId(), worker);
                 page.emit(Events.PAGE_WORKERCREATED.getName(), worker);
@@ -190,7 +190,7 @@ public class Page extends EventEmitter {
         attachedListener.setMothod("Target.attachedToTarget");
         attachedListener.setTarget(this);
         attachedListener.setResolveType(Target.class);
-        this.client.on(attachedListener.getMothod(), attachedListener);
+        this.client.addListener(attachedListener.getMothod(), attachedListener);
 
         DefaultBrowserListener<Target> detachedListener = new DefaultBrowserListener<Target>() {
             @Override
@@ -207,7 +207,7 @@ public class Page extends EventEmitter {
         detachedListener.setMothod("Target.detachedFromTarget");
         detachedListener.setTarget(this);
         detachedListener.setResolveType(Target.class);
-        this.client.on(detachedListener.getMothod(), detachedListener);
+        this.client.addListener(detachedListener.getMothod(), detachedListener);
 
         DefaultBrowserListener<Object> frameAttachedListener = new DefaultBrowserListener<Object>() {
             @Override
@@ -218,7 +218,7 @@ public class Page extends EventEmitter {
         };
         frameAttachedListener.setMothod(Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
         frameAttachedListener.setTarget(this);
-        this.frameManager.on(frameAttachedListener.getMothod(), frameAttachedListener);
+        this.frameManager.addListener(frameAttachedListener.getMothod(), frameAttachedListener);
 
         DefaultBrowserListener<Object> frameDetachedListener = new DefaultBrowserListener<Object>() {
             @Override
@@ -229,7 +229,7 @@ public class Page extends EventEmitter {
         };
         frameDetachedListener.setMothod(Events.FRAME_MANAGER_FRAME_DETACHED.getName());
         frameDetachedListener.setTarget(this);
-        this.frameManager.on(frameDetachedListener.getMothod(), frameDetachedListener);
+        this.frameManager.addListener(frameDetachedListener.getMothod(), frameDetachedListener);
 
         DefaultBrowserListener<Object> frameNavigatedListener = new DefaultBrowserListener<Object>() {
             @Override
@@ -240,7 +240,7 @@ public class Page extends EventEmitter {
         };
         frameNavigatedListener.setMothod(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName());
         frameNavigatedListener.setTarget(this);
-        this.frameManager.on(frameNavigatedListener.getMothod(), frameNavigatedListener);
+        this.frameManager.addListener(frameNavigatedListener.getMothod(), frameNavigatedListener);
 
         NetworkManager networkManager = this.frameManager.getNetworkManager();
 
@@ -253,7 +253,7 @@ public class Page extends EventEmitter {
         };
         requestLis.setMothod(Events.NETWORK_MANAGER_REQUEST.getName());
         requestLis.setTarget(this);
-        networkManager.on(requestLis.getMothod(), requestLis);
+        networkManager.addListener(requestLis.getMothod(), requestLis);
 
         DefaultBrowserListener<Response> responseLis = new DefaultBrowserListener<Response>() {
             @Override
@@ -264,7 +264,7 @@ public class Page extends EventEmitter {
         };
         responseLis.setMothod(Events.NETWORK_MANAGER_RESPONSE.getName());
         responseLis.setTarget(this);
-        networkManager.on(responseLis.getMothod(), responseLis);
+        networkManager.addListener(responseLis.getMothod(), responseLis);
 
         DefaultBrowserListener<Request> requestFailedLis = new DefaultBrowserListener<Request>() {
             @Override
@@ -275,7 +275,7 @@ public class Page extends EventEmitter {
         };
         requestFailedLis.setMothod(Events.NETWORK_MANAGER_REQUEST_FAILED.getName());
         requestFailedLis.setTarget(this);
-        networkManager.on(requestFailedLis.getMothod(), requestFailedLis);
+        networkManager.addListener(requestFailedLis.getMothod(), requestFailedLis);
 
         DefaultBrowserListener<Request> requestFinishedLis = new DefaultBrowserListener<Request>() {
             @Override
@@ -286,7 +286,7 @@ public class Page extends EventEmitter {
         };
         requestFinishedLis.setMothod(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName());
         requestFinishedLis.setTarget(this);
-        networkManager.on(requestFinishedLis.getMothod(), requestFinishedLis);
+        networkManager.addListener(requestFinishedLis.getMothod(), requestFinishedLis);
 
         this.fileChooserInterceptors = new CopyOnWriteArraySet<>();
 
@@ -299,7 +299,7 @@ public class Page extends EventEmitter {
         };
         domContentEventFiredLis.setMothod("Page.domContentEventFired");
         domContentEventFiredLis.setTarget(this);
-        this.client.on(domContentEventFiredLis.getMothod(), domContentEventFiredLis);
+        this.client.addListener(domContentEventFiredLis.getMothod(), domContentEventFiredLis);
 
         DefaultBrowserListener<Object> loadEventFiredLis = new DefaultBrowserListener<Object>() {
             @Override
@@ -310,7 +310,7 @@ public class Page extends EventEmitter {
         };
         loadEventFiredLis.setMothod("Page.loadEventFired");
         loadEventFiredLis.setTarget(this);
-        this.client.on(loadEventFiredLis.getMothod(), loadEventFiredLis);
+        this.client.addListener(loadEventFiredLis.getMothod(), loadEventFiredLis);
 
         DefaultBrowserListener<ConsoleAPICalledPayload> consoleAPICalledLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
             @Override
@@ -321,7 +321,7 @@ public class Page extends EventEmitter {
         };
         consoleAPICalledLis.setMothod("Runtime.consoleAPICalled");
         consoleAPICalledLis.setTarget(this);
-        this.client.on(consoleAPICalledLis.getMothod(), consoleAPICalledLis);
+        this.client.addListener(consoleAPICalledLis.getMothod(), consoleAPICalledLis);
 
         DefaultBrowserListener<BindingCalledPayload> bindingCalledLis = new DefaultBrowserListener<BindingCalledPayload>() {
             @Override
@@ -332,7 +332,7 @@ public class Page extends EventEmitter {
         };
         bindingCalledLis.setMothod("Runtime.bindingCalled");
         bindingCalledLis.setTarget(this);
-        this.client.on(bindingCalledLis.getMothod(), bindingCalledLis);
+        this.client.addListener(bindingCalledLis.getMothod(), bindingCalledLis);
 
         DefaultBrowserListener<JavascriptDialogOpeningPayload> javascriptDialogOpeningLis = new DefaultBrowserListener<JavascriptDialogOpeningPayload>() {
             @Override
@@ -343,7 +343,7 @@ public class Page extends EventEmitter {
         };
         javascriptDialogOpeningLis.setMothod("Page.javascriptDialogOpening");
         javascriptDialogOpeningLis.setTarget(this);
-        this.client.on(javascriptDialogOpeningLis.getMothod(), javascriptDialogOpeningLis);
+        this.client.addListener(javascriptDialogOpeningLis.getMothod(), javascriptDialogOpeningLis);
 
         DefaultBrowserListener<JsonNode> exceptionThrownLis = new DefaultBrowserListener<JsonNode>() {
             @Override
@@ -364,7 +364,7 @@ public class Page extends EventEmitter {
         };
         exceptionThrownLis.setMothod("Runtime.exceptionThrown");
         exceptionThrownLis.setTarget(this);
-        this.client.on(exceptionThrownLis.getMothod(), exceptionThrownLis);
+        this.client.addListener(exceptionThrownLis.getMothod(), exceptionThrownLis);
 
         DefaultBrowserListener<Object> targetCrashedLis = new DefaultBrowserListener<Object>() {
             @Override
@@ -375,7 +375,7 @@ public class Page extends EventEmitter {
         };
         targetCrashedLis.setMothod("Inspector.targetCrashed");
         targetCrashedLis.setTarget(this);
-        this.client.on(targetCrashedLis.getMothod(), targetCrashedLis);
+        this.client.addListener(targetCrashedLis.getMothod(), targetCrashedLis);
 
         DefaultBrowserListener<MetricsPayload> metricsLis = new DefaultBrowserListener<MetricsPayload>() {
             @Override
@@ -390,7 +390,7 @@ public class Page extends EventEmitter {
         };
         metricsLis.setMothod("Inspector.targetCrashed");
         metricsLis.setTarget(this);
-        this.client.on(metricsLis.getMothod(), metricsLis);
+        this.client.addListener(metricsLis.getMothod(), metricsLis);
 
         DefaultBrowserListener<EntryAddedPayload> entryAddedLis = new DefaultBrowserListener<EntryAddedPayload>() {
             @Override
@@ -401,7 +401,7 @@ public class Page extends EventEmitter {
         };
         entryAddedLis.setMothod("Log.entryAdded");
         entryAddedLis.setTarget(this);
-        this.client.on(entryAddedLis.getMothod(), entryAddedLis);
+        this.client.addListener(entryAddedLis.getMothod(), entryAddedLis);
 
         DefaultBrowserListener<FileChooserOpenedPayload> fileChooserOpenedLis = new DefaultBrowserListener<FileChooserOpenedPayload>() {
             @Override
@@ -412,7 +412,7 @@ public class Page extends EventEmitter {
         };
         fileChooserOpenedLis.setMothod("Page.fileChooserOpened");
         fileChooserOpenedLis.setTarget(this);
-        this.client.on(fileChooserOpenedLis.getMothod(), fileChooserOpenedLis);
+        this.client.addListener(fileChooserOpenedLis.getMothod(), fileChooserOpenedLis);
 
     }
 
@@ -422,35 +422,19 @@ public class Page extends EventEmitter {
      * @param handler 要提供的处理器
      */
     public void onClose(EventHandler<Object> handler) {
-        DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_CLOSE.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_CLOSE.getName(), handler);
     }
 
     public void onConsole(EventHandler<ConsoleMessage> handler) {
-        DefaultBrowserListener<ConsoleMessage> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_CONSOLE.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_CONSOLE.getName(), handler);
     }
 
     public void onDialg(EventHandler<Dialog> handler) {
-        DefaultBrowserListener<Dialog> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_DIALOG.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_DIALOG.getName(), handler);
     }
 
     public void onError(EventHandler<Error> handler) {
-        DefaultBrowserListener<Error> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_ERROR.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_ERROR.getName(), handler);
     }
 
     /**
@@ -461,11 +445,7 @@ public class Page extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onFrameattached(EventHandler<Frame> handler) {
-        DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_FRAMEATTACHED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_FRAMEATTACHED.getName(), handler);
     }
 
     /**
@@ -476,11 +456,7 @@ public class Page extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onFramedetached(EventHandler<Frame> handler) {
-        DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_FRAMEDETACHED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_FRAMEDETACHED.getName(), handler);
     }
 
     /**
@@ -490,75 +466,39 @@ public class Page extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onFramenavigated(EventHandler<Frame> handler) {
-        DefaultBrowserListener<Frame> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_FRAMENAVIGATED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_FRAMENAVIGATED.getName(), handler);
     }
 
     public void onLoad(EventHandler<Object> handler) {
-        DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_LOAD.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_LOAD.getName(), handler);
     }
 
     public void onMetrics(EventHandler<PageMetrics> handler) {
-        DefaultBrowserListener<PageMetrics> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_METRICS.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_METRICS.getName(), handler);
     }
 
     public void onPageerror(EventHandler<RuntimeException> handler) {
-        DefaultBrowserListener<RuntimeException> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_ERROR.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_ERROR.getName(), handler);
     }
 
     public void onPopup(EventHandler<Error> handler) {
-        DefaultBrowserListener<Error> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_POPUP.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_POPUP.getName(), handler);
     }
 
     public void onRequest(EventHandler<Request> handler) {
-        DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_REQUEST.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_REQUEST.getName(), handler);
     }
 
     public void onRequestfailed(EventHandler<Request> handler) {
-        DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_REQUESTFAILED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_REQUESTFAILED.getName(), handler);
     }
 
     public void onRequestfinished(EventHandler<Request> handler) {
-        DefaultBrowserListener<Request> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_REQUESTFINISHED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_REQUESTFINISHED.getName(), handler);
     }
 
     public void onResponse(EventHandler<Response> handler) {
-        DefaultBrowserListener<Response> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_RESPONSE.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_RESPONSE.getName(), handler);
     }
 
     /**
@@ -568,11 +508,7 @@ public class Page extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onWorkercreated(EventHandler<Worker> handler) {
-        DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_WORKERCREATED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_WORKERCREATED.getName(), handler);
     }
     /**
      * <p>注意不要在这个事件内直接调用Worker中会暂停线程的方法</p>
@@ -581,11 +517,7 @@ public class Page extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onWorkerdestroyed(EventHandler<Worker> handler) {
-        DefaultBrowserListener<Worker> listener = new DefaultBrowserListener<>();
-        listener.setHandler(handler);
-        listener.setMothod(Events.PAGE_WORKERDESTROYED.getName());
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.PAGE_WORKERDESTROYED.getName(), handler);
     }
 
     /**
@@ -1874,7 +1806,7 @@ public class Page extends EventEmitter {
             } catch (InterruptedException e) {
                 throw  new RuntimeException(e);
             }
-            this.client.send("Page.reload", null, false);
+            this.client.send("Page.reload", null, true);
         });
 
         /*再等待页面导航结果返回*/
@@ -2206,7 +2138,7 @@ public class Page extends EventEmitter {
             }
         };
         disConnectLis.setMothod(Events.CDPSESSION_DISCONNECTED.getName());
-        this.client.once(disConnectLis.getMothod(), disConnectLis);
+        this.client.addListener(disConnectLis.getMothod(), disConnectLis,true);
         return disConnectLis;
     }
 
@@ -2334,12 +2266,8 @@ public class Page extends EventEmitter {
         return this.mainFrame().url();
     }
 
-    protected CDPSession getClient() {
+    protected CDPSession client() {
         return client;
-    }
-
-    protected void setClient(CDPSession client) {
-        this.client = client;
     }
 
     /**

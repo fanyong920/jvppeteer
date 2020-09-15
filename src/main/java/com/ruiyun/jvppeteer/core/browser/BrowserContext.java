@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.core.browser;
 
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.EventHandler;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.core.page.Target;
@@ -76,10 +76,7 @@ public class BrowserContext extends EventEmitter {
 	 * @param handler 事件处理器
 	 */
 	public void onTargetchanged(EventHandler<Target> handler) {
-		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
-		disListener.setHandler(handler);
-		disListener.setIsSync(true);
-		this.on("targetchanged",disListener);
+		this.on(Events.BROWSERCONTEXT_TARGETCHANGED.getName(), handler);
 	}
 
 	/**
@@ -89,10 +86,7 @@ public class BrowserContext extends EventEmitter {
 	 * @param handler 事件处理器
 	 */
 	public void onTrgetcreated(EventHandler<Target> handler) {
-		DefaultBrowserListener<Target> disListener = new DefaultBrowserListener<>();
-		disListener.setHandler(handler);
-		disListener.setIsSync(true);
-		this.on("targetcreated",disListener);
+		this.on(Events.BROWSERCONTEXT_TARGETCREATED.getName(), handler);
 	}
 
 	public void clearPermissionOverrides() {
@@ -136,6 +130,7 @@ public class BrowserContext extends EventEmitter {
 	public Target waitForTarget(Predicate<Target> predicate, ChromeArgOptions options) {
 		return this.browser.waitForTarget(target -> target.browserContext() == this && predicate.test(target),options);
 	}
+
 
 	public Connection getConnection() {
 		return connection;

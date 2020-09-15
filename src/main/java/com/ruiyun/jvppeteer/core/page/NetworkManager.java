@@ -81,7 +81,7 @@ public class NetworkManager extends EventEmitter {
         };
         requestPausedListener.setMothod("Fetch.requestPaused");
         requestPausedListener.setTarget(this);
-        this.client.on(requestPausedListener.getMothod(), requestPausedListener);
+        this.client.addListener(requestPausedListener.getMothod(), requestPausedListener);
 
         DefaultBrowserListener<AuthRequiredPayload> authRequiredListener = new DefaultBrowserListener<AuthRequiredPayload>() {
             @Override
@@ -92,7 +92,7 @@ public class NetworkManager extends EventEmitter {
         };
         authRequiredListener.setMothod("Fetch.authRequired");
         authRequiredListener.setTarget(this);
-        this.client.on(authRequiredListener.getMothod(), authRequiredListener);
+        this.client.addListener(authRequiredListener.getMothod(), authRequiredListener);
 
         DefaultBrowserListener<RequestWillBeSentPayload> requestWillBeSentListener = new DefaultBrowserListener<RequestWillBeSentPayload>() {
             @Override
@@ -103,7 +103,7 @@ public class NetworkManager extends EventEmitter {
         };
         requestWillBeSentListener.setMothod("Network.requestWillBeSent");
         requestWillBeSentListener.setTarget(this);
-        this.client.on(requestWillBeSentListener.getMothod(), requestWillBeSentListener);
+        this.client.addListener(requestWillBeSentListener.getMothod(), requestWillBeSentListener);
 
         DefaultBrowserListener<RequestServedFromCachePayload> requestServedFromCacheListener = new DefaultBrowserListener<RequestServedFromCachePayload>() {
             @Override
@@ -114,7 +114,7 @@ public class NetworkManager extends EventEmitter {
         };
         requestServedFromCacheListener.setMothod("Network.requestServedFromCache");
         requestServedFromCacheListener.setTarget(this);
-        this.client.on(requestServedFromCacheListener.getMothod(), requestServedFromCacheListener);
+        this.client.addListener(requestServedFromCacheListener.getMothod(), requestServedFromCacheListener);
 
         DefaultBrowserListener<ResponseReceivedPayload> responseReceivedListener = new DefaultBrowserListener<ResponseReceivedPayload>() {
             @Override
@@ -125,7 +125,7 @@ public class NetworkManager extends EventEmitter {
         };
         responseReceivedListener.setMothod("Network.responseReceived");
         responseReceivedListener.setTarget(this);
-        this.client.on(responseReceivedListener.getMothod(), responseReceivedListener);
+        this.client.addListener(responseReceivedListener.getMothod(), responseReceivedListener);
 
         DefaultBrowserListener<LoadingFinishedPayload> loadingFinishedListener = new DefaultBrowserListener<LoadingFinishedPayload>() {
             @Override
@@ -136,7 +136,7 @@ public class NetworkManager extends EventEmitter {
         };
         loadingFinishedListener.setMothod("Network.loadingFinished");
         loadingFinishedListener.setTarget(this);
-        this.client.on(loadingFinishedListener.getMothod(), loadingFinishedListener);
+        this.client.addListener(loadingFinishedListener.getMothod(), loadingFinishedListener);
 
         DefaultBrowserListener<LoadingFailedPayload> loadingFailedListener = new DefaultBrowserListener<LoadingFailedPayload>() {
             @Override
@@ -147,7 +147,7 @@ public class NetworkManager extends EventEmitter {
         };
         loadingFailedListener.setMothod("Network.loadingFailed");
         loadingFailedListener.setTarget(this);
-        this.client.on(loadingFailedListener.getMothod(), loadingFailedListener);
+        this.client.addListener(loadingFailedListener.getMothod(), loadingFailedListener);
 
     }
 

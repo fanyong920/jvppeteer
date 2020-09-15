@@ -28,21 +28,28 @@ public class EventEmitter implements Event {
 
     private AtomicInteger listenerCount = new AtomicInteger(0);
 
+    /**
+     * 也是监听事件，不过这个方法只要在本项目内部使用，如果你想要自己监听事件，请使用{@link EventEmitter#on(String, EventHandler)}
+     * @param method 事件名称
+     * @param blistener 监听器
+     * @param isOnce 是否只监听一次
+     * @return Event
+     */
     @Override
-    public Event addListener(String method, BrowserListener<?> listener, boolean isOnce) {
-        DefaultBrowserListener defaultBrowserListener = (DefaultBrowserListener)listener;
-        if(!method.equals(defaultBrowserListener.getMothod())){
-            LOGGER.error("addListener fail:{} is not equals listener.getMothod()[{}]",method,defaultBrowserListener.getMothod());
+    public Event addListener(String method, BrowserListener<?> blistener, boolean isOnce) {
+        DefaultBrowserListener listener = (DefaultBrowserListener)blistener;
+        if(!method.equals(listener.getMothod())){
+            LOGGER.error("addListener fail:{} is not equals listener.getMothod()[{}]",method,listener.getMothod());
             return this;
         }
-        defaultBrowserListener.setIsOnce(isOnce);
+        listener.setIsOnce(isOnce);
         Set<DefaultBrowserListener> browserListeners = this.listenerMap.get(method);
         if (browserListeners == null) {
             Set<DefaultBrowserListener> listeners = Helper.getConcurrentSet();
             this.listenerMap.putIfAbsent(method,listeners);
-            listeners.add(defaultBrowserListener);
+            listeners.add(listener);
         }else{
-            browserListeners.add(defaultBrowserListener);
+            browserListeners.add(listener);
         }
         listenerCount.incrementAndGet();
         return this;
@@ -56,9 +63,9 @@ public class EventEmitter implements Event {
      */
     @Override
     public Event removeListener(String method, BrowserListener<?> listener) {
-        Set<DefaultBrowserListener> defaultBrowserListeners = this.listenerMap.get(method);
-        if (ValidateUtil.isNotEmpty(defaultBrowserListeners)) {
-            defaultBrowserListeners.remove(listener);
+        Set<DefaultBrowserListener> listeners = this.listenerMap.get(method);
+        if (ValidateUtil.isNotEmpty(listeners)) {
+            listeners.remove(listener);
             listenerCount.decrementAndGet();
         }
         return this;
@@ -96,7 +103,7 @@ public class EventEmitter implements Event {
                     }
 
                     if(JsonNode.class.isAssignableFrom(params.getClass())){
-                        event = readJsonObject(resolveType, (JsonNode)params);
+                        event = readJsonObject(resolveType, (JsonNode) params);
                     }else{
                         event = params;
                     }
@@ -104,18 +111,12 @@ public class EventEmitter implements Event {
                     event = null;
                 }
                 invokeListener(listener, event);
-//                Constant.executor.execute(() -> );
             } catch (IOException e) {
                 LOGGER.error("publish event error:", e);
                 return;
             }
 
         }
-    }
-
-    @Override
-    public Event addListener(String method, BrowserListener<?> listener) {
-        return addListener(method,listener,false);
     }
 
     /**
@@ -136,32 +137,33 @@ public class EventEmitter implements Event {
             }
         }
     }
+
     /**
      * 如果clazz属于JsonNode.class则不用转换类型，如果不是，则将jsonNode转化成clazz类型对象
      * @param clazz 目标类型
-     * @param jsonNode event
+     * @param params event的具体内容
      * @param <T>  具体类型
      * @return T
      * @throws IOException 转化失败抛出的异常
      */
-    private <T> T readJsonObject(Class<T> clazz, JsonNode jsonNode) throws IOException {
-        if (jsonNode == null) {
+    private <T> T readJsonObject(Class<T> clazz, JsonNode params) throws IOException {
+        if (params == null) {
             throw new IllegalArgumentException(
                     "Failed converting null response to clazz " + clazz.getName());
         }
         if(JsonNode.class.isAssignableFrom(clazz)){
-            return (T)jsonNode;
+            return (T)params;
         }
-        return Constant.OBJECTMAPPER.treeToValue(jsonNode,clazz);
+        return Constant.OBJECTMAPPER.treeToValue(params,clazz);
     }
 
     public int getListenerCount(String method){
-        Set<DefaultBrowserListener> defaultBrowserListeners = this.listenerMap.get(method);
+        Set<DefaultBrowserListener> listeners = this.listenerMap.get(method);
         int i = 0;
-        if(ValidateUtil.isEmpty(defaultBrowserListeners)){
+        if(ValidateUtil.isEmpty(listeners)){
             return 0;
         }
-        for (DefaultBrowserListener listener : defaultBrowserListeners) {
+        for (DefaultBrowserListener listener : listeners) {
             if(!listener.getIsAvaliable()){
                 continue;
             }
@@ -170,5 +172,42 @@ public class EventEmitter implements Event {
         return i;
     }
 
+    /**
+     * 监听事件，可用于自定义事件监听,用户监听的事件都是在别的线程中异步执行的
+     * @param method 事件名称
+     * @param handler 事件的处理器
+     * @return Event
+     */
+    public Event on(String method, EventHandler<?> handler) {
+        DefaultBrowserListener listener = new DefaultBrowserListener();
+        listener.setIsSync(true);
+        listener.setMothod(method);
+        listener.setHandler(handler);
+        return this.addListener(method, listener);
+    }
+
+    /**
+     * 一次性事件监听，用于自定义事件监听，与{@link EventEmitter#on(String, EventHandler)}的区别就是on会一直监听
+     * @param method 事件名称
+     * @param handler 事件处理器
+     * @return Event
+     */
+    public Event once(String method, EventHandler<?> handler) {
+        DefaultBrowserListener listener = new DefaultBrowserListener();
+        listener.setIsSync(true);
+        listener.setMothod(method);
+        listener.setHandler(handler);
+        return this.addListener(method, listener, true);
+    }
+
+    /**
+     * 取消事件
+     * @param method 事件名称
+     * @param listener 事件的监听器
+     * @return Event
+     */
+    public Event off(String method, BrowserListener<?> listener) {
+        return this.removeListener(method, listener);
+    }
 
 }

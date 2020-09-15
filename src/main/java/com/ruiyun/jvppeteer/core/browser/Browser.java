@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -109,7 +108,7 @@ public class Browser extends EventEmitter {
         };
         disconnectedLis.setTarget(this);
         disconnectedLis.setMothod(Events.CONNECTION_DISCONNECTED.getName());
-        this.connection.on(disconnectedLis.getMothod(), disconnectedLis);
+        this.connection.addListener(disconnectedLis.getMothod(), disconnectedLis);
 
         DefaultBrowserListener<TargetCreatedPayload> targetCreatedLis = new DefaultBrowserListener<TargetCreatedPayload>() {
             @Override
@@ -120,7 +119,7 @@ public class Browser extends EventEmitter {
         };
         targetCreatedLis.setTarget(this);
         targetCreatedLis.setMothod("Target.targetCreated");
-        this.connection.on(targetCreatedLis.getMothod(), targetCreatedLis);
+        this.connection.addListener(targetCreatedLis.getMothod(), targetCreatedLis);
 
         DefaultBrowserListener<TargetDestroyedPayload> targetDestroyedLis = new DefaultBrowserListener<TargetDestroyedPayload>() {
             @Override
@@ -137,7 +136,7 @@ public class Browser extends EventEmitter {
         };
         targetDestroyedLis.setTarget(this);
         targetDestroyedLis.setMothod("Target.targetDestroyed");
-        this.connection.on(targetDestroyedLis.getMothod(), targetDestroyedLis);
+        this.connection.addListener(targetDestroyedLis.getMothod(), targetDestroyedLis);
 
         DefaultBrowserListener<TargetInfoChangedPayload> targetInfoChangedLis = new DefaultBrowserListener<TargetInfoChangedPayload>() {
             @Override
@@ -154,7 +153,7 @@ public class Browser extends EventEmitter {
         };
         targetInfoChangedLis.setTarget(this);
         targetInfoChangedLis.setMothod("Target.targetInfoChanged");
-        this.connection.on(targetInfoChangedLis.getMothod(), targetInfoChangedLis);
+        this.connection.addListener(targetInfoChangedLis.getMothod(), targetInfoChangedLis);
     }
 
     private void targetDestroyed(TargetDestroyedPayload event) throws ExecutionException, InterruptedException {
@@ -386,11 +385,7 @@ public class Browser extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onDisconnected(EventHandler<Object> handler) {
-        DefaultBrowserListener<Object> listener = new DefaultBrowserListener<>();
-        listener.setMothod("disconnected");
-        listener.setHandler(handler);
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.BROWSER_DISCONNECTED.getName(), handler);
     }
 
     /**
@@ -401,11 +396,7 @@ public class Browser extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onTargetchanged(EventHandler<Target> handler) {
-        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
-        listener.setMothod("targetchanged");
-        listener.setHandler(handler);
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.BROWSER_TARGETCHANGED.getName(), handler);
     }
 
     /**
@@ -416,11 +407,7 @@ public class Browser extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onTrgetcreated(EventHandler<Target> handler) {
-        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
-        listener.setMothod("targetcreated");
-        listener.setHandler(handler);
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.BROWSER_TARGETCREATED.getName(), handler);
     }
 
     /**
@@ -431,11 +418,7 @@ public class Browser extends EventEmitter {
      * @param handler 事件处理器
      */
     public void onTargetdestroyed(EventHandler<Target> handler) {
-        DefaultBrowserListener<Target> listener = new DefaultBrowserListener<>();
-        listener.setMothod("targetdestroyed");
-        listener.setHandler(handler);
-        listener.setIsSync(true);
-        this.on(listener.getMothod(), listener);
+        this.on(Events.BROWSER_TARGETDESTROYED.getName(), handler);
     }
 
     public Map<String, Target> getTargets() {

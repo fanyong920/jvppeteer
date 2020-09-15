@@ -55,7 +55,7 @@ public class Worker extends EventEmitter {
         };
         executionContextListener.setMothod("Runtime.executionContextCreated");
         executionContextListener.setTarget(this);
-        this.client.once(executionContextListener.getMothod(), executionContextListener);
+        this.client.addListener(executionContextListener.getMothod(), executionContextListener,true);
 
         this.client.send("Runtime.enable", null, false);
         DefaultBrowserListener<ConsoleAPICalledPayload> consoleLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
@@ -65,7 +65,7 @@ public class Worker extends EventEmitter {
             }
         };
         consoleLis.setMothod("Runtime.consoleAPICalled");
-        this.client.on(consoleLis.getMothod(), consoleLis);
+        this.client.addListener(consoleLis.getMothod(), consoleLis);
 
         DefaultBrowserListener<JsonNode> exceptionLis = new DefaultBrowserListener<JsonNode>() {
             @Override
@@ -79,7 +79,7 @@ public class Worker extends EventEmitter {
             }
         };
         exceptionLis.setMothod("Runtime.exceptionThrown");
-        this.client.on(exceptionLis.getMothod(), exceptionLis);
+        this.client.addListener(exceptionLis.getMothod(), exceptionLis);
     }
 
     public JSHandle jsHandleFactory(RemoteObject remoteObject) {

@@ -1,8 +1,8 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.events.EventEmitter;
+import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -194,9 +194,7 @@ public class CDPSession extends EventEmitter {
             if(method != null)
                 this.emit(method.asText(),paramsNode);
         }
-
     }
-
 
     public Connection getConnection() {
         return connection;
