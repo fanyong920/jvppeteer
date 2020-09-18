@@ -71,3 +71,17 @@
 
 - [修改可能出现的无限等待问题](https://github.com/fanyong920/jvppeteer/commit/901fa82db5be2e1df9c85a56e3df013118f7a0d0)
 
+## Version Release 1.0.9 (2020/09/18)
+
+#### Bugs Fixed
+
+- [尝试修改卡死的问题](https://github.com/fanyong920/jvppeteer/commit/be2b07a2a0242735e04e23ff18bb952bfa8bbda2)
+
+- [给监听事件给上异步操作](https://github.com/fanyong920/jvppeteer/commit/0ea7abe7e96efb6ac453d5c0e8723542dd692c8a)
+
+- [修复Page#waitForXpath方法出错](https://github.com/fanyong920/jvppeteer/commit/31c6e3aa5768fafb87a3764e7634fa783d34a30c)
+- [去掉方法签名上不必要的异常](https://github.com/fanyong920/jvppeteer/commit/1ff74c8fbbb21f2d63933a98ae73d9d229f2dc34)
+
+#### New Feature
+
+- [暴露on方法实现自定义事件监听](https://github.com/fanyong920/jvppeteer/commit/817a1ab012eea5785dfe6d2c5dd8e2fa0aabd4fe)
