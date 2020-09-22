@@ -82,6 +82,8 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -93,6 +95,8 @@ import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
 import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
 
 public class Page extends EventEmitter {
+
+    private static final ExecutorService reloadExecutor = Executors.newSingleThreadExecutor();
 
     private Set<FileChooserCallBack> fileChooserInterceptors;
 
@@ -1799,8 +1803,8 @@ public class Page extends EventEmitter {
      */
     public Response reload(PageNavigateOptions options) throws ExecutionException, InterruptedException {
         CountDownLatch reloadLatch = new CountDownLatch(1);
-        Helper.commonExecutor().submit(() -> {
-            /*先执行reload命令，不用等待返回*/
+        Page.reloadExecutor.submit(() -> {
+            /*执行reload命令，不用等待返回*/
             try {
                 reloadLatch.await();
             } catch (InterruptedException e) {
@@ -1809,10 +1813,8 @@ public class Page extends EventEmitter {
             this.client.send("Page.reload", null, true);
         });
 
-        /*再等待页面导航结果返回*/
-        Future<Response> result = Helper.commonExecutor().submit(() -> this.waitForNavigation(options,reloadLatch));
-
-        return result.get();
+        /*等待页面导航结果返回*/
+        return this.waitForNavigation(options,reloadLatch);
     }
 
     private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
