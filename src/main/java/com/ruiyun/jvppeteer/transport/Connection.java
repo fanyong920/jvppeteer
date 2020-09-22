@@ -279,7 +279,10 @@ public class Connection extends EventEmitter implements Consumer<String> {
             return;
         this.closed = true;
         for (SendMsg callback : this.callbacks.values()) {
-            LOGGER.error("Protocol error " + callback.getMethod() + " Target closed.");
+            callback.setErrorText("Protocol error " + callback.getMethod() + " Target closed.");
+            if(callback.getCountDownLatch() != null){
+                callback.getCountDownLatch().countDown();
+            }
         }
         this.callbacks.clear();
         for (CDPSession session : this.sessions.values())

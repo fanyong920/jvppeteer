@@ -54,7 +54,10 @@ public class CDPSession extends EventEmitter {
 
     public void onClosed() {
         for (SendMsg callback : callbacks.values()){
-            LOGGER.error("Protocol error ("+callback.getMethod()+"): Target closed.");
+            callback.setErrorText("Protocol error " + callback.getMethod() + " Target closed.");
+            if(callback.getCountDownLatch() != null){
+                callback.getCountDownLatch().countDown();
+            }
         }
         connection = null;
         callbacks.clear();
