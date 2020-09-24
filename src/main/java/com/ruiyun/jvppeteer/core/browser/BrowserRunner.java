@@ -368,9 +368,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      *
      * @return 是否关闭
      */
-    public boolean closeQuietly() {
+    public void closeQuietly() {
         if (this.getClosed()) {
-            return true;
+            return ;
         }
         Helper.removeEventListeners(this.listeners);
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
@@ -382,7 +382,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                 this.connection.send("Browser.close", null, false);
             }
         }
-        return true;
     }
 
     /**

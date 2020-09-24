@@ -36,7 +36,7 @@ public class Puppeteer {
 
     private String projectRoot = System.getProperty("user.dir");
 
-    private String preferredRevision;
+    private String preferredRevision = Constant.VERSION;
 
     private boolean isPuppeteerCore;
 
@@ -46,7 +46,7 @@ public class Puppeteer {
 
     public Puppeteer(String projectRoot, String preferredRevision, boolean isPuppeteerCore, String productName) {
         this.projectRoot = projectRoot;
-        this.preferredRevision = preferredRevision;
+        this.preferredRevision = StringUtil.isEmpty(preferredRevision) ? Constant.VERSION : preferredRevision;
         this.isPuppeteerCore = isPuppeteerCore;
         this.productName = productName;
     }
