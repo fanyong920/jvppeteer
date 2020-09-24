@@ -167,14 +167,10 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * kill 掉浏览器进程
      */
     public void kill() {
-        //kill chrome process
-        if (process != null && process.isAlive()) {
-            process.destroyForcibly();
-        }
+        this.destroyForcibly();
         //delete user-data-dir
         try {
             if (StringUtil.isNotEmpty(tempDirectory)) {
-
                 removeFolderByCmd(tempDirectory);
 //                FileUtil.removeFolder(tempDirectory);
                 //同时把以前没删除干净的文件夹也重新删除一遍
@@ -192,28 +188,38 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             }
 
         } catch (Exception e) {
-            LOGGER.error("kill chrome process error ",e);
+            LOGGER.error("kill chrome process error ", e);
+        }
+    }
+
+    /**
+     * 强制结束浏览器进程
+     */
+    public void destroyForcibly() {
+        if (process != null && process.isAlive()) {
+            process.destroyForcibly();
         }
     }
 
     /**
      * 通过命令行删除文件夹
+     *
      * @throws IOException
      */
     private void removeFolderByCmd(String path) throws IOException, InterruptedException {
-        if(StringUtil.isEmpty(path) || "*".equals(path)){
+        if (StringUtil.isEmpty(path) || "*".equals(path)) {
             return;
         }
         Process delProcess = null;
-        if(Helper.isWindows()){
-             delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q " + path);
-        }else if(Helper.isLinux() || Helper.isMac()){
-            String[] cmd = new String[] { "/bin/sh", "-c", "rm -rf " + path};
+        if (Helper.isWindows()) {
+            delProcess = Runtime.getRuntime().exec("cmd /c rd /s /q " + path);
+        } else if (Helper.isLinux() || Helper.isMac()) {
+            String[] cmd = new String[]{"/bin/sh", "-c", "rm -rf " + path};
             delProcess = Runtime.getRuntime().exec(cmd);
         }
-       if(!delProcess.waitFor(10000,TimeUnit.MILLISECONDS)) {
-           delProcess.destroyForcibly();
-       }
+        if (!delProcess.waitFor(10000, TimeUnit.MILLISECONDS)) {
+            delProcess.destroyForcibly();
+        }
     }
 
     /**
@@ -371,10 +377,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             this.kill();
         } else if (this.connection != null) {
             // Attempt to close the browser gracefully
-            try {
+            this.destroyForcibly();
+            if (process != null && process.isAlive()) {
                 this.connection.send("Browser.close", null, false);
-            } catch (Exception e) {
-                this.kill();
             }
         }
         return true;
