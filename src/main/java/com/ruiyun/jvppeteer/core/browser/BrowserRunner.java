@@ -348,7 +348,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                 browserRunner.kill();
             } else if (browserRunner.getConnection() != null) {
                 try {
-                    browserRunner.getConnection().send("Browser.close", null, true);
+                    browserRunner.getConnection().send("Browser.close", null, false);
                 } catch (Exception e) {
                     browserRunner.kill();
                 }
