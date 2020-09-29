@@ -131,8 +131,8 @@ public class Mouse {
 
     /**
      * 触发一个鼠标滚轮事件
-     * @param deltaX
-     * @param deltaY
+     * @param deltaX 坐标x
+     * @param deltaY 坐标y
      */
     public void wheel(double deltaX, double deltaY) {
         Map<String, Object> params = new HashMap<>();

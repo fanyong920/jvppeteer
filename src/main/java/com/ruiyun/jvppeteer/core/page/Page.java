@@ -1671,6 +1671,7 @@ public class Page extends EventEmitter {
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
      *
      * @param options 选项
+     * @return pdf文件的字节数组数据
      * @throws IOException 异常
      */
     public byte[] pdf(PDFOptions options) throws IOException {
@@ -1965,6 +1966,7 @@ public class Page extends EventEmitter {
      *
      * @param selectorOrFunctionOrTimeout 选择器, 方法 或者 超时时间
      * @return 代表页面元素的一个实例
+     * @throws InterruptedException 打断异常
      */
     public JSHandle waitFor(String selectorOrFunctionOrTimeout) throws InterruptedException {
         return this.waitFor(selectorOrFunctionOrTimeout, new WaitForSelectorOptions(),new ArrayList<>());
@@ -2029,6 +2031,7 @@ public class Page extends EventEmitter {
      *
      * @param pageFunction 要在浏览器实例上下文执行的方法
      * @return JSHandle
+     * @throws InterruptedException 打断异常
      */
     public JSHandle waitForFunction(String pageFunction) throws InterruptedException {
         return this.waitForFunction(pageFunction, new WaitForSelectorOptions());
@@ -2038,7 +2041,8 @@ public class Page extends EventEmitter {
      * 要在浏览器实例上下文执行方法
      *
      * @param pageFunction 要在浏览器实例上下文执行的方法
-     * @return JSHandle
+     * @param args js函数的参数
+     * @return JSHandle 指定的页面元素 对象
      * @throws InterruptedException 异常
      */
     public JSHandle waitForFunction(String pageFunction, List<Object> args) throws InterruptedException {

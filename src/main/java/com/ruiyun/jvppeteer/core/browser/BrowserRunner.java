@@ -365,8 +365,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     /**
      * 关闭浏览器
-     *
-     * @return 是否关闭
      */
     public void closeQuietly() {
         if (this.getClosed()) {

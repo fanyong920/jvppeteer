@@ -213,6 +213,7 @@ public class Helper {
      * @param path    文件存放的路径
      * @param isSync 是否是在新的线程中执行
      * @throws IOException 操作文件的异常
+     * @return 可能是feture，可能是字节数组
      */
     public static final Object readProtocolStream(CDPSession client, String handler, String path, boolean isSync) throws IOException {
         if (isSync) {
@@ -477,7 +478,8 @@ public class Helper {
 
     /**
      * 判断js字符串是否是一个函数
-     * @param pageFunction
+     * @param pageFunction js字符串
+     * @return true代表是js函数
      */
     public static final boolean isFunction(String pageFunction){
         pageFunction = pageFunction.trim();

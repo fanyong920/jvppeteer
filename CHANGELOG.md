@@ -85,3 +85,11 @@
 #### New Feature
 
 - [暴露on方法实现自定义事件监听](https://github.com/fanyong920/jvppeteer/commit/817a1ab012eea5785dfe6d2c5dd8e2fa0aabd4fe)
+
+## Version Release 1.1.0 (2020/09/29)
+
+#### Bugs Fixed
+
+- [统一优先采用Process类关闭浏览器](https://github.com/fanyong920/jvppeteer/commit/f9f2a3f3d8e4740e1290dd41300080654cb54db2)
+- [浏览器关闭时，对正在等待的callback进行释放，防止卡死](https://github.com/fanyong920/jvppeteer/commit/c2af123627032380c072bc6a17fadd7864355fa4)
+- [刷新頁面採用新的單獨線程池](https://github.com/fanyong920/jvppeteer/commit/b17c630d247f8dfb457f56d7241c96f45f183bac)

@@ -20,7 +20,7 @@
         <httpasyncclient.version>4.1.4</httpasyncclient.version>
         <nuprocess.version>2.0.0</nuprocess.version>
         <htmlparse.version>2.1</htmlparse.version>
-        <jvppeteer.version>1.0.9</jvppeteer.version>
+        <jvppeteer.version>1.1.0</jvppeteer.version>
         <htmlunit.version>2.38.0</htmlunit.version>
     </properties>
     <dependencies>
