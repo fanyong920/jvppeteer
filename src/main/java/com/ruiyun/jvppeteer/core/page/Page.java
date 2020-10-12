@@ -55,7 +55,7 @@ import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
@@ -70,6 +70,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1057,7 +1058,7 @@ public class Page extends EventEmitter {
             this.setViewport(this.viewport);
         String data = result.get("data").asText();
 //            byte[] buffer = decoder.decodeBuffer(data);
-        byte[] buffer = Base64.decode(data);
+        byte[] buffer = Base64.getDecoder().decode(data);
         if (StringUtil.isNotEmpty(options.getPath())) {
             Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }

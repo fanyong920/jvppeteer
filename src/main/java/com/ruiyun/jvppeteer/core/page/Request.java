@@ -8,9 +8,9 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -262,7 +262,7 @@ public class Request {
             params.put("responsePhrase", STATUS_TEXTS.get(status));
             params.put("responseHeaders", headersArray(responseHeaders));
             if (responseBody != null) {
-                params.put("body", Base64.encode(responseBody));
+                params.put("body", Base64.getDecoder().decode(responseBody));
             }
             return client.send("Fetch.fulfillRequest", params, true);
         });

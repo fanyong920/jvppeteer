@@ -11,7 +11,6 @@ import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -263,7 +263,7 @@ public class Helper {
                 if (dataNode != null && StringUtil.isNotEmpty(dataText = dataNode.asText())) {
                     try {
                         if (base64EncodedNode != null && base64EncodedNode.asBoolean()) {
-                            bytes = Base64.decode(dataText);
+                            bytes = Base64.getDecoder().decode(dataText);
                         } else {
                             bytes = dataNode.asText().getBytes();
                         }

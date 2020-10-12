@@ -6,11 +6,11 @@ import com.ruiyun.jvppeteer.protocol.network.RemoteAddress;
 import com.ruiyun.jvppeteer.protocol.network.ResponsePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
+
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -107,7 +107,7 @@ public class Response {
             JsonNode response = this.client.send("Network.getResponseBody", params, true);
             if(response != null){
                 if(response.get("base64Encoded").asBoolean()){
-                    contentPromise = Base64.decode(response.get("body").asText());
+                    contentPromise = Base64.getDecoder().decode(response.get("body").asText());
                 }else{
                     contentPromise =  response.get("body").asText().getBytes(StandardCharsets.UTF_8);
                 }
