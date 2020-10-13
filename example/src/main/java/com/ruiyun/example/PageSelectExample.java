@@ -32,10 +32,25 @@ public class PageSelectExample {
         String classPath = PageSelectExample.class.getResource("/").toString();
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
-        page.goTo(classPath+"/testSelect.html");
+        page.setContent("<html>\n" +
+                "\n" +
+                "<head>\n" +
+                "<title>我的第一个 HTML 页面</title>\n" +
+                "</head>\n" +
+                "\n" +
+                "<body>\n" +
+                "<p>body 元素的内容会显示在浏览器中。</p>\n" +
+                "<p>title 元素的内容会显示在浏览器的标题栏中。</p>\n" +
+                "</body>\n" +
+                " <select class=\"dType\" id=\"dType\" style=\"width: 100px;height: 85px\">\n" +
+                "            <option value=\"\">请选择</option>\n" +
+                "            <option value=\"1\">男</option>\n" +
+                "            <option value=\"2\">女</option>\n" +
+                "    </select>\n" +
+                "</html>");
         List<String> cc = new ArrayList<>();
-        cc.add("3");
+        cc.add("1");
         Thread.sleep(3000);
-        page.select("#select_01",cc);
+        page.select("#dType",cc);
     }
 }

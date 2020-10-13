@@ -14,7 +14,7 @@ import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 
 import java.util.ArrayList;
 
-public class PagescreenshotExample {
+public class PageScreenshotExample {
 
     public static void main(String[] args) throws Exception {
         //自动下载，第一次下载后不会再下载

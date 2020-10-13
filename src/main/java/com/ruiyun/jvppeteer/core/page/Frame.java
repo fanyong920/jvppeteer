@@ -135,7 +135,7 @@ public class Frame {
         this.secondaryWorld.focus(selector);
     }
 
-    public void hover(String selector) throws ExecutionException, InterruptedException {
+    public void hover(String selector) {
         this.secondaryWorld.hover(selector);
     }
 

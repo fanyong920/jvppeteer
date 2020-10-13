@@ -1616,10 +1616,8 @@ public class Page extends EventEmitter {
      * 此方法找到一个匹配的元素，如果需要会把此元素滚动到可视，然后通过 page.mouse 来hover到元素的中间。 如果没有匹配的元素，此方法将会报错。
      *
      * @param selector 要hover的元素的选择器。如果有多个匹配的元素，hover第一个。
-     * @throws ExecutionException 并发异常
-     * @throws InterruptedException 打断异常
      */
-    public void hover(String selector) throws ExecutionException, InterruptedException {
+    public void hover(String selector) {
         this.mainFrame().hover(selector);
     }
 

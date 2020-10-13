@@ -353,7 +353,7 @@ public class DOMWorld {
         handle.dispose();
     }
 
-    public void hover(String selector) throws ExecutionException, InterruptedException {
+    public void hover(String selector) {
         ElementHandle handle = this.$(selector);
         ValidateUtil.assertArg(handle != null, "No node found for selector: " + selector);
         handle.hover();

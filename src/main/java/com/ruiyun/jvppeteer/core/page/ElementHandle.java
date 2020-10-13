@@ -347,7 +347,7 @@ public class ElementHandle extends JSHandle {
         this.evaluate("element => element.focus()",new ArrayList<>());
     }
 
-    public void hover() throws ExecutionException, InterruptedException {
+    public void hover() {
         this.scrollIntoViewIfNeeded();
         ClickablePoint clickablePoint = this.clickablePoint();
         this.page.mouse().move(clickablePoint.getX(), clickablePoint.getX(), 0);
