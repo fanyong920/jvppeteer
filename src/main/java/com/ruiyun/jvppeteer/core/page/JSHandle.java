@@ -36,11 +36,14 @@ public class JSHandle {
     }
 
     public Object evaluate(String pageFunction, List<Object> args) {
-        if(args != null){
-            args = new ArrayList<>();
-        }
-        args.add(this);
-        return this.executionContext().evaluate(pageFunction, args);
+//        if(args != null){
+//            args = new ArrayList<>();
+//        }
+//        args.add(this);
+        List<Object> finArgs = new ArrayList<>();
+        finArgs.add(this);
+        finArgs.addAll(args);
+        return this.executionContext().evaluate(pageFunction, finArgs);
     }
 
     public Object evaluateHandle(String pageFunction, List<Object> args) {
