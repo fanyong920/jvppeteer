@@ -197,24 +197,32 @@ public class Request {
      * @param headers  请求头
      * @return Future
      */
-    public Future<JsonNode> continueRequest(String url, String method, String postData, Map<String, String> headers) {
-        return Helper.commonExecutor().submit(() -> {
-            // Request interception is not supported for data: urls.
-            if (url().startsWith("data:"))
-                return null;
-            ValidateUtil.assertArg(isAllowInterception(), "Request Interception is not enabled!");
-            ValidateUtil.assertArg(!isInterceptionHandled(), "Request is already handled!");
-            setInterceptionHandled(true);
-            Map<String, Object> params = new HashMap<>();
-            params.put("requestId", interceptionId());
+    public JsonNode continueRequest(String url, String method, String postData, Map<String, String> headers) {
+        // Request interception is not supported for data: urls.
+        if (url().startsWith("data:"))
+            return null;
+
+        ValidateUtil.assertArg(isAllowInterception(), "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!isInterceptionHandled(), "Request is already handled!");
+
+        setInterceptionHandled(true);
+        Map<String, Object> params = new HashMap<>();
+        params.put("requestId", interceptionId());
+
+        if(StringUtil.isNotEmpty(url)) {
             params.put("url", url);
+        }
+        if(StringUtil.isNotEmpty(method)) {
             params.put("method", method);
-            params.put("postData", postData);
-            if (headers != null && headers.size() > 0) {
-                params.put("headers", headersArray(headers));
-            }
-            return client.send("Fetch.continueRequest", params, true);
-        });
+        }
+        if(StringUtil.isNotEmpty(postData)){
+            params.put("postData", new String(Base64.getEncoder().encode(postData.getBytes()),StandardCharsets.UTF_8));
+        }
+
+        if (headers != null && headers.size() > 0) {
+            params.put("headers", headersArray(headers));
+        }
+        return client.send("Fetch.continueRequest", params, true);
     }
 
     /**
@@ -232,40 +240,43 @@ public class Request {
      * @param body 响应体
      * @return Future
      */
-    public Future<JsonNode> respond(int status, Map<String, String> headers, String contentType, String body) {
-        return Helper.commonExecutor().submit(() -> {
-            // Mocking responses for dataURL requests is not currently supported.
-            if (url().startsWith("data:"))
-                return null;
-            ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
-            ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
-            setInterceptionHandled(true);
-            byte[] responseBody = null;
-            if (StringUtil.isNotEmpty(body)) {
-                responseBody = body.getBytes(StandardCharsets.UTF_8);
-            }
-            Map<String, String> responseHeaders = new HashMap<>();
-            if (headers != null && headers.size() > 0) {
-                for (Map.Entry<String, String> entry : headers.entrySet())
-                    responseHeaders.put(entry.getKey().toLowerCase(), entry.getValue());
-            }
-            if (StringUtil.isNotEmpty(contentType)){
-                responseHeaders.put("content-type", contentType);
-            }
+    public JsonNode respond(int status, Map<String, String> headers, String contentType, String body) {
+        // Mocking responses for dataURL requests is not currently supported.
+        if (url().startsWith("data:"))
+            return null;
 
-            if (responseBody != null && !responseHeaders.containsKey("content-length")){
-                responseHeaders.put("content-length", String.valueOf(responseBody.length));
-            }
-            Map<String, Object> params = new HashMap<>();
-            params.put("requestId", interceptionId);
-            params.put("responseCode", status);
-            params.put("responsePhrase", STATUS_TEXTS.get(status));
-            params.put("responseHeaders", headersArray(responseHeaders));
-            if (responseBody != null) {
-                params.put("body", Base64.getDecoder().decode(responseBody));
-            }
-            return client.send("Fetch.fulfillRequest", params, true);
-        });
+        ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
+
+        setInterceptionHandled(true);
+        byte[] responseBody = null;
+        if (StringUtil.isNotEmpty(body)) {
+            responseBody = body.getBytes(StandardCharsets.UTF_8);
+        }
+        Map<String, String> responseHeaders = new HashMap<>();
+
+        if (headers != null && headers.size() > 0) {
+            for (Map.Entry<String, String> entry : headers.entrySet())
+                responseHeaders.put(entry.getKey().toLowerCase(), entry.getValue());
+        }
+
+        if (StringUtil.isNotEmpty(contentType)){
+            responseHeaders.put("content-type", contentType);
+        }
+
+        if (responseBody != null && !responseHeaders.containsKey("content-length")){
+            responseHeaders.put("content-length", String.valueOf(responseBody.length));
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("requestId", interceptionId);
+        params.put("responseCode", status);
+        params.put("responsePhrase", STATUS_TEXTS.get(status));
+        params.put("responseHeaders", headersArray(responseHeaders));
+        if (responseBody != null) {
+            params.put("body", Base64.getDecoder().decode(responseBody));
+        }
+        return client.send("Fetch.fulfillRequest", params, true);
     }
 
     /**
@@ -274,20 +285,21 @@ public class Request {
      * @param errorCode errorCode错误码
      * @return Future
      */
-    public Future<JsonNode> abort(ErrorCode errorCode) {
-      return Helper.commonExecutor().submit(() -> {
-          // Request interception is not supported for data: urls.
-          if (url().startsWith("data:"))
-              return null;
-          String errorReason = errorCode.getName();
-          ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
-          ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
-          setInterceptionHandled(true);
-          Map<String, Object> params = new HashMap<>();
-          params.put("requestId", interceptionId);
-          params.put("errorReason", errorReason);
-          return client.send("Fetch.failRequest", params, true);
-      });
+    public JsonNode abort(ErrorCode errorCode) {
+      // Request interception is not supported for data: urls.
+      if (url().startsWith("data:"))
+          return null;
+
+      String errorReason = errorCode.getName();
+      ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
+      ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
+
+      setInterceptionHandled(true);
+      Map<String, Object> params = new HashMap<>();
+      params.put("requestId", interceptionId);
+      params.put("errorReason", errorReason);
+      return client.send("Fetch.failRequest", params, true);
+
     }
 
     private List<HeaderEntry> headersArray(Map<String, String> headers) {
@@ -301,6 +313,9 @@ public class Request {
         return result;
     }
 
+    /**
+     * 截断请求
+     */
     public void abort() {
         this.abort(ErrorCode.FAILED);
     }

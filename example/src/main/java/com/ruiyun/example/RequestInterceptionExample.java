@@ -25,25 +25,28 @@ public class RequestInterceptionExample {
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
-        page.emulate(Device.IPHONE_X);
-//        System.out.println("sdaad");
+
         PageNavigateOptions options1 = new PageNavigateOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
         options1.setWaitUntil(Collections.singletonList("domcontentloaded"));
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",options1);
-        //拦截请求
-//        page.onRequest(request -> {
-//            if ("image".equals(request.resourceType()) || "media".equals(request.resourceType())) {
-//                //遇到多媒体或者图片资源请求，拒绝，加载页面加载
-//                System.out.println(request.url()+": "+request.resourceType()+": abort");
-//                request.abort();
-//            } else {//其他资源放行
-//                request.continueRequest();
-//            }
-//        });
-//        page.setRequestInterception(true);
 
-        page.goTo("https://item.taobao.com/item.htm?id=541605195654",options1);
+        page.setRequestInterception(true);
+        //拦截请求
+        page.onRequest(request -> {
+            if ("image".equals(request.resourceType())) {
+                //遇到多媒体或者图片资源请求，拒绝，加载页面加载
+                System.out.println(request.url()+": "+request.resourceType()+": abort");
+                request.abort();
+            } else if(request.url().contains("wd=31")){
+                request.continueRequest();
+            }
+            else{//其他资源放行
+                request.continueRequest();
+            }
+        });
+
+
+        page.goTo("https://www.baidu.com/s?cl=3&tn=baidutop10&fr=top1000&wd=31%E7%9C%81%E5%8C%BA%E5%B8%82%E6%96%B0%E5%A2%9E%E5%A2%83%E5%A4%96%E8%BE%93%E5%85%A513%E4%BE%8B&rsv_idx=2&rsv_dl=fyb_n_homepage&hisfilter=1",options1);
 
     }
 }
