@@ -9,7 +9,7 @@
 
 - [前言](#前言)
 - [环境变量](#环境变量)
-- [Working with Chrome Extensions](#working-with-chrome-extensions)
+- [与 Chrome 插件一起工作](#与 Chrome 插件一起工作)
 - [class: Puppeteer](#class-puppeteer)
   * [puppeteer.connect(options)](#puppeteerconnectoptions)
   * [puppeteer.createBrowserFetcher([options])](#puppeteercreatebrowserfetcheroptions)
@@ -350,6 +350,7 @@ Jvppeteer寻找某些环境变量来辅助其操作，通过System.setProperty()
 
 - `PUPPETEER_CHROMIUM_REVISION` - 当你下载多个版本时，指定一个版本进行启动
 - `PUPPETEER_EXECUTABLE_PATH` - 直接指定 Chrome 或者 Chromium 的启动路径。与 [puppeteer.launch([options])](#puppeteerlaunchoptions)的executablePath 参数功能一致。
+- jvppeteer_common_thread_number -  Jvppeteer内置了一个线程池，主要用于用户监听事件分发，该参数可以自定义内置线程池线程数量，默认是服务器核数。
 
 
 ### 与 Chrome 插件一起工作
@@ -384,143 +385,93 @@ browser.close();
 
 > **注意** 尚无法测试插件的弹出窗口或内容脚本。
 
-### class: Jvppeteer
+### class: Puppeteer
 
-Puppeteer module provides a method to launch a Chromium instance.
-The following is a typical example of using Puppeteer to drive automation:
+Puppeteer 提供了启动 Chrome 的方法，下面是典型的启动 Chrome 的例子
 
-```js
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto('https://www.google.com');
-  // other actions...
-  await browser.close();
-})();
+```java
+		//自动下载，第一次下载后不会再下载
+		BrowserFetcher.downloadIfNotExist(null);
+		Browser browser = Puppeteer.launch(false);
+		Page page = browser.newPage();
+		page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+		// 做一些其他操作
+		browser.close();
 ```
 
 #### puppeteer.connect(options)
-- `options` <[Object]>
-  - `browserWSEndpoint` <?[string]> a [browser websocket endpoint](#browserwsendpoint) to connect to.
-  - `browserURL` <?[string]> a browser url to connect to, in format `http://${host}:${port}`. Use interchangeably with `browserWSEndpoint` to let Puppeteer fetch it from [metadata endpoint](https://chromedevtools.github.io/devtools-protocol/#how-do-i-access-the-browser-target).
-  - `ignoreHTTPSErrors` <[boolean]> Whether to ignore HTTPS errors during navigation. Defaults to `false`.
-  - `defaultViewport` <?[Object]> Sets a consistent viewport for each page. Defaults to an 800x600 viewport. `null` disables the default viewport.
-    - `width` <[number]> page width in pixels.
-    - `height` <[number]> page height in pixels.
-    - `deviceScaleFactor` <[number]> Specify device scale factor (can be thought of as dpr). Defaults to `1`.
-    - `isMobile` <[boolean]> Whether the `meta viewport` tag is taken into account. Defaults to `false`.
-    - `hasTouch`<[boolean]> Specifies if viewport supports touch events. Defaults to `false`
-    - `isLandscape` <[boolean]> Specifies if viewport is in landscape mode. Defaults to `false`.
-  - `slowMo` <[number]> Slows down Puppeteer operations by the specified amount of milliseconds. Useful so that you can see what is going on.
-  - `transport` <[ConnectionTransport]> **Experimental** Specify a custom transport object for Puppeteer to use.
-  - `product` <[string]> Possible values are: `chrome`, `firefox`. Defaults to `chrome`.
-- returns: <[Promise]<[Browser]>>
+- `options` <[BrowserOptions]>
+  - `ignoreHTTPSErrors` <[boolean]> 是否在导航期间忽略 HTTPS 错误. 默认是 `false`。
+  - `defaultViewport` <?[Object]>  为每个页面设置一个默认视口大小。默认是 800x600。如果为 `null` 的话就禁用视图口。
+    - `width` <[number]> 页面宽度像素。
+    - `height` <[number]> 页面高度像素。
+    - `deviceScaleFactor` <[number]>  设置设备的缩放（可以认为是 dpr）。默认是 `1`。
+    - `isMobile` <[boolean]> 是否在页面中设置了 `meta viewport` 标签。默认是 `false`。
+    - `hasTouch`<[boolean]> 指定viewport是否支持触摸事件。默认是 `false`。
+    - `isLandscape` <[boolean]> 指定视口是否处于横向模式。默认是 `false`。
+  - `slowMo` <[number]>  将 Puppeteer 操作减少指定的毫秒数。这样你就可以看清发生了什么，这很有用。
+- `browserWSEndpoint` <?[string]> 一个 浏览器 websocket 端点链接
+- `browserURL` <?[string]> 连接浏览器的地址，格式 `http://${host}:${port}`. 通过这个地址从  [元数据端点](https://chromedevtools.github.io/devtools-protocol/#how-do-i-access-the-browser-target)获取到对应的 `browserWSEndpoint`，然后通过这个端点连接浏览器
+- `transport` <[ConnectionTransport]> 指定供Puppeteer使用的自定义传输对象，还处于实验性阶段
+- `product` <[string]> 目前只支持 `chrome`.
+- returns: <[Browser]>
 
-This methods attaches Puppeteer to an existing browser instance.
+此方法将 Puppeteer 添加到已有的 Chromium 实例
 
 #### puppeteer.createBrowserFetcher([options])
 - `options` <[Object]>
-  - `host` <[string]> A download host to be used. Defaults to `https://storage.googleapis.com`. If the `product` is `firefox`, this defaults to `https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central`.
-  - `path` <[string]> A path for the downloads folder. Defaults to `<root>/.local-chromium`, where `<root>` is puppeteer's package root. If the `product` is `firefox`, this defaults to `<root>/.local-firefox`.
-  - `platform` <"linux"|"mac"|"win32"|"win64"> [string] for the current platform. Possible values are: `mac`, `win32`, `win64`, `linux`. Defaults to the current platform.
-  - `product` <"chrome"|"firefox"> [string] for the product to run. Possible values are: `chrome`, `firefox`. Defaults to `chrome`.
+  - `host` <[string]> 要使用的下载主机. 默认是 `https://npm.taobao.org/mirrors`。
+  - `path` <[string]> 下载文件夹的路径. 默认是 `<root>/.local-chromium`, `<root>` 是 项目根目录。
+  - `platform` <"linux"|"mac"|"win32"|"win64">可能的值有: `mac`, `win32`, `win64`, `linux`。默认是当前平台。
+  - `product` <"chrome"|"firefox"> [string] 运行的浏览器类型，目前只支持 chrome
 - returns: <[BrowserFetcher]>
 
 #### puppeteer.defaultArgs([options])
-- `options` <[Object]>  Set of configurable options to set on the browser. Can have the following fields:
-  - `headless` <[boolean]> Whether to run browser in [headless mode](https://developers.google.com/web/updates/2017/04/headless-chrome). Defaults to `true` unless the `devtools` option is `true`.
-  - `args` <[Array]<[string]>> Additional arguments to pass to the browser instance. The list of Chromium flags can be found [here](http://peter.sh/experiments/chromium-command-line-switches/).
-  - `userDataDir` <[string]> Path to a [User Data Directory](https://chromium.googlesource.com/chromium/src/+/master/docs/user_data_dir.md).
-  - `devtools` <[boolean]> Whether to auto-open a DevTools panel for each tab. If this option is `true`, the `headless` option will be set `false`.
+- `options` <[Object]>  设置浏览器可选项。有一下字段：
+  - `headless` <[boolean]> 是否在 [无头模式](https://developers.google.com/web/updates/2017/04/headless-chrome) 下运行浏览器。默认是 `true` 除非 `devtools` 选项是 `true`。
+  - `args` <[Array]<[string]>> 传递给浏览器实例的其他参数。可以 [在这](http://peter.sh/experiments/chromium-command-line-switches/) 找到 Chromium 标志列表。
+  - `userDataDir` <[string]> [用户数据目录](https://chromium.googlesource.com/chromium/src/+/master/docs/user_data_dir.md) 的路径
+  - `devtools` <[boolean]> 是否为每个选项卡自动打开 DevTools 面板。如果这个选项是 `true` 的话, `headless` 选项将被设置为 `false`。
 - returns: <[Array]<[string]>>
 
-The default flags that Chromium will be launched with.
-
-#### puppeteer.devices
-- returns: <[Object]>
-
-Returns a list of devices to be used with [`page.emulate(options)`](#pageemulateoptions). Actual list of
-devices can be found in [src/common/DeviceDescriptors.js](https://github.com/puppeteer/puppeteer/blob/main/src/common/DeviceDescriptors.ts).
-
-```js
-const puppeteer = require('puppeteer');
-const iPhone = puppeteer.devices['iPhone 6'];
-
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.emulate(iPhone);
-  await page.goto('https://www.google.com');
-  // other actions...
-  await browser.close();
-})();
-```
-
-#### puppeteer.errors
-- returns: <[Object]>
-  - `TimeoutError` <[function]> A class of [TimeoutError].
-
-Puppeteer methods might throw errors if they are unable to fulfill a request. For example, [page.waitForSelector(selector[, options])](#pagewaitforselectorselector-options)
-might fail if the selector doesn't match any nodes during the given timeframe.
-
-For certain types of errors Puppeteer uses specific error classes.
-These classes are available via [`puppeteer.errors`](#puppeteererrors)
-
-An example of handling a timeout error:
-```js
-try {
-  await page.waitForSelector('.foo');
-} catch (e) {
-  if (e instanceof puppeteer.errors.TimeoutError) {
-    // Do something if this is a timeout.
-  }
-}
-```
-
-> **NOTE** The old way (Puppeteer versions <= v1.14.0) errors can be obtained with `require('puppeteer/Errors')`.
+Chromium 启动时使用的默认参数。
 
 #### puppeteer.executablePath()
-- returns: <[string]> A path where Puppeteer expects to find the bundled browser. The browser binary might not be there if the download was skipped with [`PUPPETEER_SKIP_DOWNLOAD`](#environment-variables).
-
-> **NOTE** `puppeteer.executablePath()` is affected by the `PUPPETEER_EXECUTABLE_PATH` and `PUPPETEER_CHROMIUM_REVISION` env variables. See [Environment Variables](#environment-variables) for details.
+- returns: <[string]> 运行 Chromium 的所在路径
 
 
 #### puppeteer.launch([options])
-- `options` <[Object]>  Set of configurable options to set on the browser. Can have the following fields:
-  - `product` <[string]> Which browser to launch. At this time, this is either `chrome` or `firefox`. See also `PUPPETEER_PRODUCT`.
-  - `ignoreHTTPSErrors` <[boolean]> Whether to ignore HTTPS errors during navigation. Defaults to `false`.
-  - `headless` <[boolean]> Whether to run browser in [headless mode](https://developers.google.com/web/updates/2017/04/headless-chrome). Defaults to `true` unless the `devtools` option is `true`.
-  - `executablePath` <[string]> Path to a browser executable to run instead of the bundled Chromium. If `executablePath` is a relative path, then it is resolved relative to [current working directory](https://nodejs.org/api/process.html#process_process_cwd). **BEWARE**: Puppeteer is only [guaranteed to work](https://github.com/puppeteer/puppeteer/#q-why-doesnt-puppeteer-vxxx-work-with-chromium-vyyy) with the bundled Chromium, use at your own risk.
-  - `slowMo` <[number]> Slows down Puppeteer operations by the specified amount of milliseconds. Useful so that you can see what is going on.
-  - `defaultViewport` <?[Object]> Sets a consistent viewport for each page. Defaults to an 800x600 viewport. `null` disables the default viewport.
-    - `width` <[number]> page width in pixels.
-    - `height` <[number]> page height in pixels.
-    - `deviceScaleFactor` <[number]> Specify device scale factor (can be thought of as dpr). Defaults to `1`.
-    - `isMobile` <[boolean]> Whether the `meta viewport` tag is taken into account. Defaults to `false`.
-    - `hasTouch`<[boolean]> Specifies if viewport supports touch events. Defaults to `false`
-    - `isLandscape` <[boolean]> Specifies if viewport is in landscape mode. Defaults to `false`.
-  - `args` <[Array]<[string]>> Additional arguments to pass to the browser instance. The list of Chromium flags can be found [here](http://peter.sh/experiments/chromium-command-line-switches/), and here is the list of [Firefox flags](https://developer.mozilla.org/en-US/docs/Mozilla/Command_Line_Options).
-  - `ignoreDefaultArgs` <[boolean]|[Array]<[string]>> If `true`, then do not use [`puppeteer.defaultArgs()`](#puppeteerdefaultargsoptions). If an array is given, then filter out the given default arguments. Dangerous option; use with care. Defaults to `false`.
-  - `handleSIGINT` <[boolean]> Close the browser process on Ctrl-C. Defaults to `true`.
-  - `handleSIGTERM` <[boolean]> Close the browser process on SIGTERM. Defaults to `true`.
-  - `handleSIGHUP` <[boolean]> Close the browser process on SIGHUP. Defaults to `true`.
-  - `timeout` <[number]> Maximum time in milliseconds to wait for the browser instance to start. Defaults to `30000` (30 seconds). Pass `0` to disable timeout.
-  - `dumpio` <[boolean]> Whether to pipe the browser process stdout and stderr into `process.stdout` and `process.stderr`. Defaults to `false`.
-  - `userDataDir` <[string]> Path to a [User Data Directory](https://chromium.googlesource.com/chromium/src/+/master/docs/user_data_dir.md).
-  - `env` <[Object]> Specify environment variables that will be visible to the browser. Defaults to `process.env`.
-  - `devtools` <[boolean]> Whether to auto-open a DevTools panel for each tab. If this option is `true`, the `headless` option will be set `false`.
-  - `pipe` <[boolean]> Connects to the browser over a pipe instead of a WebSocket. Defaults to `false`.
-  - `extraPrefsFirefox` <[Object]> Additional [preferences](https://developer.mozilla.org/en-US/docs/Mozilla/Preferences/Preference_reference) that can be passed to Firefox (see `PUPPETEER_PRODUCT`)
-- returns: <[Promise]<[Browser]>> Promise which resolves to browser instance.
+- `options` <[Object]>  在浏览器上设置的一组可配置选项。 有以下字段：
+  - `product` <[string]> 可以选择 chrome 或者 firrfox，目前只支持 chrome
+  - `ignoreHTTPSErrors` <[boolean]>是否在导航期间忽略 HTTPS 错误. 默认是 `false`。
+  - `headless` <[boolean]> 是否以 [无头模式](https://developers.google.com/web/updates/2017/04/headless-chrome) 运行浏览器。默认是 `true`，除非 `devtools` 选项是 `true`。
+  - `executablePath` <[string]> 可运行 Chromium 或 Chrome 可执行文件的路径，而不是绑定的 Chromium。如果 `executablePath` 是一个相对路径，那么他相对于 当前项目根目录 解析。
+  - `slowMo` <[int]> 将 Puppeteer 操作减少指定的毫秒数。这样你就可以看清发生了什么，这很有用。
+  - `defaultViewport` <?[Viewport]>为每个页面设置一个默认视口大小。默认是 800x600。如果为 `null` 的话就禁用视图口。
+    - `width` <[int]> 页面宽度像素。
+    - `height` <[int]> 页面高度像素。
+    - `deviceScaleFactor` <[Number]> 设置设备的缩放（可以认为是 dpr）。默认是 `1`
+    - `isMobile` <[boolean]> 是否在页面中设置了 `meta viewport` 标签。默认是 `false`。
+    - `hasTouch`<[boolean]>指定viewport是否支持触摸事件。默认是 `false`。
+    - `isLandscape` <[boolean]>  指定视口是否处于横向模式。默认是 `false`。
+  - `args` <[Array]<[string]>>  传递给浏览器实例的其他参数。 这些参数可以参考 [这里](http://peter.sh/experiments/chromium-command-line-switches/)。
+  - `ignoreAllDefaultArgs` <[boolean]> 如果是 `true`，那将不使用默认参数
+  - `ignoreDefaultArgs` <[Array<[string]>]> 忽略指定的默认参数
+  - `handleSIGINT` <[boolean]> Ctrl-C 关闭浏览器进程。默认是 `true`。
+  - `handleSIGTERM` <[boolean]> 关闭 SIGTERM 上的浏览器进程。默认是 `true`。
+  - `handleSIGHUP` <[boolean]> 关闭 SIGHUP 上的浏览器进程。默认是 `true`.
+  - `timeout` <[number]> 等待浏览器实例启动的最长时间（以毫秒为单位）。默认是 `30000` (30 秒). 通过 `0` 来禁用超时。
+  - `dumpio` <[boolean]> 是否将浏览器进程标准输出和标准错误输入到 `System.out` 和 `System.err` 中。默认是 `false`。
+  - `userDataDir` <[string]> [用户数据目录](https://chromium.googlesource.com/chromium/src/+/master/docs/user_data_dir.md) 路径。
+  - `devtools` <[boolean]> 是否为每个选项卡自动打开DevTools面板。如果这个选项是 `true`，`headless` 选项将会设置成 `false`。
+  - `pipe` <[boolean]> 通过管道而不是WebSocket连接到浏览器。默认是 `false`。目前 Java 暂时不支持管道连接浏览器
+- returns: <[Browser]> 浏览器实例
 
 
-You can use `ignoreDefaultArgs` to filter out `--mute-audio` from default arguments:
-```js
-const browser = await puppeteer.launch({
-  ignoreDefaultArgs: ['--mute-audio']
-});
+你可以使用 `ignoreDefaultArgs` 过滤默认参数中的 `--enable-automation` :
+```java
+LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Arrays.asList("--enable-automation")).withHeadless(false).build();
+		Browser browser = Puppeteer.launch(launchOptions);
 ```
 
 > **NOTE** Puppeteer can also be used to control the Chrome browser, but it works best with the version of Chromium it is bundled with. There is no guarantee it will work with any other version. Use `executablePath` option with extreme caution.

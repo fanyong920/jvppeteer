@@ -27,8 +27,8 @@ public class FirefoxLauncher implements Launcher {
 	}
 
 	@Override
-	public void defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
-
+	public List<String> defaultArgs(ChromeArgOptions options) {
+		return null;
 	}
 
 

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -54,9 +56,8 @@ public class ChromeLauncher implements Launcher {
 
     @Override
     public Browser launch(LaunchOptions options) throws IOException {
-        List<String> chromeArguments = new ArrayList<>();
         String temporaryUserDataDir = null;
-        defaultArgs(options, chromeArguments);
+        List<String> chromeArguments = defaultArgs(options);
 
         List<String> ignoreDefaultArgs;
         if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
@@ -101,11 +102,13 @@ public class ChromeLauncher implements Launcher {
     }
 
     /**
-     * @param options 选项
-     * @param chromeArguments 要启动的参数集合
+     * 返回默认的启动参数
+     * @param options 自定义的参数
+     * @return 默认的启动参数
      */
     @Override
-    public void defaultArgs(ChromeArgOptions options, List<String> chromeArguments) {
+    public List<String> defaultArgs(ChromeArgOptions options) {
+        List<String> chromeArguments = new ArrayList<>();
         LaunchOptions launchOptions;
         if(StringUtil.isNotEmpty(options.getUserDataDir())){
             chromeArguments.add("--user-data-dir="+options.getUserDataDir());
@@ -132,6 +135,7 @@ public class ChromeLauncher implements Launcher {
                 chromeArguments.addAll(Constant.DEFAULT_ARGS);
             }
         }
+        return chromeArguments;
     }
 
     /**
@@ -149,7 +153,7 @@ public class ChromeLauncher implements Launcher {
         if (!puppeteerCore) {
             /*指定了启动路径，则启动指定路径的chrome*/
             if (StringUtil.isNotEmpty(chromeExecutable)) {
-                boolean assertDir = FileUtil.assertExecutable(chromeExecutable);
+                boolean assertDir = FileUtil.assertExecutable(Paths.get(chromeExecutable).normalize().toAbsolutePath().toString());
                 if (!assertDir) {
                     throw new IllegalArgumentException("given chromeExecutable \"" + chromeExecutable + "\" is not executable");
                 }
@@ -242,6 +246,13 @@ public class ChromeLauncher implements Launcher {
 
     }
 
+    /**
+     * 通过格式为 http://${host}:${port} 的地址发送 GET 请求获取浏览器的 WebSocket 连接端点
+     *
+     * @param browserURL 浏览器地址
+     * @return WebSocket 连接端点
+     * @throws IOException 请求出错
+     */
     private String getWSEndpoint(String browserURL) throws IOException {
         URI uri = URI.create(browserURL).resolve("/json/version");
         URL url = uri.toURL();

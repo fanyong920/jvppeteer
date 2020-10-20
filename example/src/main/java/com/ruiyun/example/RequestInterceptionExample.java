@@ -45,7 +45,6 @@ public class RequestInterceptionExample {
             }
         });
 
-
         page.goTo("https://www.baidu.com/s?cl=3&tn=baidutop10&fr=top1000&wd=31%E7%9C%81%E5%8C%BA%E5%B8%82%E6%96%B0%E5%A2%9E%E5%A2%83%E5%A4%96%E8%BE%93%E5%85%A513%E4%BE%8B&rsv_idx=2&rsv_dl=fyb_n_homepage&hisfilter=1",options1);
 
     }

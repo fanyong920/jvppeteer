@@ -82,7 +82,9 @@ public class Puppeteer {
     /**
      * 连接一个已经存在的浏览器实例
      * browserWSEndpoint、browserURL、transport有其中一个就行了
-     *
+     * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
+     * <p>browserURL: 类似 localhost:8080 这个地址</p>
+     * <p>transport: 之前已经创建好的 ConnectionTransport</p>
      * @param options 连接的浏览器选项
      * @param browserWSEndpoint websocket http transport 三选一
      * @param browserURL        websocket http transport 三选一
@@ -97,6 +99,37 @@ public class Puppeteer {
             puppeteer.setProductName(product);
 		adapterLauncher(puppeteer);
 		return puppeteer.getLauncher().connect(options, browserWSEndpoint, browserURL, transport);
+    }
+
+    /**
+     * 连接一个已经存在的浏览器实例
+     * browserWSEndpoint、browserURL、transport有其中一个就行了
+     * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
+     * <p>browserURL: 类似 localhost:8080 这个地址</p>
+     * <p>transport: 之前已经创建好的 ConnectionTransport</p>
+     * @param options 连接的浏览器选项
+     * @param browserWSEndpoint websocket http transport 三选一
+     * @param browserURL        websocket http transport 三选一
+     * @param transport  websocket http transport 三选一
+     * @return 浏览器实例
+     */
+    public static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
+       return Puppeteer.connect(options,browserWSEndpoint,browserURL,transport,null);
+    }
+
+    /**
+     * 连接一个已经存在的浏览器实例
+     * browserWSEndpoint、browserURL、transport有其中一个就行了
+     * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
+     * <p>browserURL: 类似 localhost:8080 这个地址</p>
+     * <p>transport: 之前已经创建好的 ConnectionTransport</p>
+     * @param browserWSEndpoint websocket http transport 三选一
+     * @param browserURL        websocket http transport 三选一
+     * @param transport  websocket http transport 三选一
+     * @return 浏览器实例
+     */
+    public static Browser connect(String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
+        return Puppeteer.connect(new BrowserOptions(),browserWSEndpoint,browserURL,transport,null);
     }
 
     /**
@@ -146,10 +179,13 @@ public class Puppeteer {
         puppeteer.setLauncher(launcher);
     }
 
+    /**
+     * 返回默认的运行的参数
+     * @param options 可自己添加的选项
+     * @return 默认参数集合
+     */
     public List<String> defaultArgs(ChromeArgOptions options) {
-        List<String> chromeArguments = new ArrayList<>();
-        this.getLauncher().defaultArgs(options, chromeArguments);
-        return chromeArguments;
+        return this.getLauncher().defaultArgs(options);
     }
 
     public String executablePath() throws IOException {

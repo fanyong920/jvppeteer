@@ -3,8 +3,12 @@ package com.ruiyun.example;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
+import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
+import com.ruiyun.jvppeteer.core.page.Page;
 import org.junit.Test;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
@@ -15,16 +19,14 @@ public class LaunchExample {
 	
 	@Test
 	public void test1() throws Exception {
-		ArrayList<String> argList = new ArrayList<>();
-
 		//自动下载，第一次下载后不会再下载
 		BrowserFetcher.downloadIfNotExist(null);
-
-		//.withPipe(true) 不可用，切记不要加上这个参数
-		LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
-		argList.add("--no-sandbox");
-		argList.add("--disable-setuid-sandbox");
-		Puppeteer.launch(options);
+		LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Arrays.asList("--enable-automation")).withHeadless(false).build();
+		Browser browser = Puppeteer.launch(launchOptions);
+		Page page = browser.newPage();
+		page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
+		// 做一些其他操作
+		browser.close();
 	}
 
 	public static void main(String[] args) {

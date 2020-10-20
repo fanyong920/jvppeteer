@@ -15,8 +15,8 @@ public interface Launcher {
 	Environment env = System::getenv;
 	
 	Browser launch(LaunchOptions options) throws IOException;
-	
-	void defaultArgs(ChromeArgOptions options, List<String> chromeArguments);
+
+	List<String> defaultArgs(ChromeArgOptions options);
 	
 	String resolveExecutablePath(String chromeExecutable) throws IOException;
 	
