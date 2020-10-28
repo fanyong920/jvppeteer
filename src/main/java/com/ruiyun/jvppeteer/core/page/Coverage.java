@@ -27,12 +27,20 @@ public class Coverage {
         this.jsCoverage = new JSCoverage(client);
     }
 
+    public void startJSCoverage(){
+        this.jsCoverage.start(true,false);
+    }
+
     public void startJSCoverage(boolean resetOnNavigation,boolean reportAnonymousScripts){
         this.jsCoverage.start(resetOnNavigation,reportAnonymousScripts);
     }
 
     public List<CoverageEntry> stopJSCoverage() throws JsonProcessingException {
         return  this.jsCoverage.stop();
+    }
+
+    public void startCSSCoverage() {
+        this.cssCoverage.start(true);
     }
 
     public void startCSSCoverage(boolean resetOnNavigation) {
@@ -86,7 +94,7 @@ public class Coverage {
             if (point.getType() == 0)
                 hitCountStack.addLast(point.getRange().getCount());
             else
-                hitCountStack.pop();
+                hitCountStack.poll();
         }
         // Filter out empty ranges.
         return results.stream().filter(range -> range.getEnd() - range.getStart() > 1).collect(Collectors.toList());

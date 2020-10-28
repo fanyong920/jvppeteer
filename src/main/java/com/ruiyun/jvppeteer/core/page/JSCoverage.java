@@ -105,11 +105,13 @@ public class JSCoverage {
         // Ignore other anonymous scripts unless the reportAnonymousScripts option is true.
         if (StringUtil.isEmpty(event.getUrl()) && !this.reportAnonymousScripts)
             return;
-        Map<String, Object> params = new HashMap<>();
-        params.put("scriptId", event.getScriptId());
-        JsonNode response = this.client.send("Debugger.getScriptSource", params, true);
-        this.scriptURLs.put(event.getScriptId(), event.getUrl());
-        this.scriptSources.put(event.getScriptId(), response.get("scriptSource").asText());
+        Helper.commonExecutor().submit(() -> {
+            Map<String, Object> params = new HashMap<>();
+            params.put("scriptId", event.getScriptId());
+            JsonNode response = client.send("Debugger.getScriptSource", params, true);
+            scriptURLs.put(event.getScriptId(), event.getUrl());
+            scriptSources.put(event.getScriptId(), response.get("scriptSource").asText());
+        });
     }
 
     public List<CoverageEntry> stop() throws JsonProcessingException {

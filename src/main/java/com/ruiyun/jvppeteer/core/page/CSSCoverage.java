@@ -90,11 +90,14 @@ public class CSSCoverage {
         // Ignore anonymous scripts
         if (StringUtil.isEmpty(header.getSourceURL())) return;
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("styleSheetId", header.getStyleSheetId());
-        JsonNode response = this.client.send("CSS.getStyleSheetText", params, true);
-        this.stylesheetURLs.put(header.getStyleSheetId(), header.getSourceURL());
-        this.stylesheetSources.put(header.getStyleSheetId(), response.get("text").asText());
+        Helper.commonExecutor().submit(() -> {
+            Map<String, Object> params = new HashMap<>();
+            params.put("styleSheetId", header.getStyleSheetId());
+            JsonNode response = client.send("CSS.getStyleSheetText", params, true);
+            stylesheetURLs.put(header.getStyleSheetId(), header.getSourceURL());
+            stylesheetSources.put(header.getStyleSheetId(), response.get("text").asText());
+        });
+
     }
 
     public List<CoverageEntry> stop() {
@@ -102,18 +105,18 @@ public class CSSCoverage {
         this.enabled = false;
 
 
-    JsonNode ruleTrackingResponse =  this.client.send("CSS.stopRuleUsageTracking",null,true);
+        JsonNode ruleTrackingResponse = this.client.send("CSS.stopRuleUsageTracking", null, true);
 
-                this.client.send("CSS.disable",null,false);
-                this.client.send("DOM.disable",null,false);
+        this.client.send("CSS.disable", null, false);
+        this.client.send("DOM.disable", null, false);
 
         Helper.removeEventListeners(this.eventListeners);
 
         // aggregate by styleSheetId
-    Map<String,List<CoverageRange>> styleSheetIdToCoverage = new HashMap<>();
+        Map<String, List<CoverageRange>> styleSheetIdToCoverage = new HashMap<>();
         JsonNode ruleUsageNode = ruleTrackingResponse.get("ruleUsage");
         Iterator<JsonNode> elements = ruleUsageNode.elements();
-        while (elements.hasNext()){
+        while (elements.hasNext()) {
             JsonNode entry = elements.next();
             List<CoverageRange> ranges = styleSheetIdToCoverage.get(entry.get("styleSheetId").asText());
             if (ranges == null) {
@@ -121,19 +124,19 @@ public class CSSCoverage {
                 styleSheetIdToCoverage.put(entry.get("styleSheetId").asText(), ranges);
             }
             boolean used = entry.get("used").asBoolean();
-            if(used)
-            ranges.add(new CoverageRange(entry.get("startOffset").asInt(), entry.get("endOffset").asInt(), 1));
+            if (used)
+                ranges.add(new CoverageRange(entry.get("startOffset").asInt(), entry.get("endOffset").asInt(), 1));
             else
                 ranges.add(new CoverageRange(entry.get("startOffset").asInt(), entry.get("endOffset").asInt(), 0));
         }
 
 
-    List<CoverageEntry> coverage = new ArrayList<>();
+        List<CoverageEntry> coverage = new ArrayList<>();
         for (String styleSheetId : this.stylesheetURLs.keySet()) {
-     String  url = this.stylesheetURLs.get(styleSheetId);
-      String text = this.stylesheetSources.get(styleSheetId);
+            String url = this.stylesheetURLs.get(styleSheetId);
+            String text = this.stylesheetSources.get(styleSheetId);
             List<Range> ranges = Coverage.convertToDisjointRanges(styleSheetIdToCoverage.get(styleSheetId));
-            coverage.add(new CoverageEntry(url, ranges, text ) );
+            coverage.add(new CoverageEntry(url, ranges, text));
         }
 
         return coverage;
