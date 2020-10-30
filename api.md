@@ -474,88 +474,77 @@ LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(A
 		Browser browser = Puppeteer.launch(launchOptions);
 ```
 
-> **NOTE** Puppeteer can also be used to control the Chrome browser, but it works best with the version of Chromium it is bundled with. There is no guarantee it will work with any other version. Use `executablePath` option with extreme caution.
+> **注意** Puppeteer也可以用于控制Chrome浏览器，但与捆绑的Chromium版本配合使用效果最好。 使用任何其他版本效果无法保证。 使用`executablePath`选项时要格外小心。
 >
-> If Google Chrome (rather than Chromium) is preferred, a [Chrome Canary](https://www.google.com/chrome/browser/canary.html) or [Dev Channel](https://www.chromium.org/getting-involved/dev-channel) build is suggested.
->
-> In [puppeteer.launch([options])](#puppeteerlaunchoptions) above, any mention of Chromium also applies to Chrome.
->
-> See [`this article`](https://www.howtogeek.com/202825/what%E2%80%99s-the-difference-between-chromium-and-chrome/) for a description of the differences between Chromium and Chrome. [`This article`](https://chromium.googlesource.com/chromium/src/+/lkgr/docs/chromium_browser_vs_google_chrome.md) describes some differences for Linux users.
+> 看 [`文章1`](https://www.howtogeek.com/202825/what%E2%80%99s-the-difference-between-chromium-and-chrome/) 了解 Chromium 与 Chrome 的区别. [`文章2`](https://chromium.googlesource.com/chromium/src/+/lkgr/docs/chromium_browser_vs_google_chrome.md) 了解在Linux使用 Jvppeteer 的一些不同.
 
 #### puppeteer.product
-- returns: <[string]> returns the name of the browser that is under automation (`"chrome"` or `"firefox"`)
-
-The product is set by the `PUPPETEER_PRODUCT` environment variable or the `product` option in [puppeteer.launch([options])](#puppeteerlaunchoptions) and defaults to `chrome`. Firefox support is experimental.
+- returns: <[string]> 返回浏览器的名称（目前只支持“ chrome”）
 
 
 ### class: BrowserFetcher
 
-BrowserFetcher can download and manage different versions of Chromium and Firefox.
+BrowserFetcher 可以用来下载和管理不同版本的 Chromium。
 
-BrowserFetcher operates on revision strings that specify a precise version of Chromium, e.g. `"533271"`. Revision strings can be obtained from [omahaproxy.appspot.com](http://omahaproxy.appspot.com/).
+BrowserFetcher 操作一个修订版本字符串，修订版本字符串指定了一个 Chromium 的确定版本，例如 `"533271"`。修订版本字符串可以从 [https://npm.taobao.org/mirrors/chromium-browser-snapshots](https://npm.taobao.org/mirrors/chromium-browser-snapshots) 获取。
 
-In the Firefox case, BrowserFetcher downloads Firefox Nightly and operates on version numbers such as `"75"`.
+看下面这个例子，他将告诉你如何使用 BrowserFetcher 下载一个指定版本的 Chromium
 
-An example of using BrowserFetcher to download a specific version of Chromium and running
-Puppeteer against it:
+```java
+//自动下载，第一次下载后不会再下载，下载到项目根目录下
+        RevisionInfo revisionInfo = BrowserFetcher.downloadIfNotExist("533271");
 
-```js
-const browserFetcher = puppeteer.createBrowserFetcher();
-const revisionInfo = await browserFetcher.download('533271');
-const browser = await puppeteer.launch({executablePath: revisionInfo.executablePath})
+        //当项目根目录下只有一个版本的 Chromium 时,Puppeteer.launch()会自动寻找到该版本，当有多个版本时需要制定路径
+        Puppeteer.launch(new LaunchOptionsBuilder().withExecutablePath(revisionInfo.getExecutablePath()).build());
 ```
 
-> **NOTE** BrowserFetcher is not designed to work concurrently with other
-> instances of BrowserFetcher that share the same downloads directory.
+> **注意** BrowserFetcher 不适用于与共享下载目录的其他实例同时运行。
 
 #### browserFetcher.canDownload(revision)
-- `revision` <[string]> a revision to check availability.
-- returns: <[Promise]<[boolean]>>  returns `true` if the revision could be downloaded from the host.
+- `revision` <[string]> 修订版本号, 检查其可用性
+- `proxy` <[Proxy]> 代理
+- returns: <[Promise]<[boolean]>> 返回 `true` 如果该修订版本可以从主机下载
 
-The method initiates a HEAD request to check if the revision is available.
+该方法将会发起一个 HEAD 请求来检查该修订版本是否有效。
 
 #### browserFetcher.download(revision[, progressCallback])
-- `revision` <[string]> a revision to download.
-- `progressCallback` <[function]([number], [number])> A function that will be called with two arguments:
-  - `downloadedBytes` <[number]> how many bytes have been downloaded
-  - `totalBytes` <[number]> how large is the total download.
-- returns: <[Promise]<[Object]>> Resolves with revision information when the revision is downloaded and extracted
-  - `revision` <[string]> the revision the info was created from
-  - `folderPath` <[string]> path to the extracted revision folder
-  - `executablePath` <[string]> path to the revision executable
-  - `url` <[string]> URL this revision can be downloaded from
-  - `local` <[boolean]> whether the revision is locally available on disk
+- `revision` <[string]> 下载的浏览器版本.
+- `progressCallback` <[function]([number], [number])> 下载回调，用于显示下载进度
+  - `downloadedBytes` <[number]> 已下载的大小，单位是M
+  - `totalBytes` <[number]>  下载总大小 ，单位是M
+- returns: <[Promise]<[Object]>> 返回下载的版本信息
+  - `revision` <[string]>  下载的
+  - `folderPath` <[string]> 下载的 Chromium 被解压的文件夹
+  - `executablePath` <[string]> 执行的路径
+  - `url` <[string]> 下载的 url
+  - `local` <[boolean]> 是否存在本地磁盘
 
-The method initiates a GET request to download the revision from the host.
+该方法将会发起一个 GET 请求来从主机下载该修订版本。
 
 #### browserFetcher.host()
-- returns: <[string]> The download host being used.
+- returns: <[string]> 下载的网址
 
 #### browserFetcher.localRevisions()
-- returns: <[Promise]<[Array]<[string]>>> A list of all revisions (for the current `product`) available locally on disk.
+- returns: <[Promise]<[Array]<[string]>>> 返回项目根目录下存在的所有版本
 
 #### browserFetcher.platform()
-- returns: <[string]> One of `mac`, `linux`, `win32` or `win64`.
+- returns: <[string]> 返回目前使用的平台 ， `mac`, `linux`, `win32` or `win64` 之一.
 
 #### browserFetcher.product()
-- returns: <[string]> One of `chrome` or `firefox`.
+- returns: <[string]> 目前只支持 Chrome
 
 #### browserFetcher.remove(revision)
-- `revision` <[string]> a revision to remove for the current `product`. The method will throw if the revision has not been downloaded.
-- returns: <[Promise]> Resolves when the revision has been removed.
+- `revision` <[string]> 删除项目根目录下指定版本的浏览器文件
 
 #### browserFetcher.revisionInfo(revision)
-- `revision` <[string]> a revision to get info for.
+- `revision` <[string]> 要获取的版本
 - returns: <[Object]>
-  - `revision` <[string]> the revision the info was created from
-  - `folderPath` <[string]> path to the extracted revision folder
-  - `executablePath` <[string]> path to the revision executable
-  - `url` <[string]> URL this revision can be downloaded from
-  - `local` <[boolean]> whether the revision is locally available on disk
-  - `product` <[string]> one of `chrome` or `firefox`
-
-> **NOTE** Many BrowserFetcher methods, like `remove` and `revisionInfo`
-> are affected by the choice of `product`. See [puppeteer.createBrowserFetcher([options])](#puppeteercreatebrowserfetcheroptions).
+  - `revision` <[string]> 指定的版本浏览器
+  - `folderPath` <[string]> 该版本浏览器所在的文件夹
+  - `executablePath` <[string]> 该版本浏览器可执行的路径
+  - `url` <[string]> 该版本浏览器的下载 url
+  - `local` <[boolean]> 是否存在本地磁盘
+  - `product` <[string]>  `chrome` or `firefox` 之一，目前只支持 `chrome`
 
 ### class: Browser
 

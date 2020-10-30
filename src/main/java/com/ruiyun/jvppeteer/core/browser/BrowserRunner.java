@@ -348,18 +348,16 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         for (int i = 0; i < runners.size(); i++) {
             BrowserRunner browserRunner = runners.get(i);
             if (browserRunner.getClosed()) {
-                return;
-            }
-            if (StringUtil.isNotEmpty(browserRunner.getTempDirectory())) {
-                browserRunner.kill();
-            } else if (browserRunner.getConnection() != null) {
-                try {
-                    browserRunner.getConnection().send("Browser.close", null, false);
-                } catch (Exception e) {
-                    browserRunner.kill();
-                }
+                break;
             }
 
+            if(browserRunner.getConnection() != null && !browserRunner.getConnection().getClosed()){
+                browserRunner.getConnection().send("Browser.close", null, false);
+            }
+
+            if (StringUtil.isNotEmpty(browserRunner.getTempDirectory())) {
+                browserRunner.kill();
+            }
         }
     }
 
@@ -371,15 +369,18 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             return ;
         }
         Helper.removeEventListeners(this.listeners);
+
+        //先发送指令关闭
+        if (this.connection != null && !this.connection.getClosed()) {
+            this.connection.send("Browser.close", null, false);
+        }
+
+        //再调用 java 的 api 去关闭，但是这个 api 成功率不是100%
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             this.kill();
-        } else if (this.connection != null) {
-            // Attempt to close the browser gracefully
-            this.destroyForcibly();
-            if (process != null && process.isAlive()) {
-                this.connection.send("Browser.close", null, false);
-            }
         }
+
+        this.closed = true;
     }
 
     /**

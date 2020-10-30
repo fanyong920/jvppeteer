@@ -152,13 +152,14 @@ public class BrowserFetcher {
      * @throws ExecutionException   异常
      * @throws IOException          异常
      */
-    public static void downloadIfNotExist(String version) throws InterruptedException, ExecutionException, IOException {
+    public static RevisionInfo downloadIfNotExist(String version) throws InterruptedException, ExecutionException, IOException {
         BrowserFetcher fetcher = new BrowserFetcher();
         String downLoadVersion = StringUtil.isEmpty(version) ? Constant.VERSION : version;
         RevisionInfo revisionInfo = fetcher.revisionInfo(downLoadVersion);
         if (!revisionInfo.getLocal()) {
-            fetcher.download(downLoadVersion);
+            return fetcher.download(downLoadVersion);
         }
+        return revisionInfo;
     }
 
     /**
