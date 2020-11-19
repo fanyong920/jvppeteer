@@ -438,17 +438,17 @@ public class FrameManager extends EventEmitter {
 
 
     public Response navigateFrame(Frame frame, String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
-        String referer;
+        String referrer;
         List<String> waitUntil;
         int timeout;
         if (options == null) {
-            referer = this.networkManager.extraHTTPHeaders().get("referer");
+            referrer = this.networkManager.extraHTTPHeaders().get("referer");
             waitUntil = new ArrayList<>();
             waitUntil.add("load");
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
-            if (StringUtil.isEmpty(referer = options.getReferer())) {
-                referer = this.networkManager.extraHTTPHeaders().get("referer");
+            if (StringUtil.isEmpty(referrer = options.getReferer())) {
+                referrer = this.networkManager.extraHTTPHeaders().get("referer");
             }
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
@@ -462,7 +462,7 @@ public class FrameManager extends EventEmitter {
         if(!isBlock){
             Map<String, Object> params = new HashMap<>();
             params.put("url", url);
-            params.put("referer", referer);
+            params.put("referrer", referrer);
             params.put("frameId", frame.getId());
             this.client.send("Page.navigate", params, false);
             return null;
@@ -470,7 +470,7 @@ public class FrameManager extends EventEmitter {
         LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
         long start = System.currentTimeMillis();
         try {
-            this.ensureNewDocumentNavigation = navigate(this.client, url, referer, frame.getId(), timeout);
+            this.ensureNewDocumentNavigation = navigate(this.client, url, referrer, frame.getId(), timeout);
             if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
                 if (this.ensureNewDocumentNavigation) {
                     documentNavigationPromiseType = "new";
@@ -506,10 +506,10 @@ public class FrameManager extends EventEmitter {
         }
     }
 
-    private boolean navigate(CDPSession client, String url, String referer, String frameId, int timeout) {
+    private boolean navigate(CDPSession client, String url, String referrer, String frameId, int timeout) {
         Map<String, Object> params = new HashMap<>();
         params.put("url", url);
-        params.put("referer", referer);
+        params.put("referrer", referrer);
         params.put("frameId", frameId);
         try {
             JsonNode response = client.send("Page.navigate", params, true, null, timeout);
