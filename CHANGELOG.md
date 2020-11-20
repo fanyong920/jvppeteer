@@ -93,3 +93,15 @@
 - [统一优先采用Process类关闭浏览器](https://github.com/fanyong920/jvppeteer/commit/f9f2a3f3d8e4740e1290dd41300080654cb54db2)
 - [浏览器关闭时，对正在等待的callback进行释放，防止卡死](https://github.com/fanyong920/jvppeteer/commit/c2af123627032380c072bc6a17fadd7864355fa4)
 - [刷新頁面採用新的單獨線程池](https://github.com/fanyong920/jvppeteer/commit/b17c630d247f8dfb457f56d7241c96f45f183bac)
+
+### Version Release 1.1.1 (2020/11/20)
+
+#### Bugs Fixed
+
+- [2020-10-13 修复Page#select中执行js脚本时参数不对的问题](https://github.com/fanyong920/jvppeteer/commit/c2f2de68fbbd212d942c818254bdb927011376ae)
+
+- [2020-10-19 修复Request#continueRequest的问题](https://github.com/fanyong920/jvppeteer/commit/6684650c44c7daa027ca17529b2eb26f36730a50)
+
+- [2020-10-28 修复Coverage超时的问题](https://github.com/fanyong920/jvppeteer/commit/e0ceeeb33ffc0c7899b3161257f4ba0efc461e1d)
+- [2020-11-19 修复Page#goTo方法中extraHttpHeader不起作用的问题](https://github.com/fanyong920/jvppeteer/commit/d1545e2b1e1f7bc09e9be38334cca771c1b57309)
+- [2020-11-20 修复Page#close方法花费30s的问题](https://github.com/fanyong920/jvppeteer/commit/b1c1608748d333624a16963fb78062e02a01d350)

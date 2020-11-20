@@ -55,6 +55,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         this.delay = delay;
         if (this.transport instanceof WebSocketTransport) {
             ((WebSocketTransport) this.transport).addMessageConsumer(this);
+            ((WebSocketTransport) this.transport).addConnection(this);
         }
     }
 
@@ -274,7 +275,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
         this.transport.close();
     }
 
-    private void onClose() {
+    public void onClose() {
         if (this.closed)
             return;
         this.closed = true;

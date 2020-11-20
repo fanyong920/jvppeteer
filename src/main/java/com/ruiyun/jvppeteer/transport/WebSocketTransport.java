@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * websocket client 
@@ -24,6 +23,8 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
 
 	private Consumer<String> messageConsumer = null;
+
+	private Connection connection = null;
 
 	public WebSocketTransport(URI serverUri, Draft draft) {
 		super(serverUri, draft);
@@ -57,6 +58,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		LOGGER.info("Connection closed by " + ( remote ? "remote peer" : "us" ) + " Code: " + code + " Reason: " + reason );
 		// The codecodes are documented in class org.java_websocket.framing.CloseFrame
 		this.onClose();
+		this.connection.dispose();
 	}
 
 	@Override
@@ -76,5 +78,9 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		this.messageConsumer = consumer;
 	}
 
+
+	public void addConnection(Connection connection) {
+		this.connection = connection;
+	}
 
 }

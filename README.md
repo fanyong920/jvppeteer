@@ -35,7 +35,7 @@
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
 </dependency>
 ```
 
@@ -50,7 +50,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:1.1.0"
+compile "io.github.fanyong920:jvppeteer:1.1.1"
 ```
 
 #### Logging

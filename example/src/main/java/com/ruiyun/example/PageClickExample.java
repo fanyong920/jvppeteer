@@ -22,20 +22,9 @@ public class PageClickExample {
         //打开第一个页面
         Page page = browser.newPage();
         //点了按钮之后，会有新的导航，所以不要阻塞，配合waitForNavigation使用
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-
-        //输入
-        page.type("#kw","我要测试");
-        System.out.println();
-        //点击搜索
-        page.click("#su");
-//        page.click();
 
         page.close();
+        System.out.println("13213");
+        browser.close();
     }
 }
