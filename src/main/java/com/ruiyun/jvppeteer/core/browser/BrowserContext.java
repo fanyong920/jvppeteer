@@ -1,11 +1,11 @@
 package com.ruiyun.jvppeteer.core.browser;
 
+import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.EventHandler;
 import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
-import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -144,7 +143,7 @@ public class BrowserContext extends EventEmitter {
 		return browser;
 	}
 
-	public Page newPage() throws ExecutionException, InterruptedException {
+	public Page newPage() {
 		return browser.createPageInContext(this.id);
 	}
 

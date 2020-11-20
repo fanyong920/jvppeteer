@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core.browser;
 
-import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
@@ -20,9 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
@@ -203,8 +198,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     /**
      * 通过命令行删除文件夹
-     *
-     * @throws IOException
+     * @param path 删除的路径
+     * @throws IOException 异常
+     * @throws InterruptedException 异常
      */
     private void removeFolderByCmd(String path) throws IOException, InterruptedException {
         if (StringUtil.isEmpty(path) || "*".equals(path)) {

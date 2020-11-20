@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -75,9 +73,6 @@ public class Browser extends EventEmitter {
 
     private final Function<Object,Object> closeCallback;
 
-    private CountDownLatch waitforTargetLatch;
-
-
     public Browser(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors,
                    Viewport defaultViewport, Process process, Function<Object,Object> closeCallback) {
         super();
@@ -98,7 +93,6 @@ public class Browser extends EventEmitter {
             }
         }
         this.targets = new ConcurrentHashMap<>();
-        waitforTargetLatch = new CountDownLatch(1);
         DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
             @Override
             public void onBrowserEvent(Object event) {
@@ -125,13 +119,7 @@ public class Browser extends EventEmitter {
             @Override
             public void onBrowserEvent(TargetDestroyedPayload event)  {
                 Browser browser = (Browser) this.getTarget();
-                try {
-                    browser.targetDestroyed(event);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                browser.targetDestroyed(event);
             }
         };
         targetDestroyedLis.setTarget(this);
@@ -142,13 +130,7 @@ public class Browser extends EventEmitter {
             @Override
             public void onBrowserEvent(TargetInfoChangedPayload event) {
                 Browser browser = (Browser) this.getTarget();
-                try {
-                    browser.targetInfoChanged(event);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                browser.targetInfoChanged(event);
             }
         };
         targetInfoChangedLis.setTarget(this);
@@ -156,7 +138,7 @@ public class Browser extends EventEmitter {
         this.connection.addListener(targetInfoChangedLis.getMothod(), targetInfoChangedLis);
     }
 
-    private void targetDestroyed(TargetDestroyedPayload event) throws ExecutionException, InterruptedException {
+    private void targetDestroyed(TargetDestroyedPayload event) {
         Target target = this.targets.remove(event.getTargetId());
         target.initializedCallback(false);
         target.closedCallback();
@@ -167,7 +149,7 @@ public class Browser extends EventEmitter {
 
     }
 
-    private void targetInfoChanged(TargetInfoChangedPayload event) throws ExecutionException, InterruptedException {
+    private void targetInfoChanged(TargetInfoChangedPayload event) {
         Target target = this.targets.get(event.getTargetInfo().getTargetId());
         ValidateUtil.assertArg(target != null, "target should exist before targetInfoChanged");
         String previousURL = target.url();
@@ -348,10 +330,8 @@ public class Browser extends EventEmitter {
      * 在当前浏览器上新建一个页面
      *
      * @return 新建页面
-     * @throws ExecutionException 异常
-     * @throws InterruptedException 异常
      */
-    public Page newPage() throws ExecutionException, InterruptedException {
+    public Page newPage() {
         return this.defaultContext.newPage();
     }
 
@@ -446,9 +426,5 @@ public class Browser extends EventEmitter {
         return viewport;
     }
 
-
-    private CountDownLatch getWaitforTargetLatch() {
-        return waitforTargetLatch;
-    }
 
 }

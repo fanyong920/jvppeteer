@@ -65,6 +65,7 @@ public class Target {
         this.screenshotTaskQueue = screenshotTaskQueue;
         this.pagePromise = null;
         this.workerPromise = null;
+        this.isClosedPromiseLatch = new CountDownLatch(1);
         this.isInitialized = !"page".equals(this.targetInfo.getType()) || !StringUtil.isEmpty(this.targetInfo.getUrl());
         if (isInitialized) {//初始化
             this.initializedPromise = this.initializedCallback(true);
@@ -100,9 +101,7 @@ public class Target {
             this.pagePromise.emit(Events.PAGE_CLOSE.getName(), null);
             this.pagePromise.setClosed(true);
         }
-        if (this.isClosedPromiseLatch != null) {
-            this.isClosedPromiseLatch.countDown();
-        }
+        this.isClosedPromiseLatch.countDown();
     }
 
     /**
@@ -283,7 +282,7 @@ public class Target {
         return sessionId;
     }
 
-    public void targetInfoChanged(TargetInfo targetInfo) throws ExecutionException, InterruptedException {
+    public void targetInfoChanged(TargetInfo targetInfo) {
         this.targetInfo = targetInfo;
         if (!this.isInitialized && (!"page".equals(this.targetInfo.getType()) || !"".equals(this.targetInfo.getUrl()))) {
             this.isInitialized = true;
@@ -292,7 +291,6 @@ public class Target {
     }
 
     public boolean WaiforisClosedPromise() throws InterruptedException {
-        this.isClosedPromiseLatch = new CountDownLatch(1);
         return this.isClosedPromiseLatch.await(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
