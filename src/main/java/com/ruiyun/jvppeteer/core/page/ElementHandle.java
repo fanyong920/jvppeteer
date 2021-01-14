@@ -163,7 +163,8 @@ public class ElementHandle extends JSHandle {
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
         Viewport viewport = this.page.viewport();
         if (viewport != null && (boundingBox.getWidth() > viewport.getWidth() || boundingBox.getHeight() > viewport.getHeight())) {
-            Viewport newViewport = new Viewport();
+            // Use the original viewport attributes to prevent from reload
+            Viewport newViewport = new Viewport(viewport.getWidth(), viewport.getHeight(), viewport.getDeviceScaleFactor(), viewport.getIsMobile(), viewport.getHasTouch(), viewport.getIsLandscape());
             newViewport.setWidth(Math.max(viewport.getWidth(), (int)Math.ceil(boundingBox.getWidth())));
             newViewport.setHeight(Math.max(viewport.getHeight(), (int)Math.ceil(boundingBox.getHeight())));
 
