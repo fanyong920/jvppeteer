@@ -462,7 +462,10 @@ public class FrameManager extends EventEmitter {
         if(!isBlock){
             Map<String, Object> params = new HashMap<>();
             params.put("url", url);
-            params.put("referrer", referrer);
+            // jackJson 不序列化null值对 HashMap里面的 null值不起作用
+            if(referrer != null){
+                params.put("referrer", referrer);
+            }
             params.put("frameId", frame.getId());
             this.client.send("Page.navigate", params, false);
             return null;
@@ -509,7 +512,10 @@ public class FrameManager extends EventEmitter {
     private boolean navigate(CDPSession client, String url, String referrer, String frameId, int timeout) {
         Map<String, Object> params = new HashMap<>();
         params.put("url", url);
-        params.put("referrer", referrer);
+        // jackJson 不序列化null值对 HashMap里面的 null值不起作用
+        if(referrer != null){
+            params.put("referrer", referrer);
+        }
         params.put("frameId", frameId);
         try {
             JsonNode response = client.send("Page.navigate", params, true, null, timeout);
