@@ -99,9 +99,14 @@
 #### Bugs Fixed
 
 - [2020-10-13 修复Page#select中执行js脚本时参数不对的问题](https://github.com/fanyong920/jvppeteer/commit/c2f2de68fbbd212d942c818254bdb927011376ae)
-
 - [2020-10-19 修复Request#continueRequest的问题](https://github.com/fanyong920/jvppeteer/commit/6684650c44c7daa027ca17529b2eb26f36730a50)
-
 - [2020-10-28 修复Coverage超时的问题](https://github.com/fanyong920/jvppeteer/commit/e0ceeeb33ffc0c7899b3161257f4ba0efc461e1d)
 - [2020-11-19 修复Page#goTo方法中extraHttpHeader不起作用的问题](https://github.com/fanyong920/jvppeteer/commit/d1545e2b1e1f7bc09e9be38334cca771c1b57309)
-- [2020-11-20 修复Page#close方法花费30s的问题](https://github.com/fanyong920/jvppeteer/commit/b1c1608748d333624a16963fb78062e02a01d350)
+- [2020-11-20 修复Page#close方法花费30s的问题](修复一些bug，具体见[CHANGELOG](https://github.com/fanyong920/jvppeteer/blob/master/CHANGELOG.md))
+
+### Version Release 1.1.2 (2021/02/15)
+
+#### Bugs Fixed
+
+- [2021-01-27 修复Page#goTo方法中referrer值为null的问题](https://github.com/fanyong920/jvppeteer/commit/89135bb8c604db09735caf63f5a575da6288ef7c)
+- [修复截图前可能重新加载导致找不到context](https://github.com/fanyong920/jvppeteer/commit/b94d3b927f2bb73871540059c7f7520685465b62)
