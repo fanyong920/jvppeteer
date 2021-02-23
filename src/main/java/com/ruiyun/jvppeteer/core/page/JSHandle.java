@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ public class JSHandle {
         params.put("objectId", this.remoteObject.getObjectId());
         params.put("ownProperties", true);
         JsonNode response = this.client.send("Runtime.getProperties", params, true);
-        Map<String,JSHandle> result = new HashMap<>();
+        Map<String,JSHandle> result = new LinkedHashMap<>();
         Iterator<JsonNode> iterator = response.get("result").iterator();
         while (iterator.hasNext()) {
             JsonNode property = iterator.next();
