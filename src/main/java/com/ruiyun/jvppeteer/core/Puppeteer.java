@@ -137,7 +137,7 @@ public class Puppeteer {
      * be closed when the parent java process is closed.
      */
     private static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) throws IOException {
-        if (!StringUtil.isNotBlank(options.getProduct())) {
+        if (StringUtil.isNotBlank(options.getProduct())) {
             puppeteer.setProductName(options.getProduct());
         }
         adapterLauncher(puppeteer);
