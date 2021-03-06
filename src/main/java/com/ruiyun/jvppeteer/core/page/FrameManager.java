@@ -86,8 +86,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         frameAttachedListener.setTarget(this);
-        frameAttachedListener.setMothod("Page.frameAttached");
-        this.client.addListener(frameAttachedListener.getMothod(), frameAttachedListener);
+        frameAttachedListener.setMethod("Page.frameAttached");
+        this.client.addListener(frameAttachedListener.getMethod(), frameAttachedListener);
         //2 Page.frameNavigated
         DefaultBrowserListener<FrameNavigatedPayload> frameNavigatedListener = new DefaultBrowserListener<FrameNavigatedPayload>() {
             @Override
@@ -97,8 +97,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         frameNavigatedListener.setTarget(this);
-        frameNavigatedListener.setMothod("Page.frameNavigated");
-        this.client.addListener(frameNavigatedListener.getMothod(), frameNavigatedListener);
+        frameNavigatedListener.setMethod("Page.frameNavigated");
+        this.client.addListener(frameNavigatedListener.getMethod(), frameNavigatedListener);
 
         //3 Page.navigatedWithinDocument
         DefaultBrowserListener<NavigatedWithinDocumentPayload> navigatedWithinDocumentListener = new DefaultBrowserListener<NavigatedWithinDocumentPayload>() {
@@ -109,8 +109,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         navigatedWithinDocumentListener.setTarget(this);
-        navigatedWithinDocumentListener.setMothod("Page.navigatedWithinDocument");
-        this.client.addListener(navigatedWithinDocumentListener.getMothod(), navigatedWithinDocumentListener);
+        navigatedWithinDocumentListener.setMethod("Page.navigatedWithinDocument");
+        this.client.addListener(navigatedWithinDocumentListener.getMethod(), navigatedWithinDocumentListener);
 
         //4 Page.frameDetached
         DefaultBrowserListener<FrameDetachedPayload> frameDetachedListener = new DefaultBrowserListener<FrameDetachedPayload>() {
@@ -121,8 +121,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         frameDetachedListener.setTarget(this);
-        frameDetachedListener.setMothod("Page.frameDetached");
-        this.client.addListener(frameDetachedListener.getMothod(), frameDetachedListener);
+        frameDetachedListener.setMethod("Page.frameDetached");
+        this.client.addListener(frameDetachedListener.getMethod(), frameDetachedListener);
 
         //5 Page.frameStoppedLoading
         DefaultBrowserListener<FrameStoppedLoadingPayload> frameStoppedLoadingListener = new DefaultBrowserListener<FrameStoppedLoadingPayload>() {
@@ -133,8 +133,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         frameStoppedLoadingListener.setTarget(this);
-        frameStoppedLoadingListener.setMothod("Page.frameStoppedLoading");
-        this.client.addListener(frameStoppedLoadingListener.getMothod(), frameStoppedLoadingListener);
+        frameStoppedLoadingListener.setMethod("Page.frameStoppedLoading");
+        this.client.addListener(frameStoppedLoadingListener.getMethod(), frameStoppedLoadingListener);
 
         //6 Runtime.executionContextCreated
         DefaultBrowserListener<ExecutionContextCreatedPayload> executionContextCreatedListener = new DefaultBrowserListener<ExecutionContextCreatedPayload>() {
@@ -145,8 +145,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         executionContextCreatedListener.setTarget(this);
-        executionContextCreatedListener.setMothod("Runtime.executionContextCreated");
-        this.client.addListener(executionContextCreatedListener.getMothod(), executionContextCreatedListener);
+        executionContextCreatedListener.setMethod("Runtime.executionContextCreated");
+        this.client.addListener(executionContextCreatedListener.getMethod(), executionContextCreatedListener);
 
         //7 Runtime.executionContextDestroyed
         DefaultBrowserListener<ExecutionContextDestroyedPayload> executionContextDestroyedListener = new DefaultBrowserListener<ExecutionContextDestroyedPayload>() {
@@ -157,8 +157,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         executionContextDestroyedListener.setTarget(this);
-        executionContextDestroyedListener.setMothod("Runtime.executionContextDestroyed");
-        this.client.addListener(executionContextDestroyedListener.getMothod(), executionContextDestroyedListener);
+        executionContextDestroyedListener.setMethod("Runtime.executionContextDestroyed");
+        this.client.addListener(executionContextDestroyedListener.getMethod(), executionContextDestroyedListener);
 
         //8 Runtime.executionContextsCleared
         DefaultBrowserListener<Object> executionContextsClearedListener = new DefaultBrowserListener<Object>() {
@@ -169,8 +169,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         executionContextsClearedListener.setTarget(this);
-        executionContextsClearedListener.setMothod("Runtime.executionContextsCleared");
-        this.client.addListener(executionContextsClearedListener.getMothod(), executionContextsClearedListener);
+        executionContextsClearedListener.setMethod("Runtime.executionContextsCleared");
+        this.client.addListener(executionContextsClearedListener.getMethod(), executionContextsClearedListener);
 
         //9 Page.lifecycleEvent
         DefaultBrowserListener<LifecycleEventPayload> lifecycleEventListener = new DefaultBrowserListener<LifecycleEventPayload>() {
@@ -181,8 +181,8 @@ public class FrameManager extends EventEmitter {
             }
         };
         lifecycleEventListener.setTarget(this);
-        lifecycleEventListener.setMothod("Page.lifecycleEvent");
-        this.client.addListener(lifecycleEventListener.getMothod(), lifecycleEventListener);
+        lifecycleEventListener.setMethod("Page.lifecycleEvent");
+        this.client.addListener(lifecycleEventListener.getMethod(), lifecycleEventListener);
     }
 
     private void onLifecycleEvent(LifecycleEventPayload event) {

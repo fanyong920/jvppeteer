@@ -83,8 +83,8 @@ public class Tracing implements Constant {
             }
         };
         traceListener.setTarget(this);
-        traceListener.setMothod("Tracing.tracingComplete");
-        this.client.addListener(traceListener.getMothod(),traceListener,true);
+        traceListener.setMethod("Tracing.tracingComplete");
+        this.client.addListener(traceListener.getMethod(),traceListener,true);
         this.client.send("Tracing.end",null,true);
         this.recording = false;
     }

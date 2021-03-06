@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.events;
 
 public class DefaultBrowserListener<T> implements BrowserListener<T> {
 	
-	private String mothod;
+	private String method;
 
 	private Class<T> resolveType;
 
@@ -26,12 +26,12 @@ public class DefaultBrowserListener<T> implements BrowserListener<T> {
 		return resolveType;
 }
 
-	public String getMothod() {
-		return mothod;
+	public String getMethod() {
+		return method;
 	}
 
-	public void setMothod(String mothod) {
-		this.mothod = mothod;
+	public void setMethod(String method) {
+		this.method = method;
 	}
 
 	public EventHandler<T> getHandler() {

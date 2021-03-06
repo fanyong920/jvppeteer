@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
@@ -53,9 +52,9 @@ public class Worker extends EventEmitter {
                 }
             }
         };
-        executionContextListener.setMothod("Runtime.executionContextCreated");
+        executionContextListener.setMethod("Runtime.executionContextCreated");
         executionContextListener.setTarget(this);
-        this.client.addListener(executionContextListener.getMothod(), executionContextListener,true);
+        this.client.addListener(executionContextListener.getMethod(), executionContextListener,true);
 
         this.client.send("Runtime.enable", null, false);
         DefaultBrowserListener<ConsoleAPICalledPayload> consoleLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
@@ -64,8 +63,8 @@ public class Worker extends EventEmitter {
                 consoleAPICalled.call(event.getType(), event.getArgs().stream().map(item -> jsHandleFactory(item)).collect(Collectors.toList()), event.getStackTrace());
             }
         };
-        consoleLis.setMothod("Runtime.consoleAPICalled");
-        this.client.addListener(consoleLis.getMothod(), consoleLis);
+        consoleLis.setMethod("Runtime.consoleAPICalled");
+        this.client.addListener(consoleLis.getMethod(), consoleLis);
 
         DefaultBrowserListener<JsonNode> exceptionLis = new DefaultBrowserListener<JsonNode>() {
             @Override
@@ -78,8 +77,8 @@ public class Worker extends EventEmitter {
                 }
             }
         };
-        exceptionLis.setMothod("Runtime.exceptionThrown");
-        this.client.addListener(exceptionLis.getMothod(), exceptionLis);
+        exceptionLis.setMethod("Runtime.exceptionThrown");
+        this.client.addListener(exceptionLis.getMethod(), exceptionLis);
     }
 
     public JSHandle jsHandleFactory(RemoteObject remoteObject) {

@@ -101,8 +101,8 @@ public class Browser extends EventEmitter {
             }
         };
         disconnectedLis.setTarget(this);
-        disconnectedLis.setMothod(Events.CONNECTION_DISCONNECTED.getName());
-        this.connection.addListener(disconnectedLis.getMothod(), disconnectedLis);
+        disconnectedLis.setMethod(Events.CONNECTION_DISCONNECTED.getName());
+        this.connection.addListener(disconnectedLis.getMethod(), disconnectedLis);
 
         DefaultBrowserListener<TargetCreatedPayload> targetCreatedLis = new DefaultBrowserListener<TargetCreatedPayload>() {
             @Override
@@ -112,8 +112,8 @@ public class Browser extends EventEmitter {
             }
         };
         targetCreatedLis.setTarget(this);
-        targetCreatedLis.setMothod("Target.targetCreated");
-        this.connection.addListener(targetCreatedLis.getMothod(), targetCreatedLis);
+        targetCreatedLis.setMethod("Target.targetCreated");
+        this.connection.addListener(targetCreatedLis.getMethod(), targetCreatedLis);
 
         DefaultBrowserListener<TargetDestroyedPayload> targetDestroyedLis = new DefaultBrowserListener<TargetDestroyedPayload>() {
             @Override
@@ -123,8 +123,8 @@ public class Browser extends EventEmitter {
             }
         };
         targetDestroyedLis.setTarget(this);
-        targetDestroyedLis.setMothod("Target.targetDestroyed");
-        this.connection.addListener(targetDestroyedLis.getMothod(), targetDestroyedLis);
+        targetDestroyedLis.setMethod("Target.targetDestroyed");
+        this.connection.addListener(targetDestroyedLis.getMethod(), targetDestroyedLis);
 
         DefaultBrowserListener<TargetInfoChangedPayload> targetInfoChangedLis = new DefaultBrowserListener<TargetInfoChangedPayload>() {
             @Override
@@ -134,8 +134,8 @@ public class Browser extends EventEmitter {
             }
         };
         targetInfoChangedLis.setTarget(this);
-        targetInfoChangedLis.setMothod("Target.targetInfoChanged");
-        this.connection.addListener(targetInfoChangedLis.getMothod(), targetInfoChangedLis);
+        targetInfoChangedLis.setMethod("Target.targetInfoChanged");
+        this.connection.addListener(targetInfoChangedLis.getMethod(), targetInfoChangedLis);
     }
 
     private void targetDestroyed(TargetDestroyedPayload event) {

@@ -417,7 +417,7 @@ public class Helper {
                 latch.countDown();
             }
         };
-        listener.setMothod(eventName);
+        listener.setMethod(eventName);
         BrowserListenerWrapper wrapper = addEventListener(eventEmitter, eventName, listener);
         try {
             boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);

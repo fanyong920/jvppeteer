@@ -114,9 +114,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                 runner.kill();
             }
         };
-        exitListener.setMothod("exit");
+        exitListener.setMethod("exit");
         exitListener.setTarget(this);
-        this.listeners.add(Helper.addEventListener(this, exitListener.getMothod(), exitListener));
+        this.listeners.add(Helper.addEventListener(this, exitListener.getMethod(), exitListener));
 
         if (options.getHandleSIGINT()) {
             DefaultBrowserListener<Object> sigintListener = new DefaultBrowserListener<Object>() {
@@ -126,9 +126,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                     runner.kill();
                 }
             };
-            sigintListener.setMothod("SIGINT");
+            sigintListener.setMethod("SIGINT");
             sigintListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sigintListener.getMothod(), sigintListener));
+            this.listeners.add(Helper.addEventListener(this, sigintListener.getMethod(), sigintListener));
         }
 
         if (options.getHandleSIGTERM()) {
@@ -139,9 +139,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                     runner.close();
                 }
             };
-            sigtermListener.setMothod("SIGTERM");
+            sigtermListener.setMethod("SIGTERM");
             sigtermListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sigtermListener.getMothod(), sigtermListener));
+            this.listeners.add(Helper.addEventListener(this, sigtermListener.getMethod(), sigtermListener));
         }
 
         if (options.getHandleSIGHUP()) {
@@ -152,9 +152,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
                     runner.close();
                 }
             };
-            sighubListener.setMothod("SIGHUP");
+            sighubListener.setMethod("SIGHUP");
             sighubListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sighubListener.getMothod(), sighubListener));
+            this.listeners.add(Helper.addEventListener(this, sighubListener.getMethod(), sighubListener));
         }
     }
 

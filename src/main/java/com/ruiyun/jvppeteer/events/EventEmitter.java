@@ -38,8 +38,8 @@ public class EventEmitter implements Event {
     @Override
     public Event addListener(String method, BrowserListener<?> blistener, boolean isOnce) {
         DefaultBrowserListener listener = (DefaultBrowserListener)blistener;
-        if(!method.equals(listener.getMothod())){
-            LOGGER.error("addListener fail:{} is not equals listener.getMothod()[{}]",method,listener.getMothod());
+        if(!method.equals(listener.getMethod())){
+            LOGGER.error("addListener fail:{} is not equals listener.getMothod()[{}]",method,listener.getMethod());
             return this;
         }
         listener.setIsOnce(isOnce);
@@ -181,7 +181,7 @@ public class EventEmitter implements Event {
     public Event on(String method, EventHandler<?> handler) {
         DefaultBrowserListener listener = new DefaultBrowserListener();
         listener.setIsSync(true);
-        listener.setMothod(method);
+        listener.setMethod(method);
         listener.setHandler(handler);
         return this.addListener(method, listener);
     }
@@ -195,7 +195,7 @@ public class EventEmitter implements Event {
     public Event once(String method, EventHandler<?> handler) {
         DefaultBrowserListener listener = new DefaultBrowserListener();
         listener.setIsSync(true);
-        listener.setMothod(method);
+        listener.setMethod(method);
         listener.setHandler(handler);
         return this.addListener(method, listener, true);
     }

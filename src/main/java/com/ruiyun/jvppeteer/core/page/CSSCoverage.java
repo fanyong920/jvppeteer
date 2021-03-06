@@ -57,7 +57,7 @@ public class CSSCoverage {
                 cssCoverage.onStyleSheet(event);
             }
         };
-        addLis.setMothod("CSS.styleSheetAdded");
+        addLis.setMethod("CSS.styleSheetAdded");
         addLis.setTarget(this);
 
         DefaultBrowserListener<Object> clearLis = new DefaultBrowserListener<Object>() {
@@ -67,11 +67,11 @@ public class CSSCoverage {
                 cssCoverage.onExecutionContextsCleared();
             }
         };
-        clearLis.setMothod("Runtime.executionContextsCleared");
+        clearLis.setMethod("Runtime.executionContextsCleared");
         clearLis.setTarget(this);
 
-        this.eventListeners.add(Helper.addEventListener(this.client, addLis.getMothod(), addLis));
-        this.eventListeners.add(Helper.addEventListener(this.client, clearLis.getMothod(), clearLis));
+        this.eventListeners.add(Helper.addEventListener(this.client, addLis.getMethod(), addLis));
+        this.eventListeners.add(Helper.addEventListener(this.client, clearLis.getMethod(), clearLis));
 
         this.client.send("DOM.enable", null, false);
         this.client.send("CSS.enable", null, false);
