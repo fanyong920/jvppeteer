@@ -37,7 +37,7 @@ public class PageEventListenerExample {
         page.onLoad((ignore) -> {
             System.out.println("页面加载完成...");
         });
-        page.onDialg((dialog) -> {
+        page.onDialog((dialog) -> {
             System.out.println("页面有弹窗事件..."+dialog);
         });
         page.onError((error) -> {

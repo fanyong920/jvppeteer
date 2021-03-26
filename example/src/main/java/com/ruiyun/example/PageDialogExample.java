@@ -31,7 +31,7 @@ public class PageDialogExample {
         page.goTo("https://zhuanlan.zhihu.com/p/97564816");
 
         //这里是关闭dialog
-        page.onDialg(dialog -> {
+        page.onDialog(dialog -> {
             dialog.dismiss();
             System.out.println(dialog.type());
         });

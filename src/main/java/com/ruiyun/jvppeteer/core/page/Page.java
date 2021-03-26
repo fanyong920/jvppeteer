@@ -434,7 +434,7 @@ public class Page extends EventEmitter {
         this.on(Events.PAGE_CONSOLE.getName(), handler);
     }
 
-    public void onDialg(EventHandler<Dialog> handler) {
+    public void onDialog(EventHandler<Dialog> handler) {
         this.on(Events.PAGE_DIALOG.getName(), handler);
     }
 
