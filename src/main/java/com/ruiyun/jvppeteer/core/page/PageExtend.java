@@ -6,13 +6,23 @@ import java.util.List;
 
 public class PageExtend {
 
+
     public static String html(Page page) {
         if (null == page) return null;
         ElementHandle handle = byTag(page, "html");
         if (null == handle) return null;
         JSHandle jsHandle = handle.getProperty("outerHTML");
         if (null == jsHandle) return null;
-        return jsHandle.jsonValue().toString().toLowerCase();
+        return jsHandle.jsonValue().toString();
+    }
+
+    public static String text(Page page) {
+        if (null == page) return null;
+        ElementHandle handle = byTag(page, "html");
+        if (null == handle) return null;
+        JSHandle jsHandle = handle.getProperty("innerText");
+        if (null == jsHandle) return null;
+        return jsHandle.jsonValue().toString();
     }
 
     public static ElementHandle byId(Page page, String param) {
@@ -49,6 +59,5 @@ public class PageExtend {
         }
         return page.$$(".".concat(param));
     }
-
 
 }
