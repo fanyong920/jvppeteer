@@ -472,9 +472,8 @@ public class BrowserFetcher {
      * @param archivePath zip路径
      * @param folderPath  存放的路径
      * @throws IOException          异常
-     * @throws InterruptedException 异常
      */
-    private void install(String archivePath, String folderPath) throws IOException, InterruptedException {
+    private void install(String archivePath, String folderPath) throws IOException {
         LOGGER.info("Installing " + archivePath + " to " + folderPath);
         if (archivePath.endsWith(".zip")) {
             extractZip(archivePath, folderPath);
@@ -571,16 +570,10 @@ public class BrowserFetcher {
      * @param archivePath zip路径
      * @param folderPath  存放路径
      * @throws IOException          异常
-     * @throws InterruptedException 异常
      */
-    private void installDMG(String archivePath, String folderPath) throws IOException, InterruptedException {
-        String mountPath = null;
-        try {
-            mountPath = mountAndCopy(archivePath, folderPath);
-        } finally {
-            unmount(mountPath);
-        }
-//        throw new RuntimeException("Cannot find app in " + mountPath);
+    private void installDMG(String archivePath, String folderPath) throws IOException {
+        net.lingala.zip4j.ZipFile zipFile = new net.lingala.zip4j.ZipFile(archivePath);
+        zipFile.extractAll(folderPath);
     }
 
     /**
@@ -694,7 +687,6 @@ public class BrowserFetcher {
                     }
                     wirter.flush();
                 }
-
             }
         } finally {
             StreamUtil.closeQuietly(wirter);
