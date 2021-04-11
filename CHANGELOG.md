@@ -110,3 +110,12 @@
 
 - [2021-01-27 修复Page#goTo方法中referrer值为null的问题](https://github.com/fanyong920/jvppeteer/commit/89135bb8c604db09735caf63f5a575da6288ef7c)
 - [修复截图前可能重新加载导致找不到context](https://github.com/fanyong920/jvppeteer/commit/b94d3b927f2bb73871540059c7f7520685465b62)
+
+### Version Release 1.1.3 (2021/04/04)
+
+- [修正Page#$x()方法中存在的问题](https://github.com/fanyong920/jvppeteer/commit/a7fe287f900c61e09d621bc29394af6df250e790)
+- [FIX:修复启动器不能通过LaunchOptions的setProduct方法切换FIREFOX的问题](https://github.com/fanyong920/jvppeteer/commit/d4eb28fc986aa92357a515bd2fa93323501a6546)
+- [2021-03-06 修正DefaultBrowserListener中变量名mothod为method](https://github.com/fanyong920/jvppeteer/commit/a2247ec0d3272bc0f2da823ce620bb36d447f102)
+- [INF:修改Page类以及引用的Example中onDialg方法名拼写错误; 增加Page扩展类PageExtend](https://github.com/fanyong920/jvppeteer/commit/60c8f74a5f04de1f90bd193a655e965dabc35b22)
+- [INF: Page扩展类修改，增加获取页面文本](https://github.com/fanyong920/jvppeteer/commit/65a5427d5a57bbf09632e9df46ceb76a56a55e14)
+
