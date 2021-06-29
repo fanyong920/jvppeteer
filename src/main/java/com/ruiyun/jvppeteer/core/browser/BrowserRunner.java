@@ -191,8 +191,16 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * 强制结束浏览器进程
      */
     public void destroyForcibly() {
-        if (process != null && process.isAlive()) {
-            process.destroyForcibly();
+        try {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
+        } finally {
+            //必须删除,防止runners中的BrowserRunner对象一直疯涨,最终oom
+            runners.remove(this);
+            if (listeners.size() > 0) {
+                listeners.clear();
+            }
         }
     }
 

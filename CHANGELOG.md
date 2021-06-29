@@ -118,4 +118,3 @@
 - [2021-03-06 修正DefaultBrowserListener中变量名mothod为method](https://github.com/fanyong920/jvppeteer/commit/a2247ec0d3272bc0f2da823ce620bb36d447f102)
 - [INF:修改Page类以及引用的Example中onDialg方法名拼写错误; 增加Page扩展类PageExtend](https://github.com/fanyong920/jvppeteer/commit/60c8f74a5f04de1f90bd193a655e965dabc35b22)
 - [INF: Page扩展类修改，增加获取页面文本](https://github.com/fanyong920/jvppeteer/commit/65a5427d5a57bbf09632e9df46ceb76a56a55e14)
-
