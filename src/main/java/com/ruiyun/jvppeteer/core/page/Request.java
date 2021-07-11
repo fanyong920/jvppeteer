@@ -5,17 +5,15 @@ import com.ruiyun.jvppeteer.protocol.fetch.HeaderEntry;
 import com.ruiyun.jvppeteer.protocol.network.ErrorCode;
 import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentPayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 /**
  * Whenever the page sends a request, such as for a network resource, the following events are emitted by puppeteer's page:
@@ -240,10 +238,11 @@ public class Request {
      * @param body 响应体
      * @return Future
      */
-    public JsonNode respond(int status, Map<String, String> headers, String contentType, String body) {
+    public JsonNode respond(int status, List<HeaderEntry> headers, String contentType, String body) {
         // Mocking responses for dataURL requests is not currently supported.
-        if (url().startsWith("data:"))
+        if (url().startsWith("data:")) {
             return null;
+        }
 
         ValidateUtil.assertArg(allowInterception, "Request Interception is not enabled!");
         ValidateUtil.assertArg(!interceptionHandled, "Request is already handled!");
@@ -255,9 +254,10 @@ public class Request {
         }
         Map<String, String> responseHeaders = new HashMap<>();
 
-        if (headers != null && headers.size() > 0) {
-            for (Map.Entry<String, String> entry : headers.entrySet())
-                responseHeaders.put(entry.getKey().toLowerCase(), entry.getValue());
+        if (ValidateUtil.isNotEmpty(headers)) {
+            for (HeaderEntry header : headers) {
+                responseHeaders.put(header.getName().toLowerCase(), header.getValue());
+            }
         }
 
         if (StringUtil.isNotEmpty(contentType)){
