@@ -92,7 +92,7 @@ public class Puppeteer {
      * @param product 谷歌还是火狐
      * @return 浏览器实例
      */
-    public static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport, String product) {
+    private static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport, String product) {
         Puppeteer puppeteer = new Puppeteer();
 
         if (StringUtil.isNotEmpty(product))
@@ -102,7 +102,7 @@ public class Puppeteer {
     }
 
     /**
-     * 连接一个已经存在的浏览器实例
+     * 连接一个已经存在的 Browser 实例
      * browserWSEndpoint、browserURL、transport有其中一个就行了
      * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
      * <p>browserURL: 类似 localhost:8080 这个地址</p>
@@ -113,12 +113,12 @@ public class Puppeteer {
      * @param transport  websocket http transport 三选一
      * @return 浏览器实例
      */
-    public static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
+    public  static Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
        return Puppeteer.connect(options,browserWSEndpoint,browserURL,transport,null);
     }
 
     /**
-     * 连接一个已经存在的浏览器实例
+     * 连接一个已经存在的 Browser 实例
      * browserWSEndpoint、browserURL、transport有其中一个就行了
      * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
      * <p>browserURL: 类似 localhost:8080 这个地址</p>
@@ -130,6 +130,31 @@ public class Puppeteer {
      */
     public static Browser connect(String browserWSEndpoint, String browserURL, ConnectionTransport transport) {
         return Puppeteer.connect(new BrowserOptions(),browserWSEndpoint,browserURL,transport,null);
+    }
+
+    /**
+     * 连接一个已经存在的 Browser 实例
+     * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
+     * <p>browserURL: 类似 localhost:8080 这个地址</p>
+     * @param browserWSEndpointOrURL 一个Browser实例对应一个browserWSEndpoint
+     * @return 浏览器实例
+     */
+    public static Browser connect(String browserWSEndpointOrURL) {
+        if(browserWSEndpointOrURL.contains(":")){
+            return Puppeteer.connect(null,browserWSEndpointOrURL,null);
+        }else {
+            return Puppeteer.connect(browserWSEndpointOrURL,null,null);
+        }
+    }
+
+    /**
+     * 连接一个已经存在的 Browser 实例
+     * <p>transport: 之前已经创建好的 ConnectionTransport</p>
+     * @param transport  websocket http transport 三选一
+     * @return 浏览器实例
+     */
+    public static Browser connect(ConnectionTransport transport) {
+        return Puppeteer.connect(null,null,transport);
     }
 
     /**

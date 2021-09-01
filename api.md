@@ -331,7 +331,7 @@
   * [eventEmitter.once(event, handler)](#eventemitteronceevent-handler)
   * [eventEmitter.removeAllListeners([event])](#eventemitterremovealllistenersevent)
   * [eventEmitter.removeListener(event, handler)](#eventemitterremovelistenerevent-handler)
-<!-- GEN:stop -->
+  <!-- GEN:stop -->
 
 ### 前言
 
@@ -548,165 +548,130 @@ BrowserFetcher 操作一个修订版本字符串，修订版本字符串指定�
 
 ### class: Browser
 
-* extends: [EventEmitter](#class-eventemitter)
+* 继承: [EventEmitter](#class-eventemitter)
 
-A Browser is created when Puppeteer connects to a Chromium instance, either through [`puppeteer.launch`](#puppeteerlaunchoptions) or [`puppeteer.connect`](#puppeteerconnectoptions).
+当用 Jvppeteer打开一个 Chromium 实例是会自动创建一个 Browser 对象, 可以通过 [`puppeteer.launch`](#puppeteerlaunchoptions) 或者 [`puppeteer.connect`](#puppeteerconnectoptions) 获取 Browser 对象
 
-An example of using a [Browser] to create a [Page]:
-```js
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto('https://example.com');
-  await browser.close();
-})();
+下面是用 [Browser](##class Browser)  创建 [Page](###class Page) 对象的例子:
+```java
+  Browser browser =  puppeteer.launch();
+  Page page = browser.newPage();
+  page.goTo('https://example.com');
+  browser.close();
 ```
 
-An example of disconnecting from and reconnecting to a [Browser]:
-```js
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch();
-  // Store the endpoint to be able to reconnect to Chromium
-  const browserWSEndpoint = browser.wsEndpoint();
-  // Disconnect puppeteer from Chromium
+下面是断开 [Browser](##class-browser)  和重新连接 [Browser](##class-browser)  的例子 :
+```java
+  Browser browser = puppeteer.launch();
+  //拿到对应Browser对象的 endpoint 以方便接下来能重连到 Chromium
+  String browserWSEndpoint = browser.wsEndpoint();
+  // 断开连接
   browser.disconnect();
 
-  // Use the endpoint to reestablish a connection
-  const browser2 = await puppeteer.connect({browserWSEndpoint});
-  // Close Chromium
-  await browser2.close();
-})();
+  // 使用 endpoint 重新建立连接
+  Browser browser2 =  puppeteer.connect(browserWSEndpoint);
+  // 关闭 Chromium
+  browser2.close();
+
 ```
 #### event: 'disconnected'
-Emitted when Puppeteer gets disconnected from the Chromium instance. This might happen because of one of the following:
-- Chromium is closed or crashed
-- The [`browser.disconnect`](#browserdisconnect) method was called
+断开浏览器连接的事件. 以下两种情况可能引发这个事件:
+- 关闭浏览器或者浏览器崩溃
+- 触发 [`browser.disconnect`](#browserdisconnect) 
 
 #### event: 'targetchanged'
-- <[Target]>
+当目标的 url 改变时被触发
 
-Emitted when the url of a target changes.
-
-> **NOTE** This includes target changes in incognito browser contexts.
+> **注意** 这包括默认浏览器上下文中的目标更改。
 
 
 #### event: 'targetcreated'
-- <[Target]>
+当目标被创建时被触发，例如当通过 [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) 或 [`browser.newPage`](https://zhaoqize.github.io/puppeteer-api-zh_CN/#?product=Puppeteer&version=v10.2.0&show=api-browsernewpage) 打开一个新的页面。
 
-Emitted when a target is created, for example when a new page is opened by [`window.open`](https://developer.mozilla.org/en-US/docs/Web/API/Window/open) or [`browser.newPage`](#browsernewpage).
-
-> **NOTE** This includes target creations in incognito browser contexts.
+> **注意** 这包括默认浏览器上下文中的目标销毁。
 
 #### event: 'targetdestroyed'
-- <[Target]>
+当目标被销毁时被触发，例如当一个页面被关闭时。
 
-Emitted when a target is destroyed, for example when a page is closed.
-
-> **NOTE** This includes target destructions in incognito browser contexts.
+> **注意** 这包括默认浏览器上下文中的目标销毁。
 
 #### browser.browserContexts()
-- returns: <[Array]<[BrowserContext]>>
-
-Returns an array of all open browser contexts. In a newly created browser, this will return
-a single instance of [BrowserContext].
+返回一个包含所有打开的浏览器上下文的数组。在新创建的浏览器中，这将返回 [BrowserContext](###class-browsercontext) 的单一实例。
 
 #### browser.close()
-- returns: <[Promise]>
-
-Closes Chromium and all of its pages (if any were opened). The [Browser] object itself is considered to be disposed and cannot be used anymore.
+关闭 Chromium 以及所有页面 (如果有). [Browser](##class-browser) 对象本身被认为是处理过的并不能再被使用。
 
 #### browser.createIncognitoBrowserContext()
-- returns: <[Promise]<[BrowserContext]>>
+创建一个匿名的浏览器上下文。这将不会与其他浏览器上下文分享 cookies/cache
 
-Creates a new incognito browser context. This won't share cookies/cache with other browser contexts.
-
-```js
-(async () => {
-  const browser = await puppeteer.launch();
-  // Create a new incognito browser context.
-  const context = await browser.createIncognitoBrowserContext();
-  // Create a new page in a pristine context.
-  const page = await context.newPage();
-  // Do stuff
-  await page.goto('https://example.com');
-})();
+```java
+  Browser browser =  Puppeteer.launch();
+  // 创建一个匿名的浏览器上下文
+  BrowserContext context = browser.createIncognitoBrowserContext();
+  // 在一个原生的上下文中创建一个新页面
+  Page page = await context.newPage();
+  // 做一些事情
+  page.goTo('https://example.com');
 ```
 
 #### browser.defaultBrowserContext()
-- returns: <[BrowserContext]>
-
-Returns the default browser context. The default browser context can not be closed.
+返回默认的浏览器上下文，默认的浏览器上下文不能被关闭
 
 #### browser.disconnect()
 
-Disconnects Puppeteer from the browser, but leaves the Chromium process running. After calling `disconnect`, the [Browser] object is considered disposed and cannot be used anymore.
+断开 Jvppeteer 和浏览器的连接，但 Chromium 进程仍然在运行。在调用 `disconnect` 之后，[Browser](##class-browser) 对象本身被认为是处理过的并不能再被使用。
 
 #### browser.isConnected()
 
 - returns: <[boolean]>
 
-Indicates that the browser is connected.
+是否已经连接浏览器
 
 #### browser.newPage()
-- returns: <[Promise]<[Page]>>
-
-Promise which resolves to a new [Page] object. The [Page] is created in a default browser context.
+在默认的浏览器上下文中打开一个新的页面
 
 #### browser.pages()
-- returns: <[Promise]<[Array]<[Page]>>> Promise which resolves to an array of all open pages. Non visible pages, such as `"background_page"`, will not be listed here. You can find them using [target.page()](#targetpage).
+- returns:  返回一个包含所有打开的页面的数组。页面不可见的，比如 `"background_page"` 将不会列在这。不过你可以通过 [target.page()](####target.page()) 找到它们。
 
-An array of all pages inside the Browser. In case of multiple browser contexts,
-the method will return an array with all the pages in all browser contexts.
+返回一个浏览器中所有页面的数组。 在多个浏览器上下文的情况下， 该方法将返回一个包含所有浏览器上下文中所有页面的数组。
 
 #### browser.process()
-- returns: <?[ChildProcess]> Spawned browser process. Returns `null` if the browser instance was created with [`puppeteer.connect`](#puppeteerconnectoptions) method.
+ 产生浏览器的进程。如果浏览器实例是由 [`puppeteer.connect`](####puppeteer.connect(options)) 方法创建的则返回null。
 
 #### browser.target()
-- returns: <[Target]>
-
-A target associated with the browser.
+返回浏览器相关的目标对象。
 
 #### browser.targets()
-- returns: <[Array]<[Target]>>
-
-An array of all active targets inside the Browser. In case of multiple browser contexts,
-the method will return an array with all the targets in all browser contexts.
+浏览器内所有活动目标组成的数组。在多个浏览器上下文的情况下，该方法将返回一个包含所有浏览器上下文中的所有目标的数组。
 
 #### browser.userAgent()
-- returns: <[Promise]<[string]>> Promise which resolves to the browser's original user agent.
+返回浏览器的 userAgent
 
-> **NOTE** Pages can override browser user agent with [page.setUserAgent](#pagesetuseragentuseragent)
+> **注意** 页面可以通过 [page.setUserAgent](#pagesetuseragentuseragent) 重新设置 userAgent
 
 #### browser.version()
-- returns: <[Promise]<[string]>> For headless Chromium, this is similar to `HeadlessChrome/61.0.3153.0`. For non-headless, this is similar to `Chrome/61.0.3153.0`.
+ 对于无头的 Chromium，这类似于 `HeadlessChrome/61.0.3153.0`. 对于非无头的Chromium, 这类似于 `Chrome/61.0.3153.0。`
 
-> **NOTE** the format of browser.version() might change with future releases of Chromium.
+> **注意** browser.version() 的格式可能在未来版本的 Chromium 中发生变化。
 
-#### browser.waitForTarget(predicate[, options])
-- `predicate` <[function]\([Target]\):[boolean]> A function to be run for every target
-- `options` <[Object]>
-  - `timeout` <[number]> Maximum wait time in milliseconds. Pass `0` to disable the timeout. Defaults to 30 seconds.
-- returns: <[Promise]<[Target]>> Promise which resolves to the first target found that matches the `predicate` function.
+#### browser.waitForTarget(predicate，options)
+- `predicate` 每个目标要运行的函数
+- `timeout` <[number]> 最大等待毫秒时间. Pass `0` to disable the timeout 设置 0 可以无限等待. 默认等待30秒.
 
-This searches for a target in all browser contexts.
+  在所有的浏览器上下文中寻找目标
 
-An example of finding a target for a page opened via `window.open`:
-```js
-await page.evaluate(() => window.open('https://www.example.com/'));
-const newWindowTarget = await browser.waitForTarget(target => target.url() === 'https://www.example.com/');
+下面是一个通过`window.open`找到一个目标，这个目标对应一个打开的页面:
+```java
+page.evaluate(“() => window.open('https://www.example.com/')”);
+Target newWindowTarget = browser.waitForTarget(“target => target.url() === 'https://www.example.com/'”);
 ```
 
 #### browser.wsEndpoint()
-- returns: <[string]> Browser websocket url.
+返回浏览器 websocket 的地址
 
-Browser websocket endpoint which can be used as an argument to
-[puppeteer.connect](#puppeteerconnectoptions). The format is `ws://${host}:${port}/devtools/browser/<id>`
+[puppeteer.connect](####puppeteer.connect(options)) 可以将浏览器 websocket 端作为一个参数。其格式为 `ws://${host}:${port}/devtools/browser/<id>`。
 
-You can find the `webSocketDebuggerUrl` from `http://${host}:${port}/json/version`. Learn more about the [devtools protocol](https://chromedevtools.github.io/devtools-protocol) and the [browser endpoint](https://chromedevtools.github.io/devtools-protocol/#how-do-i-access-the-browser-target).
+你可以从 `http://${host}:${port}/json/version` 找到 `webSocketDebuggerUrl` 。了解更多有关 [devtools protocol](https://chromedevtools.github.io/devtools-protocol) 和 [browser endpoint](https://chromedevtools.github.io/devtools-protocol/#how-do-i-access-the-browser-target) 的信息
 
 ### class: BrowserContext
 

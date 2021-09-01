@@ -386,7 +386,7 @@ public class Browser extends EventEmitter {
      *
      * @param handler 事件处理器
      */
-    public void onTrgetcreated(EventHandler<Target> handler) {
+    public void onTargetcreated(EventHandler<Target> handler) {
         this.on(Events.BROWSER_TARGETCREATED.getName(), handler);
     }
 
