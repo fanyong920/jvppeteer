@@ -144,6 +144,16 @@ public class BrowserFetcher {
     }
 
     /**
+     * <p>下载默认配置版本(722234)的浏览器，下载到项目目录下</p>
+     * @throws InterruptedException 异常
+     * @throws ExecutionException   异常
+     * @throws IOException          异常
+     */
+    public static RevisionInfo downloadIfNotExist() throws InterruptedException, ExecutionException, IOException {
+        return downloadIfNotExist(null);
+    }
+
+    /**
      * <p>下载浏览器，如果项目目录下不存在对应版本时</p>
      * <p>如果不指定版本，则使用默认配置版本</p>
      *
@@ -248,8 +258,6 @@ public class BrowserFetcher {
                 LOGGER.error("Set executablePath:{} file executation permission fail.", revisionInfo.getExecutablePath());
             }
         }
-        //睡眠5s，让解压程序释放chrome.exe
-        Thread.sleep(5000L);
         return revisionInfo;
     }
 
@@ -677,15 +685,19 @@ public class BrowserFetcher {
                 if (zipEntry.isDirectory()) {
                     path.toFile().mkdirs();
                 } else {
-                    reader = new BufferedInputStream(zipFile.getInputStream(zipEntry));
-
-                    int perReadcount;
-                    byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
-                    wirter = new BufferedOutputStream(new FileOutputStream(path.toString()));
-                    while ((perReadcount = reader.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) != -1) {
-                        wirter.write(buffer, 0, perReadcount);
+                    try {
+                        reader = new BufferedInputStream(zipFile.getInputStream(zipEntry));
+                        int perReadcount;
+                        byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
+                        wirter = new BufferedOutputStream(new FileOutputStream(path.toString()));
+                        while ((perReadcount = reader.read(buffer, 0, Constant.DEFAULT_BUFFER_SIZE)) != -1) {
+                            wirter.write(buffer, 0, perReadcount);
+                        }
+                        wirter.flush();
+                    }finally {
+                        StreamUtil.closeQuietly(wirter);
+                        StreamUtil.closeQuietly(reader);
                     }
-                    wirter.flush();
                 }
             }
         } finally {
