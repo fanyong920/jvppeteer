@@ -17,7 +17,7 @@ public class OnTargetCreatePage {
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
-        browser.onTrgetcreated(target -> {
+        browser.onTargetcreated(target -> {
             if("page".equals(target.type())){
                 Page page = target.page();
                 page.setRequestInterception(true);

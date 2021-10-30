@@ -19,8 +19,8 @@ public class LaunchExample {
 	
 	@Test
 	public void test1() throws Exception {
-		//自动下载，第一次下载后不会再下载
-		BrowserFetcher.downloadIfNotExist(null);
+		//自动下载722234版本的浏览器，第一次下载后不会再下载
+		BrowserFetcher.downloadIfNotExist();
 		LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Arrays.asList("--enable-automation")).withHeadless(false).build();
 		Browser browser = Puppeteer.launch(launchOptions);
 		Page page = browser.newPage();

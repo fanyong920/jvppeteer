@@ -45,7 +45,7 @@ public class BrowserFunctionExample {
         System.out.println("isConnected: "+ browser.isConnected());
 
         //重新连接
-        Browser connect = Puppeteer.connect(new BrowserOptions(), wsEndpoint, null, null, null);
+        Browser connect = Puppeteer.connect(wsEndpoint);
 
 
 //        browser.pages()

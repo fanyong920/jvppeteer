@@ -22,7 +22,7 @@ public class BrowserEventExample {
         browser.onDisconnected((s) ->{
             System.out.println("浏览器断开连接");
         });
-        browser.onTrgetcreated((target) -> {
+        browser.onTargetcreated((target) -> {
             System.out.println("target type: "+target.type());
         });
         Page page = browser.newPage();
