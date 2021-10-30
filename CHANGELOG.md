@@ -119,3 +119,6 @@
 - [INF:修改Page类以及引用的Example中onDialg方法名拼写错误; 增加Page扩展类PageExtend](https://github.com/fanyong920/jvppeteer/commit/60c8f74a5f04de1f90bd193a655e965dabc35b22)
 - [INF: Page扩展类修改，增加获取页面文本](https://github.com/fanyong920/jvppeteer/commit/65a5427d5a57bbf09632e9df46ceb76a56a55e14)
 
+### Version Release 1.1.4 (2021/10/30)
+
+- [2021-10-23 解压Chrome.zip压缩包时关闭流，防止出现text file busy错误](https://github.com/fanyong920/jvppeteer/commit/6cd7a06528eb222d8c7947ea632c1a1761b40a6b)

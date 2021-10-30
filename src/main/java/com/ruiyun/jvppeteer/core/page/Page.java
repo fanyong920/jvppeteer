@@ -1037,14 +1037,7 @@ public class Page extends EventEmitter {
         }
         boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
         if (shouldSetDefaultBackground) {
-            params.clear();
-            Map<String, Integer> colorMap = new HashMap<>();
-            colorMap.put("r", 0);
-            colorMap.put("g", 0);
-            colorMap.put("b", 0);
-            colorMap.put("a", 0);
-            params.put("color", colorMap);
-            this.client.send("Emulation.setDefaultBackgroundColorOverride", params, true);
+            setTransparentBackgroundColor();
         }
         params.clear();
         params.put("format", format);
@@ -1063,6 +1056,17 @@ public class Page extends EventEmitter {
             Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         }
         return data;
+    }
+
+    private void setTransparentBackgroundColor() {
+        Map<String, Object> params = new HashMap<>();
+        Map<String, Integer> colorMap = new HashMap<>();
+        colorMap.put("r", 0);
+        colorMap.put("g", 0);
+        colorMap.put("b", 0);
+        colorMap.put("a", 0);
+        params.put("color", colorMap);
+        this.client.send("Emulation.setDefaultBackgroundColorOverride", params, true);
     }
 
     private ClipOverwrite processClip(Clip clip) {
