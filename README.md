@@ -1,3 +1,7 @@
+---
+
+---
+
 # Jvppeteer
 <p align = "left">
 <a rel="nofollow" href="https://download-chromium.appspot.com/"><img src ="https://img.shields.io/badge/chromium%20download-latest-blue"  alt="下载最新版本的chromuim" style="max-width:100%;"></a> <a><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.fanyong920/jvppeteer"></a> <a href="https://github.com/fanyong920/jvppeteer/issues"><img alt="Issue resolution status" src="https://img.shields.io/github/issues/fanyong920/jvppeteer" style="max-width:100%;"></a>
@@ -27,7 +31,14 @@
 
 ## 开始使用
 
+
+
+**注意：Mac必须withExcutablePath是用來指定启动Chrome.exe的路径。在Mac下BrowserFetcher.downloadIfNotExist(null)有问题。**
+
+
+
 ### 以下是使用依赖管理工具（如 maven 或 gradle）的简要指南。
+
 #### Maven
 要使用 maven,请将此依赖添加到pom.xml文件中：
 
