@@ -157,7 +157,14 @@ public class ElementHandle extends JSHandle {
         }
     }
 
-    public String screenshot(ScreenshotOptions options) throws IOException {
+    /**
+     * 截图所选择的元素
+     * @param options 截图配置
+     * @param scrollIntoViewIfNeeded 元素如果不可见时是否需要滚动浏览器
+     * @return
+     * @throws IOException
+     */
+    public String screenshot(ScreenshotOptions options, boolean scrollIntoViewIfNeeded) throws IOException {
         boolean needsViewportReset = false;
         Clip boundingBox = this.boundingBox();
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
@@ -171,7 +178,9 @@ public class ElementHandle extends JSHandle {
             this.page.setViewport(newViewport);
             needsViewportReset = true;
         }
-        this.scrollIntoViewIfNeeded();
+        if (scrollIntoViewIfNeeded) {
+            this.scrollIntoViewIfNeeded();
+        }
         boundingBox = this.boundingBox();
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
         ValidateUtil.assertArg(boundingBox.getWidth() != 0, "Node has 0 width.");
@@ -188,6 +197,10 @@ public class ElementHandle extends JSHandle {
         if (needsViewportReset)
             this.page.setViewport(viewport);
         return imageData;
+    }
+
+    public String screenshot(ScreenshotOptions options) throws IOException {
+        return this.screenshot(options, true);
     }
 
     public com.ruiyun.jvppeteer.core.page.BoxModel boxModel() {
