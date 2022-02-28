@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.protocol.fetch.HeaderEntry;
 import com.ruiyun.jvppeteer.protocol.network.ErrorCode;
 import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentPayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -236,9 +237,10 @@ public class Request {
      * @param headers 响应头
      * @param contentType contentType
      * @param body 响应体
-     * @return Future
+     * @param needBase64Decode 自定义响应体是否需要Base64解码
+     * @return
      */
-    public JsonNode respond(int status, List<HeaderEntry> headers, String contentType, String body) {
+    public JsonNode respond(int status, List<HeaderEntry> headers, String contentType, String body, boolean needBase64Decode) {
         // Mocking responses for dataURL requests is not currently supported.
         if (url().startsWith("data:")) {
             return null;
@@ -274,9 +276,26 @@ public class Request {
         params.put("responsePhrase", STATUS_TEXTS.get(status));
         params.put("responseHeaders", headersArray(responseHeaders));
         if (responseBody != null) {
-            params.put("body", Base64.getDecoder().decode(responseBody));
+            if (needBase64Decode) {
+                // fix #91: 设置自定义响应体时，如果body时base64，使用兼容MIME的工具类处理
+                params.put("body", Base64Util.decode(responseBody));
+            } else {
+                params.put("body", responseBody);
+            }
         }
         return client.send("Fetch.fulfillRequest", params, true);
+    }
+
+    /**
+     * 自定义响应, 默认对响应体做base64解码
+     * @param status 响应状态
+     * @param headers 响应头
+     * @param contentType contentType
+     * @param body 响应体
+     * @return Future
+     */
+    public JsonNode respond(int status, List<HeaderEntry> headers, String contentType, String body) {
+        return respond(status, headers, contentType, body, true);
     }
 
     /**
