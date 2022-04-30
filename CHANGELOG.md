@@ -122,3 +122,16 @@
 ### Version Release 1.1.4 (2021/10/30)
 
 - [2021-10-23 解压Chrome.zip压缩包时关闭流，防止出现text file busy错误](https://github.com/fanyong920/jvppeteer/commit/6cd7a06528eb222d8c7947ea632c1a1761b40a6b)
+
+### Version Release 1.1.5 (2022/4/30)
+
+- [ElementHandle添加带有scrollIntoViewIfNeeded参数的screenshot方法](https://github.com/fanyong920/jvppeteer/commit/f981f4b867c9baf2ea0537c9088b39f728d1e059)
+
+- [#88](https://github.com/fanyong920/jvppeteer/issues/88) [jackson-databind版本升级至2.10.5.1](https://github.com/fanyong920/jvppeteer/commit/01ce3fe74e3fdee63ac6922e0b02969ba9058fca)
+
+- [#91](https://github.com/fanyong920/jvppeteer/issues/91) [fix respond新增重载方法，指定是否需要base64解码body数据，同时兼容mime标准base64。原方法默认解码](https://github.com/fanyong920/jvppeteer/commit/775a6c471ac80958788f21307a216c420052dfe4)
+
+- [Bump zip4j from 2.7.0 to 2.9.1](https://github.com/fanyong920/jvppeteer/commit/5e0bbeb5651d67c0fdd2d1f4c187d24a8ed1dfcc)
+
+  
+

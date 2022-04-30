@@ -6,7 +6,6 @@ import java.util.Base64;
  * Base64操作工具，兼容RFC4648和RFC2045
  *
  * @author sage.xue
- * @date 2022/2/20 15:59
  */
 public class Base64Util {
 
