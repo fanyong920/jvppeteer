@@ -49,7 +49,7 @@
         <jackson.version>2.10.5.1</jackson.version>
         <java.webSocket.version>1.5.0</java.webSocket.version>
         <commons.compress.version>1.21</commons.compress.version>
-        <zip4j.version>2.9.1</zip4j.version>
+        <zip4j.version>2.10.0</zip4j.version>
         <!-- Maven plugin versions -->
         <bnd.maven.plugin.version>4.3.1</bnd.maven.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
