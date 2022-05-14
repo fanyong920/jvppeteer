@@ -26,11 +26,11 @@ public class RequestWillBeSentPayload {
     /**
      * Timestamp.
      */
-    private long timestamp;
+    private double timestamp;
     /**
      * Timestamp.
      */
-    private long wallTime;
+    private double wallTime;
     /**
      * Request initiator.
      */
@@ -85,15 +85,15 @@ public class RequestWillBeSentPayload {
         this.request = request;
     }
 
-    public long getTimestamp() {
+    public double getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(double timestamp) {
         this.timestamp = timestamp;
     }
 
-    public long getWallTime() {
+    public double getWallTime() {
         return wallTime;
     }
 
