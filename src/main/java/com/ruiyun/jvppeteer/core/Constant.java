@@ -59,7 +59,8 @@ public interface Constant {
 		        "/Applications/Chromium.app/Contents/MacOS/Chromium",
 		        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
 		        "/Applications/Google Chrome Canary.app/Contents/MacOS/Google Chrome Canary",
-		        "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+		        "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+				"C:/Program Files/Google/Chrome/Application/chrome.exe"
 		      };
 	/**
 	 * 谷歌浏览器默认启动参数
