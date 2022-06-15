@@ -135,7 +135,10 @@ public class CDPSession extends EventEmitter {
                 CountDownLatch latch = new CountDownLatch(1);
                 message.setCountDownLatch(latch);
                 long id = this.connection.rawSend(message,true,this.callbacks);
-                message.waitForResult(0,TimeUnit.MILLISECONDS);
+                boolean hasResult = message.waitForResult(this.connection.getConnectionOptions().getSessionWaitingResultTimeout(), TimeUnit.MILLISECONDS);
+                if(!hasResult){
+                    throw new TimeoutException("Wait "+method+" for sessionWaitingResultTimeout:"+(this.connection.getConnectionOptions().getSessionWaitingResultTimeout())+" MILLISECONDS with no response");
+                }
                 if(StringUtil.isNotEmpty(message.getErrorText())){
                     throw new ProtocolException(message.getErrorText());
                 }

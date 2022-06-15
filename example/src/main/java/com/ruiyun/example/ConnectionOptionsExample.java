@@ -20,12 +20,12 @@ public class ConnectionOptionsExample {
         ArrayList<String> arrayList = new ArrayList<>();
 
         ConnectionOptions connectionOptions = new ConnectionOptions();
-        connectionOptions.setSessionWaitingResultTimeout(2000);
+        connectionOptions.setSessionWaitingResultTimeout(100000);
 
         LaunchOptions options = new LaunchOptionsBuilder()
                 .withArgs(arrayList)
                 .withHeadless(true)
-                //.withConnectionOptions(connectionOptions)
+                .withConnectionOptions(connectionOptions)
                 .build();
 
         arrayList.add("--no-sandbox");
