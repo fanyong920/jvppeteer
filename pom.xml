@@ -5,7 +5,7 @@
     <groupId>io.github.fanyong920</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.5</version>
+    <version>1.1.6-SNAPSHOT</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <url>https://github.com/fanyong920/jvppeteer</url>
@@ -14,6 +14,10 @@
         <mailingList>
             <name>fanyong</name>
             <post>1023079644@qq.com</post>
+        </mailingList>
+        <mailingList>
+            <name>xueqi</name>
+            <post>job.xueqi@outlook.com</post>
         </mailingList>
     </mailingLists>
     <developers>
@@ -24,6 +28,16 @@
             <roles>
                 <role>Project Manager</role>
                 <role>Architect</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+        <developer>
+            <id>xueqi</id>
+            <name>xueqi</name>
+            <email>job.xueqi@outlook.com</email>
+            <roles>
+                <role>Architect</role>
+                <role>Developer</role>
             </roles>
             <timezone>+8</timezone>
         </developer>
