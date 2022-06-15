@@ -23,6 +23,10 @@ public class BrowserOptions extends ChromeArgOptions {
 	 *  Useful so that you can see what is going on.
 	 */
 	private int slowMo;
+	/**
+	 * 浏览器与CDP的连接配置
+	 */
+	private ConnectionOptions connectionOptions = new ConnectionOptions();
 
 	public BrowserOptions() {
 		super();
@@ -51,5 +55,12 @@ public class BrowserOptions extends ChromeArgOptions {
 	public void setSlowMo(int slowMo) {
 		this.slowMo = slowMo;
 	}
-	  
+
+	public ConnectionOptions getConnectionOptions() {
+		return connectionOptions;
+	}
+
+	public void setConnectionOptions(ConnectionOptions connectionOptions) {
+		this.connectionOptions = connectionOptions;
+	}
 }

@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
+import com.ruiyun.jvppeteer.options.ConnectionOptions;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import org.slf4j.Logger;
@@ -48,6 +49,8 @@ public class Connection extends EventEmitter implements Consumer<String> {
 
     private boolean closed;
 
+    private ConnectionOptions connectionOptions;
+
     public Connection(String url, ConnectionTransport transport, int delay) {
         super();
         this.url = url;
@@ -57,6 +60,13 @@ public class Connection extends EventEmitter implements Consumer<String> {
             ((WebSocketTransport) this.transport).addMessageConsumer(this);
             ((WebSocketTransport) this.transport).addConnection(this);
         }
+        // 赋予默认值，调用方使用该构造方法后，需要set connection options
+        this.connectionOptions = new ConnectionOptions();
+    }
+
+    public Connection(String url, ConnectionTransport transport, int delay, ConnectionOptions connectionOptions) {
+        this(url,transport,delay);
+        this.connectionOptions = connectionOptions == null ? new ConnectionOptions() : connectionOptions;
     }
 
     public JsonNode send(String method, Map<String, Object> params, boolean isWait) {
@@ -297,5 +307,12 @@ public class Connection extends EventEmitter implements Consumer<String> {
         return closed;
     }
 
+    public void setConnectionOptions(ConnectionOptions connectionOptions) {
+        this.connectionOptions = connectionOptions == null ? new ConnectionOptions() : connectionOptions;
+    }
+
+    public ConnectionOptions getConnectionOptions() {
+        return connectionOptions;
+    }
 }
 

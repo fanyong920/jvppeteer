@@ -6,13 +6,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 存放所用到的常量
@@ -166,4 +160,9 @@ public interface Constant {
 	 * 内置线程池的数量
 	 */
 	String COMMONT_THREAD_POOL_NUM = "jvppeteer_common_thread_number";
+
+	/**
+	 * CDPSession 阻塞发送消息时的默认超时时间，单位ms
+	 */
+	String CONFIG_SESSION_BLOCK_SEND_TIMEOUT = "jvppeteer.session.block_send_timeout";
 }

@@ -87,7 +87,7 @@ public class ChromeLauncher implements Launcher {
         BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
         try {
             runner.start(options);
-            Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), options.getDumpio());
+            Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), options.getDumpio(), options.getConnectionOptions());
             Function<Object,Object> closeCallback = (s) -> {
                 runner.closeQuietly();
                 return null;
@@ -218,14 +218,14 @@ public class ChromeLauncher implements Launcher {
         final Connection connection;
         try {
             if (transport != null) {
-                connection = new Connection("", transport, options.getSlowMo());
+                connection = new Connection("", transport, options.getSlowMo(), options.getConnectionOptions());
             } else if (StringUtil.isNotEmpty(browserWSEndpoint)) {
                 WebSocketTransport connectionTransport = WebSocketTransport.create(browserWSEndpoint);
-                connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo());
+                connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo(), options.getConnectionOptions());
             } else if (StringUtil.isNotEmpty(browserURL)) {
                 String connectionURL = getWSEndpoint(browserURL);
                 WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
-                connection = new Connection(connectionURL, connectionTransport, options.getSlowMo());
+                connection = new Connection(connectionURL, connectionTransport, options.getSlowMo(), options.getConnectionOptions());
             } else {
                 throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
             }

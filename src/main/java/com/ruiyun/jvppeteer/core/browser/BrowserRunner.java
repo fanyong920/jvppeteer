@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.options.ConnectionOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
@@ -216,6 +217,22 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         if (!delProcess.waitFor(10000, TimeUnit.MILLISECONDS)) {
             delProcess.destroyForcibly();
         }
+    }
+
+    /**
+     * 连接浏览器
+     *
+     * @param usePipe
+     * @param timeout
+     * @param slowMo
+     * @param dumpio
+     * @param connectionOptions
+     * @return
+     */
+    public Connection setUpConnection(boolean usePipe, int timeout, int slowMo, boolean dumpio, ConnectionOptions connectionOptions) throws InterruptedException{
+        Connection connection = this.setUpConnection(usePipe, timeout, slowMo, dumpio);
+        connection.setConnectionOptions(connectionOptions);
+        return connection;
     }
 
     /**

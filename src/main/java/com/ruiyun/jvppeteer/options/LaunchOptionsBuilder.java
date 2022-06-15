@@ -86,6 +86,11 @@ public class LaunchOptionsBuilder {
 		options.setSlowMo(slowMo);
 		return this;
 	}
+
+	public LaunchOptionsBuilder withConnectionOptions(ConnectionOptions connectionOptions) {
+		options.setConnectionOptions(connectionOptions);
+		return this;
+	}
 	
 	public LaunchOptionsBuilder withHeadless(boolean headless) {
 		options.setHeadless(headless);
