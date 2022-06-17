@@ -43,6 +43,16 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	}
 
 	@Override
+	public void send(String text) {
+		if (this.connection == null) {
+			LOGGER.warn("Transport connection is null, maybe closed?");
+			return;
+		}
+
+		super.send(text);
+	}
+
+	@Override
 	public void onMessage(String message) {
 		ValidateUtil.notNull(this.messageConsumer,"MessageConsumer must be initialized");
 		this.messageConsumer.accept(message);

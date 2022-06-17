@@ -24,26 +24,27 @@ public class ConnectionOptionsExample {
 
         LaunchOptions options = new LaunchOptionsBuilder()
                 .withArgs(arrayList)
-                .withHeadless(true)
+                .withHeadless(false)
                 .withConnectionOptions(connectionOptions)
                 .build();
 
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
+        //Browser browser = Puppeteer.connect(options, "ws://127.0.0.1:62767/devtools/browser/1", null, null);
 
         Page page = browser.newPage();
         page.setDefaultTimeout(1000 * 60);
         page.goTo("https://www.baidu.com", true);
 
-        ScreenshotOptions screenshotOptions = new ScreenshotOptions();
+        /*ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         screenshotOptions.setType("png");
         screenshotOptions.setFullPage(Boolean.TRUE);
         screenshotOptions.setPath("D:\\Development\\Logs\\test-1234.png");
         String base64Str = page.screenshot(screenshotOptions);
         System.out.println("==== "+base64Str);
 
-        browser.close();
+        browser.close();*/
     }
 
 }
