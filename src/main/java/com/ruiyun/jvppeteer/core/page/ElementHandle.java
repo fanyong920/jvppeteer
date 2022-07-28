@@ -291,8 +291,8 @@ public class ElementHandle extends JSHandle {
         String defaultHandler = "(element, selector) => Array.from(element.querySelectorAll(selector))";
         QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector, defaultHandler);
 
-        ElementHandle arrayHandle = (ElementHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler().queryAll(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector()));
-        ElementHandle result = (ElementHandle) arrayHandle.evaluate(pageFunction, args);
+        JSHandle arrayHandle = (JSHandle) this.evaluateHandle(queryHandlerAndSelector.getQueryHandler().queryAll(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector()));
+        Object result = arrayHandle.evaluate(pageFunction, args);
         arrayHandle.dispose();
         return result;
     }
