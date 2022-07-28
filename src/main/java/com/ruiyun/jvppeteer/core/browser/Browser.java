@@ -20,6 +20,7 @@ import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * 浏览器实例
  */
-public class Browser extends EventEmitter {
+public class Browser extends EventEmitter implements Closeable {
 
     /**
      * 浏览器对应的websocket client包装类，用于发送和接受消息
@@ -298,6 +299,7 @@ public class Browser extends EventEmitter {
         return version.get("userAgent").asText();
     }
 
+    @Override
     public void close() {
         this.closeCallback.apply(null);
         this.disconnect();

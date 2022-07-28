@@ -61,6 +61,7 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ProtocolException;
@@ -95,7 +96,7 @@ import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
 import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
 
-public class Page extends EventEmitter {
+public class Page extends EventEmitter implements Closeable {
 
     private static final ExecutorService reloadExecutor = Executors.newSingleThreadExecutor();
 
@@ -709,8 +710,13 @@ public class Page extends EventEmitter {
      * 关闭页面
      * @throws InterruptedException 异常
      */
-    public void close() throws InterruptedException {
-        this.close(false);
+    @Override
+    public void close() {
+        try {
+            this.close(false);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
