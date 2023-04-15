@@ -685,6 +685,7 @@ public class BrowserFetcher {
                 if (zipEntry.isDirectory()) {
                     path.toFile().mkdirs();
                 } else {
+                    path.toFile().getParentFile().mkdirs();
                     try {
                         reader = new BufferedInputStream(zipFile.getInputStream(zipEntry));
                         int perReadcount;
