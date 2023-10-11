@@ -1841,10 +1841,10 @@ public class Page extends EventEmitter {
         NavigationEntry entry = history.getEntries().get(history.getCurrentIndex() + delta);
         if (entry == null)
             return null;
-        Response response = this.waitForNavigation(options,null);
         Map<String, Object> params = new HashMap<>();
         params.put("entryId", entry.getId());
         this.client.send("Page.navigateToHistoryEntry", params, true);
+        Response response = this.waitForNavigation(options,null);
         return response;
     }
 
