@@ -62,7 +62,7 @@ public class BrowserFetcher {
                 private static final long serialVersionUID = 3441562966233820720L;
 
                 {
-                    put("host", "https://npm.taobao.org/mirrors");
+                    put("host", "https://npmmirro.com/mirrors");
                     put("linux", "%s/chromium-browser-snapshots/Linux_x64/%s/%s.zip");
                     put("mac", "%s/chromium-browser-snapshots/Mac/%s/%s.zip");
                     put("win32", "%s/chromium-browser-snapshots/Win/%s/%s.zip");
