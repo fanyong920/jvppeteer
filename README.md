@@ -184,14 +184,6 @@ compile "io.github.fanyong920:jvppeteer:1.1.5"
 2. [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/)
 3. [Chrome命令行启动参数](https://peter.sh/experiments/chromium-command-line-switches/)
 
-### 推荐
-
-推荐一下最近发现的一个很好用的全球代理：SmartProxy属于代理IP池项目，主打1亿真实住宅IP资源，作为专业海外http代理商，拥有千万级优质资源，覆盖全球城市。高匿稳定提供100%原生住宅IP，支持社交账户、电商平台、网络数据收集等服务。提供API和账密提取使用方式，动态和静态住宅代理均有，大部分是真人住宅IP，成功率不用说，超棒！付费套餐选择多样，现在春季价格很优惠，动态住宅代理只要65折！
-
-![Ip代理](https://user-images.githubusercontent.com/29977021/228770306-6c5d0b8a-c381-4be3-b500-e43fc47298b3.png)
-
-注册链接：https://www.smartproxy.cn/regist?invite=X7TRG0
-
 ### 执照
 
 此仓库中找到的所有内容均已获得 Apache 许可。有关详细信息，请参见`LICENSE`文件
