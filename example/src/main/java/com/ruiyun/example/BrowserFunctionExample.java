@@ -32,7 +32,7 @@ public class BrowserFunctionExample {
         for (BrowserContext browserContext : browserContexts) {
             //defaultcontext没有id
             if(StringUtil.isNotEmpty(browserContext.getId()))
-            browser.disposeContext(browserContext.getId());
+                browser.disposeContext(browserContext.getId());
         }
         browser.onDisconnected((s) -> System.out.println("我是浏览器事件监听，现在监听到 disconnected"));
         browser.disconnect();

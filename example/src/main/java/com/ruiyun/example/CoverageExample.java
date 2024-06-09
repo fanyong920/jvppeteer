@@ -7,7 +7,6 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.protocol.profiler.CoverageEntry;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
