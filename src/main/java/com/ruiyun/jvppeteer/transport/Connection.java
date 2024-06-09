@@ -153,7 +153,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 LOGGER.error("slowMo browser Fail:", e);
             }
         }
-        LOGGER.trace("<- RECV " + message);
+        LOGGER.trace("<- RECV {}", message);
         try {
             if (StringUtil.isNotEmpty(message)) {
                 JsonNode readTree = Constant.OBJECTMAPPER.readTree(message);
@@ -220,9 +220,7 @@ public class Connection extends EventEmitter implements Consumer<String> {
                 }
             }
         } catch (Exception e) {
-            ProtocolException protocolException =  new ProtocolException();
-            protocolException.initCause(e);
-            throw protocolException;
+            throw new ProtocolException(e);
         }
     }
 

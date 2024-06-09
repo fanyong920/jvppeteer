@@ -54,6 +54,16 @@ public class BrowserFetcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserFetcher.class);
 
+    /**
+     * 该map装有默认的下载chrome的host及不同平台的下载路径，最后拼接成下载url
+     * 比如 host = <a href="https://registry.npmmirror.com/-/binary">...</a>
+     * 如果是win64平台
+     * 那么 下载路径 = %s/chromium-browser-snapshots/Win_x64/%s/%s.zip
+     * 下载路径中第一个 %s是host <a href="https://registry.npmmirror.com/-/binary">...</a>
+     * 第二个%s版本号，也可以{@link Constant#VERSION}有默认版本号722234
+     * 第三个%s是压缩包名称 {@link BrowserFetcher#archiveName(String, String, String)} 用这个方法根据平台类型确定压缩包名称
+     * 拼接成下载的url为https://npm.taobao.org/mirrors/chromium-browser-snapshots/Win_x64/722234/chrome-win.zip
+     */
     public static final Map<String, Map<String, String>> downloadURLs = new HashMap<String, Map<String, String>>() {
         private static final long serialVersionUID = -6918778699407093058L;
 
@@ -62,7 +72,7 @@ public class BrowserFetcher {
                 private static final long serialVersionUID = 3441562966233820720L;
 
                 {
-                    put("host", "https://npm.taobao.org/mirrors");
+                    put("host", "https://registry.npmmirror.com/-/binary");
                     put("linux", "%s/chromium-browser-snapshots/Linux_x64/%s/%s.zip");
                     put("mac", "%s/chromium-browser-snapshots/Mac/%s/%s.zip");
                     put("win32", "%s/chromium-browser-snapshots/Win/%s/%s.zip");
@@ -376,7 +386,7 @@ public class BrowserFetcher {
      *
      * @param product    win linux mac
      * @param folderPath 文件夹路径
-     * @return RevisionEntry RevisionEntry
+     * @return RevisionEntry 版本实体
      */
     private RevisionEntry parseFolderPath(String product, Path folderPath) {
         Path fileName = folderPath.getFileName();
@@ -449,7 +459,7 @@ public class BrowserFetcher {
      * @throws IOException 异常
      */
     private Stream<Path> readdirAsync(Path downloadsFolder) throws IOException {
-        ValidateUtil.assertArg(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder.toString() + " is not Directory");
+        ValidateUtil.assertArg(Files.isDirectory(downloadsFolder), "downloadsFolder " + downloadsFolder + " is not Directory");
         return Files.list(downloadsFolder);
     }
 
@@ -537,7 +547,7 @@ public class BrowserFetcher {
             StreamUtil.closeQuietly(stringWriter);
         }
         if (StringUtil.isEmpty(mountPath)) {
-            throw new RuntimeException("Could not find volume path in [" + stringWriter.toString() + "]");
+            throw new RuntimeException("Could not find volume path in [" + stringWriter + "]");
         }
         Optional<Path> optionl = this.readdirAsync(Paths.get(mountPath)).filter(item -> item.toString().endsWith(".app")).findFirst();
         if (optionl.isPresent()) {
@@ -792,7 +802,7 @@ public class BrowserFetcher {
     }
 
     /**
-     * 根据平台信息和版本信息确定要下载的浏览器压缩包
+     * 根据平台信息和版本信息确定要下载的浏览器压缩包名称
      *
      * @param product  产品
      * @param platform 平台
@@ -821,7 +831,7 @@ public class BrowserFetcher {
     }
 
     /**
-     * 确定下载的路径
+     * 将几个字符串拼接成浏览器的下载路径
      *
      * @param product  产品：chrome or firefox
      * @param platform win linux mac

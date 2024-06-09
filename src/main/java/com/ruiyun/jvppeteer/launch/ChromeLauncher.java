@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -83,13 +82,13 @@ public class ChromeLauncher implements Launcher {
         String chromeExecutable = resolveExecutablePath(options.getExecutablePath());
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
 
-        LOGGER.trace("Calling " + chromeExecutable + String.join(" ", chromeArguments));
+        LOGGER.trace("Calling {}{}", chromeExecutable, String.join(" ", chromeArguments));
         BrowserRunner runner = new BrowserRunner(chromeExecutable, chromeArguments, temporaryUserDataDir);//
         try {
             runner.start(options);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), options.getDumpio());
             Function<Object,Object> closeCallback = (s) -> {
-                runner.closeQuietly();
+                runner.closeQuietly(runner);
                 return null;
             };
             Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback);

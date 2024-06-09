@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
@@ -39,11 +38,9 @@ import java.util.regex.Pattern;
 
 public class CrawlerTaobaoItem {
     public static void main(String[] args) throws Exception {
-        //自动下载，第一次下载后不会再下载
-        BrowserFetcher.downloadIfNotExist(null);
-        //指定启动路径，启动浏览器
+        //ExecutablePath是指定chrome启动路径
         ArrayList<String> argList = new ArrayList<>();
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
         argList.add("--no-sandbox");
         argList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
@@ -432,7 +429,7 @@ public class CrawlerTaobaoItem {
                 }
             }
 
-            /**C、商品卖点 */
+            /*C、商品卖点 */
             Pattern start = Pattern.compile("<p class=\"tb-subtitle\">.*?</p>");
             Matcher ms = start.matcher(resBuffer.toString());
             String subTitleText = null;
@@ -532,7 +529,7 @@ public class CrawlerTaobaoItem {
                     }
                     itemImgs.add(imgUrl);
                 }
-                if (itemImgs.size() > 0) {
+                if (!itemImgs.isEmpty()) {
                     try {
                         itemImgStr = Constant.OBJECTMAPPER.writeValueAsString(itemImgs);
                     } catch (Exception e) {

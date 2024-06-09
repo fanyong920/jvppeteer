@@ -2,7 +2,6 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.ElementHandle;
 import com.ruiyun.jvppeteer.core.page.FileChooser;
 import com.ruiyun.jvppeteer.core.page.Page;
@@ -12,7 +11,6 @@ import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -21,12 +19,11 @@ import java.util.concurrent.Future;
 public class PageFileChooserExample {
 
     public static void main(String[] args) throws InterruptedException, ExecutionException, IOException {
-        //自动下载，第一次下载后不会再下载
-        BrowserFetcher.downloadIfNotExist(null);
+
 
         ArrayList<String> arrayList = new ArrayList<>();
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

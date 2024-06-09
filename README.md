@@ -82,9 +82,13 @@ compile "io.github.fanyong920:jvppeteer:1.1.5"
 ```java
 	//设置基本的启动配置,这里选择了‘有头’模式启动
 	ArrayList<String> argList = new ArrayList<>();
-    //自动下载，第一次下载后不会再下载
-    BrowserFetcher.downloadIfNotExist(null);
-    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
+    //withExecutablePath 是指定chrome的启动路径
+    //chrome的启动路径可以从以下几方面之一去设置：
+    //1.直接指定。使用LaunchOptions的withExecutablePath方法
+    //2.配置环境变量。在Constant.EXECUTABLE_ENV可以找到配置环境变量的key
+    //3.使用BrowserFetcher.downloadIfNotExist()下载。如果使用使用BrowserFetcher.downloadIfNotExist()下载了chrome,在1和2选项都没有配置的情况下，才会使用下载的chrome路径;
+    //4.搜索电脑上采用默认安装的chrome路径。 1、2、3选项都没有配置的情况下，会自动搜索，此项不用任何操作
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
     argList.add("--no-sandbox");
     argList.add("--disable-setuid-sandbox");
     Puppeteer.launch(options);
@@ -95,10 +99,9 @@ compile "io.github.fanyong920:jvppeteer:1.1.5"
 #### 2、导航至某个页面
 
 ```java
-	//自动下载，第一次下载后不会再下载
-    BrowserFetcher.downloadIfNotExist(null);
+	//withExecutablePath 是指定chrome的启动路径
     ArrayList<String> argList = new ArrayList<>();
-    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(false).build();
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").withHeadless(false).build();
     argList.add("--no-sandbox");
     argList.add("--disable-setuid-sandbox");
     Browser browser = Puppeteer.launch(options);
@@ -116,11 +119,10 @@ compile "io.github.fanyong920:jvppeteer:1.1.5"
 #### 3、生成页面的 PDF
 
 ```java
-	//自动下载，第一次下载后不会再下载
-    BrowserFetcher.downloadIfNotExist(null);
+
     ArrayList<String> arrayList = new ArrayList<>();
     //生成pdf必须在无厘头模式下才能生效
-    LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).build();
+    LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
     arrayList.add("--no-sandbox");
     arrayList.add("--disable-setuid-sandbox");
     Browser browser = Puppeteer.launch(options);
@@ -138,8 +140,8 @@ compile "io.github.fanyong920:jvppeteer:1.1.5"
 #### 4、TRACING 性能分析
 
 ```java
-	//自动下载，第一次下载后不会再下载
-    BrowserFetcher.downloadIfNotExist(null);
+
+    //即使不指定chrome路径，程序也会寻找默认安装chrome的路径，如果安chrome修改了默认路径，则寻找不到chrome
     ArrayList<String> argList = new ArrayList<>();
     LaunchOptions options = new LaunchOptionsBuilder().withArgs(argList).withHeadless(true).build();
     argList.add("--no-sandbox");

@@ -6,10 +6,9 @@ import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 
 public class ResponseInterceptionExample {
     public static void main(String[] args) throws Exception {
@@ -24,16 +23,14 @@ public class ResponseInterceptionExample {
         Page page = browser.newPage();
        page.onResponse((response) -> {
            try {
-               System.out.println(response.buffer());
+               System.out.println("res="+ Arrays.toString(response.buffer()));
            } catch (InterruptedException e) {
                e.printStackTrace();
            }
            //System.out.println(new String(response.buffer()));
        });
-        PageNavigateOptions options1 = new PageNavigateOptions();
-        //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        options1.setWaitUntil(Collections.singletonList("domcontentloaded"));
-        page.goTo("https://item.taobao.com/item.htm?id=541605195654",options1);
+        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
+        browser.close();
 
     }
 }

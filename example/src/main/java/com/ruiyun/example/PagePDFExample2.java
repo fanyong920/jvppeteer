@@ -12,8 +12,8 @@ import java.util.ArrayList;
 public class PagePDFExample2 {
 
     public static void main(String[] args) throws Exception {
-        //自动下载，第一次下载后不会再下载
-        BrowserFetcher.downloadIfNotExist(null);
+        //自动下载默认版本的浏览器，第一次下载后不会再下载,出错就多试几次 Constant.VERSION可以查看默认版本
+        BrowserFetcher.downloadIfNotExist();
 
         ArrayList<String> argList = new ArrayList<>();
         //生成pdf必须在无厘头模式下才能生效

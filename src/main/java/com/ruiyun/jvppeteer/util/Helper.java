@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
+import com.ruiyun.jvppeteer.core.browser.BrowserRunner;
 import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
 import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
@@ -11,6 +12,7 @@ import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.sun.jna.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
@@ -62,7 +65,7 @@ public class Helper {
     /**
      * 单线程，一个浏览器只能有一个trcing 任务
      */
-    private static ExecutorService COMMON_EXECUTOR = null;
+    private static volatile ExecutorService COMMON_EXECUTOR = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Helper.class);
     private static final String os = System.getProperty("os.name");
@@ -81,7 +84,7 @@ public class Helper {
         String message = "Protocol error " + method + ": " + errorMsg;
         JsonNode dataNode = errNode.get(Constant.RECV_MESSAGE_ERROR_DATA_PROPERTY);
         if (dataNode != null) {
-            message += " " + dataNode.toString();
+            message += " " + dataNode;
         }
         return message;
     }
@@ -115,16 +118,16 @@ public class Helper {
      * 是否是win64
      * @return true is win64
      */
-    public static final boolean isWin64() {
+    public static boolean isWin64() {
         String arch = System.getProperty("os.arch");
         return arch.contains("64");
     }
 
-    public static final String paltform() {
+    public static String paltform() {
         return System.getProperty("os.name");
     }
 
-    public static final void chmod(String path, String perms) throws IOException {
+    public static void chmod(String path, String perms) throws IOException {
 
         if (StringUtil.isEmpty(path))
             throw new IllegalArgumentException("Path must not be empty");
@@ -201,7 +204,7 @@ public class Helper {
         Files.setPosixFilePermissions(path1, permissions);
     }
 
-    public static final String join(String root, String... args) {
+    public static String join(String root, String... args) {
         return java.nio.file.Paths.get(root, args).toString();
     }
 
@@ -215,7 +218,7 @@ public class Helper {
      * @throws IOException 操作文件的异常
      * @return 可能是feture，可能是字节数组
      */
-    public static final Object readProtocolStream(CDPSession client, String handler, String path, boolean isSync) throws IOException {
+    public static Object readProtocolStream(CDPSession client, String handler, String path, boolean isSync) throws IOException {
         if (isSync) {
             return Helper.commonExecutor().submit(() -> {
                 try {
@@ -283,7 +286,7 @@ public class Helper {
                         StreamUtil.closeQuietly(reader);
                     }
                 }
-                eof = eofNode == null ? true :eofNode.asBoolean();
+                eof = eofNode == null || eofNode.asBoolean();
             }
             client.send("IO.close", params, true);
 
@@ -328,32 +331,31 @@ public class Helper {
         return sb.toString();
     }
 
-    public static final Set<DefaultBrowserListener> getConcurrentSet() {
+    public static Set<DefaultBrowserListener> getConcurrentSet() {
         return new CopyOnWriteArraySet<>();
     }
 
-    public static final <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler) {
+    public static <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler) {
         emitter.addListener(eventName, handler);
         return new BrowserListenerWrapper<>(emitter, eventName, handler);
     }
 
-    public static final void removeEventListeners(List<BrowserListenerWrapper> eventListeners) {
+    public static void removeEventListeners(List<BrowserListenerWrapper> eventListeners) {
         if (ValidateUtil.isEmpty(eventListeners)) {
             return;
         }
-        for (int i = 0; i < eventListeners.size(); i++) {
-            BrowserListenerWrapper wrapper = eventListeners.get(i);
+        for (BrowserListenerWrapper wrapper : eventListeners) {
             wrapper.getEmitter().removeListener(wrapper.getEventName(), wrapper.getHandler());
         }
     }
 
-    public static final boolean isString(Object value) {
+    public static boolean isString(Object value) {
         if (value == null)
             return false;
         return value.getClass().equals(String.class);
     }
 
-    public static final boolean isNumber(String s) {
+    public static boolean isNumber(String s) {
         Pattern pattern = Pattern.compile("-?[0-9]+(\\.[0-9]+)?");
         Matcher matcher = pattern.matcher(s);
         return matcher.matches();
@@ -395,7 +397,7 @@ public class Helper {
         }
     }
 
-    public static final void copyProperties(Object src, Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+    public static void copyProperties(Object src, Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
         Class<?> destClass = dest.getClass();
         BeanInfo srcBean = Introspector.getBeanInfo(src.getClass());
         PropertyDescriptor[] propertyDescriptors = srcBean.getPropertyDescriptors();
@@ -433,7 +435,7 @@ public class Helper {
 
     }
 
-    public static final String evaluationString(String fun, PageEvaluateType type, Object... args) {
+    public static String evaluationString(String fun, PageEvaluateType type, Object... args) {
         if (PageEvaluateType.STRING.equals(type)) {
             ValidateUtil.assertArg(args.length == 0, "Cannot evaluate a string with arguments");
             return fun;
@@ -453,12 +455,12 @@ public class Helper {
         return MessageFormat.format("({0})({1})", fun, String.join(",", argsList));
     }
 
-    public static final ExecutorService commonExecutor() {
+    public static ExecutorService commonExecutor() {
         if (COMMON_EXECUTOR == null) {
             synchronized (Helper.class) {
                 if (COMMON_EXECUTOR == null) {
                     String customNum = System.getProperty(COMMONT_THREAD_POOL_NUM);
-                    int threadNum = 0;
+                    int threadNum;
                     if(StringUtil.isNotEmpty(customNum)){
                         threadNum = Integer.parseInt(customNum);
                     }else {
@@ -471,7 +473,7 @@ public class Helper {
         return COMMON_EXECUTOR;
     }
 
-    public static final CompletionService completionService() {
+    public static CompletionService completionService() {
         return new ExecutorCompletionService(Helper.commonExecutor());
     }
 
@@ -481,7 +483,7 @@ public class Helper {
      * @param pageFunction js字符串
      * @return true代表是js函数
      */
-    public static final boolean isFunction(String pageFunction){
+    public static boolean isFunction(String pageFunction){
         pageFunction = pageFunction.trim();
         return pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>");
     }
@@ -510,5 +512,42 @@ public class Helper {
                 t.setPriority(Thread.NORM_PRIORITY);
             return t;
         }
+    }
+
+    /**
+     * 获取进程id
+     * @param process 进程
+     * @return 进程id
+     */
+    public static String getProcessId(Process process) {
+        long pid = -1;
+        Field field;
+        if (Platform.isWindows()) {
+            try {
+                field = process.getClass().getDeclaredField("handle");
+                field.setAccessible(true);
+                pid = BrowserRunner.Kernel32.INSTANCE.GetProcessId((Long) field.get(process));
+            } catch (Exception e) {
+                LOGGER.error("Failed to get processId on Windows platform.",e);
+            }
+        } else if (Platform.isLinux() || Platform.isAIX()) {
+            try {
+                String version = System.getProperty("java.version");
+                double jdkversion = Double.parseDouble(version.substring(0, 3));
+                System.out.println("jdkversion = " +jdkversion);
+                Class<?> clazz;
+                if (jdkversion <= 1.8) {
+                    clazz = Class.forName("java.lang.UNIXProcess");
+                } else {
+                    clazz = Class.forName("java.lang.ProcessImpl");
+                }
+                field = clazz.getDeclaredField("pid");
+                field.setAccessible(true);
+                pid = (Integer) field.get(process);
+            } catch (Throwable e) {
+                LOGGER.error("Failed to get processId on Linux or Aix platform.",e);
+            }
+        }
+        return String.valueOf(pid);
     }
 }

@@ -5,7 +5,6 @@ import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -16,14 +15,12 @@ public class PageExposeFunctionExample {
     public static void main(String[] args) throws Exception {
         ArrayList<String> arrayList = new ArrayList<>();
 
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false)/*.withExecutablePath(path)*/.withDumpio(true).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").withDumpio(true).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
-        page.onConsole((msg) -> {
-            System.out.println(msg.text());
-        });
+        page.onConsole((msg) -> System.out.println(msg.text()));
         page.exposeFunction("md5",(text) -> {
             AtomicReference<String> result= new AtomicReference<>("");
             text.forEach(arg -> result.updateAndGet(v -> v + arg));
@@ -55,8 +52,8 @@ public class PageExposeFunctionExample {
     }
     public static String bytesToHex1(byte[] md5Array) {
         StringBuilder strBuilder = new StringBuilder();
-        for (int i = 0; i < md5Array.length; i++) {
-            int temp = 0xff & md5Array[i];
+        for (byte b : md5Array) {
+            int temp = 0xff & b;
             String hexString = Integer.toHexString(temp);
             if (hexString.length() == 1) {//如果是十六进制的0f，默认只显示f，此时要补上0
                 strBuilder.append("0").append(hexString);

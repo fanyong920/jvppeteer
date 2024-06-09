@@ -9,7 +9,6 @@ import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.options.PageNavigateOptions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -18,8 +17,9 @@ import java.util.regex.Pattern;
 public class AutoCommentExample {
 
     public static void main(String[] args) throws Exception {
-        //自动下载，第一次下载后不会再下载
+        //自动下载，第一次下载后不会再下载,下载到默认路径，如果电脑上已经有chrome了，就不需要执行这行代码。自行下载内置的下载链接可能失效，建议自行下载安装chrome，然后指定路径启动chrome
         BrowserFetcher.downloadIfNotExist(null);
+        //指定chrome启动路径
         Browser browser = lauch("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
         Page page = browser.newPage();
         PageNavigateOptions navigateOptions = new PageNavigateOptions();

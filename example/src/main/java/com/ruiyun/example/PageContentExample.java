@@ -1,8 +1,6 @@
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
-import com.ruiyun.jvppeteer.options.Device;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.core.browser.Browser;
@@ -16,10 +14,9 @@ public class PageContentExample {
 
     public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
 
-        BrowserFetcher.downloadIfNotExist(null);
 
         ArrayList<String> arrayList = new ArrayList<>();
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).build();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
