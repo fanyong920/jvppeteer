@@ -205,6 +205,21 @@ public class Puppeteer {
     }
 
     /**
+     * 指定启动版本，开启浏览器
+     * @param options 启动参数
+     * @param version 浏览器版本
+     * @return 浏览器实例
+     * @throws IOException 异常
+     */
+    public static Browser launch(LaunchOptions options, String version) throws IOException {
+        Puppeteer puppeteer = new Puppeteer();
+        if(StringUtil.isNotEmpty(version)){
+            puppeteer.setPreferredRevision(version);
+        }
+        return Puppeteer.rawLaunch(options, puppeteer);
+    }
+
+    /**
      * 返回默认的运行的参数
      * @param options 可自己添加的选项
      * @return 默认参数集合
