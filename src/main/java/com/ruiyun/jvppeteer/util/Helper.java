@@ -534,7 +534,6 @@ public class Helper {
             try {
                 String version = System.getProperty("java.version");
                 double jdkversion = Double.parseDouble(version.substring(0, 3));
-                System.out.println("jdkversion = " +jdkversion);
                 Class<?> clazz;
                 if (jdkversion <= 1.8) {
                     clazz = Class.forName("java.lang.UNIXProcess");

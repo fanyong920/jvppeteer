@@ -5,16 +5,11 @@ import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;
-import com.ruiyun.jvppeteer.options.BrowserOptions;
-import com.ruiyun.jvppeteer.options.ChromeArgOptions;
-import com.ruiyun.jvppeteer.options.FetcherOptions;
-import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.StringUtil;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.ruiyun.jvppeteer.core.Constant.PRODUCT_ENV;

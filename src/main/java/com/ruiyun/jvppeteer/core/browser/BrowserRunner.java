@@ -217,6 +217,9 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * kill 掉浏览器进程
      */
     public boolean kill() {
+        if(this.closed){
+            return true;
+        }
         try {
             String pid = pidMap.get(this.process);
             if("-1".equals(pid)){
@@ -231,13 +234,16 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             String command = "";
             if (Platform.isWindows()) {
                 command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
+                exec = Runtime.getRuntime().exec(command);
             } else if (Platform.isLinux() || Platform.isAIX()) {
                 command = "kill -9 " + pid;
+                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",command});
             }
             try {
-                LOGGER.info("kill chrome process by pid,command: kill -9 {}", pid);
-                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",command});
-                return exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+                if (exec != null) {
+                    LOGGER.info("kill chrome process by pid,command:  {}", command);
+                    return exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+                }
             } finally {
                 this.destroyCmdProcess(exec,command);
                 if (StringUtil.isNotEmpty(this.tempDirectory)) {
@@ -248,6 +254,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             LOGGER.error("kill chrome process error ", e);
             return false;
         }
+        return false;
     }
 
 
