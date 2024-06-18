@@ -9,7 +9,8 @@
 </p>
 
 
-
+## 注意
+>通过maven导入的jar包，1.1.5及之前的版本，都存在linux上杀不死chrome的bug，可以通过<a href="https://github.com/fanyong920/jvppeteer/blob/master/1.1.5%E7%89%88%E6%9C%AC%E4%B9%8B%E5%89%8D%E7%9A%84%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.md" alt="链接"> 1.1.5版本之前的内存问题解决方案</a> 自行解决，仓库的代码已经将解决方案代码加上了，拉取下来打jar也可以用，但是新版本尚没有上传到maven
 
 
 **本库的灵感来自 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer), API 也与其基本上保持一致，做这个库是为了方便使用 Java 操控 Chrome 或 Chromium**
