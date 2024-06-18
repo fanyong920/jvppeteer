@@ -32,7 +32,7 @@ public class PagePDFExample3 {
         Page page3 = browser.newPage();
         page3.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         Helper.commonExecutor().submit(() -> {
-            page2.emulateVisionDeficiency(VisionDeficiency.DEUTERANOPIA);
+            //page2.emulateVisionDeficiency(VisionDeficiency.DEUTERANOPIA);
             try {
                 page2.pdf("deuteranopia.pdf");
             } catch (IOException e) {
@@ -40,14 +40,14 @@ public class PagePDFExample3 {
             }
         });
         Helper.commonExecutor().submit(() -> {
-            page3.emulateVisionDeficiency(VisionDeficiency.BLURREDVISION);
+            //page3.emulateVisionDeficiency(VisionDeficiency.BLURREDVISION);
             try {
                 page3.pdf("blurred-vision.pdf");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        page.emulateVisionDeficiency(VisionDeficiency.ACHROMATOPSIA);
+        //page.emulateVisionDeficiency(VisionDeficiency.ACHROMATOPSIA);
         page.pdf("achromatopsia.pdf");
 
 

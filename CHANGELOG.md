@@ -133,5 +133,8 @@
 
 - [Bump zip4j from 2.7.0 to 2.9.1](https://github.com/fanyong920/jvppeteer/commit/5e0bbeb5651d67c0fdd2d1f4c187d24a8ed1dfcc)
 
-  
+### Version Release 1.1.6(2024/4/30)
+
+- [过kill杀死linux上残留的chrome进程](https://github.com/fanyong920/jvppeteer/commit/efc9a2404e922b8dbbedba82b33bc11b005e0284)
+- [Puppeteer增加指定版本启动浏览器](https://github.com/fanyong920/jvppeteer/commit/6b8855c5f01ddd64dfbc5a0a1b98f8733afed02a)
 
