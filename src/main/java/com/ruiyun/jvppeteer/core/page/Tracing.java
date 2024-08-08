@@ -2,22 +2,25 @@ package com.ruiyun.jvppeteer.core.page;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.TracingCompleteEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  * You can use [`tracing.start`](#tracingstartoptions) and [`tracing.stop`](#tracingstop) to create a trace file which can be opened in Chrome DevTools or [timeline viewer](https://chromedevtools.github.io/timeline-viewer/)
  */
 public class Tracing implements Constant {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(Tracing.class);
     /**
      * 当前要trace的 chrome devtools protocol session
      */
@@ -62,7 +65,7 @@ public class Tracing implements Constant {
         Map<String, Object> params = new HashMap<>();
         params.put("transferMode","ReturnAsStream");
         params.put("categories",String.join(",",categories));
-        this.client.send("Tracing.start", params,true);
+        this.client.send("Tracing.start", params);
     }
 
 
@@ -70,22 +73,14 @@ public class Tracing implements Constant {
      * stop tracing
      */
     public void stop() {
-        DefaultBrowserListener<JsonNode> traceListener = new DefaultBrowserListener<JsonNode>() {
-            @Override
-            public void onBrowserEvent(JsonNode event) {
-                Tracing tracing;
-                try {
-                    tracing = (Tracing)this.getTarget();
-                    Helper.readProtocolStream(tracing.getClient(),event.get(RECV_MESSAGE_STREAM_PROPERTY).asText(),tracing.getPath(),true);
-                } catch (IOException ignored) {
-
-                }
+        this.client.once(CDPSession.CDPSessionEvent.Tracing_tracingComplete, (Consumer<TracingCompleteEvent>) event -> {
+            try {
+                Helper.readProtocolStream(Tracing.this.getClient(),event.getStream(),Tracing.this.getPath(),true);
+            } catch (IOException e) {
+                LOGGER.error("Error reading trace",e);
             }
-        };
-        traceListener.setTarget(this);
-        traceListener.setMethod("Tracing.tracingComplete");
-        this.client.addListener(traceListener.getMethod(),traceListener,true);
-        this.client.send("Tracing.end",null,true);
+        });
+        this.client.send("Tracing.end");
         this.recording = false;
     }
 

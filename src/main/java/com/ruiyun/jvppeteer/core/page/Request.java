@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.core.page;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.protocol.fetch.HeaderEntry;
 import com.ruiyun.jvppeteer.protocol.network.ErrorCode;
-import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentPayload;
+import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -135,7 +135,7 @@ public class Request {
         super();
     }
 
-    public Request(CDPSession client, Frame frame, String interceptionId, boolean allowInterception, RequestWillBeSentPayload event, List<Request> redirectChain) {
+    public Request(CDPSession client, Frame frame, String interceptionId, boolean allowInterception, RequestWillBeSentEvent event, List<Request> redirectChain) {
         super();
         this.client = client;
         this.requestId = event.getRequestId();
@@ -221,7 +221,7 @@ public class Request {
         if (headers != null && headers.size() > 0) {
             params.put("headers", headersArray(headers));
         }
-        return client.send("Fetch.continueRequest", params, true);
+        return client.send("Fetch.continueRequest", params);
     }
 
     /**
@@ -283,7 +283,7 @@ public class Request {
                 params.put("body", responseBody);
             }
         }
-        return client.send("Fetch.fulfillRequest", params, true);
+        return client.send("Fetch.fulfillRequest", params);
     }
 
     /**
@@ -317,7 +317,7 @@ public class Request {
       Map<String, Object> params = new HashMap<>();
       params.put("requestId", interceptionId);
       params.put("errorReason", errorReason);
-      return client.send("Fetch.failRequest", params, true);
+      return client.send("Fetch.failRequest", params);
 
     }
 

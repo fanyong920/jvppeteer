@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
@@ -24,7 +24,7 @@ public class FileChooser {
     public FileChooser() {
     }
 
-    public FileChooser(CDPSession client, ElementHandle element, FileChooserOpenedPayload event) {
+    public FileChooser(CDPSession client, ElementHandle element, FileChooserOpenedEvent event) {
         this.client = client;
         this.element = element;
         this.multiple = !"selectSingle".equals(event.getMode());

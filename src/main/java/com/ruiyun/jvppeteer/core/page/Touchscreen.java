@@ -25,7 +25,7 @@ public class Touchscreen {
         Map<String, Object> params = new HashMap<>();
         params.put("expression", "new Promise(x => requestAnimationFrame(() => requestAnimationFrame(x)))");
         params.put("awaitPromise", true);
-        this.client.send("Runtime.evaluate", params, true);
+        this.client.send("Runtime.evaluate", params);
 
         TouchPoint touchPoint = new TouchPoint(x, y);
         List<TouchPoint> touchPoints = new ArrayList<>();
@@ -34,13 +34,13 @@ public class Touchscreen {
         params.put("type", "touchStart");
         params.put("touchPoints", touchPoints);
         params.put("modifiers", this.keyboard.getModifiers());
-        this.client.send("Input.dispatchTouchEvent", params, true);
+        this.client.send("Input.dispatchTouchEvent", params);
 
         params.clear();
         params.put("type", "touchEnd");
         params.put("touchPoints", new ArrayList<>());
         params.put("modifiers", this.keyboard.getModifiers());
-        this.client.send("Input.dispatchTouchEvent", params, true);
+        this.client.send("Input.dispatchTouchEvent", params);
     }
     static class TouchPoint {
 

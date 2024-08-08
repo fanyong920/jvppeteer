@@ -6,7 +6,8 @@ import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
+import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +23,9 @@ public class AutoCommentExample {
         //指定chrome启动路径
         Browser browser = lauch("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe");
         Page page = browser.newPage();
-        PageNavigateOptions navigateOptions = new PageNavigateOptions();
+        GoToOptions navigateOptions = new GoToOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        navigateOptions.setWaitUntil(Collections.singletonList("domcontentloaded"));
+        navigateOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENTLOADED));
         page.goTo("https://www.csdn.net/", navigateOptions);
         String content = page.content();
 

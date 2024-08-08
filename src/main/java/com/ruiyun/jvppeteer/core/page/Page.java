@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_STREAM_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_STREAM_PROPERTY;
 import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
 
 import java.beans.BeanInfo;
@@ -25,38 +25,40 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletionService;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserContext;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.AttachedToTargetEvent;
+import com.ruiyun.jvppeteer.events.DetachedFromTargetEvent;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.EventHandler;
-import com.ruiyun.jvppeteer.events.Events;
+import com.ruiyun.jvppeteer.events.ExceptionThrownEvent;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.PageCrashException;
-import com.ruiyun.jvppeteer.exception.TerminateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
 import com.ruiyun.jvppeteer.options.Clip;
 import com.ruiyun.jvppeteer.options.ClipOverwrite;
 import com.ruiyun.jvppeteer.options.Device;
 import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
 import com.ruiyun.jvppeteer.options.ScreenshotOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
@@ -70,21 +72,20 @@ import com.ruiyun.jvppeteer.protocol.console.Payload;
 import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
 import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
-import com.ruiyun.jvppeteer.protocol.log.EntryAddedPayload;
+import com.ruiyun.jvppeteer.protocol.log.EntryAddedEvent;
 import com.ruiyun.jvppeteer.protocol.network.Cookie;
 import com.ruiyun.jvppeteer.protocol.network.CookieParam;
 import com.ruiyun.jvppeteer.protocol.network.DeleteCookiesParameters;
-import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedPayload;
+import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedEvent;
 import com.ruiyun.jvppeteer.protocol.page.GetNavigationHistoryReturnValue;
-import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningPayload;
+import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningEvent;
 import com.ruiyun.jvppeteer.protocol.page.NavigationEntry;
 import com.ruiyun.jvppeteer.protocol.performance.Metric;
 import com.ruiyun.jvppeteer.protocol.performance.Metrics;
-import com.ruiyun.jvppeteer.protocol.performance.MetricsPayload;
+import com.ruiyun.jvppeteer.protocol.performance.MetricsEvent;
 import com.ruiyun.jvppeteer.protocol.performance.PageMetrics;
-import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledPayload;
-import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledPayload;
-import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
+import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledEvent;
+import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
 import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
@@ -93,55 +94,33 @@ import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.subjects.SingleSubject;
 
-public class Page extends EventEmitter {
+public class Page extends EventEmitter<Page.PageEvent> {
 
     private static final ExecutorService reloadExecutor = Executors.newSingleThreadExecutor();
-
-    private Set<FileChooserCallBack> fileChooserInterceptors;
-
+    private final Set<FileChooserCallBack> fileChooserInterceptors;
     private boolean closed;
-
-    private CDPSession client;
-
-    private Target target;
-
-    private Keyboard keyboard;
-
-    private Mouse mouse;
-
-    private TimeoutSettings timeoutSettings;
-
-
-    private Touchscreen touchscreen;
-
-
-    private Accessibility accessibility;
-
-
-    private FrameManager frameManager;
-
-
-    private EmulationManager emulationManager;
-
-
-    private Tracing tracing;
-
-    private Map<String, Function<List<?>, Object>> pageBindings;
-
-
-    private Coverage coverage;
-
+    private final CDPSession client;
+    private final Target target;
+    private final Keyboard keyboard;
+    private final Mouse mouse;
+    private final TimeoutSettings timeoutSettings;
+    private final Touchscreen touchscreen;
+    private final Accessibility accessibility;
+    private final FrameManager frameManager;
+    private final EmulationManager emulationManager;
+    private final Tracing tracing;
+    private final Map<String, Function<List<?>, Object>> pageBindings;
+    private final Coverage coverage;
     private boolean javascriptEnabled;
-
     private Viewport viewport;
-
-    private TaskQueue<String> screenshotTaskQueue;
-
-    private Map<String, Worker> workers;
-
+    private final TaskQueue<String> screenshotTaskQueue;
+    private final Map<String, Worker> workers;
     private static final String ABOUT_BLANK = "about:blank";
-
+    private final SingleSubject<Exception> sessionCloseSubject = SingleSubject.create();
     private static final Map<String, Double> unitToPixels = new HashMap<String, Double>() {
         private static final long serialVersionUID = -4861220887908575532L;
 
@@ -172,273 +151,111 @@ public class Page extends EventEmitter {
         this.viewport = null;
         this.screenshotTaskQueue = screenshotTaskQueue;
         this.workers = new HashMap<>();
-        DefaultBrowserListener<Target> attachedListener = new DefaultBrowserListener<Target>() {
-            @Override
-            public void onBrowserEvent(Target event) {
-                Page page = (Page) this.getTarget();
-                if (!"worker".equals(event.getTargetInfo().getType())) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("sessionId", event.getSessionId());
+        Map<FrameManager.FrameManagerEvent, Consumer<?>> frameManagerHandlers = Collections.unmodifiableMap(new HashMap<FrameManager.FrameManagerEvent, Consumer<?>>() {{
+            put(FrameManager.FrameManagerEvent.FrameAttached, ((Consumer<Frame>) (frame) -> {
+                Page.this.emit(PageEvent.FRAMEATTACHED, frame);
+            }));
+            put(FrameManager.FrameManagerEvent.FrameDetached, ((Consumer<Frame>) (frame) -> {
+                Page.this.emit(PageEvent.FRAMEDETACHED, frame);
+            }));
+            put(FrameManager.FrameManagerEvent.FrameNavigated, ((Consumer<Frame>) (frame) -> {
+                Page.this.emit(PageEvent.FRAMENAVIGATED, frame);
+            }));
+        }});
+        frameManagerHandlers.forEach(this.frameManager::on);
+
+       Map<NetworkManager.NetworkManagerEvent, Consumer<?>> networkManagerHandlers = Collections.unmodifiableMap(new HashMap<NetworkManager.NetworkManagerEvent, Consumer<?>>(){{
+            put(NetworkManager.NetworkManagerEvent.Request, ((Consumer<Request>)(request) -> {
+                Page.this.emit(PageEvent.REQUEST, request);
+            }));
+            put(NetworkManager.NetworkManagerEvent.RequestServedFromCache, ((Consumer<Request>)(request) -> {
+                Page.this.emit(PageEvent.REQUESTSERVEDFROMCACHE, request);
+            }));
+            put(NetworkManager.NetworkManagerEvent.Response, ((Consumer<Response>)(response) -> {
+                Page.this.emit(PageEvent.RESPONSE, response);
+            }));
+            put(NetworkManager.NetworkManagerEvent.RequestFailed, ((Consumer<Request>)(request) -> {
+                Page.this.emit(PageEvent.REQUESTFAILED, request);
+            }));
+           put(NetworkManager.NetworkManagerEvent.RequestFinished, ((Consumer<Request>)(request) -> {
+               Page.this.emit(PageEvent.REQUESTFINISHED, request);
+           }));
+        }});
+        networkManagerHandlers.forEach((key, value) -> this.frameManager.networkManager().on(key, value));
+        Map<CDPSession.CDPSessionEvent, Consumer<?>> sessionHandlers = Collections.unmodifiableMap(new HashMap<CDPSession.CDPSessionEvent, Consumer<?>>(){{
+            put(CDPSession.CDPSessionEvent.CDPSession_Disconnected, ((ignore) -> sessionCloseSubject.onSuccess(new JvppeteerException("Target closed"))));
+            put(CDPSession.CDPSessionEvent.Page_domContentEventFired, ((ignore) -> Page.this.emit(PageEvent.DOMCONTENTLOADED, null)));
+            put(CDPSession.CDPSessionEvent.Page_loadEventFired, ((ignore) -> Page.this.emit(PageEvent.LOAD, null)));
+            put(CDPSession.CDPSessionEvent.Page_javascriptDialogOpening, ((Consumer<JavascriptDialogOpeningEvent>) Page.this::onDialog));
+            put(CDPSession.CDPSessionEvent.Runtime_exceptionThrown, (Consumer<ExceptionThrownEvent>) Page.this::handleException);
+            put(CDPSession.CDPSessionEvent.Inspector_targetCrashed,  (arg) -> {Page.this.onTargetCrashed();});
+            put(CDPSession.CDPSessionEvent.Performance_metrics,  (Consumer<MetricsEvent>) Page.this::emitMetrics);
+            put(CDPSession.CDPSessionEvent.Log_entryAdde,  (Consumer<EntryAddedEvent>) Page.this::onLogEntryAdded);
+            put(CDPSession.CDPSessionEvent.Page_fileChooserOpened,  (Consumer<FileChooserOpenedEvent>) Page.this::onFileChooser);
+            put(CDPSession.CDPSessionEvent.Target_attachedToTarget, (Consumer<AttachedToTargetEvent>)Page.this::onAttachedToTarget);
+            put(CDPSession.CDPSessionEvent.Target_detachedFromTarget, (Consumer<DetachedFromTargetEvent>)Page.this::onDetachedFromTarget);
+            put(CDPSession.CDPSessionEvent.Runtime_consoleAPICalled, (Consumer<ConsoleAPICalledEvent>)Page.this::onConsoleAPI);
+            put(CDPSession.CDPSessionEvent.Runtime_bindingCalled, (Consumer<BindingCalledEvent>)Page.this::onBindingCalled);
+        }});
+        this.fileChooserInterceptors = new CopyOnWriteArraySet<>();
+        sessionHandlers.forEach(this.client::on);
+    }
+
+    /**
+     * 反之使用的时候不小心暂停WebSocketConnectReadThread线程，还是使用异步吧
+     * @param event DetachedFromTargetEvent
+     */
+    private void onDetachedFromTarget(DetachedFromTargetEvent event) {
+        CompletableFuture.runAsync(()-> {
+            Worker worker = this.workers().get(event.getSessionId());
+            if (worker == null) {
+                return;
+            }
+            this.emit(PageEvent.WORKERDESTROYED, worker);
+            this.workers().remove(event.getSessionId());
+        });
+    }
+
+    /**
+     * 这里是WebSocketConnectReadThread 线程执行的方法，不能暂停！！
+     * @param event AttachedToTargetEvent
+     */
+    private void onAttachedToTarget(AttachedToTargetEvent event) {
+        CompletableFuture.runAsync(()-> {
+            if (!"worker".equals(event.getTargetInfo().getType())) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("sessionId", event.getSessionId());
                         /*
                           If we don't detach from service workers, they will never die
                          */
-                    client.send("Target.detachFromTarget", params, false);
-                    return;
-                }
-                CDPSession session = Connection.fromSession(page.client()).session(event.getSessionId());
-                Worker worker = new Worker(session, event.getTargetInfo().getUrl(), page::addConsoleMessage, page::handleException);
-                page.workers().putIfAbsent(event.getSessionId(), worker);
-                page.emit(Events.PAGE_WORKERCREATED.getName(), worker);
+                client.send("Target.detachFromTarget", params, null,true);
+                return;
             }
-        };
-        attachedListener.setMethod("Target.attachedToTarget");
-        attachedListener.setTarget(this);
-        attachedListener.setResolveType(Target.class);
-        this.client.addListener(attachedListener.getMethod(), attachedListener);
-
-        DefaultBrowserListener<Target> detachedListener = new DefaultBrowserListener<Target>() {
-            @Override
-            public void onBrowserEvent(Target event) {
-                Page page = (Page) this.getTarget();
-                Worker worker = page.workers().get(event.getSessionId());
-                if (worker == null) {
-                    return;
-                }
-                page.emit(Events.PAGE_WORKERDESTROYED.getName(), worker);
-                page.workers().remove(event.getSessionId());
-            }
-        };
-        detachedListener.setMethod("Target.detachedFromTarget");
-        detachedListener.setTarget(this);
-        detachedListener.setResolveType(Target.class);
-        this.client.addListener(detachedListener.getMethod(), detachedListener);
-
-        DefaultBrowserListener<Object> frameAttachedListener = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_FRAMEATTACHED.getName(), event);
-            }
-        };
-        frameAttachedListener.setMethod(Events.FRAME_MANAGER_FRAME_ATTACHED.getName());
-        frameAttachedListener.setTarget(this);
-        this.frameManager.addListener(frameAttachedListener.getMethod(), frameAttachedListener);
-
-        DefaultBrowserListener<Object> frameDetachedListener = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_FRAMEDETACHED.getName(), event);
-            }
-        };
-        frameDetachedListener.setMethod(Events.FRAME_MANAGER_FRAME_DETACHED.getName());
-        frameDetachedListener.setTarget(this);
-        this.frameManager.addListener(frameDetachedListener.getMethod(), frameDetachedListener);
-
-        DefaultBrowserListener<Object> frameNavigatedListener = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_FRAMENAVIGATED.getName(), event);
-            }
-        };
-        frameNavigatedListener.setMethod(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName());
-        frameNavigatedListener.setTarget(this);
-        this.frameManager.addListener(frameNavigatedListener.getMethod(), frameNavigatedListener);
-
-        NetworkManager networkManager = this.frameManager.getNetworkManager();
-
-        DefaultBrowserListener<Request> requestLis = new DefaultBrowserListener<Request>() {
-            @Override
-            public void onBrowserEvent(Request event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_REQUEST.getName(), event);
-            }
-        };
-        requestLis.setMethod(Events.NETWORK_MANAGER_REQUEST.getName());
-        requestLis.setTarget(this);
-        networkManager.addListener(requestLis.getMethod(), requestLis);
-
-        DefaultBrowserListener<Response> responseLis = new DefaultBrowserListener<Response>() {
-            @Override
-            public void onBrowserEvent(Response event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_RESPONSE.getName(), event);
-            }
-        };
-        responseLis.setMethod(Events.NETWORK_MANAGER_RESPONSE.getName());
-        responseLis.setTarget(this);
-        networkManager.addListener(responseLis.getMethod(), responseLis);
-
-        DefaultBrowserListener<Request> requestFailedLis = new DefaultBrowserListener<Request>() {
-            @Override
-            public void onBrowserEvent(Request event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_REQUESTFAILED.getName(), event);
-            }
-        };
-        requestFailedLis.setMethod(Events.NETWORK_MANAGER_REQUEST_FAILED.getName());
-        requestFailedLis.setTarget(this);
-        networkManager.addListener(requestFailedLis.getMethod(), requestFailedLis);
-
-        DefaultBrowserListener<Request> requestFinishedLis = new DefaultBrowserListener<Request>() {
-            @Override
-            public void onBrowserEvent(Request event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_REQUESTFINISHED.getName(), event);
-            }
-        };
-        requestFinishedLis.setMethod(Events.NETWORK_MANAGER_REQUEST_FINISHED.getName());
-        requestFinishedLis.setTarget(this);
-        networkManager.addListener(requestFinishedLis.getMethod(), requestFinishedLis);
-
-        this.fileChooserInterceptors = new CopyOnWriteArraySet<>();
-
-        DefaultBrowserListener<Object> domContentEventFiredLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_DOMContentLoaded.getName(), event);
-            }
-        };
-        domContentEventFiredLis.setMethod("Page.domContentEventFired");
-        domContentEventFiredLis.setTarget(this);
-        this.client.addListener(domContentEventFiredLis.getMethod(), domContentEventFiredLis);
-
-        DefaultBrowserListener<Object> loadEventFiredLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.emit(Events.PAGE_LOAD.getName(), event);
-            }
-        };
-        loadEventFiredLis.setMethod("Page.loadEventFired");
-        loadEventFiredLis.setTarget(this);
-        this.client.addListener(loadEventFiredLis.getMethod(), loadEventFiredLis);
-
-        DefaultBrowserListener<ConsoleAPICalledPayload> consoleAPICalledLis = new DefaultBrowserListener<ConsoleAPICalledPayload>() {
-            @Override
-            public void onBrowserEvent(ConsoleAPICalledPayload event) {
-                Page page = (Page) this.getTarget();
-                page.onConsoleAPI(event);
-            }
-        };
-        consoleAPICalledLis.setMethod("Runtime.consoleAPICalled");
-        consoleAPICalledLis.setTarget(this);
-        this.client.addListener(consoleAPICalledLis.getMethod(), consoleAPICalledLis);
-
-        DefaultBrowserListener<BindingCalledPayload> bindingCalledLis = new DefaultBrowserListener<BindingCalledPayload>() {
-            @Override
-            public void onBrowserEvent(BindingCalledPayload event) {
-                Page page = (Page) this.getTarget();
-                page.onBindingCalled(event);
-            }
-        };
-        bindingCalledLis.setMethod("Runtime.bindingCalled");
-        bindingCalledLis.setTarget(this);
-        this.client.addListener(bindingCalledLis.getMethod(), bindingCalledLis);
-
-        DefaultBrowserListener<JavascriptDialogOpeningPayload> javascriptDialogOpeningLis = new DefaultBrowserListener<JavascriptDialogOpeningPayload>() {
-            @Override
-            public void onBrowserEvent(JavascriptDialogOpeningPayload event) {
-                Page page = (Page) this.getTarget();
-                page.onDialog(event);
-            }
-        };
-        javascriptDialogOpeningLis.setMethod("Page.javascriptDialogOpening");
-        javascriptDialogOpeningLis.setTarget(this);
-        this.client.addListener(javascriptDialogOpeningLis.getMethod(), javascriptDialogOpeningLis);
-
-        DefaultBrowserListener<JsonNode> exceptionThrownLis = new DefaultBrowserListener<JsonNode>() {
-            @Override
-            public void onBrowserEvent(JsonNode event) {
-                Page page = (Page) this.getTarget();
-                JsonNode exceptionDetails = event.get("exceptionDetails");
-                try {
-                    if (exceptionDetails == null) {
-                        return;
-                    }
-                    ExceptionDetails value = OBJECTMAPPER.treeToValue(exceptionDetails, ExceptionDetails.class);
-                    page.handleException(value);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-            }
-        };
-        exceptionThrownLis.setMethod("Runtime.exceptionThrown");
-        exceptionThrownLis.setTarget(this);
-        this.client.addListener(exceptionThrownLis.getMethod(), exceptionThrownLis);
-
-        DefaultBrowserListener<Object> targetCrashedLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Page page = (Page) this.getTarget();
-                page.onTargetCrashed();
-            }
-        };
-        targetCrashedLis.setMethod("Inspector.targetCrashed");
-        targetCrashedLis.setTarget(this);
-        this.client.addListener(targetCrashedLis.getMethod(), targetCrashedLis);
-
-        DefaultBrowserListener<MetricsPayload> metricsLis = new DefaultBrowserListener<MetricsPayload>() {
-            @Override
-            public void onBrowserEvent(MetricsPayload event) {
-                Page page = (Page) this.getTarget();
-                try {
-                    page.emitMetrics(event);
-                } catch (IllegalAccessException | IntrospectionException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        metricsLis.setMethod("Inspector.targetCrashed");
-        metricsLis.setTarget(this);
-        this.client.addListener(metricsLis.getMethod(), metricsLis);
-
-        DefaultBrowserListener<EntryAddedPayload> entryAddedLis = new DefaultBrowserListener<EntryAddedPayload>() {
-            @Override
-            public void onBrowserEvent(EntryAddedPayload event) {
-                Page page = (Page) this.getTarget();
-                page.onLogEntryAdded(event);
-            }
-        };
-        entryAddedLis.setMethod("Log.entryAdded");
-        entryAddedLis.setTarget(this);
-        this.client.addListener(entryAddedLis.getMethod(), entryAddedLis);
-
-        DefaultBrowserListener<FileChooserOpenedPayload> fileChooserOpenedLis = new DefaultBrowserListener<FileChooserOpenedPayload>() {
-            @Override
-            public void onBrowserEvent(FileChooserOpenedPayload event) {
-                Page page = (Page) this.getTarget();
-                page.onFileChooser(event);
-            }
-        };
-        fileChooserOpenedLis.setMethod("Page.fileChooserOpened");
-        fileChooserOpenedLis.setTarget(this);
-        this.client.addListener(fileChooserOpenedLis.getMethod(), fileChooserOpenedLis);
-
-    }
-
+            CDPSession session = Connection.fromSession(this.client).session(event.getSessionId());
+            Worker worker = new Worker(session, event.getTargetInfo().getUrl(), this::addConsoleMessage, this::handleException);
+            this.workers().putIfAbsent(event.getSessionId(), worker);
+            this.emit(PageEvent.WORKERCREATED, worker);
+        });
+    };
     /**
      * 监听页面的关闭事件
      *
      * @param handler 要提供的处理器
      */
-    public void onClose(EventHandler<Object> handler) {
-        this.on(Events.PAGE_CLOSE.getName(), handler);
+    public void onClose(Consumer<Object> handler) {
+        this.on(PageEvent.CLOSE, handler);
     }
 
-    public void onConsole(EventHandler<ConsoleMessage> handler) {
-        this.on(Events.PAGE_CONSOLE.getName(), handler);
+    public void onConsole(Consumer<ConsoleMessage> handler) {
+        this.on(PageEvent.CONSOLE, handler);
     }
 
-    public void onDialog(EventHandler<Dialog> handler) {
-        this.on(Events.PAGE_DIALOG.getName(), handler);
+    public void onDialog(Consumer<Dialog> handler) {
+        this.on(PageEvent.DIALOG, handler);
     }
 
-    public void onError(EventHandler<Error> handler) {
-        this.on(Events.PAGE_ERROR.getName(), handler);
+    public void onError(Consumer<Error> handler) {
+        this.on(PageEvent.ERROR, handler);
     }
 
     /**
@@ -448,8 +265,8 @@ public class Page extends EventEmitter {
      * <p>可以在将这些方法的调用移动到另外一个线程中</p>
      * @param handler 事件处理器
      */
-    public void onFrameattached(EventHandler<Frame> handler) {
-        this.on(Events.PAGE_FRAMEATTACHED.getName(), handler);
+    public void onFrameAttached(Consumer<Frame> handler) {
+        this.on(PageEvent.FRAMEATTACHED, handler);
     }
 
     /**
@@ -459,8 +276,8 @@ public class Page extends EventEmitter {
      * <p>可以在将这些方法的调用移动到另外一个线程中</p>
      * @param handler 事件处理器
      */
-    public void onFramedetached(EventHandler<Frame> handler) {
-        this.on(Events.PAGE_FRAMEDETACHED.getName(), handler);
+    public void onFrameDetached(Consumer<Frame> handler) {
+        this.on(PageEvent.FRAMEDETACHED, handler);
     }
 
     /**
@@ -469,40 +286,40 @@ public class Page extends EventEmitter {
      * <p>可以在将这些方法的调用移动到另外一个线程中</p>
      * @param handler 事件处理器
      */
-    public void onFramenavigated(EventHandler<Frame> handler) {
-        this.on(Events.PAGE_FRAMENAVIGATED.getName(), handler);
+    public void onFrameNavigated(Consumer<Frame> handler) {
+        this.on(PageEvent.FRAMENAVIGATED, handler);
     }
 
-    public void onLoad(EventHandler<Object> handler) {
-        this.on(Events.PAGE_LOAD.getName(), handler);
+    public void onLoad(Consumer<Object> handler) {
+        this.on(PageEvent.LOAD, handler);
     }
 
-    public void onMetrics(EventHandler<PageMetrics> handler) {
-        this.on(Events.PAGE_METRICS.getName(), handler);
+    public void onMetrics(Consumer<PageMetrics> handler) {
+        this.on(PageEvent.METRICS, handler);
     }
 
-    public void onPageerror(EventHandler<RuntimeException> handler) {
-        this.on(Events.PAGE_ERROR.getName(), handler);
+    public void onPageError(Consumer<RuntimeException> handler) {
+        this.on(PageEvent.PAGEERROR, handler);
     }
 
-    public void onPopup(EventHandler<Error> handler) {
-        this.on(Events.PAGE_POPUP.getName(), handler);
+    public void onPopup(Consumer<Error> handler) {
+        this.on(PageEvent.POPUP, handler);
     }
 
-    public void onRequest(EventHandler<Request> handler) {
-        this.on(Events.PAGE_REQUEST.getName(), handler);
+    public void onRequest(Consumer<Request> handler) {
+        this.on(PageEvent.REQUEST, handler);
     }
 
-    public void onRequestfailed(EventHandler<Request> handler) {
-        this.on(Events.PAGE_REQUESTFAILED.getName(), handler);
+    public void onRequestFailed(Consumer<Request> handler) {
+        this.on(PageEvent.REQUESTFAILED, handler);
     }
 
-    public void onRequestfinished(EventHandler<Request> handler) {
-        this.on(Events.PAGE_REQUESTFINISHED.getName(), handler);
+    public void onRequestFinished(Consumer<Request> handler) {
+        this.on(PageEvent.REQUESTFINISHED, handler);
     }
 
-    public void onResponse(EventHandler<Response> handler) {
-        this.on(Events.PAGE_RESPONSE.getName(), handler);
+    public void onResponse(Consumer<Response> handler) {
+        this.on(PageEvent.RESPONSE, handler);
     }
 
     /**
@@ -511,8 +328,8 @@ public class Page extends EventEmitter {
      * <p>可以在将这些方法的调用移动到另外一个线程中</p>
      * @param handler 事件处理器
      */
-    public void onWorkercreated(EventHandler<Worker> handler) {
-        this.on(Events.PAGE_WORKERCREATED.getName(), handler);
+    public void onWorkerCreated(Consumer<Worker> handler) {
+        this.on(PageEvent.WORKERCREATED, handler);
     }
     /**
      * <p>注意不要在这个事件内直接调用Worker中会暂停线程的方法</p>
@@ -520,9 +337,10 @@ public class Page extends EventEmitter {
      * <p>可以在将这些方法的调用移动到另外一个线程中</p>
      * @param handler 事件处理器
      */
-    public void onWorkerdestroyed(EventHandler<Worker> handler) {
-        this.on(Events.PAGE_WORKERDESTROYED.getName(), handler);
+    public void onWorkerDestroyed(Consumer<Worker> handler) {
+        this.on(PageEvent.WORKERDESTROYED, handler);
     }
+
 
     /**
      * 此方法在页面内执行 document.querySelector。如果没有元素匹配指定选择器，返回值是 null。
@@ -647,7 +465,7 @@ public class Page extends EventEmitter {
      * 相当于多个tab时，切换到某个tab。
      */
     public void bringToFront() {
-        this.client.send("Page.bringToFront", null, true);
+        this.client.send("Page.bringToFront");
     }
 
     /**
@@ -723,11 +541,11 @@ public class Page extends EventEmitter {
         ValidateUtil.assertArg(this.client.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
 
         if (runBeforeUnload) {
-            this.client.send("Page.close", null, false);
+            this.client.send("Page.close", null, null,false);
         } else {
             Map<String, Object> params = new HashMap<>();
             params.put("targetId", this.target.getTargetId());
-            this.client.getConnection().send("Target.closeTarget", params, true);
+            this.client.getConnection().send("Target.closeTarget", params);
             this.target.WaiforisClosedPromise();
         }
     }
@@ -822,7 +640,7 @@ public class Page extends EventEmitter {
     public void setBypassCSP(boolean enabled) {
         Map<String, Object> params = new HashMap<>();
         params.put("enabled", enabled);
-        this.client.send("Page.setBypassCSP", params, true);
+        this.client.send("Page.setBypassCSP", params);
     }
 
     /**
@@ -840,7 +658,7 @@ public class Page extends EventEmitter {
      * @param html 分派给页面的HTML。
      */
     public void setContent(String html) {
-        this.setContent(html, new PageNavigateOptions());
+        this.setContent(html, new GoToOptions());
     }
 
     /**
@@ -854,7 +672,7 @@ public class Page extends EventEmitter {
      *                networkidle0 - 不再有网络连接时（至少500毫秒之后），设置HTML内容完成
      *                networkidle2 - 只剩2个网络连接时（至少500毫秒之后），设置HTML内容完成
      */
-    public void setContent(String html, PageNavigateOptions options) {
+    public void setContent(String html, GoToOptions options) {
         this.frameManager.mainFrame().setContent(html, options);
     }
 
@@ -867,9 +685,9 @@ public class Page extends EventEmitter {
     public List<Cookie> cookies(List<String> urls) {
         Map<String, Object> params = new HashMap<>();
         if(urls == null) urls = new ArrayList<>();
-        if(urls.size() == 0) urls.add(this.url());
+        if(urls.isEmpty()) urls.add(this.url());
         params.put("urls",urls);
-        JsonNode result = this.client.send("Network.getCookies", params, true);
+        JsonNode result = this.client.send("Network.getCookies", params);
         JsonNode cookiesNode = result.get("cookies");
         Iterator<JsonNode> elements = cookiesNode.elements();
         List<Cookie> cookies = new ArrayList<>();
@@ -915,16 +733,16 @@ public class Page extends EventEmitter {
         this.deleteCookie(deleteCookiesParameters);
         Map<String, Object> params = new HashMap<>();
         params.put("cookies", cookies);
-        this.client.send("Network.setCookies", params, true);
+        this.client.send("Network.setCookies", params);
     }
 
     /**
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
-     * ${@link Page#goTo(String, PageNavigateOptions,boolean)}
-     * ${@link Page#goBack(PageNavigateOptions)}
-     * ${@link Page#goForward(PageNavigateOptions)}
-     * ${@link Page#reload(PageNavigateOptions)}
+     * ${@link Page#goTo(String, GoToOptions,boolean)}
+     * ${@link Page#goBack(GoToOptions)}
+     * ${@link Page#goForward(GoToOptions)}
+     * ${@link Page#reload(GoToOptions)}
      * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
@@ -962,7 +780,7 @@ public class Page extends EventEmitter {
         params.put("longitude", longitude);
         params.put("latitude", latitude);
         params.put("accuracy", accuracy);
-        this.client.send("Emulation.setGeolocationOverride", params, true);
+        this.client.send("Emulation.setGeolocationOverride", params);
     }
 
     /**
@@ -985,7 +803,7 @@ public class Page extends EventEmitter {
         this.javascriptEnabled = enabled;
         Map<String, Object> params = new HashMap<>();
         params.put("value", !enabled);
-        this.client.send("Emulation.setScriptExecutionDisabled", params, true);
+        this.client.send("Emulation.setScriptExecutionDisabled", params);
     }
 
     /**
@@ -1010,13 +828,13 @@ public class Page extends EventEmitter {
     private String screenshotTask(String format, ScreenshotOptions options) throws IOException, ExecutionException, InterruptedException {
         Map<String, Object> params = new HashMap<>();
         params.put("targetId", this.target.getTargetId());
-        this.client.send("Target.activateTarget", params, true);
+        this.client.send("Target.activateTarget", params);
         ClipOverwrite clip = null;
         if (options.getClip() != null) {
             clip = processClip(options.getClip());
         }
         if (options.getFullPage()) {
-            JsonNode metrics = this.client.send("Page.getLayoutMetrics", null, true);
+            JsonNode metrics = this.client.send("Page.getLayoutMetrics");
             double width = Math.ceil(metrics.get("contentSize").get("width").asDouble());
             double height = Math.ceil(metrics.get("contentSize").get("height").asDouble());
             clip = new ClipOverwrite(0, 0, width, height, 1);
@@ -1032,7 +850,7 @@ public class Page extends EventEmitter {
             params.put("height", height);
             params.put("deviceScaleFactor", this.viewport.getDeviceScaleFactor());
             params.put("screenOrientation", screenOrientation);
-            this.client.send("Emulation.setDeviceMetricsOverride", params, true);
+            this.client.send("Emulation.setDeviceMetricsOverride", params);
         }
         boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
         if (shouldSetDefaultBackground) {
@@ -1042,9 +860,9 @@ public class Page extends EventEmitter {
         params.put("format", format);
         params.put("quality", options.getQuality());
         params.put("clip", clip);
-        JsonNode result = this.client.send("Page.captureScreenshot", params, true);
+        JsonNode result = this.client.send("Page.captureScreenshot", params);
         if (shouldSetDefaultBackground) {
-            this.client.send("Emulation.setDefaultBackgroundColorOverride", null, true);
+            this.client.send("Emulation.setDefaultBackgroundColorOverride");
         }
         if (options.getFullPage() && this.viewport != null)
             this.setViewport(this.viewport);
@@ -1065,7 +883,7 @@ public class Page extends EventEmitter {
         colorMap.put("b", 0);
         colorMap.put("a", 0);
         params.put("color", colorMap);
-        this.client.send("Emulation.setDefaultBackgroundColorOverride", params, true);
+        this.client.send("Emulation.setDefaultBackgroundColorOverride", params);
     }
 
     private ClipOverwrite processClip(Clip clip) {
@@ -1076,8 +894,8 @@ public class Page extends EventEmitter {
         return new ClipOverwrite(x, y, width, height, 1);
     }
 
-    private void onFileChooser(FileChooserOpenedPayload event) {
-        Helper.commonExecutor().submit(() -> {
+    private void onFileChooser(FileChooserOpenedEvent event) {
+        ForkJoinPool.commonPool().submit(() -> {
             if (ValidateUtil.isEmpty(this.fileChooserInterceptors))
                 return;
             Frame frame = this.frameManager.frame(event.getFrameId());
@@ -1091,23 +909,23 @@ public class Page extends EventEmitter {
         });
     }
 
-    private void onLogEntryAdded(EntryAddedPayload event) {
+    private void onLogEntryAdded(EntryAddedEvent event) {
         if (ValidateUtil.isNotEmpty(event.getEntry().getArgs()))
             event.getEntry().getArgs().forEach(arg -> Helper.releaseObject(this.client, arg,false));
         if (!"worker".equals(event.getEntry().getSource()))
-            this.emit(Events.PAGE_CONSOLE.getName(), new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
+            this.emit(PageEvent.CONSOLE, new ConsoleMessage(event.getEntry().getLevel(), event.getEntry().getText(), Collections.emptyList(), new Location(event.getEntry().getUrl(), event.getEntry().getLineNumber())));
     }
 
-    private void emitMetrics(MetricsPayload event) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
+    private void emitMetrics(MetricsEvent event){
         PageMetrics pageMetrics = new PageMetrics();
         Metrics metrics = this.buildMetricsObject(event.getMetrics());
         pageMetrics.setMetrics(metrics);
         pageMetrics.setTitle(event.getTitle());
-        this.emit(Events.PAGE_METRICS.getName(), pageMetrics);
+        this.emit(PageEvent.METRICS, pageMetrics);
     }
 
     private void onTargetCrashed() {
-        this.emit("error", new PageCrashException("Page crashed!"));
+        this.emit(PageEvent.ERROR, new PageCrashException("Page crashed!"));
     }
 
     /**
@@ -1136,7 +954,7 @@ public class Page extends EventEmitter {
      *
      * @param event 触发事件
      */
-    private void onDialog(JavascriptDialogOpeningPayload event) {
+    private void onDialog(JavascriptDialogOpeningEvent event) {
         DialogType dialogType = null;
         if ("alert".equals(event.getType()))
             dialogType = DialogType.Alert;
@@ -1148,10 +966,10 @@ public class Page extends EventEmitter {
             dialogType = DialogType.BeforeUnload;
         ValidateUtil.assertArg(dialogType != null, "Unknown javascript dialog type: " + event.getType());
         Dialog dialog = new Dialog(this.client, dialogType, event.getMessage(), event.getDefaultPrompt());
-        this.emit(Events.PAGE_DIALOG.getName(), dialog);
+        this.emit(PageEvent.DIALOG, dialog);
     }
 
-    private void onConsoleAPI(ConsoleAPICalledPayload event) {
+    private void onConsoleAPI(ConsoleAPICalledEvent event) {
         if (event.getExecutionContextId() == 0) {
             // DevTools protocol stores the last 1000 console messages. These
             // messages are always reported even for removed execution contexts. In
@@ -1179,7 +997,7 @@ public class Page extends EventEmitter {
         this.addConsoleMessage(event.getType(), values, event.getStackTrace());
     }
 
-    private void onBindingCalled(BindingCalledPayload event)  {
+    private void onBindingCalled(BindingCalledEvent event)  {
         String payloadStr = event.getPayload();
         Payload payload;
         try {
@@ -1197,7 +1015,7 @@ public class Page extends EventEmitter {
         Map<String, Object> params = new HashMap<>();
         params.put("expression", expression);
         params.put("contextId", event.getExecutionContextId());
-        this.client.send("Runtime.evaluate", params, false);
+        this.client.send("Runtime.evaluate", params, null,false);
     }
 
     private String deliverError() {
@@ -1234,14 +1052,14 @@ public class Page extends EventEmitter {
         params.put("autoAttach", true);
         params.put("waitForDebuggerOnStart", false);
         params.put("flatten", true);
-        this.client.send("Target.setAutoAttach", params, false);
+        this.client.send("Target.setAutoAttach", params);
         params.clear();
-        this.client.send("Performance.enable", params, false);
-        this.client.send("Log.enable", params, true);
+        this.client.send("Performance.enable", params);
+        this.client.send("Log.enable", params);
     }
 
     private void addConsoleMessage(String type, List<JSHandle> args, StackTrace stackTrace) {
-        if (this.getListenerCount(Events.PAGE_CONSOLE.getName()) == 0) {
+        if (this.listenerCount(PageEvent.CONSOLE) == 0) {
             args.forEach(arg -> arg.dispose(false));
             return;
         }
@@ -1252,22 +1070,22 @@ public class Page extends EventEmitter {
                 textTokens.add(arg.toString());
             else {
                 try {
-                    textTokens.add(Constant.OBJECTMAPPER.writeValueAsString(Helper.valueFromRemoteObject(remoteObject)));
+                    textTokens.add(OBJECTMAPPER.writeValueAsString(Helper.valueFromRemoteObject(remoteObject)));
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
-        Location location = stackTrace != null && stackTrace.getCallFrames().size() > 0 ? new Location(stackTrace.getCallFrames().get(0).getUrl(), stackTrace.getCallFrames().get(0).getLineNumber(), stackTrace.getCallFrames().get(0).getColumnNumber()) : new Location();
+        Location location = stackTrace != null && !stackTrace.getCallFrames().isEmpty() ? new Location(stackTrace.getCallFrames().get(0).getUrl(), stackTrace.getCallFrames().get(0).getLineNumber(), stackTrace.getCallFrames().get(0).getColumnNumber()) : new Location();
         ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, location);
-        this.emit(Events.PAGE_CONSOLE.getName(), message);
+        this.emit(PageEvent.CONSOLE, message);
     }
 
-    private void handleException(ExceptionDetails exceptionDetails) {
-        String message = Helper.getExceptionMessage(exceptionDetails);
+    private void handleException(ExceptionThrownEvent event) {
+        String message = Helper.getExceptionMessage(event.getExceptionDetails());
         RuntimeException err = new RuntimeException(message);
 //        err.setStackTrace(null); // Don't report clientside error with a node stack attached
-        this.emit(Events.PAGE_PageError.getName(), err);
+        this.emit(PageEvent.PAGEERROR, err);
     }
 
     /**
@@ -1288,8 +1106,8 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 打断异常
      * @return 不阻塞的话返回null
      */
-    public Response goTo(String url, boolean isBlock) throws InterruptedException {
-        return this.goTo(url, new PageNavigateOptions(),isBlock);
+    public Response goTo(String url, boolean isBlock){
+        return this.goTo(url, new GoToOptions(),isBlock);
     }
 
     /**
@@ -1312,7 +1130,7 @@ public class Page extends EventEmitter {
      * @return Response
      * @throws InterruptedException 异常
      */
-    public Response goTo(String url, PageNavigateOptions options) throws InterruptedException {
+    public Response goTo(String url, GoToOptions options){
         return this.goTo(url, options,true);
     }
 
@@ -1337,7 +1155,7 @@ public class Page extends EventEmitter {
      * @throws InterruptedException 打断异常
      * @return Response
      */
-    public Response goTo(String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
+    public Response goTo(String url, GoToOptions options, boolean isBlock) {
         return this.frameManager.getMainFrame().goTo(url, options,isBlock);
     }
 
@@ -1350,10 +1168,9 @@ public class Page extends EventEmitter {
      * <p>主页面不能加载</p>
      *
      * @param url 导航到的地址. 地址应该带有http协议, 比如 https://.
-     * @throws InterruptedException 打断异常
      * @return 响应
      */
-    public Response goTo(String url) throws InterruptedException {
+    public Response goTo(String url){
         return this.goTo(url,true);
     }
 
@@ -1370,7 +1187,7 @@ public class Page extends EventEmitter {
             if (StringUtil.isEmpty(cookie.getUrl()) && pageURL.startsWith("http"))
                 cookie.setUrl(pageURL);
             Map<String, Object> params = getProperties(cookie);
-            this.client.send("Network.deleteCookies", params, true);
+            this.client.send("Network.deleteCookies", params);
         }
     }
 
@@ -1390,10 +1207,8 @@ public class Page extends EventEmitter {
      * <p>${@link Page#setUserAgent(String)}</p>
      *
      * @param options Device 模拟器枚举类
-     * @throws InterruptedException 线程被打断异常
-     * @throws ExecutionException 并发异常
      */
-    public void emulate(Device options) throws ExecutionException, InterruptedException {
+    public void emulate(Device options) {
         this.setViewport(options.getViewport());
         this.setUserAgent(options.getUserAgent());
     }
@@ -1447,7 +1262,7 @@ public class Page extends EventEmitter {
                 timezoneId = "";
             }
             params.put("timezoneId", timezoneId);
-            this.client.send("Emulation.setTimezoneOverride", params, true);
+            this.client.send("Emulation.setTimezoneOverride", params);
         } catch (Exception e) {
             if (e.getMessage().contains("Invalid timezone"))
                 throw new IllegalArgumentException("Invalid timezone ID: " + timezoneId);
@@ -1462,7 +1277,7 @@ public class Page extends EventEmitter {
     public void emulateVisionDeficiency(VisionDeficiency type){
         Map<String,Object> params = new HashMap<>();
         params.put("type",type.getValue());
-        this.client.send("Emulation.setEmulatedVisionDeficiency",params,true);
+        this.client.send("Emulation.setEmulatedVisionDeficiency",params);
     }
 
     /**
@@ -1504,7 +1319,7 @@ public class Page extends EventEmitter {
             String source = "(" + pageFunction + ")(" + String.join(",", argsList) + ")";
             params.put("source", source);
         }
-        this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
+        this.client.send("Page.addScriptToEvaluateOnNewDocument", params);
     }
 
     /**
@@ -1523,20 +1338,19 @@ public class Page extends EventEmitter {
         String expression = Helper.evaluationString(addPageBinding(), PageEvaluateType.FUNCTION, name);
         Map<String, Object> params = new HashMap<>();
         params.put("name", name);
-        this.client.send("Runtime.addBinding", params, true);
+        this.client.send("Runtime.addBinding", params);
         params.clear();
         params.put("source", expression);
-        this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
+        this.client.send("Page.addScriptToEvaluateOnNewDocument", params);
         List<Frame> frames = this.frames();
         if(frames.isEmpty()){
             return;
         }
-
-        CompletionService completionService = Helper.completionService();
-        frames.forEach(frame -> completionService.submit(() -> frame.evaluate(expression,null)));
-        for (int i = 0; i < frames.size(); i++) {
-            completionService.take().get();
-        }
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        frames.forEach(frame -> {
+            futures.add(CompletableFuture.runAsync(() -> frame.evaluate(expression,null)));
+        });
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
     private String addPageBinding() {
@@ -1578,7 +1392,7 @@ public class Page extends EventEmitter {
     }
 
     public Response goBack() {
-        return this.go(-1, new PageNavigateOptions());
+        return this.go(-1, new GoToOptions());
     }
 
     /**
@@ -1596,22 +1410,22 @@ public class Page extends EventEmitter {
      * @param options 见上面注释
      * @return 响应
      */
-    public Response goBack(PageNavigateOptions options) {
+    public Response goBack(GoToOptions options) {
         return this.go(-1, options);
     }
 
     public Response goForward() {
-        return this.go(+1, new PageNavigateOptions());
+        return this.go(+1, new GoToOptions());
     }
 
     /**
      * 导航到页面历史的后一个页面。
      * <p>options 的 referer参数不用填，填了也用不上</p>
      *
-     * @param options 可以看{@link Page#goTo(String,PageNavigateOptions,boolean)}方法介绍
+     * @param options 可以看{@link Page#goTo(String, GoToOptions,boolean)}方法介绍
      * @return Response 响应
      */
-    public Response goForward(PageNavigateOptions options) {
+    public Response goForward(GoToOptions options) {
         return this.go(+1, options);
     }
 
@@ -1643,7 +1457,7 @@ public class Page extends EventEmitter {
      * @throws InvocationTargetException 异常
      */
     public Metrics metrics() throws IllegalAccessException, IntrospectionException, InvocationTargetException {
-        JsonNode responseNode = this.client.send("Performance.getMetrics", null, true);
+        JsonNode responseNode = this.client.send("Performance.getMetrics");
         List<Metric> metrics = new ArrayList<>();
         Iterator<JsonNode> elements = responseNode.get("metrics").elements();
         while (elements.hasNext()) {
@@ -1730,10 +1544,10 @@ public class Page extends EventEmitter {
         params.put("marginRight", marginRight);
         params.put("pageRanges", options.getPageRanges());
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
-        JsonNode result = this.client.send("Page.printToPDF", params, true);
+        JsonNode result = this.client.send("Page.printToPDF", params);
 
         if (result != null){
-            JsonNode handle = result.get(RECV_MESSAGE_STREAM_PROPERTY);
+            JsonNode handle = result.get(MESSAGE_STREAM_PROPERTY);
             ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle. Please check your chrome version. result="+result.toString());
             return (byte[])Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
         }
@@ -1743,10 +1557,10 @@ public class Page extends EventEmitter {
     /**
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
-     * ${@link Page#goTo(String, PageNavigateOptions,boolean)}
-     * ${@link Page#goBack(PageNavigateOptions)}
-     * ${@link Page#goForward(PageNavigateOptions)}
-     * ${@link Page#reload(PageNavigateOptions)}
+     * ${@link Page#goTo(String, GoToOptions,boolean)}
+     * ${@link Page#goBack(GoToOptions)}
+     * ${@link Page#goForward(GoToOptions)}
+     * ${@link Page#reload(GoToOptions)}
      * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
@@ -1797,10 +1611,10 @@ public class Page extends EventEmitter {
     /**
      * 重新加载页面
      *
-     * @param options 与${@link Page#goTo(String, PageNavigateOptions,boolean)}中的options是一样的配置
+     * @param options 与${@link Page#goTo(String, GoToOptions,boolean)}中的options是一样的配置
      * @return 响应
      */
-    public Response reload(PageNavigateOptions options) {
+    public Response reload(GoToOptions options) {
         CountDownLatch reloadLatch = new CountDownLatch(1);
         Page.reloadExecutor.submit(() -> {
             /*执行reload命令，不用等待返回*/
@@ -1809,28 +1623,32 @@ public class Page extends EventEmitter {
             } catch (InterruptedException e) {
                 throw  new RuntimeException(e);
             }
-            this.client.send("Page.reload", null, true);
+            this.client.send("Page.reload", null);
         });
 
         /*等待页面导航结果返回*/
         return this.waitForNavigation(options,reloadLatch);
     }
 
-    private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+    private Metrics buildMetricsObject(List<Metric> metrics) {
         Metrics result = new Metrics();
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
                 if (supportedMetrics.contains(metric.getName())) {
-                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(), Metrics.class);
-                    descriptor.getWriteMethod().invoke(result, metric.getValue());
+                    try {
+                        PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(), Metrics.class);
+                        descriptor.getWriteMethod().invoke(result, metric.getValue());
+                    } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
+                        throw new JvppeteerException(e);
+                    }
                 }
             }
         }
         return result;
     }
 
-    private Response go(int delta, PageNavigateOptions options) {
-        JsonNode historyNode = this.client.send("Page.getNavigationHistory", null, true);
+    private Response go(int delta, GoToOptions options) {
+        JsonNode historyNode = this.client.send("Page.getNavigationHistory");
         GetNavigationHistoryReturnValue history;
         try {
             history = OBJECTMAPPER.treeToValue(historyNode, GetNavigationHistoryReturnValue.class);
@@ -1843,7 +1661,7 @@ public class Page extends EventEmitter {
         Response response = this.waitForNavigation(options,null);
         Map<String, Object> params = new HashMap<>();
         params.put("entryId", entry.getId());
-        this.client.send("Page.navigateToHistoryEntry", params, true);
+        this.client.send("Page.navigateToHistoryEntry", params);
         return response;
     }
 
@@ -1855,7 +1673,7 @@ public class Page extends EventEmitter {
      * @return 响应
      */
     public Response waitForNavigation() {
-        return this.waitForNavigation(new PageNavigateOptions(),null);
+        return this.waitForNavigation(new GoToOptions(),null);
     }
 
     /**
@@ -1866,7 +1684,7 @@ public class Page extends EventEmitter {
      * @param options PageNavigateOptions
      * @return 响应
      */
-    public Response waitForNavigation(PageNavigateOptions options) {
+    public Response waitForNavigation(GoToOptions options) {
         return this.frameManager.mainFrame().waitForNavigation(options,null);
     }
 
@@ -1879,7 +1697,7 @@ public class Page extends EventEmitter {
      * @param reloadLatch reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
      * @return 响应
      */
-    private Response waitForNavigation(PageNavigateOptions options,CountDownLatch reloadLatch) {
+    private Response waitForNavigation(GoToOptions options, CountDownLatch reloadLatch) {
         return this.frameManager.mainFrame().waitForNavigation(options,reloadLatch);
     }
 
@@ -1938,7 +1756,7 @@ public class Page extends EventEmitter {
         ValidateUtil.assertArg("screen".equals(type) || "print".equals(type) || type == null, "Unsupported media type: " + type);
         Map<String, Object> params = new HashMap<>();
         params.put("media", type);
-        this.client.send("Emulation.setEmulatedMedia", params, true);
+        this.client.send("Emulation.setEmulatedMedia", params);
     }
 
     public void emulateMediaFeatures(List<MediaFeature> features) {
@@ -1946,7 +1764,7 @@ public class Page extends EventEmitter {
         Map<String, Object> params = new HashMap<>();
         if (features == null) {
             params.put("features", null);
-            this.client.send("Emulation.setEmulatedMedia", params, true);
+            this.client.send("Emulation.setEmulatedMedia", params);
         }
         if (ValidateUtil.isNotEmpty(features)) {
             features.forEach(mediaFeature -> {
@@ -1955,7 +1773,7 @@ public class Page extends EventEmitter {
             });
         }
         params.put("features", features);
-        this.client.send("Emulation.setEmulatedMedia", params, true);
+        this.client.send("Emulation.setEmulatedMedia", params);
     }
 
     /**
@@ -2009,11 +1827,11 @@ public class Page extends EventEmitter {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
         int finalTimeout = timeout;
-        return Helper.commonExecutor().submit(() -> {
+        return ForkJoinPool.commonPool().submit(() -> {
             if (ValidateUtil.isEmpty(this.fileChooserInterceptors)) {
                 Map<String, Object> params = new HashMap<>();
                 params.put("enabled", true);
-                this.client.send("Page.setInterceptFileChooserDialog", params, true);
+                this.client.send("Page.setInterceptFileChooserDialog", params);
             }
             CountDownLatch latch = new CountDownLatch(1);
             FileChooserCallBack callback = new FileChooserCallBack(latch);
@@ -2110,13 +1928,12 @@ public class Page extends EventEmitter {
      * @param predicate 方法
      * @param timeout   超时时间
      * @return 要等到的请求
-     * @throws InterruptedException 异常
      */
-    public Request waitForRequest(String url, Predicate<Request> predicate, int timeout) throws InterruptedException {
+    public Request waitForRequest(String url, Predicate<Request> predicate, int timeout) {
         if (timeout <= 0) {
             timeout = this.timeoutSettings.timeout();
         }
-        Predicate<Request> predi = request -> {
+        io.reactivex.rxjava3.functions.Predicate<Request> requestPredicate = request -> {
             if (StringUtil.isNotEmpty(url)) {
                 return url.equals(request.url());
             } else if (predicate != null) {
@@ -2124,26 +1941,22 @@ public class Page extends EventEmitter {
             }
             return false;
         };
-        DefaultBrowserListener<Object> listener = null;
+        Disposable closeDisposable = null;
+        Disposable requestDisposable = null;
         try {
-            listener = sessionClosePromise();
-            return (Request)Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_REQUEST.getName(), predi, timeout, "Wait for request timeout");
-        } finally {
-            if (listener != null)
-                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
-        }
-    }
-
-    private DefaultBrowserListener<Object> sessionClosePromise() {
-        DefaultBrowserListener<Object> disConnectLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                throw new TerminateException("Target closed");
+            Observable<Object> closeObservable = Helper.fromEmitterEvent(this,PageEvent.CLOSE).map((s) ->{throw new JvppeteerException("Page closed!");});
+            closeDisposable = closeObservable.subscribe();
+            Observable<Request> requestObservable = Helper.<Request,PageEvent>fromEmitterEvent(this,PageEvent.REQUEST).filter(requestPredicate).timeout(timeout, TimeUnit.MILLISECONDS);
+            requestDisposable = requestObservable.subscribe();
+            Object o = Observable.ambArray(requestObservable, closeObservable).blockingFirst();
+            if (o instanceof Request){
+                return  (Request) o;
             }
-        };
-        disConnectLis.setMethod(Events.CDPSESSION_DISCONNECTED.getName());
-        this.client.addListener(disConnectLis.getMethod(), disConnectLis,true);
-        return disConnectLis;
+            return null;
+        }  finally {
+            Optional.ofNullable(closeDisposable).ifPresent(Disposable::dispose);
+            Optional.ofNullable(requestDisposable).ifPresent(Disposable::dispose);
+        }
     }
 
     /**
@@ -2191,12 +2004,11 @@ public class Page extends EventEmitter {
      * @param predicate 方法
      * @param timeout   超时时间
      * @return 要等到的请求
-     * @throws InterruptedException 异常
      */
-    public Response waitForResponse(String url, Predicate<Response> predicate, int timeout) throws InterruptedException {
+    public Response waitForResponse(String url, Predicate<Response> predicate, int timeout) {
         if (timeout <= 0)
             timeout = this.timeoutSettings.timeout();
-        Predicate<Response> predi = response -> {
+        io.reactivex.rxjava3.functions.Predicate<Response> predi = response -> {
             if (StringUtil.isNotEmpty(url)) {
                 return url.equals(response.url());
             } else if (predicate != null) {
@@ -2204,13 +2016,21 @@ public class Page extends EventEmitter {
             }
             return false;
         };
-        DefaultBrowserListener<Object> listener = null;
+        Disposable responseDisposable = null;
+        Disposable closeDisposable = null;
         try {
-            listener = sessionClosePromise();
-            return (Response)Helper.waitForEvent(this.frameManager.networkManager(), Events.NETWORK_MANAGER_RESPONSE.getName(), predi, timeout, "Wait for response timeout");
-        } finally {
-            if (listener != null)
-                this.client.removeListener(Events.CDPSESSION_DISCONNECTED.getName(), listener);
+            Observable<Response> responseObservable = Helper.<Response, PageEvent>fromEmitterEvent(this, PageEvent.RESPONSE).filter(predi).timeout(timeout, TimeUnit.MILLISECONDS);
+            responseDisposable = responseObservable.subscribe();
+            Observable<Object> closeObservable = Helper.fromEmitterEvent(this,PageEvent.CLOSE).map((s) ->{throw new JvppeteerException("Page closed!");});
+            closeDisposable = closeObservable.subscribe();
+            Object o = Observable.ambArray(responseObservable, closeObservable).blockingFirst();
+            if (o instanceof Response){
+                return  (Response) o;
+            }
+            return null;
+        }  finally {
+            Optional.ofNullable(closeDisposable).ifPresent(Disposable::dispose);
+            Optional.ofNullable(responseDisposable).ifPresent(Disposable::dispose);
         }
     }
 
@@ -2401,6 +2221,161 @@ public class Page extends EventEmitter {
                     throw new TimeoutException("waiting for file chooser failed: timeout " + finalTimeout + "ms exceeded");
                 }
             }
+        }
+    }
+    public enum PageEvent {
+        /**
+         * Emitted when the page closes.
+         */
+        CLOSE("close"),
+        /**
+         * Emitted when JavaScript within the page calls one of console API methods,
+         * e.g. `console.log` or `console.dir`. Also emitted if the page throws an
+         * error or a warning.
+         *
+         * @remarks A `console` event provides a {@link ConsoleMessage} representing the
+         * console message that was logged.
+         * @example An example of handling `console` event:
+         * <p>
+         * ```ts
+         * page.on('console', msg => {
+         * for (let i = 0; i < msg.args().length; ++i)
+         * console.log(`${i}: ${msg.args()[i]}`);
+         * });
+         * page.evaluate(() => console.log('hello', 5, {foo: 'bar'}));
+         * ```
+         */
+        CONSOLE("console"),
+        /**
+         * Emitted when a JavaScript dialog appears, such as `alert`, `prompt`,
+         * `confirm` or `beforeunload`. Puppeteer can respond to the dialog via
+         * {@link Dialog#accept} or {@link Dialog#dismiss}.
+         */
+        DIALOG("dialog"),
+        /**
+         * Emitted when the JavaScript
+         * <a href="https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded">DOMContentLoaded</a>
+         * event is dispatched.
+         */
+        DOMCONTENTLOADED("domcontentloaded"),
+        /**
+         * Emitted when the page crashes. Will contain an `Error`.
+         */
+        ERROR("error"),
+        /**
+         * Emitted when a frame is attached. Will contain a {@link Frame}.
+         */
+        FRAMEATTACHED("frameattached"),
+        /**
+         * Emitted when a frame is detached. Will contain a {@link Frame}.
+         */
+        FRAMEDETACHED("framedetached"),
+        /**
+         * Emitted when a frame is navigated to a new URL. Will contain a
+         * {@link Frame}.
+         */
+        FRAMENAVIGATED("framenavigated"),
+        /**
+         * Emitted when the JavaScript
+         * <a href="https://developer.mozilla.org/en-US/docs/Web/Events/load">load</a>
+         * event is dispatched.
+         */
+        LOAD("load"),
+        /**
+         * Emitted when the JavaScript code makes a call to `console.timeStamp`. For
+         * the list of metrics see {@link Page#metrics | page.metrics}.
+         *
+         * @remarks Contains an object with two properties:
+         * <p>
+         * - `title`: the title passed to `console.timeStamp`
+         * - `metrics`: object containing metrics as key/value pairs. The values will
+         * be `number`s.
+         */
+        METRICS("metrics"),
+        /**
+         * Emitted when an uncaught exception happens within the page. Contains an
+         * `Error`.
+         */
+        PAGEERROR("pageerror"),
+        /**
+         * Emitted when the page opens a new tab or window.
+         * <p>
+         * Contains a {@link Page} corresponding to the popup window.
+         *
+         * @example ```ts
+         * const [popup] = await Promise.all([
+         * new Promise(resolve => page.once('popup', resolve)),
+         * page.click('a[target=_blank]'),
+         * ]);
+         * ```
+         * <p>
+         * ```ts
+         * const [popup] = await Promise.all([
+         * new Promise(resolve => page.once('popup', resolve)),
+         * page.evaluate(() => window.open('https://example.com')),
+         * ]);
+         * ```
+         */
+        POPUP("popup"),
+        /**
+         * Emitted when a page issues a request and contains a {@link Request}.
+         *
+         * @remarks The object is readonly. See {@link Page#setRequestInterception} for
+         * intercepting and mutating requests.
+         */
+        REQUEST("request"),
+        /**
+         * Emitted when a request ended up loading from cache. Contains a
+         * {@link Request}.
+         *
+         * @remarks For certain requests, might contain undefined.
+         * {@link <a href="https://crbug.com/750469">crbug</a>}
+         */
+        REQUESTSERVEDFROMCACHE("requestservedfromcache"),
+        /**
+         * Emitted when a request fails, for example by timing out.
+         * <p>
+         * Contains a {@link Request}.
+         *
+         * @remarks HTTP Error responses, such as 404 or 503, are still successful responses
+         * from HTTP standpoint, so request will complete with `requestfinished` event
+         * and not with `requestfailed`.
+         */
+        REQUESTFAILED("requestfailed"),
+        /**
+         * Emitted when a request finishes successfully. Contains a
+         * {@link Request}.
+         */
+        REQUESTFINISHED("requestfinished"),
+        /**
+         * Emitted when a response is received. Contains a {@link Response}.
+         */
+        RESPONSE("response"),
+        /**
+         * Emitted when a dedicated
+         * {@link <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">WebWorker</a>}
+         * is spawned by the page.
+         */
+        WORKERCREATED("workercreated"),
+        /**
+         * Emitted when a dedicated
+         * {@link <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">WebWorker</a>}
+         * is destroyed by the page.
+         */
+        WORKERDESTROYED("workerdestroyed");
+
+        private String eventName;
+
+        PageEvent(String eventName) {
+            this.eventName = eventName;
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
+
+        public void setEventName(String eventName) {
+            this.eventName = eventName;
         }
     }
 }

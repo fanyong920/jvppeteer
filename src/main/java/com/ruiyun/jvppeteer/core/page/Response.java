@@ -104,7 +104,7 @@ public class Response {
            }
            Map<String,Object> params = new HashMap<>();
            params.put("requestId",this.request.requestId());
-            JsonNode response = this.client.send("Network.getResponseBody", params, true);
+            JsonNode response = this.client.send("Network.getResponseBody", params);
             if(response != null){
                 if(response.get("base64Encoded").asBoolean()){
                     contentPromise = Base64.getDecoder().decode(response.get("body").asText());

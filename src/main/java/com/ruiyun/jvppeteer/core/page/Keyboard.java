@@ -305,7 +305,7 @@ public class Keyboard {
         params.put("autoRepeat", autoRepeat);
         params.put("location", description.getLocation());
         params.put("isKeypad", description.getLocation() == 3);
-        this.client.send("Input.dispatchKeyEvent", params, true);
+        this.client.send("Input.dispatchKeyEvent", params);
     }
 
     public void up(String key) {
@@ -319,13 +319,13 @@ public class Keyboard {
         params.put("windowsVirtualKeyCode", description.getKeyCode());
         params.put("code", description.getCode());
         params.put("location", description.getLocation());
-        this.client.send("Input.dispatchKeyEvent", params, true);
+        this.client.send("Input.dispatchKeyEvent", params);
     }
 
     public void sendCharacter(String cha) {
         Map<String, Object> params = new HashMap<>();
         params.put("text", cha);
-        this.client.send("Input.insertText", params, true);
+        this.client.send("Input.insertText", params);
     }
     private boolean charIsKey(String c) {
         return keyDefinitions.containsKey(c);

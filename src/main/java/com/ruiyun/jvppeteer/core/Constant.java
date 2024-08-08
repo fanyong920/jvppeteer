@@ -118,21 +118,21 @@ public interface Constant {
 	/**
 	 * 从浏览器的websocket接受到消息中有以下这些字段，在处理消息用到这些字段
 	 */
-	String RECV_MESSAGE_METHOD_PROPERTY = "method";
-	String RECV_MESSAGE_PARAMS_PROPERTY = "params";
-	String RECV_MESSAGE_ID_PROPERTY = "id";
-	String RECV_MESSAGE_RESULT_PROPERTY = "result";
-	String RECV_MESSAGE_SESSION_ID_PROPERTY = "sessionId";
-	String RECV_MESSAGE_TARGETINFO_PROPERTY = "targetInfo";
-	String RECV_MESSAGE_TYPE_PROPERTY = "type";
-	String RECV_MESSAGE_ERROR_PROPERTY = "error";
-	String RECV_MESSAGE_ERROR_MESSAGE_PROPERTY = "message";
-	String RECV_MESSAGE_ERROR_DATA_PROPERTY = "data";
-	String RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY = "targetId";
-	String RECV_MESSAGE_STREAM_PROPERTY = "stream";
-	String RECV_MESSAGE_STREAM_EOF_PROPERTY = "eof";
-	String RECV_MESSAGE_STREAM_DATA_PROPERTY = "data";
-	String RECV_MESSAGE_BASE64ENCODED_PROPERTY = "base64Encoded";
+	String MESSAGE_METHOD_PROPERTY = "method";
+	String MESSAGE_PARAMS_PROPERTY = "params";
+	String MESSAGE_ID_PROPERTY = "id";
+	String MESSAGE_RESULT_PROPERTY = "result";
+	String MESSAGE_SESSION_ID_PROPERTY = "sessionId";
+	String MESSAGE_TARGETINFO_PROPERTY = "targetInfo";
+	String MESSAGE_TYPE_PROPERTY = "type";
+	String MESSAGE_ERROR_PROPERTY = "error";
+	String MESSAGE_MESSAGE_PROPERTY = "message";
+	String MESSAGE_DATA_PROPERTY = "data";
+	String MESSAGE_TARGETID_PROPERTY = "targetId";
+	String MESSAGE_STREAM_PROPERTY = "stream";
+	String MESSAGE_EOF_PROPERTY = "eof";
+	String MESSAGE_STREAM_DATA_PROPERTY = "data";
+	String MESSAGE_BASE64ENCODED_PROPERTY = "base64Encoded";
 
 
 	/**

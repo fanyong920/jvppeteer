@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +69,7 @@ public class ElementHandle extends JSHandle {
     public Frame contentFrame() {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
-        JsonNode nodeInfo = this.client.send("DOM.describeNode", params, true);
+        JsonNode nodeInfo = this.client.send("DOM.describeNode", params);
         JsonNode frameId = nodeInfo.get("node").get("frameId");
         if (frameId == null || StringUtil.isEmpty(frameId.asText()))
             return null;
@@ -110,8 +111,8 @@ public class ElementHandle extends JSHandle {
     private ClickablePoint clickablePoint() {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
-        JsonNode result = this.client.send("DOM.getContentQuads", params, true);
-        JsonNode layoutMetrics = this.client.send("Page.getLayoutMetrics", null, true);
+        JsonNode result = this.client.send("DOM.getContentQuads", params);
+        JsonNode layoutMetrics = this.client.send("Page.getLayoutMetrics");
         if (result == null || result.get("quads").size() == 0)
             throw new RuntimeException("Node is either not visible or not an HTMLElement");
         // Filter out quads that have too small area to click into.
@@ -149,7 +150,7 @@ public class ElementHandle extends JSHandle {
     private GetBoxModelReturnValue getBoxModel() {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
-        JsonNode result = this.client.send("DOM.getBoxModel", params, true);
+        JsonNode result = this.client.send("DOM.getBoxModel", params);
         try {
             return Constant.OBJECTMAPPER.treeToValue(result, GetBoxModelReturnValue.class);
         } catch (JsonProcessingException e) {
@@ -185,7 +186,7 @@ public class ElementHandle extends JSHandle {
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
         ValidateUtil.assertArg(boundingBox.getWidth() != 0, "Node has 0 width.");
         ValidateUtil.assertArg(boundingBox.getHeight() != 0, "Node has 0 height.");
-        JsonNode response = this.client.send("Page.getLayoutMetrics", null, true);
+        JsonNode response = this.client.send("Page.getLayoutMetrics", null);
         double pageX = response.get("layoutViewport").get("pageX").asDouble();
         double pageY = response.get("layoutViewport").get("pageY").asDouble();
         Clip clip = boundingBox;
@@ -345,7 +346,7 @@ public class ElementHandle extends JSHandle {
         this.scrollIntoViewIfNeeded();
         ClickablePoint point = this.clickablePoint();
         if(!isBlock){
-            Helper.commonExecutor().submit(() -> {
+            ForkJoinPool.commonPool().submit(() -> {
                 try {
                     this.page.mouse().click(point.getX(), point.getY(), options);
                 } catch (Exception e) {
@@ -400,7 +401,7 @@ public class ElementHandle extends JSHandle {
         if(isBlock){
             this.page.touchscreen().tap(point.getX(), point.getY());
         }else {
-            Helper.commonExecutor().submit(() -> this.page.touchscreen().tap(point.getX(), point.getY()));
+            ForkJoinPool.commonPool().submit(() -> this.page.touchscreen().tap(point.getX(), point.getY()));
         }
 
     }
@@ -454,12 +455,12 @@ public class ElementHandle extends JSHandle {
         String objectId = this.remoteObject.getObjectId();
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", objectId);
-        JsonNode node = this.client.send("DOM.describeNode", params, true);
+        JsonNode node = this.client.send("DOM.describeNode", params);
         int backendNodeId = node.get("node").get("backendNodeId").asInt();
         // The zero-length array is a special case, it seems that DOM.setFileInputFiles does
         // not actually update the files in that case, so the solution is to eval the element
         // value to a new FileList directly.
-        if (files.size() == 0) {
+        if (files.isEmpty()) {
             String pageFunction = "(element) => {\n" +
                     "                    element.files = new DataTransfer().files;\n" +
                     "            // Dispatch events for this case because it should behave akin to a user action.\n" +
@@ -472,7 +473,7 @@ public class ElementHandle extends JSHandle {
             params.put("objectId", objectId);
             params.put("files", files);
             params.put("backendNodeId", backendNodeId);
-            this.client.send("DOM.setFileInputFiles", params, true);
+            this.client.send("DOM.setFileInputFiles", params);
         }
     }
 

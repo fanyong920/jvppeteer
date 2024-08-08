@@ -7,7 +7,8 @@ import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
+import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.htmlparser.Node;
@@ -100,9 +101,9 @@ public class CrawlerTaobaoItem {
             Page page = null;
             try {
                 page = pages.take();
-                PageNavigateOptions navigateOptions = new PageNavigateOptions();
+                GoToOptions navigateOptions = new GoToOptions();
                 //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-                navigateOptions.setWaitUntil(Collections.singletonList("domcontentloaded"));
+                navigateOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.valueOf("domcontentloaded")));
                 page.goTo("https://item.taobao.com/item.htm?id=541605195654", navigateOptions);
                 String content = page.content();
                 return parseItem(content);

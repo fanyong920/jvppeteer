@@ -4,13 +4,12 @@ import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.options.Device;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
+import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class RequestInterceptionExample {
@@ -26,9 +25,9 @@ public class RequestInterceptionExample {
         Browser browser = Puppeteer.launch(options);
         Page page = browser.newPage();
 
-        PageNavigateOptions options1 = new PageNavigateOptions();
+        GoToOptions options1 = new GoToOptions();
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        options1.setWaitUntil(Collections.singletonList("domcontentloaded"));
+        options1.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.valueOf("domcontentloaded")));
 
         page.setRequestInterception(true);
         //拦截请求

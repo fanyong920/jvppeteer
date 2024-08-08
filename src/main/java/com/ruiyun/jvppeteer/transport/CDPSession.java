@@ -1,27 +1,22 @@
 package com.ruiyun.jvppeteer.transport;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.Events;
-import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.util.Helper;
-import com.ruiyun.jvppeteer.util.StringUtil;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import static com.ruiyun.jvppeteer.core.Constant.DEFAULT_TIMEOUT;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_ERROR_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_ID_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_METHOD_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_PARAMS_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_RESULT_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_ID_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_METHOD_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_PARAMS_PROPERTY;
+import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
 
 /**
  *The CDPSession instances are used to talk raw Chrome Devtools Protocol:
@@ -33,120 +28,53 @@ import static com.ruiyun.jvppeteer.core.Constant.RECV_MESSAGE_RESULT_PROPERTY;
  * Documentation on DevTools Protocol can be found here: DevTools Protocol Viewer.
  * Getting Started with DevTools Protocol: https://github.com/aslushnikov/getting-started-with-cdp/blob/master/README.md
  */
-public class CDPSession extends EventEmitter {
-
+public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
-
-    private final Map<Long, SendMsg> callbacks = new ConcurrentHashMap<>();
-
+    private final CallbackRegistry callbacks = new CallbackRegistry();
     private final String targetType;
-
     private final String sessionId;
-
     private Connection connection;
-
-    public CDPSession(Connection connection,String targetType, String sessionId) {
+    private final String parentSessionId;
+    public CDPSession(Connection connection, String targetType, String sessionId,String parentSessionId) {
         super();
         this.targetType = targetType;
         this.sessionId = sessionId;
         this.connection = connection;
+        this.parentSessionId = parentSessionId;
     }
-
+    public CDPSession parentSession() {
+        if (StringUtils.isEmpty(this.parentSessionId)) {
+            // To make it work in Firefox that does not have parent (tab) sessions.
+            return this;
+        }
+        if(this.connection != null){
+            return this.connection.session(this.parentSessionId);
+        }else{
+            return null;
+        }
+    }
     public void onClosed() {
-        for (SendMsg callback : callbacks.values()){
-            callback.setErrorText("Protocol error " + callback.getMethod() + " Target closed.");
-            if(callback.getCountDownLatch() != null){
-                callback.getCountDownLatch().countDown();
-            }
-        }
-        connection = null;
-        callbacks.clear();
-        this.emit(Events.CDPSESSION_DISCONNECTED.getName(),null);
+        this.callbacks.clear();
+        this.connection = null;
+        this.emit(CDPSessionEvent.CDPSession_Disconnected,null);
     }
-
-    /**
-     * 发送消息到浏览器
-     * @param method 消息签名中的方法
-     * @param params 消息签名中的参数
-     * @param isBlock 是否是阻塞，阻塞的话会等待结果返回
-     * @param outLatch 是否自己提供Countdownlatch
-     * @param timeout 超时时间
-     * @return 结果
-     */
-    public JsonNode send(String method,Map<String, Object> params,boolean isBlock,CountDownLatch outLatch,int timeout)  {
+    public JsonNode send(String method)  {
         if(connection == null){
-            throw new ProtocolException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
+            throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
-        SendMsg  message = new SendMsg();
-        message.setMethod(method);
-        message.setParams(params);
-        message.setSessionId(this.sessionId);
-
-        try {
-            if(isBlock){
-                if(outLatch != null){
-                    message.setCountDownLatch(outLatch);
-                }else {
-                    CountDownLatch latch = new CountDownLatch(1);
-                    message.setCountDownLatch(latch);
-                }
-                long id = this.connection.rawSend(message,true,this.callbacks);
-                boolean hasResult = message.waitForResult(timeout > 0 ? timeout : DEFAULT_TIMEOUT,TimeUnit.MILLISECONDS);
-                if(!hasResult){
-                    throw new TimeoutException("Wait "+method+" for "+(timeout > 0 ? timeout : DEFAULT_TIMEOUT)+" MILLISECONDS with no response");
-                }
-                if(StringUtil.isNotEmpty(message.getErrorText())){
-                    throw new ProtocolException(message.getErrorText());
-                }
-                return callbacks.remove(id).getResult();
-            }else{
-                if(outLatch != null) {
-                    message.setNeedRemove(true);
-                    message.setCountDownLatch(outLatch);
-                    this.connection.rawSend(message,true,this.callbacks);
-                }else{
-                    this.connection.rawSend(message,false,this.callbacks);
-                }
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return null;
+        return this.connection.rawSend(this.callbacks,method,null,this.sessionId,null,true);
     }
-    /**
-     * cdpsession send message
-     * @param method 方法
-     * @param params 参数
-     * @param isBlock 是否阻塞，阻塞会等待结果放回
-     * @return result
-     */
-    public JsonNode send(String method,Map<String, Object> params,boolean isBlock)  {
+    public JsonNode send(String method,Map<String, Object> params)  {
         if(connection == null){
-            throw new ProtocolException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
+            throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
-        SendMsg  message = new SendMsg();
-        message.setMethod(method);
-        message.setParams(params);
-        message.setSessionId(this.sessionId);
-
-        try {
-            if(isBlock){
-                CountDownLatch latch = new CountDownLatch(1);
-                message.setCountDownLatch(latch);
-                long id = this.connection.rawSend(message,true,this.callbacks);
-                message.waitForResult(0,TimeUnit.MILLISECONDS);
-                if(StringUtil.isNotEmpty(message.getErrorText())){
-                    throw new ProtocolException(message.getErrorText());
-                }
-                return callbacks.remove(id).getResult();
-            }else{
-                this.connection.rawSend(message,false,this.callbacks);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        return this.connection.rawSend(this.callbacks,method,params,this.sessionId,null,true);
+    }
+    public JsonNode send(String method,Map<String, Object> params,Integer timeout,boolean isBlocking)  {
+        if(connection == null){
+            throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
-        return null;
+        return this.connection.rawSend(this.callbacks,method,params,this.sessionId,timeout,isBlocking);
     }
 
     /**
@@ -154,56 +82,121 @@ public class CDPSession extends EventEmitter {
      */
     public void detach(){
         if(connection == null){
-            throw new RuntimeException("Session already detached. Most likely the"+this.targetType+"has been closed.");
+            throw new JvppeteerException("Session already detached. Most likely the" + this.targetType + "has been closed.");
         }
         Map<String,Object> params = new HashMap<>();
         params.put("sessionId",this.sessionId);
-        this.connection.send("Target.detachFromTarget",params,false);
+        this.connection.send("Target.detachFromTarget",params, null,true);
     }
 
-    public void onMessage(JsonNode node) {
-        JsonNode id = node.get(RECV_MESSAGE_ID_PROPERTY);
-        if(id != null) {
-            Long idLong = id.asLong();
-            SendMsg callback = this.callbacks.get(idLong);
-            if (callback != null) {
-                try {
-                    JsonNode errNode = node.get(RECV_MESSAGE_ERROR_PROPERTY);
-                    if (errNode != null) {
-                        if(callback.getCountDownLatch() != null){
-                            callback.setErrorText(Helper.createProtocolError(node));
-                        }
-                    }else {
-                        JsonNode result = node.get(RECV_MESSAGE_RESULT_PROPERTY);
-                        callback.setResult(result);
-                    }
-                }finally {
-                    //最后把callback都移除掉，免得关闭页面后打印错误
-                    if(callback.getNeedRemove()){
-                        this.callbacks.remove(idLong);
-                    }
-
-                    //放行等待的线程
-                    if(callback.getCountDownLatch() != null){
-                        callback.getCountDownLatch().countDown();
-                        callback.setCountDownLatch(null);
-                    }
-                }
-
+    /**
+     * receivedNode的结构
+     * <blockquote><pre>
+     *  {
+     *    id?: number;
+     *    method: keyof CDPEvents;
+     *    params: CDPEvents[keyof CDPEvents];
+     *    error: {message: string; data: any; code: number};
+     *    result?: any;
+     *   }
+     * </pre></blockquote>
+     * @param receivedNode 接受到的返回值
+     */
+    public void onMessage(JsonNode receivedNode) {
+        JsonNode idNode = receivedNode.get(MESSAGE_ID_PROPERTY);
+        if(idNode != null) {//有id,表示有callback
+            int id = idNode.asInt();
+            if(receivedNode.hasNonNull("error")){//发生错误，callback设置错误
+                this.callbacks.reject(id,createProtocolErrorMessage(receivedNode),receivedNode.get("error").get("message").asText());
+            }else {
+                this.callbacks.resolve(id,receivedNode.get("result"));
             }
-        }else {
-            JsonNode paramsNode = node.get(RECV_MESSAGE_PARAMS_PROPERTY);
-            JsonNode method = node.get(RECV_MESSAGE_METHOD_PROPERTY);
-            if(method != null)
-                this.emit(method.asText(),paramsNode);
+        }else {//没有id,是事件
+            JsonNode paramsNode = receivedNode.get(MESSAGE_PARAMS_PROPERTY);
+            JsonNode methodNode = receivedNode.get(MESSAGE_METHOD_PROPERTY);
+            try {
+                if(methodNode != null) {//发射数据，执行事件的监听方法
+                    String method = methodNode.asText();
+                    boolean match = Arrays.stream(CDPSessionEvent.values()).anyMatch((CDPSessionEvent event) -> event.getEventName().equals(methodNode.asText()));
+                    if(!match){//不匹配就是没有监听该事件
+                        return;
+                    }
+                    this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), Connection.classes.get(method) == null ? null : OBJECTMAPPER.treeToValue(paramsNode, Connection.classes.get(method)));
+                }
+            } catch (Exception e) {
+                System.out.println("emit error out"+ receivedNode);
+                LOGGER.error("emit error",e);
+            }
         }
     }
 
     public Connection getConnection() {
         return connection;
     }
+    public String id() {
+        return this.sessionId;
+    }
+    public enum CDPSessionEvent{
+        CDPSession_Disconnected("CDPSession.Disconnected"),
+        CDPSession_Swapped("CDPSession.Swapped"),
+        CDPSession_Ready("CDPSession.Ready"),
+        sessionattached("sessionattached"),
+        sessionDetached("sessionDetached"),
+        //暂时先放这里吧
+        Page_domContentEventFired("Page.domContentEventFired"),
+        Page_loadEventFired("Page.loadEventFired"),
+        Page_javascriptDialogOpening("Page.javascriptDialogOpening"),
 
-    public String getSessionId() {
-        return sessionId;
+        Runtime_exceptionThrown("Runtime.exceptionThrown"),
+        Inspector_targetCrashed("Inspector.targetCrashed"),
+        Performance_metrics("Performance.metrics"),
+        Log_entryAdde("Log.entryAdded"),
+        Page_fileChooserOpened("Page.fileChooserOpened"),
+        //先暂时放在这里吧
+        Target_targetCreated("Target.targetCreated"),
+        Target_targetDestroyed("Target.targetDestroyed"),
+        Target_targetInfoChanged("Target.targetInfoChanged"),
+        Target_attachedToTarget("Target.attachedToTarget"),
+        Target_detachedFromTarget("Target.detachedFromTarget"),
+        //先暂时放这里吧
+        Debugger_scriptparsed("Debugger.scriptParsed"),
+        Runtime_executionContextCreated("Runtime.executionContextCreated"),
+        Runtime_executionContextDestroyed("Runtime.executionContextDestroyed"),
+        Runtime_executionContextsCleared("Runtime.executionContextsCleared"),
+        CSS_styleSheetAdded("CSS.styleSheetAdded"),
+        //先暂时放这里吧
+        DeviceAccess_deviceRequestPrompted("DeviceAccess.deviceRequestPrompted"),
+        Page_frameAttached("Page.frameAttached"),
+        Page_frameNavigated("Page.frameNavigated"),
+        Page_navigatedWithinDocument("Page.navigatedWithinDocument"),
+        Page_frameDetached("Page.frameDetached"),
+        Page_frameStoppedLoading("Page.frameStoppedLoading"),
+        Page_lifecycleEvent("Page.lifecycleEvent"),
+        targetcreated("targetcreated"),
+        targetdestroyed("targetdestroyed"),
+        targetchanged("targetchanged"),
+        disconnected("disconnected"),
+
+        Fetch_requestPaused("Fetch.requestPaused"),
+        Fetch_authRequired("Fetch.authRequired"),
+        Network_requestWillBeSent("Network.requestWillBeSent"),
+
+        Network_requestServedFromCache("Network.requestServedFromCache"),
+        Network_responseReceived("Network.responseReceived"),
+        Network_loadingFinished("Network.loadingFinished"),
+        Network_loadingFailed("Network.loadingFailed"),
+        Runtime_consoleAPICalled("Runtime.consoleAPICalled"),
+        Runtime_bindingCalled("Runtime.bindingCalled"),
+        Tracing_tracingComplete("Tracing.tracingComplete");
+        private String eventName;
+        CDPSessionEvent(String eventName) {
+            this.eventName = eventName;
+        }
+        public String getEventName() {
+            return eventName;
+        }
+        public void setEventName(String eventName) {
+            this.eventName = eventName;
+        }
     }
 }

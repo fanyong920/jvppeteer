@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 public class Dialog {
@@ -67,14 +68,14 @@ public class Dialog {
      * @return 对话框关闭后返回
      */
     public Future<Boolean> accept(String promptText) {
-        return Helper.commonExecutor().submit(() -> {
+        return ForkJoinPool.commonPool().submit(() -> {
             try {
                 ValidateUtil.assertArg(!this.handled, "Cannot accept dialog which is already handled!");
                 this.handled = true;
                 Map<String, Object> params = new HashMap<>();
                 params.put("accept", true);
                 params.put("promptText", promptText);
-                this.client.send("Page.handleJavaScriptDialog", params, true);
+                this.client.send("Page.handleJavaScriptDialog", params);
             } catch (Exception e) {
                 log.error("Dialog accept error ",e);
                 return false;
@@ -88,13 +89,13 @@ public class Dialog {
      * @return 对话框关闭后返回
      */
     public Future<Boolean> dismiss() {
-        return Helper.commonExecutor().submit(() -> {
+        return ForkJoinPool.commonPool().submit(() -> {
             try {
                 ValidateUtil.assertArg(!this.handled, "Cannot dismiss dialog which is already handled!");
                 this.handled = true;
                 Map<String, Object> params = new HashMap<>();
                 params.put("accept", false);
-                this.client.send("Page.handleJavaScriptDialog", params, true);
+                this.client.send("Page.handleJavaScriptDialog", params);
             } catch (Exception e) {
                 log.error("Dialog dismiss error ",e);
                 return false;

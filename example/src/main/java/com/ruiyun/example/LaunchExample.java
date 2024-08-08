@@ -17,13 +17,14 @@ public class LaunchExample {
 	@Test
 	public void test1() throws Exception {
 		//自动下载722234版本的浏览器，第一次下载后不会再下载,内置有下载链接，下载链接可能失效。
-		BrowserFetcher.downloadIfNotExist();
-		LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Collections.singletonList("--enable-automation")).withHeadless(false).build();
+
+		LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Collections.singletonList("--enable-automation")).withHeadless(false).withExecutablePath("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe").build();
 		Browser browser = Puppeteer.launch(launchOptions);
 		Page page = browser.newPage();
 		page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
 		// 做一些其他操作
-		browser.close();
+//		Thread.sleep(10000);
+//		browser.close();
 	}
 
 	public static void main(String[] args) {

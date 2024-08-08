@@ -1,8 +1,6 @@
 package com.ruiyun.jvppeteer.core.browser;
 
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
@@ -17,6 +15,7 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.win32.StdCallLibrary;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,14 +23,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BrowserRunner extends EventEmitter implements AutoCloseable {
+public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent> implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
 
@@ -39,11 +41,11 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile("^DevTools listening on (ws://.*)$");
 
-    private String executablePath;
+    private final String executablePath;
 
-    private List<String> processArguments;
+    private final List<String> processArguments;
 
-    private String tempDirectory;
+    private final String tempDirectory;
 
     private Process process;
 
@@ -51,7 +53,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     private boolean closed;
 
-    private List<BrowserListenerWrapper> listeners = new ArrayList<>();
+    private final List<Disposable> disposables = new ArrayList<>();
 
     private static final List<BrowserRunner> runners = new ArrayList<>();
 
@@ -162,54 +164,15 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
      * @param options 启动参数
      */
     private void addProcessListener(LaunchOptions options) {
-        DefaultBrowserListener<Object> exitListener = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                BrowserRunner runner = (BrowserRunner) this.getTarget();
-                runner.kill();
-            }
-        };
-        exitListener.setMethod("exit");
-        exitListener.setTarget(this);
-        this.listeners.add(Helper.addEventListener(this, exitListener.getMethod(), exitListener));
-
+        this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.EXIT).subscribe((ignore -> this.kill())));
         if (options.getHandleSIGINT()) {
-            DefaultBrowserListener<Object> sigintListener = new DefaultBrowserListener<Object>() {
-                @Override
-                public void onBrowserEvent(Object event) {
-                    BrowserRunner runner = (BrowserRunner) this.getTarget();
-                    runner.kill();
-                }
-            };
-            sigintListener.setMethod("SIGINT");
-            sigintListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sigintListener.getMethod(), sigintListener));
+            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGINT).subscribe((ignore -> this.kill())));
         }
-
         if (options.getHandleSIGTERM()) {
-            DefaultBrowserListener<Object> sigtermListener = new DefaultBrowserListener<Object>() {
-                @Override
-                public void onBrowserEvent(Object event) {
-                    BrowserRunner runner = (BrowserRunner) this.getTarget();
-                    runner.close();
-                }
-            };
-            sigtermListener.setMethod("SIGTERM");
-            sigtermListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sigtermListener.getMethod(), sigtermListener));
+            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGTERM).subscribe((ignore -> this.close())));
         }
-
         if (options.getHandleSIGHUP()) {
-            DefaultBrowserListener<Object> sighubListener = new DefaultBrowserListener<Object>() {
-                @Override
-                public void onBrowserEvent(Object event) {
-                    BrowserRunner runner = (BrowserRunner) this.getTarget();
-                    runner.close();
-                }
-            };
-            sighubListener.setMethod("SIGHUP");
-            sighubListener.setTarget(this);
-            this.listeners.add(Helper.addEventListener(this, sighubListener.getMethod(), sighubListener));
+            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGHUP).subscribe((ignore -> this.close())));
         }
     }
 
@@ -271,7 +234,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         if(process.isAlive() && !waitForResult){
             process.destroyForcibly();
         }
-        LOGGER.info("The current command ({}) exit result : {}.",command,waitForResult);
+        LOGGER.trace("The current command ({}) exit result : {}.",command,waitForResult);
     }
     /**
      * 使用java自带方法关闭chrome进程
@@ -315,8 +278,8 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         } else {/*websocket connection*/
             String waitForWSEndpoint = waitForWSEndpoint(timeout, dumpio);
             WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
-            this.connection = new Connection(waitForWSEndpoint, transport, slowMo);
-            LOGGER.info("Connect to browser by websocket url: {}", waitForWSEndpoint);
+            this.connection = new Connection(waitForWSEndpoint, transport, slowMo, timeout);
+            LOGGER.trace("Connect to browser by websocket url: {}", waitForWSEndpoint);
         }
         return this.connection;
     }
@@ -326,11 +289,11 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         private final AtomicBoolean success = new AtomicBoolean(false);
         private final AtomicReference<String> chromeOutput = new AtomicReference<>("");
 
-        private int timeout;
+        private final int timeout;
 
-        private boolean dumpio;
+        private final boolean dumpio;
 
-        private InputStream inputStream;
+        private final InputStream inputStream;
 
         private Thread readThread;
 
@@ -421,7 +384,6 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             closeQuietly(browserRunner);
         }
     }
-
     /**
      * 关闭浏览器
      */
@@ -430,9 +392,15 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
             return ;
         }
         /*
+          发送关闭指令
+         */
+        if (runner.connection != null && !this.connection.closed) {
+            this.connection.send("Browser.close");
+        }
+        /*
           通过kill命令关闭
          */
-        Helper.removeEventListeners(runner.listeners);
+        disposables.forEach(Disposable::dispose);
         boolean killResult = runner.kill();
         if (killResult){
             this.closed = true;
@@ -446,14 +414,7 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
         } catch (InterruptedException e) {
             LOGGER.error("Destroy chrome process error.",e);
         }
-        /*
-          发送关闭指令
-         */
-        if (runner.connection != null && !this.connection.getClosed()) {
-            this.connection.send("Browser.close", null, false);
-        }
         this.closed = true;
-
     }
 
     /**
@@ -501,6 +462,24 @@ public class BrowserRunner extends EventEmitter implements AutoCloseable {
 
     public Connection getConnection() {
         return connection;
+    }
+    public enum BroserEvent {
+        /**
+         * 浏览器启动
+         */
+        START("start"),
+        /**
+         * 浏览器关闭
+         */
+        EXIT("exit"), SIGINT("SIGINT"), SIGTERM("SIGTERM"), SIGHUP("SIGHUP");
+        private String eventName;
+        BroserEvent(String eventName) {
+            this.eventName = eventName;
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
     }
 }
 

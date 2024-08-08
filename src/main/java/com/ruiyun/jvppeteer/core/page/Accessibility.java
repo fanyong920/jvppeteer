@@ -27,13 +27,12 @@ public class Accessibility {
     }
 
     public SerializedAXNode snapshot(boolean interestingOnly , ElementHandle root) throws JsonProcessingException, IllegalAccessException, IntrospectionException, InvocationTargetException {
-
-        JsonNode nodes =  this.client.send("Accessibility.getFullAXTree",null,false);
+        JsonNode nodes =  this.client.send("Accessibility.getFullAXTree");
         String backendNodeId = null;
         if (root != null) {
             Map<String,Object> params = new HashMap<>();
             params.put("objectId",root.getRemoteObject().getObjectId());
-      JsonNode node = this.client.send("DOM.describeNode",params,true);
+            JsonNode node = this.client.send("DOM.describeNode",params);
             backendNodeId = node.get("backendNodeId").asText();
         }
         Iterator<JsonNode> elements = nodes.elements();
@@ -52,7 +51,7 @@ public class Accessibility {
         if (!interestingOnly)
             return serializeTree(needle,null).get(0);
 
-    Set<AXNode> interestingNodes = new HashSet<>();
+        Set<AXNode> interestingNodes = new HashSet<>();
         collectInterestingNodes(interestingNodes, defaultRoot, false);
         if (!interestingNodes.contains(needle))
             return null;
@@ -67,13 +66,13 @@ public class Accessibility {
         insideControl = insideControl || node.isControl();
         for (AXNode child :
                 node.getChildren())
-        collectInterestingNodes(collection, child, insideControl);
+            collectInterestingNodes(collection, child, insideControl);
     }
 
     public List<SerializedAXNode> serializeTree(AXNode node, Set<AXNode> whitelistedNodes) throws IllegalAccessException, IntrospectionException, InvocationTargetException {
         List<SerializedAXNode> children  = new ArrayList<>();
         for (AXNode child : node.getChildren())
-        children.addAll(serializeTree(child, whitelistedNodes));
+            children.addAll(serializeTree(child, whitelistedNodes));
 
         if (ValidateUtil.isNotEmpty(whitelistedNodes) && !whitelistedNodes.contains(node))
             return children;

@@ -51,6 +51,7 @@
         <commons.compress.version>1.26.0</commons.compress.version>
         <zip4j.version>2.11.3</zip4j.version>
         <jna.version>5.13.0</jna.version>
+        <rxjava.version>3.1.8</rxjava.version>
         <!-- Maven plugin versions -->
         <bnd.maven.plugin.version>4.3.1</bnd.maven.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
@@ -144,6 +145,11 @@
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
             <version>${jna.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava.version}</version>
         </dependency>
     </dependencies>
     <build>

@@ -12,6 +12,7 @@ import com.ruiyun.jvppeteer.util.Helper;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 
 public class PagePDFExample3 {
 
@@ -31,7 +32,7 @@ public class PagePDFExample3 {
         page2.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         Page page3 = browser.newPage();
         page3.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
-        Helper.commonExecutor().submit(() -> {
+        ForkJoinPool.commonPool().submit(() -> {
             //page2.emulateVisionDeficiency(VisionDeficiency.DEUTERANOPIA);
             try {
                 page2.pdf("deuteranopia.pdf");
@@ -39,7 +40,7 @@ public class PagePDFExample3 {
                 e.printStackTrace();
             }
         });
-        Helper.commonExecutor().submit(() -> {
+        ForkJoinPool.commonPool().submit(() -> {
             //page3.emulateVisionDeficiency(VisionDeficiency.BLURREDVISION);
             try {
                 page3.pdf("blurred-vision.pdf");

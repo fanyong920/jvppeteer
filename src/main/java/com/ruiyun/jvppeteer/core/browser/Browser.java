@@ -6,16 +6,14 @@ import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.core.page.TaskQueue;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.EventHandler;
-import com.ruiyun.jvppeteer.events.Events;
+import com.ruiyun.jvppeteer.events.TargetCreatedEvent;
+import com.ruiyun.jvppeteer.events.TargetDestroyedEvent;
+import com.ruiyun.jvppeteer.events.TargetInfoChangedEvent;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ChromeArgOptions;
 import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.protocol.target.TargetCreatedPayload;
-import com.ruiyun.jvppeteer.protocol.target.TargetDestroyedPayload;
-import com.ruiyun.jvppeteer.protocol.target.TargetInfoChangedPayload;
+import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -26,21 +24,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
  * 浏览器实例
  */
-public class Browser extends EventEmitter {
-
+public class Browser extends EventEmitter<Browser.BrowserEvent> {
     /**
      * 浏览器对应的websocket client包装类，用于发送和接受消息
      */
     private final Connection connection;
-
-
     /**
      * 是否忽略https错误
      */
@@ -50,18 +45,14 @@ public class Browser extends EventEmitter {
      * 浏览器内的页面视图
      */
     private final Viewport viewport;
-
-
     /**
      * 当前浏览器内的所有页面，也包括浏览器自己，{@link Page}和 {@link Browser} 都属于target
      */
     private final Map<String, Target> targets;
-
     /**
      * 默认浏览器上下文
      */
     private final BrowserContext defaultContext;
-
     /**
      * 浏览器上下文
      */
@@ -71,10 +62,10 @@ public class Browser extends EventEmitter {
 
     private final TaskQueue<String> screenshotTaskQueue;
 
-    private final Function<Object,Object> closeCallback;
+    private final Runnable closeCallback;
 
     public Browser(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors,
-                   Viewport defaultViewport, Process process, Function<Object,Object> closeCallback) {
+                   Viewport defaultViewport, Process process, Runnable closeCallback) {
         super();
         this.ignoreHTTPSErrors = ignoreHTTPSErrors;
         this.viewport = defaultViewport;
@@ -82,7 +73,7 @@ public class Browser extends EventEmitter {
         this.screenshotTaskQueue = new TaskQueue<>();
         this.connection = connection;
         if (closeCallback == null) {
-            closeCallback = o -> null;
+            closeCallback = () -> {};
         }
         this.closeCallback = closeCallback;
         this.defaultContext = new BrowserContext(connection, this, "");
@@ -93,71 +84,32 @@ public class Browser extends EventEmitter {
             }
         }
         this.targets = new ConcurrentHashMap<>();
-        DefaultBrowserListener<Object> disconnectedLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                Browser browser = (Browser) this.getTarget();
-                browser.emit(Events.BROWSER_DISCONNECTED.getName(), null);
-            }
-        };
-        disconnectedLis.setTarget(this);
-        disconnectedLis.setMethod(Events.CONNECTION_DISCONNECTED.getName());
-        this.connection.addListener(disconnectedLis.getMethod(), disconnectedLis);
-
-        DefaultBrowserListener<TargetCreatedPayload> targetCreatedLis = new DefaultBrowserListener<TargetCreatedPayload>() {
-            @Override
-            public void onBrowserEvent(TargetCreatedPayload event) {
-                Browser browser = (Browser) this.getTarget();
-                browser.targetCreated(event);
-            }
-        };
-        targetCreatedLis.setTarget(this);
-        targetCreatedLis.setMethod("Target.targetCreated");
-        this.connection.addListener(targetCreatedLis.getMethod(), targetCreatedLis);
-
-        DefaultBrowserListener<TargetDestroyedPayload> targetDestroyedLis = new DefaultBrowserListener<TargetDestroyedPayload>() {
-            @Override
-            public void onBrowserEvent(TargetDestroyedPayload event)  {
-                Browser browser = (Browser) this.getTarget();
-                browser.targetDestroyed(event);
-            }
-        };
-        targetDestroyedLis.setTarget(this);
-        targetDestroyedLis.setMethod("Target.targetDestroyed");
-        this.connection.addListener(targetDestroyedLis.getMethod(), targetDestroyedLis);
-
-        DefaultBrowserListener<TargetInfoChangedPayload> targetInfoChangedLis = new DefaultBrowserListener<TargetInfoChangedPayload>() {
-            @Override
-            public void onBrowserEvent(TargetInfoChangedPayload event) {
-                Browser browser = (Browser) this.getTarget();
-                browser.targetInfoChanged(event);
-            }
-        };
-        targetInfoChangedLis.setTarget(this);
-        targetInfoChangedLis.setMethod("Target.targetInfoChanged");
-        this.connection.addListener(targetInfoChangedLis.getMethod(), targetInfoChangedLis);
+        this.connection.on(CDPSession.CDPSessionEvent.disconnected,(ignore) -> this.emit(BrowserEvent.CONNECTION_DISCONNECTED,null));
+        this.connection.on(CDPSession.CDPSessionEvent.Target_targetCreated,(event) -> this.targetCreated((TargetCreatedEvent) event));
+        this.connection.on(CDPSession.CDPSessionEvent.Target_targetDestroyed,(event) -> this.targetDestroyed((TargetDestroyedEvent) event));
+        this.connection.on(CDPSession.CDPSessionEvent.Target_targetInfoChanged, (event) -> this.targetInfoChanged((TargetInfoChangedEvent) event));
     }
 
-    private void targetDestroyed(TargetDestroyedPayload event) {
+    private void targetDestroyed(TargetDestroyedEvent event) {
         Target target = this.targets.remove(event.getTargetId());
         target.initializedCallback(false);
         target.closedCallback();
         if (target.waitInitializedPromise()) {
-            this.emit(Events.BROWSER_TARGETDESTROYED.getName(), target);
-            target.browserContext().emit(Events.BROWSER_TARGETDESTROYED.getName(), target);
+            this.emit(BrowserEvent.TARGETDESTROYED, target);
+            target.browserContext().emit(BrowserEvent.TARGETDESTROYED, target);
         }
 
     }
 
-    private void targetInfoChanged(TargetInfoChangedPayload event) {
+    private void targetInfoChanged(TargetInfoChangedEvent event) {
         Target target = this.targets.get(event.getTargetInfo().getTargetId());
         ValidateUtil.assertArg(target != null, "target should exist before targetInfoChanged");
         String previousURL = target.url();
         boolean wasInitialized = target.getIsInitialized();
         target.targetInfoChanged(event.getTargetInfo());
         if (wasInitialized && !previousURL.equals(target.url())) {
-            this.emit(Events.BROWSER_TARGETCHANGED.getName(), target);
-            target.browserContext().emit(Events.BROWSERCONTEXT_TARGETCHANGED.getName(), target);
+            this.emit(BrowserEvent.TARGETCHANGED, target);
+            target.browserContext().emit(BrowserEvent.TARGETCHANGED, target);
         }
     }
 
@@ -179,7 +131,7 @@ public class Browser extends EventEmitter {
     }
 
     public BrowserContext createIncognitoBrowserContext() {
-        JsonNode result = this.connection.send("Target.createBrowserContext", null, true);
+        JsonNode result = this.connection.send("Target.createBrowserContext");
         String browserContextId = result.get("browserContextId").asText();
         BrowserContext context = new BrowserContext(this.connection, this, browserContextId);
         this.contexts.put(browserContextId, context);
@@ -189,7 +141,7 @@ public class Browser extends EventEmitter {
     public void disposeContext(String contextId) {
         Map<String, Object> params = new HashMap<>();
         params.put("browserContextId", contextId);
-        this.connection.send("Target.disposeBrowserContext", params, true);
+        this.connection.send("Target.disposeBrowserContext",params);
         this.contexts.remove(contextId);
     }
 
@@ -204,11 +156,11 @@ public class Browser extends EventEmitter {
      * @param process 浏览器进程
      * @return 浏览器
      */
-    public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Function<Object, Object> closeCallback) {
+    public static Browser create(Connection connection, List<String> contextIds, boolean ignoreHTTPSErrors, Viewport viewport, Process process, Runnable closeCallback) {
         Browser browser = new Browser(connection, contextIds, ignoreHTTPSErrors, viewport, process, closeCallback);
         Map<String, Object> params = new HashMap<>();
         params.put("discover", true);
-        connection.send("Target.setDiscoverTargets", params, false);
+        connection.send("Target.setDiscoverTargets", params, null,false);
         return browser;
     }
 
@@ -217,7 +169,7 @@ public class Browser extends EventEmitter {
      *
      * @param event 创建的target具体信息
      */
-    protected void targetCreated(TargetCreatedPayload event) {
+    protected void targetCreated(TargetCreatedEvent event) {
         BrowserContext context;
         TargetInfo targetInfo = event.getTargetInfo();
         if (StringUtil.isNotEmpty(targetInfo.getBrowserContextId()) && this.contexts().containsKey(targetInfo.getBrowserContextId())) {
@@ -231,8 +183,8 @@ public class Browser extends EventEmitter {
         }
         this.targets.put(targetInfo.getTargetId(), target);
         if (target.waitInitializedPromise()) {
-            this.emit(Events.BROWSER_TARGETCREATED.getName(), target);
-            context.emit(Events.BROWSERCONTEXT_TARGETCREATED.getName(), target);
+            this.emit(BrowserEvent.TARGETCREATED, target);
+            context.emit(BrowserEvent.TARGETCREATED, target);
         }
     }
 
@@ -299,8 +251,8 @@ public class Browser extends EventEmitter {
     }
 
     public void close() {
-        this.closeCallback.apply(null);
-        this.disconnect();
+        this.closeCallback.run();//关闭浏览器
+        this.disconnect();//关闭websocket,清理connection资源
     }
 
     public void disconnect() {
@@ -308,11 +260,11 @@ public class Browser extends EventEmitter {
     }
 
     private JsonNode getVersion() {
-        return this.connection.send("Browser.getVersion", null, true);
+        return this.connection.send("Browser.getVersion");
     }
 
     public boolean isConnected() {
-        return !this.connection.getClosed();
+        return !this.connection.closed;
     }
 
     private Target find(List<Target> targets, Predicate<Target> predicate) {
@@ -347,9 +299,9 @@ public class Browser extends EventEmitter {
         if(StringUtil.isNotEmpty(contextId)) {
             params.put("browserContextId", contextId);
         }
-        JsonNode recevie = this.connection.send("Target.createTarget", params, true);
+        JsonNode recevie = this.connection.send("Target.createTarget", params);
         if (recevie != null) {
-            Target target = this.targets.get(recevie.get(Constant.RECV_MESSAGE_TARFETINFO_TARGETID_PROPERTY).asText());
+            Target target = this.targets.get(recevie.get(Constant.MESSAGE_TARGETID_PROPERTY).asText());
             ValidateUtil.assertArg(target.waitInitializedPromise(), "Failed to create target for page");
             return target.page();
         } else {
@@ -364,8 +316,8 @@ public class Browser extends EventEmitter {
      *
      * @param handler 事件处理器
      */
-    public void onDisconnected(EventHandler<Object> handler) {
-        this.on(Events.BROWSER_DISCONNECTED.getName(), handler);
+    public void onDisconnected(Consumer<Object> handler) {
+        this.on(BrowserEvent.DISCONNECTED, handler);
     }
 
     /**
@@ -375,8 +327,8 @@ public class Browser extends EventEmitter {
      *
      * @param handler 事件处理器
      */
-    public void onTargetchanged(EventHandler<Target> handler) {
-        this.on(Events.BROWSER_TARGETCHANGED.getName(), handler);
+    public void onTargetChanged(Consumer<Target> handler) {
+        this.on(BrowserEvent.TARGETCHANGED, handler);
     }
 
     /**
@@ -386,8 +338,8 @@ public class Browser extends EventEmitter {
      *
      * @param handler 事件处理器
      */
-    public void onTargetcreated(EventHandler<Target> handler) {
-        this.on(Events.BROWSER_TARGETCREATED.getName(), handler);
+    public void onTargetcreated(Consumer<Target> handler) {
+        this.on(BrowserEvent.TARGETCREATED, handler);
     }
 
     /**
@@ -397,8 +349,8 @@ public class Browser extends EventEmitter {
      *
      * @param handler 事件处理器
      */
-    public void onTargetdestroyed(EventHandler<Target> handler) {
-        this.on(Events.BROWSER_TARGETDESTROYED.getName(), handler);
+    public void onTargetdestroyed(Consumer<Target> handler) {
+        this.on(BrowserEvent.TARGETDESTROYED, handler);
     }
 
     public Map<String, Target> getTargets() {
@@ -425,6 +377,20 @@ public class Browser extends EventEmitter {
     protected Viewport getViewport() {
         return viewport;
     }
-
+    public enum BrowserEvent{
+        CONNECTION_DISCONNECTED("Connection.Disconnected"),
+        CDPSESSION_DISCONNECTED("CDPSession.Disconnected"),
+        TARGETCREATED ("targetcreated"),
+        TARGETDESTROYED ("targetdestroyed"),
+        TARGETCHANGED ("targetchanged"),
+        DISCONNECTED ("disconnected");
+        private String eventName;
+        BrowserEvent(String eventName){
+            this.eventName = eventName;
+        }
+        public String getEventName() {
+            return eventName;
+        }
+    }
 
 }

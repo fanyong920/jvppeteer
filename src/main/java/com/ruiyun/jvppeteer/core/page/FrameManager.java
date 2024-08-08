@@ -3,22 +3,22 @@ package com.ruiyun.jvppeteer.core.page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.Events;
+import com.ruiyun.jvppeteer.events.FrameAttachedEvent;
+import com.ruiyun.jvppeteer.events.FrameDetachedEvent;
+import com.ruiyun.jvppeteer.events.FrameNavigatedEvent;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
-import com.ruiyun.jvppeteer.protocol.page.FrameAttachedPayload;
-import com.ruiyun.jvppeteer.protocol.page.FrameDetachedPayload;
-import com.ruiyun.jvppeteer.protocol.page.FrameNavigatedPayload;
+import com.ruiyun.jvppeteer.options.GoToOptions;
+import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.protocol.page.FramePayload;
-import com.ruiyun.jvppeteer.protocol.page.FrameStoppedLoadingPayload;
-import com.ruiyun.jvppeteer.protocol.page.LifecycleEventPayload;
-import com.ruiyun.jvppeteer.protocol.page.NavigatedWithinDocumentPayload;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedPayload;
+import com.ruiyun.jvppeteer.protocol.page.FrameStoppedLoadingEvent;
+import com.ruiyun.jvppeteer.protocol.page.LifecycleEvent;
+import com.ruiyun.jvppeteer.protocol.page.NavigatedWithinDocumentEvent;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedEvent;
 import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDescription;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDestroyedPayload;
+import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDestroyedEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -29,10 +29,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
-public class FrameManager extends EventEmitter {
+public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
 
     private static final String UTILITY_WORLD_NAME = "__puppeteer_utility_world__";
 
@@ -40,31 +43,27 @@ public class FrameManager extends EventEmitter {
 
     private Page page;
 
-    private TimeoutSettings timeoutSettings;
+    private final TimeoutSettings timeoutSettings;
 
-    private NetworkManager networkManager;
+    private final NetworkManager networkManager;
 
-    private Map<String, Frame> frames;
+    private final Map<String, Frame> frames;
 
-    private Map<Integer, ExecutionContext> contextIdToContext;
+    private final Map<Integer, ExecutionContext> contextIdToContext;
 
-    private Set<String> isolatedWorlds;
+    private final Set<String> isolatedWorlds;
 
     private Frame mainFrame;
-
     /**
      * 给导航到新的网页用
      */
     private CountDownLatch documentLatch;
-    private CountDownLatch contentLatch;
 
     /**
      * 导航到新的网页的结果
      * "success" "timeout" "termination"
      */
     private String navigateResult;
-
-    private boolean ensureNewDocumentNavigation;
 
     private String documentNavigationPromiseType = null;
 
@@ -77,120 +76,24 @@ public class FrameManager extends EventEmitter {
         this.frames = new HashMap<>();
         this.contextIdToContext = new HashMap<>();
         this.isolatedWorlds = new HashSet<>();
-        //1 Page.frameAttached
-        DefaultBrowserListener<FrameAttachedPayload> frameAttachedListener = new DefaultBrowserListener<FrameAttachedPayload>() {
-            @Override
-            public void onBrowserEvent(FrameAttachedPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onFrameAttached(event.getFrameId(), event.getParentFrameId());
-            }
-        };
-        frameAttachedListener.setTarget(this);
-        frameAttachedListener.setMethod("Page.frameAttached");
-        this.client.addListener(frameAttachedListener.getMethod(), frameAttachedListener);
-        //2 Page.frameNavigated
-        DefaultBrowserListener<FrameNavigatedPayload> frameNavigatedListener = new DefaultBrowserListener<FrameNavigatedPayload>() {
-            @Override
-            public void onBrowserEvent(FrameNavigatedPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onFrameNavigated(event.getFrame());
-            }
-        };
-        frameNavigatedListener.setTarget(this);
-        frameNavigatedListener.setMethod("Page.frameNavigated");
-        this.client.addListener(frameNavigatedListener.getMethod(), frameNavigatedListener);
-
-        //3 Page.navigatedWithinDocument
-        DefaultBrowserListener<NavigatedWithinDocumentPayload> navigatedWithinDocumentListener = new DefaultBrowserListener<NavigatedWithinDocumentPayload>() {
-            @Override
-            public void onBrowserEvent(NavigatedWithinDocumentPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onFrameNavigatedWithinDocument(event.getFrameId(), event.getUrl());
-            }
-        };
-        navigatedWithinDocumentListener.setTarget(this);
-        navigatedWithinDocumentListener.setMethod("Page.navigatedWithinDocument");
-        this.client.addListener(navigatedWithinDocumentListener.getMethod(), navigatedWithinDocumentListener);
-
-        //4 Page.frameDetached
-        DefaultBrowserListener<FrameDetachedPayload> frameDetachedListener = new DefaultBrowserListener<FrameDetachedPayload>() {
-            @Override
-            public void onBrowserEvent(FrameDetachedPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onFrameDetached(event.getFrameId());
-            }
-        };
-        frameDetachedListener.setTarget(this);
-        frameDetachedListener.setMethod("Page.frameDetached");
-        this.client.addListener(frameDetachedListener.getMethod(), frameDetachedListener);
-
-        //5 Page.frameStoppedLoading
-        DefaultBrowserListener<FrameStoppedLoadingPayload> frameStoppedLoadingListener = new DefaultBrowserListener<FrameStoppedLoadingPayload>() {
-            @Override
-            public void onBrowserEvent(FrameStoppedLoadingPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onFrameStoppedLoading(event.getFrameId());
-            }
-        };
-        frameStoppedLoadingListener.setTarget(this);
-        frameStoppedLoadingListener.setMethod("Page.frameStoppedLoading");
-        this.client.addListener(frameStoppedLoadingListener.getMethod(), frameStoppedLoadingListener);
-
-        //6 Runtime.executionContextCreated
-        DefaultBrowserListener<ExecutionContextCreatedPayload> executionContextCreatedListener = new DefaultBrowserListener<ExecutionContextCreatedPayload>() {
-            @Override
-            public void onBrowserEvent(ExecutionContextCreatedPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextCreated(event.getContext());
-            }
-        };
-        executionContextCreatedListener.setTarget(this);
-        executionContextCreatedListener.setMethod("Runtime.executionContextCreated");
-        this.client.addListener(executionContextCreatedListener.getMethod(), executionContextCreatedListener);
-
-        //7 Runtime.executionContextDestroyed
-        DefaultBrowserListener<ExecutionContextDestroyedPayload> executionContextDestroyedListener = new DefaultBrowserListener<ExecutionContextDestroyedPayload>() {
-            @Override
-            public void onBrowserEvent(ExecutionContextDestroyedPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextDestroyed(event.getExecutionContextId());
-            }
-        };
-        executionContextDestroyedListener.setTarget(this);
-        executionContextDestroyedListener.setMethod("Runtime.executionContextDestroyed");
-        this.client.addListener(executionContextDestroyedListener.getMethod(), executionContextDestroyedListener);
-
-        //8 Runtime.executionContextsCleared
-        DefaultBrowserListener<Object> executionContextsClearedListener = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onExecutionContextsCleared();
-            }
-        };
-        executionContextsClearedListener.setTarget(this);
-        executionContextsClearedListener.setMethod("Runtime.executionContextsCleared");
-        this.client.addListener(executionContextsClearedListener.getMethod(), executionContextsClearedListener);
-
-        //9 Page.lifecycleEvent
-        DefaultBrowserListener<LifecycleEventPayload> lifecycleEventListener = new DefaultBrowserListener<LifecycleEventPayload>() {
-            @Override
-            public void onBrowserEvent(LifecycleEventPayload event) {
-                FrameManager frameManager = (FrameManager) this.getTarget();
-                frameManager.onLifecycleEvent(event);
-            }
-        };
-        lifecycleEventListener.setTarget(this);
-        lifecycleEventListener.setMethod("Page.lifecycleEvent");
-        this.client.addListener(lifecycleEventListener.getMethod(), lifecycleEventListener);
+        this.client.on(CDPSession.CDPSessionEvent.Page_frameAttached, (Consumer<FrameAttachedEvent>) event -> this.onFrameAttached(event.getFrameId(),event.getParentFrameId()));
+        this.client.on(CDPSession.CDPSessionEvent.Page_frameNavigated, (Consumer<FrameNavigatedEvent>) event -> this.onFrameNavigated(event.getFrame(),event.getType()));
+        this.client.on(CDPSession.CDPSessionEvent.Page_navigatedWithinDocument, (Consumer<NavigatedWithinDocumentEvent>) event -> this.onFrameNavigatedWithinDocument(event.getFrameId(),event.getUrl()));
+        this.client.on(CDPSession.CDPSessionEvent.Page_frameDetached, (Consumer<FrameDetachedEvent>) event -> this.onFrameDetached(event.getFrameId(),event.getReason()));
+        this.client.on(CDPSession.CDPSessionEvent.Page_frameStoppedLoading, (Consumer<FrameStoppedLoadingEvent>) event -> this.onFrameStoppedLoading(event.getFrameId()));
+        this.client.on(CDPSession.CDPSessionEvent.Runtime_executionContextCreated, (Consumer<ExecutionContextCreatedEvent>) event -> this.onExecutionContextCreated(event.getContext()));
+        this.client.on(CDPSession.CDPSessionEvent.Runtime_executionContextDestroyed, (Consumer<ExecutionContextDestroyedEvent>) event -> this.onExecutionContextDestroyed(event.getExecutionContextId()));
+        this.client.on(CDPSession.CDPSessionEvent.Runtime_executionContextsCleared, ignore -> this.onExecutionContextsCleared());
+        this.client.on(CDPSession.CDPSessionEvent.Page_lifecycleEvent, (Consumer<LifecycleEvent>) this::onLifecycleEvent);
     }
 
-    private void onLifecycleEvent(LifecycleEventPayload event) {
+    private void onLifecycleEvent(LifecycleEvent event) {
         Frame frame = this.frames.get(event.getFrameId());
         if (frame == null)
             return;
         frame.onLifecycleEvent(event.getLoaderId(), event.getName());
-        this.emit(Events.FRAME_MANAGER_LIFECYCLE_EVENT.getName(), frame);
+        this.emit(FrameManagerEvent.LifecycleEvent, frame);
+        frame.emit(Frame.FrameEvent.LifecycleEvent,null);
     }
 
     private void onExecutionContextsCleared() {
@@ -250,16 +153,28 @@ public class FrameManager extends EventEmitter {
         if (frame == null)
             return;
         frame.onLoadingStopped();
-        this.emit(Events.FRAME_MANAGER_LIFECYCLE_EVENT.getName(), frame);
+        this.emit(FrameManagerEvent.LifecycleEvent, frame);
+        frame.emit(Frame.FrameEvent.LifecycleEvent, null);
     }
 
     /**
      * @param frameId frame id
      */
-    private void onFrameDetached(String frameId) {
+    private void onFrameDetached(String frameId,String reason) {
         Frame frame = this.frames.get(frameId);
-        if (frame != null)
-            this.removeFramesRecursively(frame);
+        if(frame == null)return;
+        switch (reason) {
+            case "remove":
+                // Only remove the frame if the reason for the detached event is
+                // an actual removement of the frame.
+                // For frames that become OOP iframes, the reason would be 'swap'.
+                this.removeFramesRecursively(frame);
+                break;
+            case "swap":
+                this.emit(FrameManagerEvent.FrameSwapped, frame);
+                frame.emit(Frame.FrameEvent.FrameSwapped, null);
+                break;
+        }
     }
 
     /**
@@ -272,16 +187,17 @@ public class FrameManager extends EventEmitter {
             return;
         }
         frame.navigatedWithinDocument(url);
-        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED_WITHIN_DOCUMENT.getName(), frame);
-        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName(), frame);
+        this.emit(FrameManagerEvent.FrameNavigatedWithinDocument, frame);
+        frame.emit(Frame.FrameEvent.FrameNavigatedWithinDocument, null);
+        this.emit(FrameManagerEvent.FrameNavigated, frame);
+        frame.emit(Frame.FrameEvent.FrameNavigated, "Navigation");
     }
 
 
     public void initialize() {
-
-        this.client.send("Page.enable", null, false);
+        this.client.send("Page.enable");
         /* @type Protocol.Page.getFrameTreeReturnValue*/
-        JsonNode result = this.client.send("Page.getFrameTree", null, true);
+        JsonNode result = this.client.send("Page.getFrameTree");
 
         FrameTree frameTree;
         try {
@@ -293,9 +209,8 @@ public class FrameManager extends EventEmitter {
 
         Map<String, Object> params = new HashMap<>();
         params.put("enabled", true);
-        this.client.send("Page.setLifecycleEventsEnabled", params, false);
-
-        this.client.send("Runtime.enable", null, true);
+        this.client.send("Page.setLifecycleEventsEnabled", params);
+        this.client.send("Runtime.enable");
         this.ensureIsolatedWorld(UTILITY_WORLD_NAME);
         this.networkManager.initialize();
 
@@ -308,13 +223,13 @@ public class FrameManager extends EventEmitter {
         Map<String, Object> params = new HashMap<>();
         params.put("source", "//# sourceURL=" + ExecutionContext.EVALUATION_SCRIPT_URL);
         params.put("worldName", name);
-        this.client.send("Page.addScriptToEvaluateOnNewDocument", params, true);
+        this.client.send("Page.addScriptToEvaluateOnNewDocument", params);
         this.frames().forEach(frame -> {
             Map<String, Object> param = new HashMap<>();
             param.put("frameId", frame.getId());
             param.put("grantUniveralAccess", true);
             param.put("worldName", name);
-            this.client.send("Page.createIsolatedWorld", param, true);
+            this.client.send("Page.createIsolatedWorld", param);
         });
     }
 
@@ -322,11 +237,9 @@ public class FrameManager extends EventEmitter {
         if (StringUtil.isNotEmpty(frameTree.getFrame().getParentId())) {
             this.onFrameAttached(frameTree.getFrame().getId(), frameTree.getFrame().getParentId());
         }
-
-        this.onFrameNavigated(frameTree.getFrame());
+        this.onFrameNavigated(frameTree.getFrame(),"Navigation");
         if (ValidateUtil.isEmpty(frameTree.getChildFrames()))
             return;
-
         for (FrameTree child : frameTree.getChildFrames()) {
             this.handleFrameTree(child);
         }
@@ -343,13 +256,13 @@ public class FrameManager extends EventEmitter {
         Frame parentFrame = this.frames.get(parentFrameId);
         Frame frame = new Frame(this, this.client, parentFrame, frameId);
         this.frames.put(frame.getId(), frame);
-        this.emit(Events.FRAME_MANAGER_FRAME_ATTACHED.getName(), frame);
+        this.emit(FrameManagerEvent.FrameAttached, frame);
     }
 
     /**
      * @param framePayload frame荷载
      */
-    private void onFrameNavigated(FramePayload framePayload) {
+    private void onFrameNavigated(FramePayload framePayload,String navigationType) {
         boolean isMainFrame = StringUtil.isEmpty(framePayload.getParentId());
         Frame frame = isMainFrame ? this.mainFrame : this.frames.get(framePayload.getId());
         ValidateUtil.assertArg(isMainFrame || frame != null, "We either navigate top level or have old version of the navigated frame");
@@ -379,8 +292,8 @@ public class FrameManager extends EventEmitter {
 
         // Update frame payload.
         frame.navigated(framePayload);
-
-        this.emit(Events.FRAME_MANAGER_FRAME_NAVIGATED.getName(), frame);
+        this.emit(FrameManagerEvent.FrameNavigated, frame);
+        frame.emit(Frame.FrameEvent.FrameNavigated, navigationType);
     }
 
     public List<Frame> frames() {
@@ -401,7 +314,8 @@ public class FrameManager extends EventEmitter {
         }
         childFrame.detach();
         this.frames.remove(childFrame.getId());
-        this.emit(Events.FRAME_MANAGER_FRAME_DETACHED.getName(), childFrame);
+        this.emit(FrameManagerEvent.FrameDetached, childFrame);
+        childFrame.emit(Frame.FrameEvent.FrameDetached, childFrame);
     }
 
     public CDPSession getClient() {
@@ -437,27 +351,31 @@ public class FrameManager extends EventEmitter {
     }
 
 
-    public Response navigateFrame(Frame frame, String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
+    public Response navigateFrame(Frame frame, String url, GoToOptions options, boolean isBlock) {
         String referrer;
-        List<String> waitUntil;
-        int timeout;
+        String refererPolicy;
+        List<PuppeteerLifeCycle> waitUntil;
+        Integer timeout;
         if (options == null) {
-            referrer = this.networkManager.extraHTTPHeaders().get("referer");
+            referrer = frame.getFrameManager().getNetworkManager().extraHTTPHeaders().get("referer");
+            refererPolicy = frame.getFrameManager().getNetworkManager().extraHTTPHeaders().get("referer_policy");
             waitUntil = new ArrayList<>();
-            waitUntil.add("load");
-            timeout = this.timeoutSettings.navigationTimeout();
+            waitUntil.add(PuppeteerLifeCycle.LOAD);
+            timeout = frame.getFrameManager().getTimeoutSettings().navigationTimeout();
         } else {
             if (StringUtil.isEmpty(referrer = options.getReferer())) {
-                referrer = this.networkManager.extraHTTPHeaders().get("referer");
+                referrer = frame.getFrameManager().getNetworkManager().extraHTTPHeaders().get("referer");
             }
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
-                waitUntil.add("load");
+                waitUntil.add(PuppeteerLifeCycle.LOAD);
             }
-            if ((timeout = options.getTimeout()) <= 0) {
-                timeout = this.timeoutSettings.navigationTimeout();
+            if ((timeout = options.getTimeout()) == null) {
+                timeout = frame.getFrameManager().getTimeoutSettings().navigationTimeout();
             }
-            assertNoLegacyNavigationOptions(waitUntil);
+            if (StringUtil.isEmpty(refererPolicy = options.getReferrerPolicy())) {
+                refererPolicy = frame.getFrameManager().getNetworkManager().extraHTTPHeaders().get("referer");
+            }
         }
         if(!isBlock){
             Map<String, Object> params = new HashMap<>();
@@ -467,73 +385,59 @@ public class FrameManager extends EventEmitter {
                 params.put("referrer", referrer);
             }
             params.put("frameId", frame.getId());
-            this.client.send("Page.navigate", params, false);
+            this.client.send("Page.navigate", params, null,false);
             return null;
         }
-        LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-        long start = System.currentTimeMillis();
+        AtomicBoolean ensureNewDocumentNavigation = new AtomicBoolean(false);
+        LifecycleWatcher watcher = new LifecycleWatcher(frame.getFrameManager().getNetworkManager(),frame, waitUntil, timeout);
         try {
-            this.ensureNewDocumentNavigation = navigate(this.client, url, referrer, frame.getId(), timeout);
-            if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
-                if (this.ensureNewDocumentNavigation) {
-                    documentNavigationPromiseType = "new";
-                    if (watcher.newDocumentNavigationPromise() != null) {
-                        return watcher.navigationResponse();
-                    }
-                } else {
-                    documentNavigationPromiseType = "same";
-                    if (watcher.sameDocumentNavigationPromise() != null) {
-                        return watcher.navigationResponse();
-                    }
+            String finalReferrer = referrer;
+            String finalRefererPolicy = refererPolicy;
+            CompletableFuture<Void> navigateFuture = CompletableFuture.runAsync(() -> {
+                navigate(this.client, url, finalReferrer, finalRefererPolicy, frame.getId(),ensureNewDocumentNavigation);
+            });
+            CompletableFuture<Void> terminationFuture = CompletableFuture.runAsync(watcher::waitForTermination);
+            CompletableFuture<Object> anyOfFuture1 = CompletableFuture.anyOf(navigateFuture, terminationFuture);
+            anyOfFuture1.whenComplete((ignore, throwable1) -> {
+                if (throwable1 == null) {//没有出错就是LifecycleWatcher没有接收到termination事件,那就看看是newDocumentNavigation还是sameDocumentNavigation,并等待它完成
+                    CompletableFuture<Void> documentNavigationFuture = CompletableFuture.runAsync(() -> {
+                        throw new JvppeteerException(ensureNewDocumentNavigation.get() ? watcher.waitForNewDocumentNavigation() : watcher.waitForSameDocumentNavigation());
+                    });
+                    CompletableFuture<Object> anyOfFuture2 = CompletableFuture.anyOf(terminationFuture,documentNavigationFuture);
+                    anyOfFuture2.whenComplete((ignore1, throwable2) -> {
+                        if (throwable2 != null) {
+                            throw new JvppeteerException(throwable2);
+                        }
+                    });
+                    anyOfFuture2.join();
                 }
-                this.navigateResult = "";
-                this.documentLatch = new CountDownLatch(1);
-                long end = System.currentTimeMillis();
-                boolean await = documentLatch.await(timeout - (end - start), TimeUnit.MILLISECONDS);
-                if (!await) {
-                    throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded at " + url);
-                }
-                if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
-                    return watcher.navigationResponse();
-                }
-            }
-            if (NavigateResult.TIMEOUT.getResult().equals(navigateResult)) {
-                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded at " + url);
-            } else if (NavigateResult.TERMINATION.getResult().equals(navigateResult)) {
-                throw new NavigateException("Navigating frame was detached");
-            } else {
-                throw new NavigateException("Unkown result " + navigateResult);
-            }
+            });
+            //等待页面导航事件或者是页面termination事件完成
+            anyOfFuture1.join();
+            return watcher.navigationResponse();
         } finally {
             watcher.dispose();
         }
     }
 
-    private boolean navigate(CDPSession client, String url, String referrer, String frameId, int timeout) {
+    private void navigate(CDPSession client, String url, String referrer, String referrerPolicy, String frameId,AtomicBoolean ensureNewDocumentNavigation) {
         Map<String, Object> params = new HashMap<>();
         params.put("url", url);
-        // jackJson 不序列化null值对 HashMap里面的 null值不起作用
-        if(referrer != null){
-            params.put("referrer", referrer);
-        }
+        params.put("referrer", referrer);
         params.put("frameId", frameId);
-        try {
-            JsonNode response = client.send("Page.navigate", params, true, null, timeout);
-            this.setNavigateResult("success");
-            if (response == null) {
-                return false;
-            }
-            if (response.get("errorText") != null) {
-                throw new NavigateException(response.get("errorText").toString() + " at " + url);
-            }
-            if (response.get("loaderId") != null) {
-                return true;
-            }
-
-        } catch (TimeoutException e) {
-            this.setNavigateResult("timeout");
+        params.put("referrerPolicy", referrerPolicy);
+        JsonNode response = client.send("Page.navigate", params);
+        if (response == null) {
+            return ;
         }
-        return false;
+        if (StringUtil.isNotEmpty(response.get("loaderId").asText())) {
+            ensureNewDocumentNavigation.set(true);
+        }
+        String errorText = null;
+        if (response.get("errorText") != null && StringUtil.isNotEmpty(errorText = response.get("errorText").asText()) && "net::ERR_HTTP_RESPONSE_CODE_FAILURE".equals(response.get("errorText").asText())) {
+            return ;
+        }
+        if(StringUtil.isNotEmpty(errorText) ) throw new JvppeteerException(errorText + " at " + url) ;
     }
 
 
@@ -557,19 +461,19 @@ public class FrameManager extends EventEmitter {
         return this.frames.get(frameId);
     }
 
-    public Response waitForFrameNavigation(Frame frame, PageNavigateOptions options, CountDownLatch reloadLatch) {
-        List<String> waitUntil;
+    public Response waitForFrameNavigation(Frame frame, GoToOptions options, CountDownLatch reloadLatch) {
+        List<PuppeteerLifeCycle> waitUntil;
         int timeout;
         if (options == null) {
             waitUntil = new ArrayList<>();
-            waitUntil.add("load");
+            waitUntil.add(PuppeteerLifeCycle.LOAD);
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
-                waitUntil.add("load");
+                waitUntil.add(PuppeteerLifeCycle.LOAD);
             }
-            if ((timeout = options.getTimeout()) <= 0) {
+            if ((timeout = options.getTimeout()) < 0) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
             assertNoLegacyNavigationOptions(waitUntil);
@@ -578,11 +482,11 @@ public class FrameManager extends EventEmitter {
         this.documentNavigationPromiseType = "all";
         this.setNavigateResult(null);
 
-        LifecycleWatcher watcher = new LifecycleWatcher(this, frame, waitUntil, timeout);
-        if (watcher.newDocumentNavigationPromise() != null) {
+        LifecycleWatcher watcher = new LifecycleWatcher(this.networkManager, frame, waitUntil, timeout);
+        if (watcher.waitForNewDocumentNavigation() != null) {
             return watcher.navigationResponse();
         }
-        if (watcher.sameDocumentNavigationPromise() != null) {
+        if (watcher.waitForSameDocumentNavigation() != null) {
             return watcher.navigationResponse();
         }
         try {
@@ -614,8 +518,8 @@ public class FrameManager extends EventEmitter {
         }
     }
 
-    private void assertNoLegacyNavigationOptions(List<String> waitUtil) {
-        ValidateUtil.assertArg(!"networkidle".equals(waitUtil.get(0)), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
+    private void assertNoLegacyNavigationOptions(List<PuppeteerLifeCycle> waitUtil) {
+        ValidateUtil.assertArg(!PuppeteerLifeCycle.NETWORKIDLE.equals(waitUtil.get(0)), "ERROR: \"networkidle\" option is no longer supported. Use \"networkidle2\" instead");
     }
 
     public Frame mainFrame() {
@@ -626,27 +530,25 @@ public class FrameManager extends EventEmitter {
         return this.networkManager;
     }
 
-    public String getDocumentNavigationPromiseType() {
-        return documentNavigationPromiseType;
-    }
 
-    public void setDocumentNavigationPromiseType(String documentNavigationPromiseType) {
-        this.documentNavigationPromiseType = documentNavigationPromiseType;
-    }
-
-    public CountDownLatch getDocumentLatch() {
-        return documentLatch;
-    }
-
-    public void setDocumentLatch(CountDownLatch documentLatch) {
-        this.documentLatch = documentLatch;
-    }
-
-    public CountDownLatch getContentLatch() {
-        return contentLatch;
-    }
-
-    public void setContentLatch(CountDownLatch contentLatch) {
-        this.contentLatch = contentLatch;
+    public enum FrameManagerEvent{
+        FrameAttached ("FrameManager.FrameAttached"),
+        FrameNavigated( "FrameManager.FrameNavigated"),
+        FrameDetached( "FrameManager.FrameDetached"),
+        FrameSwapped( "FrameManager.FrameSwapped"),
+        LifecycleEvent("FrameManager.LifecycleEvent"),
+        FrameNavigatedWithinDocument("FrameManager.FrameNavigatedWithinDocument"),
+        ConsoleApiCalled("FrameManager.ConsoleApiCalled"),
+        BindingCalled("FrameManager.BindingCalled");
+        private String eventName;
+        FrameManagerEvent(String eventName) {
+            this.eventName = eventName;
+        }
+        public String getEventName() {
+            return eventName;
+        }
+        public void setEventName(String eventName) {
+            this.eventName = eventName;
+        }
     }
 }

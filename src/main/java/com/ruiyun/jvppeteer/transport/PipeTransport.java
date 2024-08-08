@@ -57,7 +57,7 @@ public class PipeTransport implements ConnectionTransport {
     }
 
     @Override
-    public void onClose() {
+    public void setConnection(Connection connection) {
 
     }
 

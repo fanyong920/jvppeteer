@@ -67,7 +67,7 @@ public class JSHandle {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", this.remoteObject.getObjectId());
         params.put("ownProperties", true);
-        JsonNode response = this.client.send("Runtime.getProperties", params, true);
+        JsonNode response = this.client.send("Runtime.getProperties", params);
         Map<String,JSHandle> result = new LinkedHashMap<>();
         Iterator<JsonNode> iterator = response.get("result").iterator();
         while (iterator.hasNext()) {
@@ -90,7 +90,7 @@ public class JSHandle {
             params.put("objectId", this.remoteObject.getObjectId());
             params.put("returnByValue", true);
             params.put("awaitPromise", true);
-            JsonNode response = this.client.send("Runtime.callFunctionOn", params, true);
+            JsonNode response = this.client.send("Runtime.callFunctionOn", params);
             try {
                 return Helper.valueFromRemoteObject(Constant.OBJECTMAPPER.treeToValue(response.get("result"), RemoteObject.class));
             } catch (JsonProcessingException e) {

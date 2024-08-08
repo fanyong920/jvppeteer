@@ -22,8 +22,6 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
 
-	private Consumer<String> messageConsumer = null;
-
 	private Connection connection = null;
 
 	public WebSocketTransport(URI serverUri, Draft draft) {
@@ -44,15 +42,9 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
 	@Override
 	public void onMessage(String message) {
-		ValidateUtil.notNull(this.messageConsumer,"MessageConsumer must be initialized");
-		this.messageConsumer.accept(message);
+		ValidateUtil.notNull(this.connection,"MessageConsumer must be initialized");
+		this.connection.accept(message);
 	}
-
-	@Override
-	public void onClose() {
-		this.close();
-	}
-
 	/**
 	 *
 	 * @param code  NORMAL = 1000;
@@ -77,11 +69,11 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 	 * @param remote 远程
 	 */
 	@Override
-	public void onClose( int code, String reason, boolean remote ) {
+	public void onClose( int code, String reason, boolean remote) {//这里是WebSocketClient的实现方法,当websocket closed的时候会调用onClose
         LOGGER.info("Connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, reason);
-		// The codecodes are documented in class org.java_websocket.framing.CloseFrame
-		this.onClose();
-		this.connection.dispose();
+		if(this.connection != null){//浏览器以外关闭时候，connection不为空
+			this.connection.dispose();
+		}
 	}
 
 	@Override
@@ -89,21 +81,13 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 		LOGGER.error("Websocket error:",e);
 	}
 
-
-
 	@Override
 	public void onOpen(ServerHandshake serverHandshake) {
         LOGGER.info("Websocket serverHandshake status: {}", serverHandshake.getHttpStatus());
 	}
 
-
-	public void addMessageConsumer(Consumer<String> consumer) {
-		this.messageConsumer = consumer;
-	}
-
-
-	public void addConnection(Connection connection) {
+	@Override
+	public void setConnection(Connection connection) {
 		this.connection = connection;
 	}
-
 }

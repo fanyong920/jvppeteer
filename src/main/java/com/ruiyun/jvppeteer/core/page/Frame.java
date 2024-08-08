@@ -1,7 +1,8 @@
 package com.ruiyun.jvppeteer.core.page;
 
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
@@ -19,7 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 
 
-public class Frame {
+public class Frame extends EventEmitter<Frame.FrameEvent> {
 
     private String id;
 
@@ -82,7 +83,7 @@ public class Frame {
         this.url = url;
     }
 
-    public Response waitForNavigation(PageNavigateOptions options, CountDownLatch reloadLatch) {
+    public Response waitForNavigation(GoToOptions options, CountDownLatch reloadLatch) {
         return this.frameManager.waitForFrameNavigation(this, options, reloadLatch);
     }
 
@@ -214,7 +215,7 @@ public class Frame {
         this.lifecycleEvents.add("load");
     }
 
-    public Response goTo(String url, PageNavigateOptions options,boolean isBlock) throws InterruptedException {
+    public Response goTo(String url, GoToOptions options, boolean isBlock) {
         return this.frameManager.navigateFrame(this, url, options,isBlock);
     }
 
@@ -238,7 +239,7 @@ public class Frame {
         return this.secondaryWorld.content();
     }
 
-    public void setContent(String html, PageNavigateOptions options) {
+    public void setContent(String html, GoToOptions options) {
         this.secondaryWorld.setContent(html, options);
     }
 
@@ -359,4 +360,19 @@ public class Frame {
         return this.getChildFrames();
     }
 
+    public enum FrameEvent{
+        FrameNavigated("Frame.FrameNavigated"),
+        FrameSwapped("Frame.FrameSwapped"),
+        LifecycleEvent("Frame.LifecycleEvent"),
+        FrameNavigatedWithinDocument("Frame.FrameNavigatedWithinDocument"),
+        FrameDetached("Frame.FrameDetached"),
+        FrameSwappedByActivation("Frame.FrameSwappedByActivation");
+        private final String eventType;
+        FrameEvent(String eventType) {
+            this.eventType = eventType;
+        }
+        public String getEventType() {
+            return eventType;
+        }
+    }
 }

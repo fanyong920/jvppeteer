@@ -57,7 +57,7 @@ public class ExecutionContext {
         ValidateUtil.assertArg(this.world != null, "Cannot adopt handle without DOMWorld");
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", elementHandle.getRemoteObject().getObjectId());
-        JsonNode nodeInfo = this.client.send("DOM.describeNode", params, true);
+        JsonNode nodeInfo = this.client.send("DOM.describeNode", params);
         return this.adoptBackendNodeId(nodeInfo.get("node").get("backendNodeId").asInt());
     }
 
@@ -81,7 +81,7 @@ public class ExecutionContext {
             params.put("returnByValue", returnByValue);
             params.put("awaitPromise", true);
             params.put("userGesture", true);
-            JsonNode result = this.client.send("Runtime.evaluate", params, true);
+            JsonNode result = this.client.send("Runtime.evaluate", params);
             JsonNode exceptionDetails = result.get("exceptionDetails");
             try {
                 if (exceptionDetails != null)
@@ -111,7 +111,7 @@ public class ExecutionContext {
         params.put("userGesture", true);
         JsonNode callFunctionOnPromise;
         try {
-            callFunctionOnPromise = this.client.send("Runtime.callFunctionOn", params, true);
+            callFunctionOnPromise = this.client.send("Runtime.callFunctionOn", params);
         } catch (Exception e) {
             if (e.getMessage().startsWith("Converting circular structure to JSON"))
                 throw new RuntimeException(e.getMessage() + " Are you passing a nested JSHandle?");
@@ -138,7 +138,7 @@ public class ExecutionContext {
         ValidateUtil.assertArg(StringUtil.isNotEmpty(prototypeHandle.getRemoteObject().getObjectId()), "Prototype JSHandle must not be referencing primitive value");
         Map<String, Object> params = new HashMap<>();
         params.put("prototypeObjectId", prototypeHandle.getRemoteObject().getObjectId());
-        JsonNode response = this.client.send("Runtime.queryObjects", params, true);
+        JsonNode response = this.client.send("Runtime.queryObjects", params);
         try {
             return createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(response.get("objects"), RemoteObject.class));
         } catch (JsonProcessingException e) {
@@ -187,7 +187,7 @@ public class ExecutionContext {
         Map<String, Object> params = new HashMap<>();
         params.put("backendNodeId", backendNodeId);
         params.put("executionContextId", this.contextId);
-        JsonNode object = this.client.send("DOM.resolveNode", params, true);
+        JsonNode object = this.client.send("DOM.resolveNode", params);
         try {
             return (ElementHandle) createJSHandle(this, Constant.OBJECTMAPPER.treeToValue(object.get("object"), RemoteObject.class));
         } catch (JsonProcessingException e) {

@@ -1,15 +1,14 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.PageNavigateOptions;
+import com.ruiyun.jvppeteer.options.GoToOptions;
+import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.options.ScriptTagOptions;
 import com.ruiyun.jvppeteer.options.StyleTagOptions;
 import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.QueryHandlerUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -21,11 +20,13 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 public class DOMWorld {
@@ -87,9 +88,12 @@ public class DOMWorld {
         if (context != null) {
             this.contextResolveCallback(context);
             hasContext = true;
-            for (WaitTask waitTask : this.waitTasks) {
-                Helper.commonExecutor().submit(waitTask::rerun);
-            }
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            // 将每个 WaitTask 的 rerun() 调用转换为 CompletableFuture
+            this.waitTasks.forEach(task -> {
+                futures.add(CompletableFuture.runAsync(task::rerun) );
+            });
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         } else {
             this.documentPromise = null;
             this.hasContext = false;
@@ -168,51 +172,31 @@ public class DOMWorld {
         return document.$$(selector);
     }
 
-    public void setContent(String html, PageNavigateOptions options) {
-        List<String> waitUntil;
-        int timeout;
+    public void setContent(String html, GoToOptions options) {
+        List<PuppeteerLifeCycle> waitUntil;
+        Integer timeout;
         if (options == null) {
             waitUntil = new ArrayList<>();
-            waitUntil.add("load");
+            waitUntil.add(PuppeteerLifeCycle.LOAD);
             timeout = this.timeoutSettings.navigationTimeout();
         } else {
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
-                waitUntil.add("load");
+                waitUntil.add(PuppeteerLifeCycle.LOAD);
             }
-            if ((timeout = options.getTimeout()) <= 0) {
+            if ((timeout = options.getTimeout()) == null) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
         }
-        LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager, this.frame, waitUntil, timeout);
+        LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager.getNetworkManager(),this.frame, waitUntil, timeout);
         this.evaluate("(html) => {\n" +
                 "      document.open();\n" +
                 "      document.write(html);\n" +
                 "      document.close();\n" +
-                "    }", Arrays.asList(html));
-        if (watcher.lifecyclePromise() != null) {
-            return;
-        }
-        try {
-            CountDownLatch latch = new CountDownLatch(1);
-            this.frameManager.setContentLatch(latch);
-            this.frameManager.setNavigateResult(null);
-            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
-            if (await) {
-                if (NavigateResult.CONTENT_SUCCESS.getResult().equals(this.frameManager.getNavigateResult())) {
+                "    }", Collections.singletonList(html));
 
-                } else if (NavigateResult.TIMEOUT.getResult().equals(this.frameManager.getNavigateResult())) {
-                    throw new TimeoutException("setContent timeout :" + html);
-                } else if (NavigateResult.TERMINATION.getResult().equals(this.frameManager.getNavigateResult())) {
-                    throw new NavigateException("Navigating frame was detached");
-                } else {
-                    throw new NavigateException("UnNokwn result " + this.frameManager.getNavigateResult());
-                }
-            } else {
-                throw new TimeoutException("setContent timeout " + html);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        try {
+            watcher.waitForLifecycle();
         } finally {
             watcher.dispose();
         }
@@ -335,7 +319,7 @@ public class DOMWorld {
             handle.dispose();
             return;
         }
-        Helper.commonExecutor().submit(() -> {
+        ForkJoinPool.commonPool().submit(() -> {
             try {
                 handle.click(options,true);
                 handle.dispose();
@@ -375,7 +359,7 @@ public class DOMWorld {
             handle.tap();
             handle.dispose();
         }else {
-            Helper.commonExecutor().submit(() -> {
+            ForkJoinPool.commonPool().submit(() -> {
                 handle.tap();
                 handle.dispose();
             });

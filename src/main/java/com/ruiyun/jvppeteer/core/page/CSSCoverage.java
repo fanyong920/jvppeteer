@@ -1,23 +1,23 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
+import com.ruiyun.jvppeteer.events.StyleSheetAddedEvent;
 import com.ruiyun.jvppeteer.protocol.CSS.CSSStyleSheetHeader;
 import com.ruiyun.jvppeteer.protocol.CSS.Range;
-import com.ruiyun.jvppeteer.protocol.CSS.StyleSheetAddedPayload;
 import com.ruiyun.jvppeteer.protocol.profiler.CoverageEntry;
 import com.ruiyun.jvppeteer.protocol.profiler.CoverageRange;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 
 public class CSSCoverage {
 
@@ -29,7 +29,7 @@ public class CSSCoverage {
 
     private HashMap<String, String> stylesheetSources;
 
-    private List<BrowserListenerWrapper> eventListeners;
+    private final List<Disposable> disposables = new ArrayList<>();
 
     private boolean resetOnNavigation;
 
@@ -38,7 +38,6 @@ public class CSSCoverage {
         this.enabled = false;
         this.stylesheetURLs = new HashMap<>();
         this.stylesheetSources = new HashMap();
-        this.eventListeners = new ArrayList<>();
         this.resetOnNavigation = false;
     }
 
@@ -49,34 +48,11 @@ public class CSSCoverage {
         this.enabled = true;
         this.stylesheetURLs.clear();
         this.stylesheetSources.clear();
-
-        DefaultBrowserListener<StyleSheetAddedPayload> addLis = new DefaultBrowserListener<StyleSheetAddedPayload>() {
-            @Override
-            public void onBrowserEvent(StyleSheetAddedPayload event) {
-                CSSCoverage cssCoverage = (CSSCoverage) this.getTarget();
-                cssCoverage.onStyleSheet(event);
-            }
-        };
-        addLis.setMethod("CSS.styleSheetAdded");
-        addLis.setTarget(this);
-
-        DefaultBrowserListener<Object> clearLis = new DefaultBrowserListener<Object>() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                CSSCoverage cssCoverage = (CSSCoverage) this.getTarget();
-                cssCoverage.onExecutionContextsCleared();
-            }
-        };
-        clearLis.setMethod("Runtime.executionContextsCleared");
-        clearLis.setTarget(this);
-
-        this.eventListeners.add(Helper.addEventListener(this.client, addLis.getMethod(), addLis));
-        this.eventListeners.add(Helper.addEventListener(this.client, clearLis.getMethod(), clearLis));
-
-        this.client.send("DOM.enable", null, false);
-        this.client.send("CSS.enable", null, false);
-        this.client.send("CSS.startRuleUsageTracking", null, true);
-
+        this.disposables.add(Helper.fromEmitterEvent(this.client, CDPSession.CDPSessionEvent.CSS_styleSheetAdded).subscribe((event) -> this.onStyleSheet((StyleSheetAddedEvent) event)));
+        this.disposables.add(Helper.fromEmitterEvent(this.client, CDPSession.CDPSessionEvent.Runtime_executionContextsCleared).subscribe((ignore)->this.onExecutionContextsCleared()));
+        this.client.send("DOM.enable");
+        this.client.send("CSS.enable");
+        this.client.send("CSS.startRuleUsageTracking");
     }
 
     private void onExecutionContextsCleared() {
@@ -85,15 +61,15 @@ public class CSSCoverage {
         this.stylesheetSources.clear();
     }
 
-    private void onStyleSheet(StyleSheetAddedPayload event) {
+    private void onStyleSheet(StyleSheetAddedEvent event) {
         CSSStyleSheetHeader header = event.getHeader();
         // Ignore anonymous scripts
         if (StringUtil.isEmpty(header.getSourceURL())) return;
 
-        Helper.commonExecutor().submit(() -> {
+        ForkJoinPool.commonPool().submit(() -> {
             Map<String, Object> params = new HashMap<>();
             params.put("styleSheetId", header.getStyleSheetId());
-            JsonNode response = client.send("CSS.getStyleSheetText", params, true);
+            JsonNode response = client.send("CSS.getStyleSheetText", params);
             stylesheetURLs.put(header.getStyleSheetId(), header.getSourceURL());
             stylesheetSources.put(header.getStyleSheetId(), response.get("text").asText());
         });
@@ -105,12 +81,11 @@ public class CSSCoverage {
         this.enabled = false;
 
 
-        JsonNode ruleTrackingResponse = this.client.send("CSS.stopRuleUsageTracking", null, true);
+        JsonNode ruleTrackingResponse = this.client.send("CSS.stopRuleUsageTracking");
 
-        this.client.send("CSS.disable", null, false);
-        this.client.send("DOM.disable", null, false);
+        this.client.send("CSS.disable", null, null,false);
+        this.client.send("DOM.disable", null,null, false);
 
-        Helper.removeEventListeners(this.eventListeners);
 
         // aggregate by styleSheetId
         Map<String, List<CoverageRange>> styleSheetIdToCoverage = new HashMap<>();

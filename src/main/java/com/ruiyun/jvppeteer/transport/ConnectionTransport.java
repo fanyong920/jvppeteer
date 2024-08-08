@@ -7,7 +7,7 @@ public interface ConnectionTransport {
 
     void onMessage(String message);
 
-    void onClose();
+    void setConnection(Connection connection);
 
     void close();
 }

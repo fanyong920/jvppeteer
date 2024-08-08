@@ -45,10 +45,10 @@ public class EmulationManager {
         params.put("height", height);
         params.put("deviceScaleFactor", deviceScaleFactor);
         params.put("screenOrientation", screenOrientation);
-        this.client.send("Emulation.setDeviceMetricsOverride", params, false);
+        this.client.send("Emulation.setDeviceMetricsOverride", params);
         params.clear();
         params.put("enabled", hasTouch);
-        this.client.send("Emulation.setTouchEmulationEnabled", params, true);
+        this.client.send("Emulation.setTouchEmulationEnabled", params);
         boolean reloadNeeded = this.emulatingMobile != mobile || this.hasTouch != hasTouch;
         this.emulatingMobile = mobile;
         this.hasTouch = hasTouch;

@@ -55,7 +55,7 @@ public class Mouse {
         params.put("x", divide.multiply(BigDecimal.valueOf(this.x - fromX)).add(new BigDecimal(fromX)).doubleValue());
         params.put("y", divide.multiply(BigDecimal.valueOf(this.y - fromY)).add(new BigDecimal(fromY)).doubleValue());
         params.put("modifiers", this.keyboard.getModifiers());
-        this.client.send("Input.dispatchMouseEvent", params, true);
+        this.client.send("Input.dispatchMouseEvent", params);
     }
 
     public void click(int x, int y, ClickOptions options) throws InterruptedException {
@@ -93,7 +93,7 @@ public class Mouse {
         params.put("y", this.y);
         params.put("modifiers", this.keyboard.getModifiers());
         params.put("clickCount", clickCount);
-        this.client.send("Input.dispatchMouseEvent", params, true);
+        this.client.send("Input.dispatchMouseEvent", params);
     }
 
     public void down() {
@@ -116,7 +116,7 @@ public class Mouse {
         params.put("y", this.y);
         params.put("modifiers", this.keyboard.getModifiers());
         params.put("clickCount", clickCount);
-        this.client.send("Input.dispatchMouseEvent", params, true);
+        this.client.send("Input.dispatchMouseEvent", params);
     }
 
     public int buttonNameToButton(String buttonName) {
@@ -143,7 +143,7 @@ public class Mouse {
         params.put("deltaY", deltaY);
         params.put("modifiers", this.keyboard.getModifiers());
         params.put("pointerType", "mouse");
-        this.client.send("Input.dispatchMouseEvent", params, true);
+        this.client.send("Input.dispatchMouseEvent", params);
     }
 
     /**
@@ -158,6 +158,6 @@ public class Mouse {
         params.put("deltaY", 0.00);
         params.put("modifiers", this.keyboard.getModifiers());
         params.put("pointerType", "mouse");
-        this.client.send("Input.dispatchMouseEvent", params, true);
+        this.client.send("Input.dispatchMouseEvent", params);
     }
 }

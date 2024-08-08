@@ -3,7 +3,6 @@ package com.ruiyun.jvppeteer.core.page;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserContext;
-import com.ruiyun.jvppeteer.events.Events;
 import com.ruiyun.jvppeteer.options.Viewport;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.transport.factory.SessionFactory;
@@ -14,46 +13,23 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class Target {
-
     private Boolean initializedPromise;
-
     private CountDownLatch initializedCountDown;
-
     private TargetInfo targetInfo;
-
-
     private BrowserContext browserContext;
-
-
     private boolean ignoreHTTPSErrors;
-
-
     private Viewport viewport;
-
-
     private TaskQueue<String> screenshotTaskQueue;
-
     private String targetId;
-
-
     private Page pagePromise;
-
-
     private Worker workerPromise;
-
-
     private boolean isInitialized;
-
     private SessionFactory sessionFactory;
-
     private String sessionId;
-
     private CountDownLatch isClosedPromiseLatch;
-
     public Target() {
         super();
     }
-
     public Target(TargetInfo targetInfo, BrowserContext browserContext, SessionFactory sessionFactory, boolean ignoreHTTPSErrors, Viewport defaultViewport, TaskQueue<String> screenshotTaskQueue) {
         super();
         this.targetInfo = targetInfo;
@@ -98,7 +74,7 @@ public class Target {
 
     public void closedCallback() {
         if (pagePromise != null) {
-            this.pagePromise.emit(Events.PAGE_CLOSE.getName(), null);
+            this.pagePromise.emit(Page.PageEvent.CLOSE, null);
             this.pagePromise.setClosed(true);
         }
         this.isClosedPromiseLatch.countDown();
@@ -146,12 +122,12 @@ public class Target {
                 return true;
             }
             Page openerPage = opener.getPagePromise();
-            if (openerPage.getListenerCount(Events.PAGE_POPUP.getName()) <= 0) {
+            if (openerPage.listenerCount(Page.PageEvent.POPUP) <= 0) {
                 this.initializedPromise = true;
                 return true;
             }
             Page pupopPage = this.page();
-            pupopPage.emit(Events.PAGE_POPUP.getName(), pupopPage);
+            pupopPage.emit(Page.PageEvent.POPUP, pupopPage);
             this.initializedPromise = true;
             return true;
         } finally {

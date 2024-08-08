@@ -87,9 +87,8 @@ public class ChromeLauncher implements Launcher {
         try {
             runner.start(options);
             Connection connection = runner.setUpConnection(usePipe, options.getTimeout(), options.getSlowMo(), options.getDumpio());
-            Function<Object,Object> closeCallback = (s) -> {
+            Runnable closeCallback = () -> {
                 runner.closeQuietly(runner);
-                return null;
             };
             Browser browser = Browser.create(connection, null, options.getIgnoreHTTPSErrors(), options.getViewport(), runner.getProcess(), closeCallback);
             browser.waitForTarget(t -> "page".equals(t.type()), options);
@@ -205,7 +204,6 @@ public class ChromeLauncher implements Launcher {
                 }
             }
         }
-
         RevisionInfo revisionInfo = browserFetcher.revisionInfo(this.preferredRevision);
         if (!revisionInfo.getLocal())
             throw new LaunchException(MessageFormat.format("Could not find browser revision {0}. Pleaze download a browser binary.", this.preferredRevision));
@@ -217,34 +215,28 @@ public class ChromeLauncher implements Launcher {
         final Connection connection;
         try {
             if (transport != null) {
-                connection = new Connection("", transport, options.getSlowMo());
+                connection = new Connection("", transport, options.getSlowMo(),options.getTimeout());
             } else if (StringUtil.isNotEmpty(browserWSEndpoint)) {
                 WebSocketTransport connectionTransport = WebSocketTransport.create(browserWSEndpoint);
-                connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo());
+                connection = new Connection(browserWSEndpoint, connectionTransport, options.getSlowMo(),options.getTimeout());
             } else if (StringUtil.isNotEmpty(browserURL)) {
                 String connectionURL = getWSEndpoint(browserURL);
                 WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
-                connection = new Connection(connectionURL, connectionTransport, options.getSlowMo());
+                connection = new Connection(connectionURL, connectionTransport, options.getSlowMo(),options.getTimeout());
             } else {
                 throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
             }
-            JsonNode result = connection.send("Target.getBrowserContexts", null, true);
+            JsonNode result = connection.send("Target.getBrowserContexts");
 
             JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
             List<String> browserContextIds;
-            Function<Object,Object> closeFunction = (t) -> {
-                connection.send("Browser.close", null, false);
-                return null;
-            };
-
+            Runnable closeFunction = () -> connection.send("Browser.close");
             browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
             return Browser.create(connection, browserContextIds, options.getIgnoreHTTPSErrors(), options.getViewport(), null, closeFunction);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
-
     }
-
     /**
      * 通过格式为 http://${host}:${port} 的地址发送 GET 请求获取浏览器的 WebSocket 连接端点
      *
@@ -255,7 +247,6 @@ public class ChromeLauncher implements Launcher {
     private String getWSEndpoint(String browserURL) throws IOException {
         URI uri = URI.create(browserURL).resolve("/json/version");
         URL url = uri.toURL();
-
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.connect();
@@ -265,7 +256,6 @@ public class ChromeLauncher implements Launcher {
         }
         String result = StreamUtil.toString(conn.getInputStream());
         JsonNode jsonNode = Constant.OBJECTMAPPER.readTree(result);
-
         return jsonNode.get("webSocketDebuggerUrl").asText();
     }
 

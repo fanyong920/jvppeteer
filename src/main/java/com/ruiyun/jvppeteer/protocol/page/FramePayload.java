@@ -1,5 +1,9 @@
 package com.ruiyun.jvppeteer.protocol.page;
 
+import com.ruiyun.jvppeteer.options.AdFrameStatus;
+
+import java.util.List;
+
 /**
  * Information about the Frame on the page.
  */
@@ -30,6 +34,13 @@ public class FramePayload {
      */
     private String urlFragment;
     /**
+     * Frame document's registered domain, taking the public suffixes list into account.
+     * Extracted from the Frame's url.
+     * Example URLs: http://www.google.com/file.html -> "google.com"
+     *               http://a.b.co.uk/file.html      -> "b.co.uk"
+     */
+    private String  domainAndRegistry;
+    /**
      * Frame document's security origin.
      */
     private String securityOrigin;
@@ -41,6 +52,25 @@ public class FramePayload {
      * If the frame failed to load, this contains the URL that could not be loaded. Note that unlike url above, this URL may contain a fragment.
      */
     private String unreachableUrl;
+    /**
+     * Indicates whether this frame was tagged as an ad and why.
+     */
+    private AdFrameStatus adFrameStatus;
+    /**
+     * Indicates whether the main document is a secure context and explains why that is the case.
+     * ('Secure' | 'SecureLocalhost' | 'InsecureScheme' | 'InsecureAncestor')
+     */
+    private String secureContextType;
+    /**
+     * Indicates whether this is a cross origin isolated context.
+     * ('SharedArrayBuffers' | 'SharedArrayBuffersTransferAllowed' | 'PerformanceMeasureMemory' | 'PerformanceProfile')
+     */
+    private String crossOriginIsolatedContextType;
+    /**
+     * Indicated which gated APIs / features are available.
+     * ('SharedArrayBuffers' | 'SharedArrayBuffersTransferAllowed' | 'PerformanceMeasureMemory' | 'PerformanceProfile')
+     */
+    private List<String> gatedAPIFeatures;
 
     public String getId() {
         return id;
@@ -114,4 +144,43 @@ public class FramePayload {
         this.unreachableUrl = unreachableUrl;
     }
 
+    public String getDomainAndRegistry() {
+        return domainAndRegistry;
+    }
+
+    public void setDomainAndRegistry(String domainAndRegistry) {
+        this.domainAndRegistry = domainAndRegistry;
+    }
+
+    public AdFrameStatus getAdFrameStatus() {
+        return adFrameStatus;
+    }
+
+    public void setAdFrameStatus(AdFrameStatus adFrameStatus) {
+        this.adFrameStatus = adFrameStatus;
+    }
+
+    public String getSecureContextType() {
+        return secureContextType;
+    }
+
+    public void setSecureContextType(String secureContextType) {
+        this.secureContextType = secureContextType;
+    }
+
+    public String getCrossOriginIsolatedContextType() {
+        return crossOriginIsolatedContextType;
+    }
+
+    public void setCrossOriginIsolatedContextType(String crossOriginIsolatedContextType) {
+        this.crossOriginIsolatedContextType = crossOriginIsolatedContextType;
+    }
+
+    public List<String> getGatedAPIFeatures() {
+        return gatedAPIFeatures;
+    }
+
+    public void setGatedAPIFeatures(List<String> gatedAPIFeatures) {
+        this.gatedAPIFeatures = gatedAPIFeatures;
+    }
 }

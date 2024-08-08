@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.browser.BrowserRunner;
-import com.ruiyun.jvppeteer.events.BrowserListenerWrapper;
-import com.ruiyun.jvppeteer.events.DefaultBrowserListener;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.runtime.CallFrame;
@@ -13,13 +11,11 @@ import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.RemoteObject;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.sun.jna.Platform;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.internal.disposables.CancellableDisposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -27,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,31 +36,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Predicate;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.ruiyun.jvppeteer.core.Constant.COMMONT_THREAD_POOL_NUM;
 
 /**
  * 一些公共方法
  */
 public class Helper {
-
-    /**
-     * 单线程，一个浏览器只能有一个trcing 任务
-     */
-    private static volatile ExecutorService COMMON_EXECUTOR = null;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Helper.class);
     private static final String os = System.getProperty("os.name");
@@ -74,15 +53,15 @@ public class Helper {
     private static final boolean LINUX = os.startsWith("Linux");
 
     public static String createProtocolError(JsonNode node) {
-        JsonNode methodNode = node.get(Constant.RECV_MESSAGE_METHOD_PROPERTY);
-        JsonNode errNode = node.get(Constant.RECV_MESSAGE_ERROR_PROPERTY);
-        JsonNode errorMsg = errNode.get(Constant.RECV_MESSAGE_ERROR_MESSAGE_PROPERTY);
+        JsonNode methodNode = node.get(Constant.MESSAGE_METHOD_PROPERTY);
+        JsonNode errNode = node.get(Constant.MESSAGE_MESSAGE_PROPERTY);
+        JsonNode errorMsg = errNode.get(Constant.MESSAGE_MESSAGE_PROPERTY);
         String method = "";
         if (methodNode != null) {
             method = methodNode.asText();
         }
         String message = "Protocol error " + method + ": " + errorMsg;
-        JsonNode dataNode = errNode.get(Constant.RECV_MESSAGE_ERROR_DATA_PROPERTY);
+        JsonNode dataNode = errNode.get(Constant.MESSAGE_DATA_PROPERTY);
         if (dataNode != null) {
             message += " " + dataNode;
         }
@@ -220,7 +199,7 @@ public class Helper {
      */
     public static Object readProtocolStream(CDPSession client, String handler, String path, boolean isSync) throws IOException {
         if (isSync) {
-            return Helper.commonExecutor().submit(() -> {
+            return ForkJoinPool.commonPool().submit(() -> {
                 try {
                     printPDF(client, handler, path);
                 } catch (IOException e) {
@@ -257,10 +236,10 @@ public class Helper {
             int byteLength = 0;
 
             while (!eof) {
-                JsonNode response = client.send("IO.read", params, true);
-                JsonNode eofNode = response.get(Constant.RECV_MESSAGE_STREAM_EOF_PROPERTY);
-                JsonNode base64EncodedNode = response.get(Constant.RECV_MESSAGE_BASE64ENCODED_PROPERTY);
-                JsonNode dataNode = response.get(Constant.RECV_MESSAGE_STREAM_DATA_PROPERTY);
+                JsonNode response = client.send("IO.read", params);
+                JsonNode eofNode = response.get(Constant.MESSAGE_EOF_PROPERTY);
+                JsonNode base64EncodedNode = response.get(Constant.MESSAGE_BASE64ENCODED_PROPERTY);
+                JsonNode dataNode = response.get(Constant.MESSAGE_STREAM_DATA_PROPERTY);
                 String dataText;
 
                 if (dataNode != null && StringUtil.isNotEmpty(dataText = dataNode.asText())) {
@@ -288,10 +267,8 @@ public class Helper {
                 }
                 eof = eofNode == null || eofNode.asBoolean();
             }
-            client.send("IO.close", params, true);
-
+            client.send("IO.close", params);
             return getBytes(bufs, byteLength);
-
         } finally {
             StreamUtil.closeQuietly(writer);
             StreamUtil.closeQuietly(reader);
@@ -330,25 +307,17 @@ public class Helper {
         }
         return sb.toString();
     }
-
-    public static Set<DefaultBrowserListener> getConcurrentSet() {
-        return new CopyOnWriteArraySet<>();
+    // 定义通用方法用于创建Observable
+    public static  <T, EventType> io.reactivex.rxjava3.core.Observable<T> fromEmitterEvent(EventEmitter<EventType> emitter, EventType eventType) {
+        return io.reactivex.rxjava3.core.Observable.create(subscriber -> {
+            if (!subscriber.isDisposed()) {
+                Consumer<T> listener = subscriber::onNext;
+                emitter.on(eventType, listener);
+                Disposable disposable = new CancellableDisposable(() -> emitter.off(eventType, listener));
+                subscriber.setDisposable(disposable);
+            }
+        });
     }
-
-    public static <T> BrowserListenerWrapper<T> addEventListener(EventEmitter emitter, String eventName, DefaultBrowserListener<T> handler) {
-        emitter.addListener(eventName, handler);
-        return new BrowserListenerWrapper<>(emitter, eventName, handler);
-    }
-
-    public static void removeEventListeners(List<BrowserListenerWrapper> eventListeners) {
-        if (ValidateUtil.isEmpty(eventListeners)) {
-            return;
-        }
-        for (BrowserListenerWrapper wrapper : eventListeners) {
-            wrapper.getEmitter().removeListener(wrapper.getEventName(), wrapper.getHandler());
-        }
-    }
-
     public static boolean isString(Object value) {
         if (value == null)
             return false;
@@ -388,7 +357,7 @@ public class Helper {
         Map<String, Object> params = new HashMap<>();
         params.put("objectId", remoteObject.getObjectId());
         try {
-            client.send("Runtime.releaseObject", params, isBlock);
+            client.send("Runtime.releaseObject", params,null, isBlock);
         } catch (Exception e) {
             // Exceptions might happen in case of a page been navigated or closed.
             //重新导航到某个网页 或者页面已经关闭
@@ -397,43 +366,7 @@ public class Helper {
         }
     }
 
-    public static void copyProperties(Object src, Object dest) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
-        Class<?> destClass = dest.getClass();
-        BeanInfo srcBean = Introspector.getBeanInfo(src.getClass());
-        PropertyDescriptor[] propertyDescriptors = srcBean.getPropertyDescriptors();
-        for (PropertyDescriptor descriptor : propertyDescriptors) {
-            PropertyDescriptor destDescriptor = new PropertyDescriptor(descriptor.getName(), destClass);
-            destDescriptor.getWriteMethod().invoke(dest, descriptor.getReadMethod().invoke(src));
-        }
-    }
 
-    public static Object waitForEvent(EventEmitter eventEmitter, String eventName, Predicate predicate, int timeout, String abortPromise) throws InterruptedException {
-        CountDownLatch latch = new CountDownLatch(1);
-        final Object[] result = {null};
-        DefaultBrowserListener listener = new DefaultBrowserListener() {
-            @Override
-            public void onBrowserEvent(Object event) {
-                if (!predicate.test(event))
-                    return;
-                result[0] = event;
-                latch.countDown();
-            }
-        };
-        listener.setMethod(eventName);
-        BrowserListenerWrapper wrapper = addEventListener(eventEmitter, eventName, listener);
-        try {
-            boolean await = latch.await(timeout, TimeUnit.MILLISECONDS);
-            if (!await) {
-                throw new RuntimeException(abortPromise);
-            }
-            return result[0];
-        } finally {
-            List<BrowserListenerWrapper> removes = new ArrayList<>();
-            removes.add(wrapper);
-            removeEventListeners(removes);
-        }
-
-    }
 
     public static String evaluationString(String fun, PageEvaluateType type, Object... args) {
         if (PageEvaluateType.STRING.equals(type)) {
@@ -455,27 +388,7 @@ public class Helper {
         return MessageFormat.format("({0})({1})", fun, String.join(",", argsList));
     }
 
-    public static ExecutorService commonExecutor() {
-        if (COMMON_EXECUTOR == null) {
-            synchronized (Helper.class) {
-                if (COMMON_EXECUTOR == null) {
-                    String customNum = System.getProperty(COMMONT_THREAD_POOL_NUM);
-                    int threadNum;
-                    if(StringUtil.isNotEmpty(customNum)){
-                        threadNum = Integer.parseInt(customNum);
-                    }else {
-                        threadNum = Math.max(1, Runtime.getRuntime().availableProcessors());
-                    }
-                    COMMON_EXECUTOR = new ThreadPoolExecutor(threadNum, threadNum, 30, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), new CommonThreadFactory());
-                }
-            }
-        }
-        return COMMON_EXECUTOR;
-    }
 
-    public static CompletionService completionService() {
-        return new ExecutorCompletionService(Helper.commonExecutor());
-    }
 
 
     /**
@@ -486,32 +399,6 @@ public class Helper {
     public static boolean isFunction(String pageFunction){
         pageFunction = pageFunction.trim();
         return pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>");
-    }
-
-    static class CommonThreadFactory implements ThreadFactory {
-        private static final AtomicInteger poolNumber = new AtomicInteger(1);
-        private final ThreadGroup group;
-        private final AtomicInteger threadNumber = new AtomicInteger(1);
-        private final String namePrefix;
-
-        CommonThreadFactory() {
-            SecurityManager s = System.getSecurityManager();
-            group = (s != null) ? s.getThreadGroup() :
-                    Thread.currentThread().getThreadGroup();
-            namePrefix = "jvppeteer-common-pool-" +
-                    poolNumber.getAndIncrement() +
-                    "-thread-";
-        }
-
-        public Thread newThread( Runnable r) {
-            Thread t = new Thread(group, r,
-                    namePrefix + threadNumber.getAndIncrement(),
-                    0);
-            t.setDaemon(true);
-            if (t.getPriority() != Thread.NORM_PRIORITY)
-                t.setPriority(Thread.NORM_PRIORITY);
-            return t;
-        }
     }
 
     /**
@@ -548,5 +435,13 @@ public class Helper {
             }
         }
         return String.valueOf(pid);
+    }
+
+    public static String createProtocolErrorMessage(JsonNode receivedNode) {
+        String message = receivedNode.get("error").get("message").asText();
+        if(receivedNode.hasNonNull("error") && receivedNode.get("error").hasNonNull("data")){
+            message += " " + receivedNode.get("error").get("data").asText();
+        }
+        return message;
     }
 }

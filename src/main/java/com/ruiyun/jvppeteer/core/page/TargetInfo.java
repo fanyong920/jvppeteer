@@ -3,25 +3,18 @@ package com.ruiyun.jvppeteer.core.page;
 public class TargetInfo {
 
 	private String targetId;
-
 	private String type;
-
 	private String title;
-
 	private String url;
-
 	private Boolean attached;
-
 	private String openerId;
-
+	private boolean canAccessOpener;
+	private String openerFrameId;
 	private String browserContextId;
-
+	private String subtype;
 	private String webSocketDebuggerUrl;
-
 	private String devtoolsFrontendUrl;
-
 	private String description;
-
 	public String getTargetId() {
 		return targetId;
 	}
@@ -101,6 +94,24 @@ public class TargetInfo {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	public String getSubtype() {
+		return subtype;
+	}
+	public void setSubtype(String subtype) {
+		this.subtype = subtype;
+	}
+	public String getOpenerFrameId() {
+		return openerFrameId;
+	}
+	public void setOpenerFrameId(String openerFrameId) {
+		this.openerFrameId = openerFrameId;
+	}
+	public boolean getCanAccessOpener() {
+		return canAccessOpener;
+	}
+	public void setCanAccessOpener(boolean canAccessOpener) {
+		this.canAccessOpener = canAccessOpener;
+	}
 
 	@Override
 	public String toString() {
@@ -111,7 +122,10 @@ public class TargetInfo {
 				", url='" + url + '\'' +
 				", attached=" + attached +
 				", openerId='" + openerId + '\'' +
+				", canAccessOpener=" + canAccessOpener +
+				", openerFrameId='" + openerFrameId + '\'' +
 				", browserContextId='" + browserContextId + '\'' +
+				", subtype='" + subtype + '\'' +
 				", webSocketDebuggerUrl='" + webSocketDebuggerUrl + '\'' +
 				", devtoolsFrontendUrl='" + devtoolsFrontendUrl + '\'' +
 				", description='" + description + '\'' +

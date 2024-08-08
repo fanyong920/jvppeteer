@@ -1,11 +1,12 @@
 package com.ruiyun.jvppeteer.protocol.runtime;
 
+import java.util.Map;
+
 /**
  * Detailed information about exception (or error) that was thrown during script compilation or
  * execution.
  */
 public class ExceptionDetails {
-
     /**
      * Exception id.
      */
@@ -42,6 +43,19 @@ public class ExceptionDetails {
      * Identifier of the context where exception happened.
      */
     private int executionContextId;
+
+    /**
+     * 包含客户端关联的元数据条目的字典 但此例外，例如有关关联网络的信息 请求等
+     */
+    private Map<String, Object> exceptionMetaData;
+
+    public Map<String, Object> getExceptionMetaData() {
+        return exceptionMetaData;
+    }
+
+    public void setExceptionMetaData(Map<String, Object> exceptionMetaData) {
+        this.exceptionMetaData = exceptionMetaData;
+    }
 
     public int getExceptionId() {
         return exceptionId;
