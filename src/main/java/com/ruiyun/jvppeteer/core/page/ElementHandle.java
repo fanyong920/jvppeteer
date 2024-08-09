@@ -3,10 +3,7 @@ package com.ruiyun.jvppeteer.core.page;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.Clip;
-import com.ruiyun.jvppeteer.options.ScreenshotOptions;
-import com.ruiyun.jvppeteer.options.Viewport;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.DOM.GetBoxModelReturnValue;
 import com.ruiyun.jvppeteer.protocol.input.BoxModel;
 import com.ruiyun.jvppeteer.protocol.input.ClickablePoint;
@@ -167,7 +164,7 @@ public class ElementHandle extends JSHandle {
      */
     public String screenshot(ScreenshotOptions options, boolean scrollIntoViewIfNeeded) throws IOException {
         boolean needsViewportReset = false;
-        Clip boundingBox = this.boundingBox();
+        ClipOverwrite boundingBox = this.boundingBox();
         ValidateUtil.assertArg(boundingBox != null, "Node is either not visible or not an HTMLElement");
         Viewport viewport = this.page.viewport();
         if (viewport != null && (boundingBox.getWidth() > viewport.getWidth() || boundingBox.getHeight() > viewport.getHeight())) {
@@ -189,7 +186,7 @@ public class ElementHandle extends JSHandle {
         JsonNode response = this.client.send("Page.getLayoutMetrics", null);
         double pageX = response.get("layoutViewport").get("pageX").asDouble();
         double pageY = response.get("layoutViewport").get("pageY").asDouble();
-        Clip clip = boundingBox;
+        ClipOverwrite clip = boundingBox;
         clip.setX(clip.getX() + pageX);
         clip.setY(clip.getY() + pageY);
 
@@ -428,7 +425,7 @@ public class ElementHandle extends JSHandle {
         this.page.keyboard().press(key, delay, text);
     }
 
-    public Clip boundingBox() {
+    public ClipOverwrite boundingBox() {
         GetBoxModelReturnValue result = this.getBoxModel();
         if (result == null)
             return null;
@@ -438,7 +435,7 @@ public class ElementHandle extends JSHandle {
         int width = Math.max(Math.max(Math.max(quad.get(0), quad.get(2)), quad.get(4)), quad.get(6)) - x;
         int height = Math.max(Math.max(Math.max(quad.get(1), quad.get(3)), quad.get(5)), quad.get(7)) - y;
 
-        return new Clip(x, y, width, height);
+        return new ClipOverwrite(x, y, width, height,1);
     }
 
     public void uploadFile(List<String> filePaths) {

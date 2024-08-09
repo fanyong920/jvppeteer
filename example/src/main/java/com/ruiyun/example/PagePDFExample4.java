@@ -24,11 +24,12 @@ public class PagePDFExample4 {
 
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
         //自动下载，第一次下载后不会再下载
-        BrowserFetcher.downloadIfNotExist(null);
+//        BrowserFetcher.downloadIfNotExist(null);
 
         ArrayList<String> arrayList = new ArrayList<>();
+        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
         //生成pdf必须在无厘头模式下才能生效
-        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).build();
+//        LaunchOptions options = new LaunchOptionsBuilder().withArgs(arrayList).withHeadless(true).build();
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);

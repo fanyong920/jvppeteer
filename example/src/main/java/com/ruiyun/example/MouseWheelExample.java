@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.page.ElementHandle;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.options.Clip;
+import com.ruiyun.jvppeteer.options.ClipOverwrite;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class MouseWheelExample {
         page.goTo("https://mdn.mozillademos.org/en-US/docs/Web/API/Element/wheel_event$samples/Scaling_an_element_via_the_wheel?revision=1587366");
 
         ElementHandle elem = page.$("div");
-        Clip boundingBox = elem.boundingBox();
+        ClipOverwrite boundingBox = elem.boundingBox();
 
         //鼠标移动到目标
         page.mouse().move(boundingBox.getX() + boundingBox.getWidth() / 2,

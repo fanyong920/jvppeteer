@@ -5,6 +5,7 @@ import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.core.page.Page;
+import com.ruiyun.jvppeteer.options.WaitForOptions;
 
 import java.util.ArrayList;
 
@@ -20,8 +21,9 @@ public class PageGotoExample {
         Browser browser = Puppeteer.launch(options);
         Browser browser2 = Puppeteer.launch(options);
         Page page = browser.newPage();
-        page.goTo("https://www.taobao.com/about/");
-        browser.close();
+        page.goTo("https://www.baidu.com/");
+        page.reload(new WaitForOptions());
+//        browser.close();
 
         Page page1 = browser2.newPage();
         page1.goTo("https://www.taobao.com/about/");

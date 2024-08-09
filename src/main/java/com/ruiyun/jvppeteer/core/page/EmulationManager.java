@@ -54,4 +54,16 @@ public class EmulationManager {
         this.hasTouch = hasTouch;
         return reloadNeeded;
     }
+    public void setTransparentBackgroundColor() {
+        Map<String, Object> params = new HashMap<>();
+        params.put("r", 0);
+        params.put("g", 0);
+        params.put("b", 0);
+        params.put("a", 0);
+        this.client.send("Emulation.setDefaultBackgroundColorOverride",params);
+    }
+
+    public void resetDefaultBackgroundColor() {
+        this.client.send("Emulation.setDefaultBackgroundColorOverride");
+    }
 }

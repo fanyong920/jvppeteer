@@ -1,11 +1,7 @@
 package com.ruiyun.jvppeteer.core.page;
 
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.GoToOptions;
-import com.ruiyun.jvppeteer.options.ScriptTagOptions;
-import com.ruiyun.jvppeteer.options.StyleTagOptions;
-import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
 import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.transport.CDPSession;
@@ -83,8 +79,8 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
         this.url = url;
     }
 
-    public Response waitForNavigation(GoToOptions options, CountDownLatch reloadLatch) {
-        return this.frameManager.waitForFrameNavigation(this, options, reloadLatch);
+    public Response waitForNavigation(WaitForOptions options, boolean reload) {
+        return this.frameManager.waitForFrameNavigation(this, options, reload);
     }
 
     public ExecutionContext executionContext() {

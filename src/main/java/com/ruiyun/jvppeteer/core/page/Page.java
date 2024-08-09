@@ -1,46 +1,5 @@
 package com.ruiyun.jvppeteer.core.page;
 
-import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_STREAM_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.supportedMetrics;
-
-import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.ProtocolException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.browser.Browser;
@@ -53,24 +12,11 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.NavigateException;
 import com.ruiyun.jvppeteer.exception.PageCrashException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.options.ClickOptions;
-import com.ruiyun.jvppeteer.options.Clip;
-import com.ruiyun.jvppeteer.options.ClipOverwrite;
-import com.ruiyun.jvppeteer.options.Device;
-import com.ruiyun.jvppeteer.options.PDFOptions;
-import com.ruiyun.jvppeteer.options.GoToOptions;
-import com.ruiyun.jvppeteer.options.ScreenshotOptions;
-import com.ruiyun.jvppeteer.options.ScriptTagOptions;
-import com.ruiyun.jvppeteer.options.StyleTagOptions;
-import com.ruiyun.jvppeteer.options.Viewport;
-import com.ruiyun.jvppeteer.options.VisionDeficiency;
-import com.ruiyun.jvppeteer.options.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.protocol.PageEvaluateType;
-import com.ruiyun.jvppeteer.protocol.DOM.Margin;
 import com.ruiyun.jvppeteer.protocol.console.Location;
 import com.ruiyun.jvppeteer.protocol.console.Payload;
 import com.ruiyun.jvppeteer.protocol.emulation.MediaFeature;
-import com.ruiyun.jvppeteer.protocol.emulation.ScreenOrientation;
 import com.ruiyun.jvppeteer.protocol.log.DialogType;
 import com.ruiyun.jvppeteer.protocol.log.EntryAddedEvent;
 import com.ruiyun.jvppeteer.protocol.network.Cookie;
@@ -91,16 +37,38 @@ import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
 import com.ruiyun.jvppeteer.protocol.webAuthn.Credentials;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.transport.Connection;
+import com.ruiyun.jvppeteer.util.AsyncDisposableStack;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.SingleSubject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import static com.ruiyun.jvppeteer.core.Constant.*;
 
 public class Page extends EventEmitter<Page.PageEvent> {
-
-    private static final ExecutorService reloadExecutor = Executors.newSingleThreadExecutor();
+    private static final Logger LOGGER = LoggerFactory.getLogger(Page.class);
     private final Set<FileChooserCallBack> fileChooserInterceptors;
     private boolean closed;
     private final CDPSession client;
@@ -164,7 +132,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         }});
         frameManagerHandlers.forEach(this.frameManager::on);
 
-       Map<NetworkManager.NetworkManagerEvent, Consumer<?>> networkManagerHandlers = Collections.unmodifiableMap(new HashMap<NetworkManager.NetworkManagerEvent, Consumer<?>>(){{
+        Map<NetworkManager.NetworkManagerEvent, Consumer<?>> networkManagerHandlers = Collections.unmodifiableMap(new HashMap<NetworkManager.NetworkManagerEvent, Consumer<?>>(){{
             put(NetworkManager.NetworkManagerEvent.Request, ((Consumer<Request>)(request) -> {
                 Page.this.emit(PageEvent.REQUEST, request);
             }));
@@ -177,9 +145,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
             put(NetworkManager.NetworkManagerEvent.RequestFailed, ((Consumer<Request>)(request) -> {
                 Page.this.emit(PageEvent.REQUESTFAILED, request);
             }));
-           put(NetworkManager.NetworkManagerEvent.RequestFinished, ((Consumer<Request>)(request) -> {
-               Page.this.emit(PageEvent.REQUESTFINISHED, request);
-           }));
+            put(NetworkManager.NetworkManagerEvent.RequestFinished, ((Consumer<Request>)(request) -> {
+                Page.this.emit(PageEvent.REQUESTFINISHED, request);
+            }));
         }});
         networkManagerHandlers.forEach((key, value) -> this.frameManager.networkManager().on(key, value));
         Map<CDPSession.CDPSessionEvent, Consumer<?>> sessionHandlers = Collections.unmodifiableMap(new HashMap<CDPSession.CDPSessionEvent, Consumer<?>>(){{
@@ -555,52 +523,193 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 备注 在OS X上 截图需要至少1/6秒。查看讨论：https://crbug.com/741689。
      *
      * @param options 截图选项
-     * @throws IOException 异常
      * @return 图片base64的字节
      */
-    public String screenshot(ScreenshotOptions options) throws IOException {
-        String screenshotType = null;
-        // options.type takes precedence over inferring the type from options.path
-        // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
-        if (StringUtil.isNotEmpty(options.getType())) {
-            ValidateUtil.assertArg("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
-            screenshotType = options.getType();
-        } else if (StringUtil.isNotEmpty(options.getPath())) {
-            String mimeType = Files.probeContentType(Paths.get(options.getPath()));
-            if ("image/png".equals(mimeType))
-                screenshotType = "png";
-            else if ("image/jpeg".equals(mimeType))
-                screenshotType = "jpeg";
-            ValidateUtil.assertArg(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
-        }
-
-        if (StringUtil.isEmpty(screenshotType))
-            screenshotType = "png";
-
-        if (options.getQuality() > 0) {
-            ValidateUtil.assertArg("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
-            ValidateUtil.assertArg(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
-        }
-
-        ValidateUtil.assertArg(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
-        if (options.getClip() != null) {
-            ValidateUtil.assertArg(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
-            ValidateUtil.assertArg(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
-        }
-
-        return (String) this.screenshotTaskQueue.postTask((type, op) -> {
-            try {
-                return screenshotTask(type, op);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+    public String screenshot(ScreenshotOptions options) {
+        this.bringToFront();
+        if(StringUtil.isEmpty(options.getType()) && StringUtil.isNotEmpty(options.getPath())){
+            String filePath = options.getPath();
+            String extension = filePath.substring(filePath.lastIndexOf('.') + 1).toLowerCase();
+            switch (extension) {
+                case "png":
+                    options.setType("png");
+                    break;
+                case "jpeg":
+                case "jpg":
+                    options.setType("jpeg");
+                    break;
+                case "webp":
+                    options.setType("webp");
+                    break;
             }
-        }, screenshotType, options);
+        }
+        if (options.getQuality() != 0) {
+            ValidateUtil.assertArg(options.getQuality() > 0 && options.getQuality() <= 100, "Expected quality ("+ options.getQuality()+") to be between 0 and 100 ,inclusive).");
+            ValidateUtil.assertArg(StringUtil.isNotEmpty(options.getType()) && Arrays.asList("jpeg","webp").contains(options.getType()),StringUtil.isEmpty(options.getType()) ? "png" : options.getType() + "screenshots do not support quality.");
+        }
+
+        if (options.getClip() != null) {
+            ValidateUtil.assertArg(options.getClip().getWidth() > 0,"'width' in 'clip' must be positive.");
+            ValidateUtil.assertArg(options.getClip().getHeight() > 0,"'height' in 'clip' must be positive.");
+        }
+        Viewport viewport = null;
+        try {
+            if(options.getClip() != null){
+                // If `captureBeyondViewport` is `false`, then we set the viewport to
+                // capture the full page. Note this may be affected by on-page CSS and
+                // JavaScript.
+                ValidateUtil.assertArg(!options.getFullPage(),"'clip' and 'fullPage' are mutually exclusive");
+                options.setClip(roundRectangle(normalizeRectangle(options.getClip())));
+            }else {
+                if(options.getFullPage()){
+                    if(!options.getCaptureBeyondViewport()){
+                        LinkedHashMap<String,Integer> scrollDimensions = (LinkedHashMap<String,Integer>)this.mainFrame().evaluate("() => {\n" +
+                                "              const element = document.documentElement;\n" +
+                                "              return {\n" +
+                                "                width: element.scrollWidth,\n" +
+                                "                height: element.scrollHeight,\n" +
+                                "              };\n" +
+                                "            }",null);
+
+                        viewport = this.viewport();
+                        viewport.setWidth(scrollDimensions.get("width"));
+                        viewport.setHeight(scrollDimensions.get("height"));
+                        this.setViewport(viewport);
+
+                    }
+                }else {
+                    options.setCaptureBeyondViewport(false);
+                }
+            }
+            return this._screenshot(options);
+        } catch (Exception e) {
+            LOGGER.error("_screenshot error: ",e);
+        }finally {
+            if (viewport != null) {
+                this.setViewport(viewport);
+            } else {
+                this.setViewport(new Viewport(0,0,1,false,false,false));
+            }
+        }
+        return "";
+
+
+
+
+//
+//        String screenshotType = null;
+//        // options.type takes precedence over inferring the type from options.path
+//        // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
+//        if (StringUtil.isNotEmpty(options.getType())) {
+//            ValidateUtil.assertArg("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
+//            screenshotType = options.getType();
+//        } else if (StringUtil.isNotEmpty(options.getPath())) {
+//            String mimeType = Files.probeContentType(Paths.get(options.getPath()));
+//            if ("image/png".equals(mimeType))
+//                screenshotType = "png";
+//            else if ("image/jpeg".equals(mimeType))
+//                screenshotType = "jpeg";
+//            ValidateUtil.assertArg(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
+//        }
+//
+//        if (StringUtil.isEmpty(screenshotType))
+//            screenshotType = "png";
+//
+//        if (options.getQuality() > 0) {
+//            ValidateUtil.assertArg("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
+//            ValidateUtil.assertArg(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
+//        }
+//
+//        ValidateUtil.assertArg(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
+//        if (options.getClip() != null) {
+//            ValidateUtil.assertArg(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
+//            ValidateUtil.assertArg(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
+//        }
+//
+//        return (String) this.screenshotTaskQueue.postTask((type, op) -> {
+//            try {
+//                return screenshotTask(type, op);
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            } catch (ExecutionException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }, screenshotType, options);
+    }
+    private String _screenshot(ScreenshotOptions options) {
+        Map<String, Object> params = new HashMap<>();
+        try {
+            if (options.getOmitBackground() && ( "png".equals(options.getType()) || "webp".equals(options.getType()))) {
+                this.emulationManager.setTransparentBackgroundColor();
+            }
+            if (options.getClip() != null && !options.getCaptureBeyondViewport()) {
+                LinkedHashMap<String,Integer> viewportNode =  (LinkedHashMap<String,Integer>)this.mainFrame().evaluate("() => {\n" +
+                        "          const {\n" +
+                        "            height,\n" +
+                        "            pageLeft: x,\n" +
+                        "            pageTop: y,\n" +
+                        "            width,\n" +
+                        "          } = window.visualViewport;\n" +
+                        "          return {x, y, height, width};\n" +
+                        "        }",null);
+                ClipOverwrite clip = getIntersectionRect(options.getClip(),viewportNode);
+                params.put("format", options.getType());
+                params.put("optimizeForSpeed", options.getOptimizeForSpeed());
+                params.put("quality", Math.round(options.getQuality()));
+                params.put("clip", clip);
+            }
+            JsonNode result = this.client.send("Page.captureScreenshot", params);
+            String data = result.get("data").asText();
+            byte[] buffer = Base64.getDecoder().decode(data);
+            if (StringUtil.isNotEmpty(options.getPath())) {
+                Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+            }
+            return data;
+        } catch (Exception var) {
+            LOGGER.error("_screenshot error: ",var);
+        }finally {
+            this.emulationManager.resetDefaultBackgroundColor();
+        }
+        return  null;
+    }
+    /** @see <a href="https://w3c.github.io/webdriver-bidi/#rectangle-intersection">href="https://w3c.github.io/webdriver-bidi/#rectangle-intersection</a>*/
+    private ClipOverwrite getIntersectionRect(ClipOverwrite clip, LinkedHashMap<String,Integer> viewport) {
+        double x = Math.max(clip.getX(), viewport.get("x"));
+        double y = Math.max(clip.getY(), viewport.get("y"));
+        return new ClipOverwrite(x,y,Math.max(Math.min(clip.getX() + clip.getWidth(), viewport.get("x") + viewport.get("width")) - x, 0),Math.max(
+                Math.min(clip.getY() + clip.getHeight(), viewport.get("y") + viewport.get("height")) - y, 0),1);
+    }
+    private ClipOverwrite roundRectangle(ClipOverwrite clip) {
+        double x = Math.round(clip.getX());
+        double y = Math.round(clip.getY());
+        double width = Math.round(clip.getWidth() + clip.getX() - x);
+        double height = Math.round(clip.getHeight() + clip.getY() - y);
+        ClipOverwrite screenshotClip = new ClipOverwrite(x,y,width,height,1);
+        screenshotClip.setScale(clip.getScale());
+        return screenshotClip;
     }
 
+    /** @see <a href="https://w3c.github.io/webdriver-bidi/#normalize-rect">href="https://w3c.github.io/webdriver-bidi/#normalize-rect</a>*/
+    private ClipOverwrite normalizeRectangle(ClipOverwrite clip) {
+        ClipOverwrite screenshotClip = new ClipOverwrite();
+        if(clip.getWidth() < 0){
+            screenshotClip.setX(clip.getX() + clip.getWidth());
+            screenshotClip.setWidth(-clip.getWidth());
+        }else {
+            screenshotClip.setX(clip.getX());
+            screenshotClip.setWidth(clip.getWidth());
+        }
+        if(clip.getHeight() < 0){
+            screenshotClip.setY(clip.getY() + clip.getHeight());
+            screenshotClip.setHeight(-clip.getHeight());
+        }else {
+            screenshotClip.setY(clip.getY());
+            screenshotClip.setHeight(clip.getHeight());
+        }
+        return screenshotClip;
+    }
     /**
      * 屏幕截图
      * @param path 截图文件全路径
@@ -740,9 +849,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
      * ${@link Page#goTo(String, GoToOptions,boolean)}
-     * ${@link Page#goBack(GoToOptions)}
-     * ${@link Page#goForward(GoToOptions)}
-     * ${@link Page#reload(GoToOptions)}
+     * ${@link Page#goBack(WaitForOptions)}
+     * ${@link Page#goForward(WaitForOptions)}
+     * ${@link Page#reload(WaitForOptions)}
      * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
@@ -789,7 +898,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @param latitude  经度 between -180 and 180.
      */
     public void setGeolocation(double longitude, double latitude ) {
-       this.setGeolocation(longitude,latitude,0);
+        this.setGeolocation(longitude,latitude,0);
     }
     /**
      * 是否启用js
@@ -825,55 +934,55 @@ public class Page extends EventEmitter<Page.PageEvent> {
         this.frameManager.networkManager().setRequestInterception(value);
     }
 
-    private String screenshotTask(String format, ScreenshotOptions options) throws IOException, ExecutionException, InterruptedException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("targetId", this.target.getTargetId());
-        this.client.send("Target.activateTarget", params);
-        ClipOverwrite clip = null;
-        if (options.getClip() != null) {
-            clip = processClip(options.getClip());
-        }
-        if (options.getFullPage()) {
-            JsonNode metrics = this.client.send("Page.getLayoutMetrics");
-            double width = Math.ceil(metrics.get("contentSize").get("width").asDouble());
-            double height = Math.ceil(metrics.get("contentSize").get("height").asDouble());
-            clip = new ClipOverwrite(0, 0, width, height, 1);
-            ScreenOrientation screenOrientation;
-            if (this.viewport.getIsLandscape()) {
-                screenOrientation = new ScreenOrientation(90, "landscapePrimary");
-            } else {
-                screenOrientation = new ScreenOrientation(0, "portraitPrimary");
-            }
-            params.clear();
-            params.put("mobile", this.viewport.getIsMobile());
-            params.put("width", width);
-            params.put("height", height);
-            params.put("deviceScaleFactor", this.viewport.getDeviceScaleFactor());
-            params.put("screenOrientation", screenOrientation);
-            this.client.send("Emulation.setDeviceMetricsOverride", params);
-        }
-        boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
-        if (shouldSetDefaultBackground) {
-            setTransparentBackgroundColor();
-        }
-        params.clear();
-        params.put("format", format);
-        params.put("quality", options.getQuality());
-        params.put("clip", clip);
-        JsonNode result = this.client.send("Page.captureScreenshot", params);
-        if (shouldSetDefaultBackground) {
-            this.client.send("Emulation.setDefaultBackgroundColorOverride");
-        }
-        if (options.getFullPage() && this.viewport != null)
-            this.setViewport(this.viewport);
-        String data = result.get("data").asText();
-//            byte[] buffer = decoder.decodeBuffer(data);
-        byte[] buffer = Base64.getDecoder().decode(data);
-        if (StringUtil.isNotEmpty(options.getPath())) {
-            Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        }
-        return data;
-    }
+//    private String screenshotTask(String format, ScreenshotOptions options) throws IOException{
+//        Map<String, Object> params = new HashMap<>();
+//        params.put("targetId", this.target.getTargetId());
+//        this.client.send("Target.activateTarget", params);
+//        ScreenshotClip clip = null;
+//        if (options.getClip() != null) {
+//            clip = processClip(options.getClip());
+//        }
+//        if (options.getFullPage()) {
+//            JsonNode metrics = this.client.send("Page.getLayoutMetrics");
+//            double width = Math.ceil(metrics.get("contentSize").get("width").asDouble());
+//            double height = Math.ceil(metrics.get("contentSize").get("height").asDouble());
+//            clip = new ScreenshotClip(0, 0, width, height, 1);
+//            ScreenOrientation screenOrientation;
+//            if (this.viewport.getIsLandscape()) {
+//                screenOrientation = new ScreenOrientation(90, "landscapePrimary");
+//            } else {
+//                screenOrientation = new ScreenOrientation(0, "portraitPrimary");
+//            }
+//            params.clear();
+//            params.put("mobile", this.viewport.getIsMobile());
+//            params.put("width", width);
+//            params.put("height", height);
+//            params.put("deviceScaleFactor", this.viewport.getDeviceScaleFactor());
+//            params.put("screenOrientation", screenOrientation);
+//            this.client.send("Emulation.setDeviceMetricsOverride", params);
+//        }
+//        boolean shouldSetDefaultBackground = options.getOmitBackground() && "png".equals(format);
+//        if (shouldSetDefaultBackground) {
+//            setTransparentBackgroundColor();
+//        }
+//        params.clear();
+//        params.put("format", format);
+//        params.put("quality", options.getQuality());
+//        params.put("clip", clip);
+//        JsonNode result = this.client.send("Page.captureScreenshot", params);
+//        if (shouldSetDefaultBackground) {
+//            this.client.send("Emulation.setDefaultBackgroundColorOverride");
+//        }
+//        if (options.getFullPage() && this.viewport != null)
+//            this.setViewport(this.viewport);
+//        String data = result.get("data").asText();
+////            byte[] buffer = decoder.decodeBuffer(data);
+//        byte[] buffer = Base64.getDecoder().decode(data);
+//        if (StringUtil.isNotEmpty(options.getPath())) {
+//            Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+//        }
+//        return data;
+//    }
 
     private void setTransparentBackgroundColor() {
         Map<String, Object> params = new HashMap<>();
@@ -1001,7 +1110,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         String payloadStr = event.getPayload();
         Payload payload;
         try {
-             payload = OBJECTMAPPER.readValue(payloadStr, Payload.class);
+            payload = OBJECTMAPPER.readValue(payloadStr, Payload.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -1392,7 +1501,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
     }
 
     public Response goBack() {
-        return this.go(-1, new GoToOptions());
+        return this.go(-1, new WaitForOptions());
     }
 
     /**
@@ -1410,12 +1519,12 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @param options 见上面注释
      * @return 响应
      */
-    public Response goBack(GoToOptions options) {
+    public Response goBack(WaitForOptions options) {
         return this.go(-1, options);
     }
 
     public Response goForward() {
-        return this.go(+1, new GoToOptions());
+        return this.go(+1, new WaitForOptions());
     }
 
     /**
@@ -1425,7 +1534,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @param options 可以看{@link Page#goTo(String, GoToOptions,boolean)}方法介绍
      * @return Response 响应
      */
-    public Response goForward(GoToOptions options) {
+    public Response goForward(WaitForOptions options) {
         return this.go(+1, options);
     }
 
@@ -1471,15 +1580,20 @@ public class Page extends EventEmitter<Page.PageEvent> {
         }
         return this.buildMetricsObject(metrics);
     }
-
+    /**
+     * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
+     * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
+     */
+    public byte[] pdf(PDFOptions options) {
+        return this.pdf(options,LengthUnit.IN);
+    }
     /**
      * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
      * @param path pdf存放的路径
-     * @throws IOException 异常
      */
-    public void pdf(String path) throws IOException {
-        this.pdf(new PDFOptions(path));
+    public void pdf(String path){
+        this.pdf(new PDFOptions(path),LengthUnit.IN);
     }
 
     /**
@@ -1488,46 +1602,49 @@ public class Page extends EventEmitter<Page.PageEvent> {
      *
      * @param options 选项
      * @return pdf文件的字节数组数据
-     * @throws IOException 异常
      */
-    public byte[] pdf(PDFOptions options) throws IOException {
+    public byte[] pdf(PDFOptions options,LengthUnit lengthUnit) {
         double paperWidth = 8.5;
         double paperHeight = 11;
-
-        if (StringUtil.isNotEmpty(options.getFormat())) {
-            PaperFormats format = PaperFormats.valueOf(options.getFormat().toLowerCase());
+        if (options.getFormat() != null) {
+            PaperFormats format = options.getFormat();
             paperWidth = format.getWidth();
             paperHeight = format.getHeight();
         } else {
-            Double width = convertPrintParameterToInches(options.getWidth());
+            Double width = convertPrintParameterToInches(options.getWidth(),lengthUnit);
             if (width != null) {
                 paperWidth = width;
             }
-            Double height = convertPrintParameterToInches(options.getHeight());
+            Double height = convertPrintParameterToInches(options.getHeight(),lengthUnit);
             if (height != null) {
                 paperHeight = height;
             }
         }
-
-        Margin margin = options.getMargin();
+        PDFMargin margin = options.getMargin();
         Number marginTop, marginLeft, marginBottom, marginRight;
-
-        if ((marginTop = convertPrintParameterToInches(margin.getTop())) == null) {
+        if ((marginTop = convertPrintParameterToInches(margin.getTop(),lengthUnit)) == null) {
             marginTop = 0;
         }
-
-        if ((marginLeft = convertPrintParameterToInches(margin.getLeft())) == null) {
+        if ((marginLeft = convertPrintParameterToInches(margin.getLeft(),lengthUnit)) == null) {
             marginLeft = 0;
         }
-
-        if ((marginBottom = convertPrintParameterToInches(margin.getBottom())) == null) {
+        if ((marginBottom = convertPrintParameterToInches(margin.getBottom(),lengthUnit)) == null) {
             marginBottom = 0;
         }
-
-        if ((marginRight = convertPrintParameterToInches(margin.getRight())) == null) {
+        if ((marginRight = convertPrintParameterToInches(margin.getRight(),lengthUnit)) == null) {
             marginRight = 0;
         }
+        if (options.getOutline()) {
+            options.setTagged(true);
+        }
+        if (options.getOmitBackground()) {
+            this.emulationManager.setTransparentBackgroundColor();
+        }
+        if(options.getWaitForFonts()){
+//            this.bringToFront();
+            Single.fromCallable(() -> this.mainFrame().evaluate("() => { return document.fonts.ready;}",null)).timeout(options.getTimeout(), TimeUnit.MILLISECONDS).blockingSubscribe();
 
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("transferMode", "ReturnAsStream");
         params.put("landscape", options.getLandscape());
@@ -1544,23 +1661,30 @@ public class Page extends EventEmitter<Page.PageEvent> {
         params.put("marginRight", marginRight);
         params.put("pageRanges", options.getPageRanges());
         params.put("preferCSSPageSize", options.getPreferCSSPageSize());
-        JsonNode result = this.client.send("Page.printToPDF", params);
+        params.put("generateTaggedPDF", options.getTagged());
+        params.put("generateDocumentOutline", options.getOutline());
 
-        if (result != null){
-            JsonNode handle = result.get(MESSAGE_STREAM_PROPERTY);
-            ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle. Please check your chrome version. result="+result.toString());
-            return (byte[])Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
+        //TODO TIMEOUT
+        JsonNode result = Single.fromCallable(() -> this.client.send("Page.printToPDF", params)).timeout(options.getTimeout(), TimeUnit.MILLISECONDS).blockingGet();
+        if (result == null){
+            throw new JvppeteerException("Page.printToPDF no response");
         }
-        throw new ProtocolException("Page.printToPDF no response");
+        JsonNode handle = result.get(MESSAGE_STREAM_PROPERTY);
+        ValidateUtil.assertArg(handle != null,"Page.printToPDF result has no stream handle. Please check your chrome version. result="+result);
+        try {
+            return (byte[])Helper.readProtocolStream(this.client, handle.asText(), options.getPath(), false);
+        } catch (IOException e) {
+            throw new JvppeteerException(e);
+        }
     }
 
     /**
      * 此方法会改变下面几个方法的默认30秒等待时间：
      * ${@link Page#goTo(String)}
      * ${@link Page#goTo(String, GoToOptions,boolean)}
-     * ${@link Page#goBack(GoToOptions)}
-     * ${@link Page#goForward(GoToOptions)}
-     * ${@link Page#reload(GoToOptions)}
+     * ${@link Page#goBack(WaitForOptions)}
+     * ${@link Page#goForward(WaitForOptions)}
+     * ${@link Page#reload(WaitForOptions)}
      * ${@link Page#waitForNavigation()}
      *
      * @param timeout 超时时间
@@ -1580,7 +1704,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         return context.queryObjects(prototypeHandle);
     }
 
-    private Double convertPrintParameterToInches(String parameter) {
+    private Double convertPrintParameterToInches(String parameter,LengthUnit lengthUnit) {
         if (StringUtil.isEmpty(parameter)) {
             return null;
         }
@@ -1588,7 +1712,6 @@ public class Page extends EventEmitter<Page.PageEvent> {
         if (Helper.isNumber(parameter)) {
             pixels = Double.parseDouble(parameter);
         } else if (parameter.endsWith("px") || parameter.endsWith("in") || parameter.endsWith("cm") || parameter.endsWith("mm")) {
-
             String unit = parameter.substring(parameter.length() - 2).toLowerCase();
             String valueText;
             if (unitToPixels.containsKey(unit)) {
@@ -1605,7 +1728,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         } else {
             throw new IllegalArgumentException("page.pdf() Cannot handle parameter type: " + parameter);
         }
-        return pixels / 96;
+        return pixels / unitToPixels.get(lengthUnit.getValue());
     }
 
     /**
@@ -1614,20 +1737,8 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @param options 与${@link Page#goTo(String, GoToOptions,boolean)}中的options是一样的配置
      * @return 响应
      */
-    public Response reload(GoToOptions options) {
-        CountDownLatch reloadLatch = new CountDownLatch(1);
-        Page.reloadExecutor.submit(() -> {
-            /*执行reload命令，不用等待返回*/
-            try {
-                reloadLatch.await();
-            } catch (InterruptedException e) {
-                throw  new RuntimeException(e);
-            }
-            this.client.send("Page.reload", null);
-        });
-
-        /*等待页面导航结果返回*/
-        return this.waitForNavigation(options,reloadLatch);
+    public Response reload(WaitForOptions options) {
+        return this.waitForNavigation(options,true);
     }
 
     private Metrics buildMetricsObject(List<Metric> metrics) {
@@ -1647,7 +1758,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         return result;
     }
 
-    private Response go(int delta, GoToOptions options) {
+    private Response go(int delta, WaitForOptions options) {
         JsonNode historyNode = this.client.send("Page.getNavigationHistory");
         GetNavigationHistoryReturnValue history;
         try {
@@ -1658,7 +1769,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         NavigationEntry entry = history.getEntries().get(history.getCurrentIndex() + delta);
         if (entry == null)
             return null;
-        Response response = this.waitForNavigation(options,null);
+        Response response = this.waitForNavigation(options,false);
         Map<String, Object> params = new HashMap<>();
         params.put("entryId", entry.getId());
         this.client.send("Page.navigateToHistoryEntry", params);
@@ -1673,7 +1784,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @return 响应
      */
     public Response waitForNavigation() {
-        return this.waitForNavigation(new GoToOptions(),null);
+        return this.waitForNavigation(new WaitForOptions(),false);
     }
 
     /**
@@ -1684,8 +1795,8 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @param options PageNavigateOptions
      * @return 响应
      */
-    public Response waitForNavigation(GoToOptions options) {
-        return this.frameManager.mainFrame().waitForNavigation(options,null);
+    public Response waitForNavigation(WaitForOptions options) {
+        return this.frameManager.mainFrame().waitForNavigation(options,false);
     }
 
     /**
@@ -1694,11 +1805,11 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 注意 通过 History API 改变地址会认为是一次跳转。
      *
      * @param options PageNavigateOptions
-     * @param reloadLatch reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
+     * @param reload reload页面，这个参数配合{@link Page#setViewport(Viewport)}中的reload方法使用
      * @return 响应
      */
-    private Response waitForNavigation(GoToOptions options, CountDownLatch reloadLatch) {
-        return this.frameManager.mainFrame().waitForNavigation(options,reloadLatch);
+    private Response waitForNavigation(WaitForOptions options, boolean reload) {
+        return this.frameManager.mainFrame().waitForNavigation(options,reload);
     }
 
     /**
@@ -1815,7 +1926,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * @return 文件选择器
      */
     public Future<FileChooser> waitForFileChooser() {
-       return this.waitForFileChooser(this.timeoutSettings.timeout());
+        return this.waitForFileChooser(this.timeoutSettings.timeout());
     }
 
     /**

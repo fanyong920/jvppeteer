@@ -8,10 +8,9 @@ import com.ruiyun.jvppeteer.events.FrameAttachedEvent;
 import com.ruiyun.jvppeteer.events.FrameDetachedEvent;
 import com.ruiyun.jvppeteer.events.FrameNavigatedEvent;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
-import com.ruiyun.jvppeteer.exception.NavigateException;
-import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.options.GoToOptions;
 import com.ruiyun.jvppeteer.options.PuppeteerLifeCycle;
+import com.ruiyun.jvppeteer.options.WaitForOptions;
 import com.ruiyun.jvppeteer.protocol.page.FramePayload;
 import com.ruiyun.jvppeteer.protocol.page.FrameStoppedLoadingEvent;
 import com.ruiyun.jvppeteer.protocol.page.LifecycleEvent;
@@ -23,16 +22,11 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
@@ -91,7 +85,8 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
         Frame frame = this.frames.get(event.getFrameId());
         if (frame == null)
             return;
-        frame.onLifecycleEvent(event.getLoaderId(), event.getName());
+        frame.
+                onLifecycleEvent(event.getLoaderId(), event.getName());
         this.emit(FrameManagerEvent.LifecycleEvent, frame);
         frame.emit(Frame.FrameEvent.LifecycleEvent,null);
     }
@@ -401,7 +396,11 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
             anyOfFuture1.whenComplete((ignore, throwable1) -> {
                 if (throwable1 == null) {//没有出错就是LifecycleWatcher没有接收到termination事件,那就看看是newDocumentNavigation还是sameDocumentNavigation,并等待它完成
                     CompletableFuture<Void> documentNavigationFuture = CompletableFuture.runAsync(() -> {
-                        throw new JvppeteerException(ensureNewDocumentNavigation.get() ? watcher.waitForNewDocumentNavigation() : watcher.waitForSameDocumentNavigation());
+                        if (ensureNewDocumentNavigation.get()) {
+                            watcher.waitForNewDocumentNavigation();
+                        } else {
+                            watcher.waitForSameDocumentNavigation();
+                        }
                     });
                     CompletableFuture<Object> anyOfFuture2 = CompletableFuture.anyOf(terminationFuture,documentNavigationFuture);
                     anyOfFuture2.whenComplete((ignore1, throwable2) -> {
@@ -461,58 +460,59 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
         return this.frames.get(frameId);
     }
 
-    public Response waitForFrameNavigation(Frame frame, GoToOptions options, CountDownLatch reloadLatch) {
+    public Response waitForFrameNavigation(Frame frame, WaitForOptions options, boolean reload) {
+        Integer timeout;
         List<PuppeteerLifeCycle> waitUntil;
-        int timeout;
+        boolean ignoreSameDocumentNavigation;
         if (options == null) {
+            ignoreSameDocumentNavigation = false;
             waitUntil = new ArrayList<>();
             waitUntil.add(PuppeteerLifeCycle.LOAD);
-            timeout = this.timeoutSettings.navigationTimeout();
+            timeout = this.getTimeoutSettings().navigationTimeout();
         } else {
             if (ValidateUtil.isEmpty(waitUntil = options.getWaitUntil())) {
                 waitUntil = new ArrayList<>();
                 waitUntil.add(PuppeteerLifeCycle.LOAD);
             }
-            if ((timeout = options.getTimeout()) < 0) {
+            if ((timeout = options.getTimeout()) == null) {
                 timeout = this.timeoutSettings.navigationTimeout();
             }
-            assertNoLegacyNavigationOptions(waitUntil);
+            ignoreSameDocumentNavigation = options.getIgnoreSameDocumentNavigation();
         }
-
-        this.documentNavigationPromiseType = "all";
-        this.setNavigateResult(null);
-
-        LifecycleWatcher watcher = new LifecycleWatcher(this.networkManager, frame, waitUntil, timeout);
-        if (watcher.waitForNewDocumentNavigation() != null) {
-            return watcher.navigationResponse();
-        }
-        if (watcher.waitForSameDocumentNavigation() != null) {
-            return watcher.navigationResponse();
-        }
+        LifecycleWatcher watcher = new LifecycleWatcher(frame.getFrameManager().getNetworkManager(),frame, waitUntil, timeout);
+        AtomicReference<Response> result = new AtomicReference<>();
         try {
-
-            this.documentLatch = new CountDownLatch(1);
-
-            //可以发出reload的信号
-            if(reloadLatch != null){
-                reloadLatch.countDown();
+            CompletableFuture<Void> terminationFuture = CompletableFuture.runAsync(() -> {
+                // 如果是reload页面，需要在等待之前发送刷新命令
+                if(reload){
+                    this. client.send("Page.reload", null, null,false);
+                }
+                watcher.waitForTermination();});
+            CompletableFuture<Void> sameDocumentNavigationFuture = null;
+            if(!ignoreSameDocumentNavigation){
+                sameDocumentNavigationFuture = CompletableFuture.runAsync(() -> {
+                    watcher.waitForSameDocumentNavigation();
+                });
             }
-
-            boolean await = documentLatch.await(timeout, TimeUnit.MILLISECONDS);
-            if (!await) {
-                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-            }
-            if (NavigateResult.SUCCESS.getResult().equals(navigateResult)) {
-                return watcher.navigationResponse();
-            } else if (NavigateResult.TIMEOUT.getResult().equals(navigateResult)) {
-                throw new TimeoutException("Navigation timeout of " + timeout + " ms exceeded");
-            } else if (NavigateResult.TERMINATION.getResult().equals(navigateResult)) {
-                throw new NavigateException("Navigating frame was detached");
-            } else {
-                throw new NavigateException("UnNokwn result " + navigateResult);
-            }
-        } catch (InterruptedException e) {
-            throw new NavigateException("UnNokwn result " + e.getMessage());
+            CompletableFuture<Void> newDocumentNavigationFuture = CompletableFuture.runAsync(() -> {
+                watcher.waitForNewDocumentNavigation();
+            });
+            CompletableFuture<Object> anyOfFutrue1 = sameDocumentNavigationFuture == null ? CompletableFuture.anyOf(terminationFuture, newDocumentNavigationFuture) : CompletableFuture.anyOf(terminationFuture, newDocumentNavigationFuture,sameDocumentNavigationFuture);
+            anyOfFutrue1.whenComplete(
+                    (ignore, throwable) -> {
+                        if (throwable != null){
+                            return;
+                        }
+                        CompletableFuture<Response> responseFuture = CompletableFuture.supplyAsync(watcher::navigationResponse);
+                        CompletableFuture<Object> anyOfFuture2 = CompletableFuture.anyOf(terminationFuture, responseFuture);
+                        anyOfFuture2.whenComplete((ignore1, throwable1) -> {
+                            result.set((Response) ignore1);
+                        });
+                        anyOfFuture2.join();
+                    }
+            );
+            anyOfFutrue1.join();
+            return result.get();
         } finally {
             watcher.dispose();
         }

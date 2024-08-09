@@ -23,8 +23,8 @@ public class LifecycleWatcher {
     private String initialLoaderId;
     private boolean hasSameDocumentNavigation;
     private final SingleSubject<Boolean> lifecycleSubject = SingleSubject.create();
-    private final SingleSubject<Exception> sameDocumentNavigationSubject = SingleSubject.create();
-    private final SingleSubject<Exception> newDocumentNavigationSubject = SingleSubject.create();
+    private final SingleSubject<Boolean> sameDocumentNavigationSubject = SingleSubject.create();
+    private final SingleSubject<Boolean> newDocumentNavigationSubject = SingleSubject.create();
     public SingleSubject<Exception> terminationSubject = SingleSubject.create();
     public SingleSubject<Boolean> navigationResponseReceived = SingleSubject.create();
     private boolean swapped = false;
@@ -107,10 +107,10 @@ public class LifecycleWatcher {
         this.swapped = true;
         this.checkLifecycleComplete();
     }
-    public Exception waitForSameDocumentNavigation() {
+    public boolean waitForSameDocumentNavigation() {
         return this.sameDocumentNavigationSubject.blockingGet();
     }
-    public Exception waitForNewDocumentNavigation() {
+    public boolean waitForNewDocumentNavigation() {
         return this.newDocumentNavigationSubject.blockingGet();
     }
     private void onRequest(Request request) {
@@ -136,9 +136,9 @@ public class LifecycleWatcher {
         if (!checkLifecycle(this.frame, this.expectedLifecycle)) return;
         this.lifecycleSubject.onSuccess(true);
         if (this.hasSameDocumentNavigation)
-            this.sameDocumentNavigationSubject.onSuccess(new JvppeteerException());
+            this.sameDocumentNavigationSubject.onSuccess(true);
         if (this.swapped || !this.frame.getLoaderId().equals(this.initialLoaderId))
-            this.newDocumentNavigationSubject.onSuccess(new JvppeteerException());
+            this.newDocumentNavigationSubject.onSuccess(true);
     }
     /**
      * @param  frame frame
@@ -167,6 +167,19 @@ public class LifecycleWatcher {
     public void dispose() {
         this.disposables.forEach(Disposable::dispose);
         this.terminationSubject.onSuccess(new JvppeteerException("LifecycleWatcher disposed"));
+        if(!this.lifecycleSubject.hasValue()){
+            this.lifecycleSubject.onSuccess(true);
+        }
+        if(!this.newDocumentNavigationSubject.hasValue()){
+            this.newDocumentNavigationSubject.onSuccess(true);
+        }
+        if(!this.sameDocumentNavigationSubject.hasValue()){
+            this.sameDocumentNavigationSubject.onSuccess(true);
+        }
+        if(!this.navigationResponseReceived.hasValue()){
+            this.navigationResponseReceived.onSuccess(true);
+        }
+
     }
     public Response navigationResponse() {
         Optional.ofNullable(this.navigationResponseReceived).ifPresent(Single::blockingSubscribe);
