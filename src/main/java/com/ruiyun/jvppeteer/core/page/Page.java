@@ -520,11 +520,12 @@ public class Page extends EventEmitter<Page.PageEvent> {
 
     /**
      * <p>截图</p>
-     * 备注 在OS X上 截图需要至少1/6秒。查看讨论：https://crbug.com/741689。
+     * 备注 在OS X上 截图需要至少1/6秒。：<a href="https://crbug.com/741689">查看讨论</a>。
      *
      * @param options 截图选项
      * @return 图片base64的字节
      */
+    @SuppressWarnings({"unchecked"})
     public String screenshot(ScreenshotOptions options) {
         this.bringToFront();
         if(StringUtil.isEmpty(options.getType()) && StringUtil.isNotEmpty(options.getPath())){
@@ -575,7 +576,6 @@ public class Page extends EventEmitter<Page.PageEvent> {
                         viewport.setWidth(scrollDimensions.get("width"));
                         viewport.setHeight(scrollDimensions.get("height"));
                         this.setViewport(viewport);
-
                     }
                 }else {
                     options.setCaptureBeyondViewport(false);
@@ -592,52 +592,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
             }
         }
         return "";
-
-
-
-
-//
-//        String screenshotType = null;
-//        // options.type takes precedence over inferring the type from options.path
-//        // because it may be a 0-length file with no extension created beforehand (i.e. as a temp file).
-//        if (StringUtil.isNotEmpty(options.getType())) {
-//            ValidateUtil.assertArg("png".equals(options.getType()) || "jpeg".equals(options.getType()), "Unknown options.type value: " + options.getType());
-//            screenshotType = options.getType();
-//        } else if (StringUtil.isNotEmpty(options.getPath())) {
-//            String mimeType = Files.probeContentType(Paths.get(options.getPath()));
-//            if ("image/png".equals(mimeType))
-//                screenshotType = "png";
-//            else if ("image/jpeg".equals(mimeType))
-//                screenshotType = "jpeg";
-//            ValidateUtil.assertArg(StringUtil.isNotEmpty(screenshotType), "Unsupported screenshot mime type: " + mimeType);
-//        }
-//
-//        if (StringUtil.isEmpty(screenshotType))
-//            screenshotType = "png";
-//
-//        if (options.getQuality() > 0) {
-//            ValidateUtil.assertArg("jpeg".equals(screenshotType), "options.quality is unsupported for the " + screenshotType + " screenshots");
-//            ValidateUtil.assertArg(options.getQuality() <= 100, "Expected options.quality to be between 0 and 100 (inclusive), got " + options.getQuality());
-//        }
-//
-//        ValidateUtil.assertArg(options.getClip() == null || !options.getFullPage(), "options.clip and options.fullPage are exclusive");
-//        if (options.getClip() != null) {
-//            ValidateUtil.assertArg(options.getClip().getWidth() != 0, "Expected options.clip.width not to be 0.");
-//            ValidateUtil.assertArg(options.getClip().getHeight() != 0, "Expected options.clip.height not to be 0.");
-//        }
-//
-//        return (String) this.screenshotTaskQueue.postTask((type, op) -> {
-//            try {
-//                return screenshotTask(type, op);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            } catch (InterruptedException e) {
-//                throw new RuntimeException(e);
-//            } catch (ExecutionException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }, screenshotType, options);
     }
+
+    @SuppressWarnings({"unchecked"})
     private String _screenshot(ScreenshotOptions options) {
         Map<String, Object> params = new HashMap<>();
         try {

@@ -45,7 +45,7 @@ public class ScreenshotOptions {
     /**
      * 捕获视口之外的屏幕截图。 如果没有 clip，则为 false。否则为 true
      */
-    boolean captureBeyondViewport = false;
+    boolean captureBeyondViewport = true;
 
     public ScreenshotOptions() {
         super();
