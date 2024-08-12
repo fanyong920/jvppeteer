@@ -587,8 +587,6 @@ public class Page extends EventEmitter<Page.PageEvent> {
         }finally {
             if (viewport != null) {
                 this.setViewport(viewport);
-            } else {
-                this.setViewport(new Viewport(0,0,1,false,false,false));
             }
         }
         return "";
