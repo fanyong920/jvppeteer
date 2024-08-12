@@ -4,33 +4,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.page.TargetInfo;
-import com.ruiyun.jvppeteer.events.AttachedToTargetEvent;
-import com.ruiyun.jvppeteer.events.DetachedFromTargetEvent;
-import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.events.ExceptionThrownEvent;
-import com.ruiyun.jvppeteer.events.FrameAttachedEvent;
-import com.ruiyun.jvppeteer.events.FrameDetachedEvent;
-import com.ruiyun.jvppeteer.events.FrameNavigatedEvent;
-import com.ruiyun.jvppeteer.events.StyleSheetAddedEvent;
-import com.ruiyun.jvppeteer.events.TargetCreatedEvent;
-import com.ruiyun.jvppeteer.events.TargetDestroyedEvent;
-import com.ruiyun.jvppeteer.events.TargetInfoChangedEvent;
-import com.ruiyun.jvppeteer.events.TracingCompleteEvent;
+import com.ruiyun.jvppeteer.events.*;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.protocol.debugger.ScriptParsedEvent;
 import com.ruiyun.jvppeteer.protocol.fetch.AuthRequiredEvent;
 import com.ruiyun.jvppeteer.protocol.fetch.RequestPausedEvent;
 import com.ruiyun.jvppeteer.protocol.log.EntryAddedEvent;
-import com.ruiyun.jvppeteer.protocol.network.LoadingFailedEvent;
-import com.ruiyun.jvppeteer.protocol.network.LoadingFinishedEvent;
-import com.ruiyun.jvppeteer.protocol.network.RequestServedFromCacheEvent;
-import com.ruiyun.jvppeteer.protocol.network.RequestWillBeSentEvent;
-import com.ruiyun.jvppeteer.protocol.network.ResponseReceivedEvent;
-import com.ruiyun.jvppeteer.protocol.page.FileChooserOpenedEvent;
-import com.ruiyun.jvppeteer.protocol.page.FrameStoppedLoadingEvent;
-import com.ruiyun.jvppeteer.protocol.page.JavascriptDialogOpeningEvent;
-import com.ruiyun.jvppeteer.protocol.page.LifecycleEvent;
-import com.ruiyun.jvppeteer.protocol.page.NavigatedWithinDocumentEvent;
+import com.ruiyun.jvppeteer.protocol.network.*;
+import com.ruiyun.jvppeteer.protocol.page.*;
 import com.ruiyun.jvppeteer.protocol.performance.MetricsEvent;
 import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledEvent;
 import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledEvent;
@@ -41,21 +22,13 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_ERROR_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_ID_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_MESSAGE_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_METHOD_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_PARAMS_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_RESULT_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_SESSION_ID_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.core.Constant.*;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
 
 /**
@@ -229,10 +202,10 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                 JsonNode typeNode = paramsNode.get(Constant.MESSAGE_TARGETINFO_PROPERTY).get(Constant.MESSAGE_TYPE_PROPERTY);
                 CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId,parentSessionId);
                 this.sessions.put(sessionId, cdpSession);
-                this.emit(CDPSession.CDPSessionEvent.sessionattached, cdpSession);
+                this.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
                 CDPSession parentSession = this.sessions.get(parentSessionId);
                 if(parentSession != null){
-                    parentSession.emit(CDPSession.CDPSessionEvent.sessionattached, cdpSession);
+                    parentSession.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
                 }
             } else if ("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
                 CDPSession cdpSession = this.sessions.get(sessionId);
@@ -260,7 +233,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                 }
             }else{//是一个事件，那么响应监听器
                 String finalMethod = method;
-                boolean match = Arrays.stream(CDPSession.CDPSessionEvent.values()).anyMatch((CDPSession.CDPSessionEvent event) -> event.getEventName().equals(finalMethod));
+                boolean match = CDPSession.eventStream.anyMatch((CDPSession.CDPSessionEvent event) -> event.getEventName().equals(finalMethod));
                 if(!match){//不匹配就是没有监听该事件
                     return;
                 }

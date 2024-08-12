@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.transport;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
@@ -11,11 +10,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_ID_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_METHOD_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.MESSAGE_PARAMS_PROPERTY;
-import static com.ruiyun.jvppeteer.core.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.core.Constant.*;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
 
 /**
@@ -26,7 +23,7 @@ import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
  * Useful links:
  *
  * Documentation on DevTools Protocol can be found here: DevTools Protocol Viewer.
- * Getting Started with DevTools Protocol: https://github.com/aslushnikov/getting-started-with-cdp/blob/master/README.md
+ * Getting Started with : <a href="https://github.com/aslushnikov/getting-started-with-cdp/blob/master/README.md">DevTools Protocol</a>
  */
 public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CDPSession.class);
@@ -35,6 +32,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     private final String sessionId;
     private Connection connection;
     private final String parentSessionId;
+    public static final Stream<CDPSessionEvent> eventStream = Arrays.stream(CDPSessionEvent.values());
     public CDPSession(Connection connection, String targetType, String sessionId,String parentSessionId) {
         super();
         this.targetType = targetType;
@@ -117,7 +115,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
             try {
                 if(methodNode != null) {//发射数据，执行事件的监听方法
                     String method = methodNode.asText();
-                    boolean match = Arrays.stream(CDPSessionEvent.values()).anyMatch((CDPSessionEvent event) -> event.getEventName().equals(methodNode.asText()));
+                    boolean match = eventStream.anyMatch((CDPSessionEvent event) -> event.getEventName().equals(methodNode.asText()));
                     if(!match){//不匹配就是没有监听该事件
                         return;
                     }
@@ -140,8 +138,8 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
         CDPSession_Disconnected("CDPSession.Disconnected"),
         CDPSession_Swapped("CDPSession.Swapped"),
         CDPSession_Ready("CDPSession.Ready"),
-        sessionattached("sessionattached"),
-        sessionDetached("sessionDetached"),
+        sessionAttached("sessionattached"),
+        sessionDetached("sessiondetached"),
         //暂时先放这里吧
         Page_domContentEventFired("Page.domContentEventFired"),
         Page_loadEventFired("Page.loadEventFired"),
