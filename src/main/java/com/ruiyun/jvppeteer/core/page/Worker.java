@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.events.ExceptionThrownEvent;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.options.TargetType;
 import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
 import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedEvent;
@@ -32,7 +33,7 @@ public class Worker {
     private final Consumer<ExceptionThrownEvent> exceptionThrown;
     private final ConsoleAPI consoleAPICalled;
 
-    public Worker(CDPSession client, String url, ConsoleAPI consoleAPICalled, Consumer<ExceptionThrownEvent> exceptionThrown) {
+    public Worker(CDPSession client, String url, String targetId, TargetType targetType, ConsoleAPI consoleAPICalled, Consumer<ExceptionThrownEvent> exceptionThrown) {
         super();
         this.client = client;
         this.url = url;

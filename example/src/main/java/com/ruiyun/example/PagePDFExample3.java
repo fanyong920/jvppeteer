@@ -47,14 +47,14 @@ public class PagePDFExample3 {
         page3.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3",goToOptions,true);
         ForkJoinPool.commonPool().submit(() -> {
             //page2.emulateVisionDeficiency(VisionDeficiency.DEUTERANOPIA);
-            page2.pdf("deuteranopia.pdf");
+            page2.pdf("2.pdf");
         });
         ForkJoinPool.commonPool().submit(() -> {
             //page3.emulateVisionDeficiency(VisionDeficiency.BLURREDVISION);
-            page3.pdf("blurred-vision.pdf");
+            page3.pdf("3.pdf");
         });
         //page.emulateVisionDeficiency(VisionDeficiency.ACHROMATOPSIA);
-        page.pdf("achromatopsia.pdf");
+        page.pdf("1.pdf");
 
 
 //        page.close();

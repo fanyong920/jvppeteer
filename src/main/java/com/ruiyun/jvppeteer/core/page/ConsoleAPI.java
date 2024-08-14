@@ -9,7 +9,5 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface ConsoleAPI{
-
     void call(String type, List<JSHandle> handles, StackTrace stackTrace);
-
 }

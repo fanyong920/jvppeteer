@@ -17,16 +17,16 @@ public class OnTargetCreatePage {
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
-        browser.onTargetcreated(target -> {
-            if("page".equals(target.type())){
-                Page page = target.page();
-                page.setRequestInterception(true);
-                page.onRequest(reqest -> {
-                    System.out.println("请求："+reqest.url());
-                    reqest.continueRequest();
-                });
-            }
-        });
+//        browser.onTargetcreated(target -> {
+//            if("page".equals(target.type())){
+//                Page page = target.page();
+//                page.setRequestInterception(true);
+//                page.onRequest(reqest -> {
+//                    System.out.println("请求："+reqest.url());
+//                    reqest.continueRequest();
+//                });
+//            }
+//        });
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         page.click("#s-top-left > a:nth-child(2)");

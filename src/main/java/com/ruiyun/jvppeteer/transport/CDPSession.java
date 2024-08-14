@@ -1,15 +1,17 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.sql.SQLOutput;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.ruiyun.jvppeteer.core.Constant.*;
@@ -32,7 +34,8 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     private final String sessionId;
     private Connection connection;
     private final String parentSessionId;
-    public static final Stream<CDPSessionEvent> eventStream = Arrays.stream(CDPSessionEvent.values());
+    private Target target;
+    private List<String> events = null;
     public CDPSession(Connection connection, String targetType, String sessionId,String parentSessionId) {
         super();
         this.targetType = targetType;
@@ -50,6 +53,9 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
         }else{
             return null;
         }
+    }
+    public void setTarget(Target target) {
+        this.target = target;
     }
     public void onClosed() {
         this.callbacks.clear();
@@ -115,10 +121,18 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
             try {
                 if(methodNode != null) {//发射数据，执行事件的监听方法
                     String method = methodNode.asText();
-                    boolean match = eventStream.anyMatch((CDPSessionEvent event) -> event.getEventName().equals(methodNode.asText()));
+                    if(events == null){
+                        events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
+                    }
+                    boolean match = events.contains(method);
                     if(!match){//不匹配就是没有监听该事件
                         return;
                     }
+//                    CDPSessionEvent cdpSessionEvent = CDPSessionEvent.valueOf(method.replace(".", "_"));
+//                    System.out.println("cdpSessionEvent="+cdpSessionEvent);
+//                    if(cdpSessionEvent.equals(CDPSession.CDPSessionEvent.Target_attachedToTarget) || cdpSessionEvent.equals(CDPSession.CDPSessionEvent.Target_targetCreated) || cdpSessionEvent.equals(CDPSession.CDPSessionEvent.Target_targetInfoChanged)){
+//                        System.out.println("CDP method="+method);
+//                    }
                     this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), Connection.classes.get(method) == null ? null : OBJECTMAPPER.treeToValue(paramsNode, Connection.classes.get(method)));
                 }
             } catch (Exception e) {
@@ -134,6 +148,15 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     public String id() {
         return this.sessionId;
     }
+
+    public Target getTarget() {
+        return target;
+    }
+
+    public List<ProtocolException> getPendingProtocolErrors(){
+        return this.callbacks.getPendingProtocolErrors();
+    }
+
     public enum CDPSessionEvent{
         CDPSession_Disconnected("CDPSession.Disconnected"),
         CDPSession_Swapped("CDPSession.Swapped"),

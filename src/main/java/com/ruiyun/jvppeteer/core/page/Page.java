@@ -85,7 +85,6 @@ public class Page extends EventEmitter<Page.PageEvent> {
     private final Coverage coverage;
     private boolean javascriptEnabled;
     private Viewport viewport;
-    private final TaskQueue<String> screenshotTaskQueue;
     private final Map<String, Worker> workers;
     private static final String ABOUT_BLANK = "about:blank";
     private final SingleSubject<Exception> sessionCloseSubject = SingleSubject.create();
@@ -100,7 +99,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         }
     };
 
-    public Page(CDPSession client, Target target, boolean ignoreHTTPSErrors, TaskQueue<String> screenshotTaskQueue) {
+    public Page(CDPSession client, Target target) {
         super();
         this.closed = false;
         this.client = client;
@@ -110,14 +109,13 @@ public class Page extends EventEmitter<Page.PageEvent> {
         this.timeoutSettings = new TimeoutSettings();
         this.touchscreen = new Touchscreen(client, keyboard);
         this.accessibility = new Accessibility(client);
-        this.frameManager = new FrameManager(client, this, ignoreHTTPSErrors, timeoutSettings);
+        this.frameManager = new FrameManager(client, this, timeoutSettings);
         this.emulationManager = new EmulationManager(client);
         this.tracing = new Tracing(client);
         this.pageBindings = new HashMap<>();
         this.coverage = new Coverage(client);
         this.javascriptEnabled = true;
         this.viewport = null;
-        this.screenshotTaskQueue = screenshotTaskQueue;
         this.workers = new HashMap<>();
         Map<FrameManager.FrameManagerEvent, Consumer<?>> frameManagerHandlers = Collections.unmodifiableMap(new HashMap<FrameManager.FrameManagerEvent, Consumer<?>>() {{
             put(FrameManager.FrameManagerEvent.FrameAttached, ((Consumer<Frame>) (frame) -> {
@@ -200,7 +198,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
                 return;
             }
             CDPSession session = Connection.fromSession(this.client).session(event.getSessionId());
-            Worker worker = new Worker(session, event.getTargetInfo().getUrl(), this::addConsoleMessage, this::handleException);
+            Worker worker = new Worker(session, event.getTargetInfo().getUrl(),event.getTargetInfo().getTargetId(),TargetType.valueOf(event.getTargetInfo().getType()), this::addConsoleMessage, this::handleException);
             this.workers().putIfAbsent(event.getSessionId(), worker);
             this.emit(PageEvent.WORKERCREATED, worker);
         });
@@ -514,7 +512,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
             Map<String, Object> params = new HashMap<>();
             params.put("targetId", this.target.getTargetId());
             this.client.getConnection().send("Target.closeTarget", params);
-            this.target.WaiforisClosedPromise();
+            this.target.waitForTargetClose();
         }
     }
 
@@ -997,15 +995,11 @@ public class Page extends EventEmitter<Page.PageEvent> {
      *
      * @param client              与页面通讯的客户端
      * @param target              目标
-     * @param ignoreHTTPSErrors   是否忽略https错误
      * @param viewport            视图
-     * @param screenshotTaskQueue 截图队列
      * @return 页面实例
-     * @throws ExecutionException 并发异常
-     * @throws InterruptedException 线程打断异常
      */
-    public static Page create(CDPSession client, Target target, boolean ignoreHTTPSErrors, Viewport viewport, TaskQueue<String> screenshotTaskQueue) throws ExecutionException, InterruptedException {
-        Page page = new Page(client, target, ignoreHTTPSErrors, screenshotTaskQueue);
+    public static Page create(CDPSession client, Target target, Viewport viewport)  {
+        Page page = new Page(client, target);
         page.initialize();
         if (viewport != null) {
             page.setViewport(viewport);

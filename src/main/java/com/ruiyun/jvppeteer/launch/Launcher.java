@@ -2,8 +2,9 @@ package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.core.Environment;
 import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.options.BrowserOptions;
-import com.ruiyun.jvppeteer.options.ChromeArgOptions;
+import com.ruiyun.jvppeteer.options.BrowserConnectOptions;
+import com.ruiyun.jvppeteer.options.BrowserLaunchArgumentOptions;
+import com.ruiyun.jvppeteer.options.ConnectOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 
@@ -14,13 +15,13 @@ public interface Launcher {
 	
 	Environment env = System::getenv;
 	
-	Browser launch(LaunchOptions options) throws IOException;
+	Browser launch(LaunchOptions options);
 
-	List<String> defaultArgs(ChromeArgOptions options);
+	List<String> defaultArgs(LaunchOptions options);
 	
 	String resolveExecutablePath(String chromeExecutable) throws IOException;
 	
-	Browser connect(BrowserOptions options, String browserWSEndpoint, String browserURL, ConnectionTransport transport);
+	Browser connect(ConnectOptions options);
 
 	String executablePath() throws IOException;
 }

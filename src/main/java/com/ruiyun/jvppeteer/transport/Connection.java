@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.core.Constant;
 import com.ruiyun.jvppeteer.core.page.TargetInfo;
 import com.ruiyun.jvppeteer.events.*;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.protocol.debugger.ScriptParsedEvent;
 import com.ruiyun.jvppeteer.protocol.fetch.AuthRequiredEvent;
 import com.ruiyun.jvppeteer.protocol.fetch.RequestPausedEvent;
@@ -22,11 +23,10 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.ruiyun.jvppeteer.core.Constant.*;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
@@ -37,7 +37,7 @@ import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
  * @author fff
  */
 public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> implements Consumer<String> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CallbackRegistry.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Connection.class);
     private final String url;
     private final ConnectionTransport transport;
     private final int delay;
@@ -46,6 +46,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     public boolean closed;
     Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
+    private List<String> events = null;
     public static final Map<String, Class<?>> classes = new HashMap<String, Class<?>>(){
         {
             for(CDPSession.CDPSessionEvent event : CDPSession.CDPSessionEvent.values()){
@@ -131,6 +132,9 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.timeout = timeout;
         this.transport.setConnection(this);
     }
+    public boolean isAutoAttached(String targetId) {
+        return !this.manuallyAttached.contains(targetId);
+    }
     public JsonNode send(String method) {
         return this.rawSend(this.callbacks, method, null, null, this.timeout, true);
     }
@@ -157,6 +161,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                 objectNode.put(MESSAGE_SESSION_ID_PROPERTY, sessionId);
             }
             String stringifiedMessage = objectNode.toString();
+           // System.out.println("jvppeteer:protocol:SEND ► {}"+stringifiedMessage);
             LOGGER.trace("jvppeteer:protocol:SEND ► {}", stringifiedMessage);
             this.transport.send(stringifiedMessage);
         }, isBlocking);
@@ -176,6 +181,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                 LOGGER.error("slowMo browser Fail:", e);
             }
         }
+        //System.out.println("jvppeteer:protocol:RECV ◀ {}"+message);
         LOGGER.trace("jvppeteer:protocol:RECV ◀ {}", message);
         try {
             if (StringUtil.isEmpty(message)) {
@@ -232,11 +238,16 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                     this.callbacks.resolve(id, readTree.get(MESSAGE_RESULT_PROPERTY));
                 }
             }else{//是一个事件，那么响应监听器
-                String finalMethod = method;
-                boolean match = CDPSession.eventStream.anyMatch((CDPSession.CDPSessionEvent event) -> event.getEventName().equals(finalMethod));
+                if(events == null){
+                    events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
+                }
+                boolean match = events.contains(method);
                 if(!match){//不匹配就是没有监听该事件
                     return;
                 }
+//                CDPSession.CDPSessionEvent cdpSessionEvent = CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_"));
+//                System.out.println("conntionevent="+cdpSessionEvent);
+
                 this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".","_")), classes.get(method) == null ? null : OBJECTMAPPER.treeToValue(paramsNode, classes.get(method)));
             }
         } catch (Exception e) {
@@ -316,5 +327,12 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.emit(CDPSession.CDPSessionEvent.CDPSession_Disconnected, null);
     }
 
+    public List<ProtocolException> getPendingProtocolErrors() {
+        List<ProtocolException> result = new ArrayList<>(this.callbacks.getPendingProtocolErrors());
+        for (CDPSession session : this.sessions.values()) {
+            result.addAll(session.getPendingProtocolErrors());
+        }
+        return result;
+    }
 }
 

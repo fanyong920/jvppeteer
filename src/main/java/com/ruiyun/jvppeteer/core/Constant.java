@@ -46,7 +46,6 @@ public interface Constant {
 	 * 读取流中的数据的buffer size
 	 */
 	int DEFAULT_BUFFER_SIZE  = 8 * 1024;
-
 	/**
 	 * 启动浏览器时，如果没有指定路径，那么会从以下路径搜索可执行的路径
 	 */
@@ -68,7 +67,8 @@ public interface Constant {
 	List<String> DEFAULT_ARGS = Collections.unmodifiableList(new ArrayList<String>() {
 		private static final long serialVersionUID = 1L;
 		{addAll(Arrays.asList(
-				"--disable-background-networking",
+				//旧版
+				/*"--disable-background-networking",
 				"--disable-background-timer-throttling",
 				"--disable-breakpad",
 				"--disable-browser-side-navigation",
@@ -86,6 +86,34 @@ public interface Constant {
 				"--no-first-run",
 				"--safebrowsing-disable-auto-update",
 				"--enable-automation",
+				"--password-store=basic",
+				"--use-mock-keychain"*/
+				//新版
+				"--allow-pre-commit-input",
+				"--disable-background-networking",
+				"--disable-background-timer-throttling",
+				"--disable-backgrounding-occluded-windows",
+				"--disable-breakpad",
+				"--disable-client-side-phishing-detection",
+				"--disable-component-extensions-with-background-pages",
+				"--disable-component-update",
+				"--disable-default-apps",
+				"--disable-dev-shm-usage",
+				"--disable-extensions",
+				"--disable-hang-monitor",
+				"--disable-infobars",
+				"--disable-ipc-flooding-protection",
+				"--disable-popup-blocking",
+				"--disable-prompt-on-repost",
+				"--disable-renderer-backgrounding",
+				"--disable-search-engine-choice-screen",
+				"--disable-sync",
+				"--enable-automation",
+				"--export-tagged-pdf",
+				"--generate-pdf-document-outline",
+				"--force-color-profile=srgb",
+				"--metrics-recording-only",
+				"--no-first-run",
 				"--password-store=basic",
 				"--use-mock-keychain"));}
 	});
@@ -161,9 +189,4 @@ public interface Constant {
 			add("disabled-by-default-v8.cpu_profiler.hires");
 		}
 	};
-
-	/**
-	 * 内置线程池的数量
-	 */
-	String COMMONT_THREAD_POOL_NUM = "jvppeteer_common_thread_number";
 }

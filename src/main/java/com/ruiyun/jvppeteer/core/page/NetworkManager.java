@@ -32,7 +32,6 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
      */
     private final CDPSession client;
 
-    private final boolean ignoreHTTPSErrors;
 
     private final FrameManager frameManager;
 
@@ -56,9 +55,8 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
 
     private final Map<String, String> requestIdToInterceptionId;
 
-    public NetworkManager(CDPSession client, boolean ignoreHTTPSErrors, FrameManager frameManager) {
+    public NetworkManager(CDPSession client, FrameManager frameManager) {
         this.client = client;
-        this.ignoreHTTPSErrors = ignoreHTTPSErrors;
         this.frameManager = frameManager;
         this.requestIdToRequest = new HashMap<>();
         this.requestIdToRequestWillBeSentEvent = new HashMap<>();
@@ -93,12 +91,6 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
 
     public void initialize() {
         this.client.send("Network.enable");
-        if (this.ignoreHTTPSErrors) {
-            Map<String, Object> params = new HashMap<>();
-            params.put("ignore", true);
-            this.client.send("Security.setIgnoreCertificateErrors", params);
-        }
-
     }
 
     public void authenticate(Credentials credentials) {

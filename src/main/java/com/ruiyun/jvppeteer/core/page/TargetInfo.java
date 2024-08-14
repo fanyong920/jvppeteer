@@ -12,9 +12,7 @@ public class TargetInfo {
 	private String openerFrameId;
 	private String browserContextId;
 	private String subtype;
-	private String webSocketDebuggerUrl;
-	private String devtoolsFrontendUrl;
-	private String description;
+
 	public String getTargetId() {
 		return targetId;
 	}
@@ -71,29 +69,6 @@ public class TargetInfo {
 		this.browserContextId = browserContextId;
 	}
 
-	public String getWebSocketDebuggerUrl() {
-		return webSocketDebuggerUrl;
-	}
-
-	public void setWebSocketDebuggerUrl(String webSocketDebuggerUrl) {
-		this.webSocketDebuggerUrl = webSocketDebuggerUrl;
-	}
-
-	public String getDevtoolsFrontendUrl() {
-		return devtoolsFrontendUrl;
-	}
-
-	public void setDevtoolsFrontendUrl(String devtoolsFrontendUrl) {
-		this.devtoolsFrontendUrl = devtoolsFrontendUrl;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
 	public String getSubtype() {
 		return subtype;
 	}
@@ -113,22 +88,4 @@ public class TargetInfo {
 		this.canAccessOpener = canAccessOpener;
 	}
 
-	@Override
-	public String toString() {
-		return "TargetInfo{" +
-				"targetId='" + targetId + '\'' +
-				", type='" + type + '\'' +
-				", title='" + title + '\'' +
-				", url='" + url + '\'' +
-				", attached=" + attached +
-				", openerId='" + openerId + '\'' +
-				", canAccessOpener=" + canAccessOpener +
-				", openerFrameId='" + openerFrameId + '\'' +
-				", browserContextId='" + browserContextId + '\'' +
-				", subtype='" + subtype + '\'' +
-				", webSocketDebuggerUrl='" + webSocketDebuggerUrl + '\'' +
-				", devtoolsFrontendUrl='" + devtoolsFrontendUrl + '\'' +
-				", description='" + description + '\'' +
-				'}';
-	}
 }

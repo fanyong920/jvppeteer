@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.ruiyun.jvppeteer.core.Environment;
 
-public class LaunchOptions extends BrowserOptions {
+public class LaunchOptions extends BrowserConnectOptions {
 
 	public LaunchOptions() {
 		super();
@@ -30,7 +30,6 @@ public class LaunchOptions extends BrowserOptions {
 	private List<String> ignoreDefaultArgs;
 	
 	/**
-
 	 * Close chrome process on Ctrl-C.
 	 * 默认是true
 	 */
@@ -55,7 +54,7 @@ public class LaunchOptions extends BrowserOptions {
 	 * process.stderr.
 	 * 默认是 false
 	 */
-	private boolean dumpio ;
+	private boolean dumpio = false ;
 	  
 	 /**
 	  * ָSystem.getEnv()
@@ -76,7 +75,11 @@ public class LaunchOptions extends BrowserOptions {
 	 * chrome or firefox
 	 */
 	private String product;
-
+	/**
+	 * Whether to wait for the initial page to be ready.
+	 * Useful when a user explicitly disables that (e.g. `--no-startup-window` for Chrome).
+	 */
+	private boolean waitForInitialPage = true;
 
 	public String getExecutablePath() {
 		return executablePath;
@@ -85,8 +88,6 @@ public class LaunchOptions extends BrowserOptions {
 	public void setExecutablePath(String executablePath) {
 		this.executablePath = executablePath;
 	}
-
-	
 
 	public boolean getIgnoreAllDefaultArgs() {
 		return ignoreAllDefaultArgs;
@@ -159,6 +160,13 @@ public class LaunchOptions extends BrowserOptions {
 	public void setProduct(String product) {
 		this.product = product;
 	}
-	 
+
+	public boolean getWaitForInitialPage() {
+		return waitForInitialPage;
+	}
+
+	public void setWaitForInitialPage(boolean waitForInitialPage) {
+		this.waitForInitialPage = waitForInitialPage;
+	}
 	 
 }

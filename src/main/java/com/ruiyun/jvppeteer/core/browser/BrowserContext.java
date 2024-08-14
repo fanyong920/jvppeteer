@@ -3,7 +3,8 @@ package com.ruiyun.jvppeteer.core.browser;
 import com.ruiyun.jvppeteer.core.page.Page;
 import com.ruiyun.jvppeteer.core.page.Target;
 import com.ruiyun.jvppeteer.events.EventEmitter;
-import com.ruiyun.jvppeteer.options.ChromeArgOptions;
+import com.ruiyun.jvppeteer.options.BrowserLaunchArgumentOptions;
+import com.ruiyun.jvppeteer.options.TargetType;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * 浏览器上下文
  */
-public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
+public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEvent> {
 
 	/**
 	 *  浏览器对应的websocket client包装类，用于发送和接受消息
@@ -40,24 +41,28 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 		super();
 	}
 
-	private static final Map<String,String> webPermissionToProtocol = new HashMap<>(32);
+	private static final Map<String,String> WEB_PERMISSION_TO_PROTOCOL_PERMISSION = new HashMap<>(32);
 
 	static {
-		webPermissionToProtocol.put("geolocation","geolocation");
-		webPermissionToProtocol.put("midi","midi");
-		webPermissionToProtocol.put("notifications","notifications");
-		webPermissionToProtocol.put("push","push");
-		webPermissionToProtocol.put("camera","videoCapture");
-		webPermissionToProtocol.put("microphone","audioCapture");
-		webPermissionToProtocol.put("background-sync","backgroundSync");
-		webPermissionToProtocol.put("ambient-light-sensor","sensors");
-		webPermissionToProtocol.put("accelerometer","sensors");
-		webPermissionToProtocol.put("gyroscope","sensors");
-		webPermissionToProtocol.put("magnetometer","sensors");
-		webPermissionToProtocol.put("accessibility-events","accessibilityEvents");
-		webPermissionToProtocol.put("clipboard-read","clipboardRead");
-		webPermissionToProtocol.put("payment-handler","paymentHandler");
-		webPermissionToProtocol.put("midi-sysex","midiSysex");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("geolocation","geolocation");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("midi","midi");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("notifications","notifications");
+//		webPermissionToProtocol.put("push","push");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("camera","videoCapture");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("microphone","audioCapture");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("background-sync","backgroundSync");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("ambient-light-sensor","sensors");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("accelerometer","sensors");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("gyroscope","sensors");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("magnetometer","sensors");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("accessibility-events","accessibilityEvents");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("clipboard-read","clipboardReadWrite");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("clipboard-write","clipboardReadWrite");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("clipboard-sanitized-write","clipboardSanitizedWrite");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("payment-handler","paymentHandler");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("persistent-storage","durableStorage");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("idle-detection","idleDetection");
+		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("midi-sysex","midiSysex");
 	}
 	public BrowserContext(Connection connection, Browser browser, String contextId) {
 		super();
@@ -73,7 +78,7 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 	 * @param handler 事件处理器
 	 */
 	public void onTargetchanged(Consumer<Target> handler) {
-		this.on(Browser.BrowserEvent.TARGETCHANGED, handler);
+		this.on(BrowserContextEvent.TargetChanged, handler);
 	}
 
 	/**
@@ -83,7 +88,7 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 	 * @param handler 事件处理器
 	 */
 	public void onTrgetcreated(Consumer<Target> handler) {
-		this.on(Browser.BrowserEvent.TARGETCREATED, handler);
+		this.on(BrowserContextEvent.TargetCreated, handler);
 	}
 
 	public void clearPermissionOverrides() {
@@ -104,7 +109,7 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 	}
 	public void overridePermissions(String origin, List<String> permissions) {
 		permissions.replaceAll(item -> {
-			String protocolPermission = webPermissionToProtocol.get(item);
+			String protocolPermission = WEB_PERMISSION_TO_PROTOCOL_PERMISSION.get(item);
 			ValidateUtil.assertArg(protocolPermission != null,"Unknown permission: "+item);
 			return  protocolPermission;
 		});
@@ -115,7 +120,7 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 		this.connection.send("Browser.grantPermissions", params);
 	}
 	public List<Page> pages(){
-		return this.targets().stream().filter(target -> "page".equals(target.type())).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
+		return this.targets().stream().filter(target -> TargetType.PAGE.equals(target.type())).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 	/**
 	 * @return 目标的集合
@@ -124,8 +129,8 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 		return this.browser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());
 	}
 
-	public Target waitForTarget(Predicate<Target> predicate, ChromeArgOptions options) {
-		return this.browser.waitForTarget(target -> target.browserContext() == this && predicate.test(target),options);
+	public Target waitForTarget(Predicate<Target> predicate, BrowserLaunchArgumentOptions options) {
+		return this.browser.waitForTarget(target -> target.browserContext() == this && predicate.test(target),options.getTimeout());
 	}
 
 
@@ -159,6 +164,18 @@ public class BrowserContext extends EventEmitter<Browser.BrowserEvent> {
 
 	public void setId(String id) {
 		this.id = id;
+	}
+	public enum BrowserContextEvent {
+		TargetChanged("targetChanged"),
+		TargetCreated("targetCreated"),
+		TargetDestroyed("targetDestroyed");
+		private String eventName;
+		BrowserContextEvent(String eventName) {
+			this.eventName = eventName;
+		}
+		public String getEventName() {
+			return eventName;
+		}
 	}
 
 }

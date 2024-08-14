@@ -23,23 +23,22 @@ public class BrowserFunctionExample {
         String wsEndpoint = browser.wsEndpoint();
         System.out.println("browser.wsEndpoint(): "+browser.wsEndpoint());
         System.out.println("browser.version():"+browser.version());
-        System.out.println("isConnected: "+ browser.isConnected());
-
-        BrowserContext incognitoBrowserContext = browser.createIncognitoBrowserContext();
-        Collection<BrowserContext> browserContexts = browser.browserContexts();
-        System.out.println(browserContexts.size());
-
-        for (BrowserContext browserContext : browserContexts) {
-            //defaultcontext没有id
-            if(StringUtil.isNotEmpty(browserContext.getId()))
-                browser.disposeContext(browserContext.getId());
-        }
-        browser.onDisconnected((s) -> System.out.println("我是浏览器事件监听，现在监听到 disconnected"));
-        browser.disconnect();
-        System.out.println("isConnected: "+ browser.isConnected());
-
-        //重新连接
-        Browser connect = Puppeteer.connect(wsEndpoint);
+        System.out.println("isConnected: "+ browser.connected());
+//
+//        BrowserContext incognitoBrowserContext = browser.createBrowserContext();
+//        Collection<BrowserContext> browserContexts = browser.browserContexts();
+//        System.out.println(browserContexts.size());
+//
+//        for (BrowserContext browserContext : browserContexts) {
+//            //defaultcontext没有id
+//            if(StringUtil.isNotEmpty(browserContext.getId()))
+//                browser.disposeContext(browserContext.getId());
+//        }
+//        browser.disconnect();
+//        System.out.println("isConnected: "+ browser.connected());
+//
+//        //重新连接
+//        Browser connect = Puppeteer.connect(wsEndpoint);
 
 
 //        browser.pages()

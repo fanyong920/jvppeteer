@@ -27,7 +27,7 @@ public class PageSelectExample {
         Viewport viewport = new Viewport();
         viewport.setHeight(1080);
         viewport.setWidth(1920);
-        options.setViewport(viewport);
+        options.setDefaultViewport(viewport);
         //获取当前classPath
         String classPath = PageSelectExample.class.getResource("/").toString();
         Browser browser = Puppeteer.launch(options);

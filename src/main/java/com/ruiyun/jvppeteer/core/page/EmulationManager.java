@@ -23,25 +23,25 @@ public class EmulationManager implements ClientProvider  {
 
     private boolean hasTouch = false;
 
-    EmulatedState<ViewportState> viewportState = new EmulatedState<>(new ViewportState(false, null), this, this.applyViewport);
+    private EmulatedState<ViewportState> viewportState = new EmulatedState<>(new ViewportState(false, null), this, this.applyViewport);
 
-    EmulatedState<IdleOverridesState> idleOverridesState = new EmulatedState<>(new IdleOverridesState(false), this, this.emulateIdleState);
+    private EmulatedState<IdleOverridesState> idleOverridesState = new EmulatedState<>(new IdleOverridesState(false), this, this.emulateIdleState);
 
-    EmulatedState<TimezoneState> timezoneState = new EmulatedState<>(new TimezoneState(false), this, this.emulateTimezone);
+    private EmulatedState<TimezoneState> timezoneState = new EmulatedState<>(new TimezoneState(false), this, this.emulateTimezone);
 
-    EmulatedState<VisionDeficiencyState> visionDeficiencyState = new EmulatedState<>(new VisionDeficiencyState(false), this, this.emulateVisionDeficiency);
+    private EmulatedState<VisionDeficiencyState> visionDeficiencyState = new EmulatedState<>(new VisionDeficiencyState(false), this, this.emulateVisionDeficiency);
 
-    EmulatedState<CpuThrottlingState> cpuThrottlingState = new EmulatedState<>(new CpuThrottlingState(false), this, this.emulateCpuThrottling);
+    private  EmulatedState<CpuThrottlingState> cpuThrottlingState = new EmulatedState<>(new CpuThrottlingState(false), this, this.emulateCpuThrottling);
 
-    EmulatedState<MediaFeaturesState> mediaFeaturesState = new EmulatedState<>(new MediaFeaturesState(false, null), this, this.emulateMediaFeatures);
+    private EmulatedState<MediaFeaturesState> mediaFeaturesState = new EmulatedState<>(new MediaFeaturesState(false, null), this, this.emulateMediaFeatures);
 
-    EmulatedState<MediaTypeState> mediaTypeState = new EmulatedState<>(new MediaTypeState(false, null), this, this.emulateMediaType);
+    private EmulatedState<MediaTypeState> mediaTypeState = new EmulatedState<>(new MediaTypeState(false, null), this, this.emulateMediaType);
 
-    EmulatedState<GeoLocationState> geoLocationState = new EmulatedState<>(new GeoLocationState(false, null), this, this.setGeolocation);
+    private EmulatedState<GeoLocationState> geoLocationState = new EmulatedState<>(new GeoLocationState(false, null), this, this.setGeolocation);
 
-    EmulatedState<DefaultBackgroundColorState> defaultBackgroundColorState = new EmulatedState<>(new DefaultBackgroundColorState(false, null), this, this.setDefaultBackgroundColor);
+    private EmulatedState<DefaultBackgroundColorState> defaultBackgroundColorState = new EmulatedState<>(new DefaultBackgroundColorState(false, null), this, this.setDefaultBackgroundColor);
 
-    EmulatedState<JavascriptEnabledState> javascriptEnabledState = new EmulatedState<>(new JavascriptEnabledState(false, true), this, this.setJavaScriptEnabled);
+    private EmulatedState<JavascriptEnabledState> javascriptEnabledState = new EmulatedState<>(new JavascriptEnabledState(false, true), this, this.setJavaScriptEnabled);
 
     public EmulationManager(CDPSession client) {
         this.client = client;
@@ -61,7 +61,7 @@ public class EmulationManager implements ClientProvider  {
     public List<CDPSession> clients() {
         List<CDPSession> cdpSessionList = new ArrayList<>();
         cdpSessionList.add(this.client);
-        cdpSessionList.addAll(secondaryClients);
+        cdpSessionList.addAll(this.secondaryClients);
         return cdpSessionList;
     }
 
@@ -99,7 +99,7 @@ public class EmulationManager implements ClientProvider  {
         return reloadNeeded;
     }
 
-    private final Updater<ViewportState> applyViewport = (client, viewportState) -> {
+    private static final Updater<ViewportState> applyViewport = (client, viewportState) -> {
         if (viewportState.getViewport() == null) {
             client.send("Emulation.setDeviceMetricsOverride");
             client.send("Emulation.setTouchEmulationEnabled", new HashMap<String,Object>(){{
@@ -142,7 +142,7 @@ public class EmulationManager implements ClientProvider  {
         this.idleOverridesState.setState(new IdleOverridesState(true,overrides));
     }
 
-    private final Updater<IdleOverridesState> emulateIdleState = (client, idleStateState) ->
+    private static final Updater<IdleOverridesState> emulateIdleState = (client, idleStateState) ->
     {
         if (!idleStateState.getActive()) {
             return;
@@ -157,7 +157,7 @@ public class EmulationManager implements ClientProvider  {
         }
     };
 
-    private final Updater<TimezoneState> emulateTimezone = (client, timezoneState) -> {
+    private static final Updater<TimezoneState> emulateTimezone = (client, timezoneState) -> {
         if(!timezoneState.getActive()){
             return;
         }
@@ -177,7 +177,7 @@ public class EmulationManager implements ClientProvider  {
         this.timezoneState.setState(new TimezoneState(true,timezoneId));
     }
 
-    private final Updater<VisionDeficiencyState> emulateVisionDeficiency = (client, visionDeficiency) -> {
+    private static final Updater<VisionDeficiencyState> emulateVisionDeficiency = (client, visionDeficiency) -> {
         if (!visionDeficiency.getActive()) {
             return;
         }
@@ -190,7 +190,7 @@ public class EmulationManager implements ClientProvider  {
         this.visionDeficiencyState.setState(new VisionDeficiencyState(true,type));
     }
 
-    private final Updater<CpuThrottlingState> emulateCpuThrottling = (client, state) -> {
+    private static final Updater<CpuThrottlingState> emulateCpuThrottling = (client, state) -> {
         if(!state.getActive()){
             return;
         }
@@ -204,7 +204,7 @@ public class EmulationManager implements ClientProvider  {
         this.cpuThrottlingState.setState(new CpuThrottlingState(true,factor));
     }
 
-    private final Updater<MediaFeaturesState> emulateMediaFeatures = (client, state) -> {
+    private static final Updater<MediaFeaturesState> emulateMediaFeatures = (client, state) -> {
         if(!state.getActive()){
             return;
         }
@@ -225,7 +225,7 @@ public class EmulationManager implements ClientProvider  {
     }
 
 
-    private final Updater<MediaTypeState> emulateMediaType = (client, state) -> {
+    private static final Updater<MediaTypeState> emulateMediaType = (client, state) -> {
         if(!state.getActive()){
             return;
         }
@@ -239,7 +239,7 @@ public class EmulationManager implements ClientProvider  {
         this.mediaTypeState.setState(new MediaTypeState(true,type));
     }
 
-    private final Updater<GeoLocationState> setGeolocation = (client, state) -> {
+    private static final Updater<GeoLocationState> setGeolocation = (client, state) -> {
         if(!state.active){
             return;
         }
@@ -248,6 +248,7 @@ public class EmulationManager implements ClientProvider  {
             params.put("longitude",state.getGeoLocation().getLongitude());
             params.put("latitude",state.getGeoLocation().getLatitude());
             params.put("accuracy",state.getGeoLocation().getAccuracy());
+            client.send("Emulation.setGeolocationOverride",params);
         }else{
             client.send("Emulation.setGeolocationOverride");
         }
@@ -268,7 +269,7 @@ public class EmulationManager implements ClientProvider  {
     }
 
 
-    private final Updater<DefaultBackgroundColorState>  setDefaultBackgroundColor = (client, state) -> {
+    private static final Updater<DefaultBackgroundColorState>  setDefaultBackgroundColor = (client, state) -> {
         if (!state.getActive()) {
             return;
         }
@@ -291,7 +292,7 @@ public class EmulationManager implements ClientProvider  {
         this.defaultBackgroundColorState.setState(new DefaultBackgroundColorState(true,new RGBA(0,0,0,0)));
     }
 
-    private final Updater<JavascriptEnabledState>  setJavaScriptEnabled = (client, state) -> {
+    private static final Updater<JavascriptEnabledState>  setJavaScriptEnabled = (client, state) -> {
         if (!state.active) {
             return;
         }

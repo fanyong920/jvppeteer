@@ -4,5 +4,5 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 
 @FunctionalInterface
 public interface SessionFactory {
-    CDPSession create();
+    CDPSession create(boolean isAutoAttachEmulated);
 }

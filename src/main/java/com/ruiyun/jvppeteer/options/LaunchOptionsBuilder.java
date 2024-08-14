@@ -72,13 +72,13 @@ public class LaunchOptionsBuilder {
 		return this;
 	}
 	
-	public LaunchOptionsBuilder withIgnoreHTTPSErrors(boolean ignoreHTTPSErrors) {
-		options.setIgnoreHTTPSErrors(ignoreHTTPSErrors);
+	public LaunchOptionsBuilder setAcceptInsecureCerts(boolean acceptInsecureCerts) {
+		options.setAcceptInsecureCerts(acceptInsecureCerts);
 		return this;
 	}
 	
 	public LaunchOptionsBuilder withViewport(Viewport viewport) {
-		options.setViewport(viewport);
+		options.setDefaultViewport(viewport);
 		return this;
 	}
 	

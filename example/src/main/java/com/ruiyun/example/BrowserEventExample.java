@@ -16,8 +16,8 @@ public class BrowserEventExample {
         arrayList.add("--no-sandbox");
         arrayList.add("--disable-setuid-sandbox");
         Browser browser = Puppeteer.launch(options);
-        browser.onDisconnected((s) -> System.out.println("浏览器断开连接"));
-        browser.onTargetcreated((target) -> System.out.println("target type: "+target.type()));
+        browser.on(Browser.BrowserEvent.Disconnected,(s) -> System.out.println("浏览器断开连接"));
+        browser.on(Browser.BrowserEvent.TargetChanged,(target) -> System.out.println("target: "+target));
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         browser.close();

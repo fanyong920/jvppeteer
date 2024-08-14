@@ -24,7 +24,6 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -48,24 +47,13 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
     private final Set<String> isolatedWorlds;
 
     private Frame mainFrame;
-    /**
-     * 给导航到新的网页用
-     */
-    private CountDownLatch documentLatch;
 
-    /**
-     * 导航到新的网页的结果
-     * "success" "timeout" "termination"
-     */
-    private String navigateResult;
 
-    private String documentNavigationPromiseType = null;
-
-    public FrameManager(CDPSession client, Page page, boolean ignoreHTTPSErrors, TimeoutSettings timeoutSettings) {
+    public FrameManager(CDPSession client, Page page , TimeoutSettings timeoutSettings) {
         super();
         this.client = client;
         this.page = page;
-        this.networkManager = new NetworkManager(client, ignoreHTTPSErrors, this);
+        this.networkManager = new NetworkManager(client, this);
         this.timeoutSettings = timeoutSettings;
         this.frames = new HashMap<>();
         this.contextIdToContext = new HashMap<>();
@@ -439,14 +427,6 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> {
         if(StringUtil.isNotEmpty(errorText) ) throw new JvppeteerException(errorText + " at " + url) ;
     }
 
-
-    public String getNavigateResult() {
-        return navigateResult;
-    }
-
-    public void setNavigateResult(String navigateResult) {
-        this.navigateResult = navigateResult;
-    }
 
     public Frame getFrame(String frameId) {
         return this.frames.get(frameId);

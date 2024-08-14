@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent> implements AutoCloseable {
+public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent>  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
 
@@ -152,7 +152,7 @@ public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent> imple
         synchronized (BrowserRunner.class) {
             if (!isRegisterShutdownHook) {
                 RuntimeShutdownHookRegistry hook = new RuntimeShutdownHookRegistry();
-                hook.register(new Thread(this::close));
+                hook.register(new Thread(this::closeAllBrowser));
                 isRegisterShutdownHook = true;
             }
         }
@@ -169,10 +169,10 @@ public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent> imple
             this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGINT).subscribe((ignore -> this.kill())));
         }
         if (options.getHandleSIGTERM()) {
-            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGTERM).subscribe((ignore -> this.close())));
+            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGTERM).subscribe((ignore -> this.closeAllBrowser())));
         }
         if (options.getHandleSIGHUP()) {
-            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGHUP).subscribe((ignore -> this.close())));
+            this.disposables.add(Helper.fromEmitterEvent(this, BroserEvent.SIGHUP).subscribe((ignore -> this.closeAllBrowser())));
         }
     }
 
@@ -377,38 +377,31 @@ public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent> imple
     public Process getProcess() {
         return process;
     }
-
-    @Override
-    public void close() {
+    //系统奔溃或正常关闭时候，关闭所有打开的浏览器
+    public void closeAllBrowser() {
         for (BrowserRunner browserRunner : runners) {
-            closeQuietly(browserRunner);
+            browserRunner.closeBrowser();
         }
     }
     /**
      * 关闭浏览器
      */
-    public void closeQuietly(BrowserRunner runner) {
-        if (runner.getClosed()) {
+    public void closeBrowser() {
+        if (this.getClosed()) {
             return ;
         }
-        /*
-          发送关闭指令
-         */
-        if (runner.connection != null && !this.connection.closed) {
+        //发送关闭指令
+        if (this.connection != null && !this.connection.closed) {
             this.connection.send("Browser.close");
         }
-        /*
-          通过kill命令关闭
-         */
-        disposables.forEach(Disposable::dispose);
-        boolean killResult = runner.kill();
+        //通过kill命令关闭
+        this.disposables.forEach(Disposable::dispose);
+        boolean killResult = this.kill();
         if (killResult){
             this.closed = true;
             return;
         }
-        /*
-          采用java的Process类进行关闭
-         */
+        //采用java的Process类进行关闭
         try {
             this.destroyProcess();
         } catch (InterruptedException e) {
