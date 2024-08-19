@@ -23,25 +23,25 @@ public class EmulationManager implements ClientProvider  {
 
     private boolean hasTouch = false;
 
-    private EmulatedState<ViewportState> viewportState = new EmulatedState<>(new ViewportState(false, null), this, this.applyViewport);
+    private final EmulatedState<ViewportState> viewportState = new EmulatedState<>(new ViewportState(false, null), this, this.applyViewport);
 
-    private EmulatedState<IdleOverridesState> idleOverridesState = new EmulatedState<>(new IdleOverridesState(false), this, this.emulateIdleState);
+    private final EmulatedState<IdleOverridesState> idleOverridesState = new EmulatedState<>(new IdleOverridesState(false), this, this.emulateIdleState);
 
-    private EmulatedState<TimezoneState> timezoneState = new EmulatedState<>(new TimezoneState(false), this, this.emulateTimezone);
+    private final EmulatedState<TimezoneState> timezoneState = new EmulatedState<>(new TimezoneState(false), this, this.emulateTimezone);
 
-    private EmulatedState<VisionDeficiencyState> visionDeficiencyState = new EmulatedState<>(new VisionDeficiencyState(false), this, this.emulateVisionDeficiency);
+    private final EmulatedState<VisionDeficiencyState> visionDeficiencyState = new EmulatedState<>(new VisionDeficiencyState(false), this, this.emulateVisionDeficiency);
 
-    private  EmulatedState<CpuThrottlingState> cpuThrottlingState = new EmulatedState<>(new CpuThrottlingState(false), this, this.emulateCpuThrottling);
+    private final EmulatedState<CpuThrottlingState> cpuThrottlingState = new EmulatedState<>(new CpuThrottlingState(false), this, this.emulateCpuThrottling);
 
-    private EmulatedState<MediaFeaturesState> mediaFeaturesState = new EmulatedState<>(new MediaFeaturesState(false, null), this, this.emulateMediaFeatures);
+    private final EmulatedState<MediaFeaturesState> mediaFeaturesState = new EmulatedState<>(new MediaFeaturesState(false, null), this, this.emulateMediaFeatures);
 
-    private EmulatedState<MediaTypeState> mediaTypeState = new EmulatedState<>(new MediaTypeState(false, null), this, this.emulateMediaType);
+    private final EmulatedState<MediaTypeState> mediaTypeState = new EmulatedState<>(new MediaTypeState(false, null), this, this.emulateMediaType);
 
-    private EmulatedState<GeoLocationState> geoLocationState = new EmulatedState<>(new GeoLocationState(false, null), this, this.setGeolocation);
+    private final EmulatedState<GeoLocationState> geoLocationState = new EmulatedState<>(new GeoLocationState(false, null), this, this.setGeolocation);
 
-    private EmulatedState<DefaultBackgroundColorState> defaultBackgroundColorState = new EmulatedState<>(new DefaultBackgroundColorState(false, null), this, this.setDefaultBackgroundColor);
+    private final EmulatedState<DefaultBackgroundColorState> defaultBackgroundColorState = new EmulatedState<>(new DefaultBackgroundColorState(false, null), this, this.setDefaultBackgroundColor);
 
-    private EmulatedState<JavascriptEnabledState> javascriptEnabledState = new EmulatedState<>(new JavascriptEnabledState(false, true), this, this.setJavaScriptEnabled);
+    private final EmulatedState<JavascriptEnabledState> javascriptEnabledState = new EmulatedState<>(new JavascriptEnabledState(false, true), this, this.setJavaScriptEnabled);
 
     public EmulationManager(CDPSession client) {
         this.client = client;

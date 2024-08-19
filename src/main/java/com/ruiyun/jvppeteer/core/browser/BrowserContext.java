@@ -6,13 +6,17 @@ import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.options.BrowserLaunchArgumentOptions;
 import com.ruiyun.jvppeteer.options.TargetType;
 import com.ruiyun.jvppeteer.transport.Connection;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observable;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -21,28 +25,22 @@ import java.util.stream.Collectors;
  * 浏览器上下文
  */
 public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEvent> {
-
 	/**
 	 *  浏览器对应的websocket client包装类，用于发送和接受消息
 	 */
 	private Connection connection;
-
 	/**
 	 * 浏览器上下文对应的浏览器，一个上下文只有一个浏览器，但是一个浏览器可能有多个上下文
 	 */
 	private Browser browser;
-
 	/**
 	 *浏览器上下文id
 	 */
 	private String id;
-
 	public BrowserContext() {
 		super();
 	}
-
 	private static final Map<String,String> WEB_PERMISSION_TO_PROTOCOL_PERMISSION = new HashMap<>(32);
-
 	static {
 		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("geolocation","geolocation");
 		WEB_PERMISSION_TO_PROTOCOL_PERMISSION.put("midi","midi");
@@ -70,43 +68,14 @@ public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEv
 		this.browser = browser;
 		this.id = contextId;
 	}
-
-	/**
-	 * <p>监听浏览器事件targetchanged</p>
-	 * <p>浏览器一共有四种事件</p>
-	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
-	 * @param handler 事件处理器
-	 */
-	public void onTargetchanged(Consumer<Target> handler) {
-		this.on(BrowserContextEvent.TargetChanged, handler);
+	public List<Target> targets() {
+		return this.browser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());
 	}
 
-	/**
-	 * <p>监听浏览器事件targetcreated</p>
-	 * <p>浏览器一共有四种事件</p>
-	 * <p>method ="disconnected","targetchanged","targetcreated","targetdestroyed"</p>
-	 * @param handler 事件处理器
-	 */
-	public void onTrgetcreated(Consumer<Target> handler) {
-		this.on(BrowserContextEvent.TargetCreated, handler);
+	public List<Page> pages(){
+		return this.targets().stream().filter(target -> TargetType.PAGE.equals(target.type()) || (TargetType.OTHER.equals(target.type()) && this.browser.getIsPageTargetCallback() != null ? this.browser.getIsPageTargetCallback().apply(target) : true)).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
-	public void clearPermissionOverrides() {
-		Map<String,Object> params = new HashMap<>();
-		params.put("browserContextId",this.id);
-		this.connection.send("Browser.resetPermissions", params);
-	}
-
-	public void close() {
-		ValidateUtil.assertArg(StringUtil.isNotEmpty(this.id), "Non-incognito profiles cannot be closed!");
-		 this.browser.disposeContext(this.id);
-	}
-	/**
-	 * @return {boolean}
-	 */
-	public boolean isIncognito() {
-		return StringUtil.isNotEmpty(this.id);
-	}
 	public void overridePermissions(String origin, List<String> permissions) {
 		permissions.replaceAll(item -> {
 			String protocolPermission = WEB_PERMISSION_TO_PROTOCOL_PERMISSION.get(item);
@@ -119,18 +88,31 @@ public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEv
 		params.put("permissions",permissions);
 		this.connection.send("Browser.grantPermissions", params);
 	}
-	public List<Page> pages(){
-		return this.targets().stream().filter(target -> TargetType.PAGE.equals(target.type())).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
+
+	public void clearPermissionOverrides() {
+		Map<String,Object> params = new HashMap<>();
+		params.put("browserContextId",this.id);
+		this.connection.send("Browser.resetPermissions", params);
 	}
-	/**
-	 * @return 目标的集合
-	 */
-	public List<Target> targets() {
-		return this.browser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());
+	public Page newPage() {
+		synchronized (this){
+			return this.browser.createPageInContext(this.id);
+		}
+	}
+	public void close() {
+		ValidateUtil.assertArg(StringUtil.isNotEmpty(this.id), "Non-incognito profiles cannot be closed!");
+		 this.browser.disposeContext(this.id);
 	}
 
-	public Target waitForTarget(Predicate<Target> predicate, BrowserLaunchArgumentOptions options) {
-		return this.browser.waitForTarget(target -> target.browserContext() == this && predicate.test(target),options.getTimeout());
+	public boolean closed(){
+		return !this.browser.browserContexts().contains(this);
+	}
+
+	public Target waitForTarget(Predicate<Target> predicate, int timeout) {
+		Observable<Target> targetCreateObservable = Helper.fromEmitterEvent(this, BrowserContextEvent.TargetCreated);
+		Observable<Target> TargetChangeObservable = Helper.fromEmitterEvent(this, BrowserContextEvent.TargetChanged);
+		@NonNull Observable<@NonNull Target> targetsObservable =  Observable.fromIterable(this.targets());
+		return Observable.mergeArray(targetCreateObservable, TargetChangeObservable, targetsObservable).filter(predicate::test).timeout(timeout, TimeUnit.MILLISECONDS).blockingFirst();
 	}
 
 
@@ -145,25 +127,8 @@ public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEv
 	public Browser browser() {
 		return browser;
 	}
-
-	public Page newPage() {
-		return browser.createPageInContext(this.id);
-	}
-
-	public Browser getBrowser() {
-		return browser;
-	}
-
-	public void setBrowser(Browser browser) {
-		this.browser = browser;
-	}
-
 	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
+		return this.id;
 	}
 	public enum BrowserContextEvent {
 		TargetChanged("targetchanged"),
