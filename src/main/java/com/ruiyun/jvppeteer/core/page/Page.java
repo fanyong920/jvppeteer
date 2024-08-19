@@ -525,69 +525,72 @@ public class Page extends EventEmitter<Page.PageEvent> {
      */
     @SuppressWarnings({"unchecked"})
     public String screenshot(ScreenshotOptions options) {
-        this.bringToFront();
-        if(StringUtil.isEmpty(options.getType()) && StringUtil.isNotEmpty(options.getPath())){
-            String filePath = options.getPath();
-            String extension = filePath.substring(filePath.lastIndexOf('.') + 1).toLowerCase();
-            switch (extension) {
-                case "png":
-                    options.setType("png");
-                    break;
-                case "jpeg":
-                case "jpg":
-                    options.setType("jpeg");
-                    break;
-                case "webp":
-                    options.setType("webp");
-                    break;
-            }
-        }
-        if (options.getQuality() != 0) {
-            ValidateUtil.assertArg(options.getQuality() > 0 && options.getQuality() <= 100, "Expected quality ("+ options.getQuality()+") to be between 0 and 100 ,inclusive).");
-            ValidateUtil.assertArg(StringUtil.isNotEmpty(options.getType()) && Arrays.asList("jpeg","webp").contains(options.getType()),StringUtil.isEmpty(options.getType()) ? "png" : options.getType() + "screenshots do not support quality.");
-        }
-
-        if (options.getClip() != null) {
-            ValidateUtil.assertArg(options.getClip().getWidth() > 0,"'width' in 'clip' must be positive.");
-            ValidateUtil.assertArg(options.getClip().getHeight() > 0,"'height' in 'clip' must be positive.");
-        }
-        Viewport viewport = null;
-        try {
-            if(options.getClip() != null){
-                // If `captureBeyondViewport` is `false`, then we set the viewport to
-                // capture the full page. Note this may be affected by on-page CSS and
-                // JavaScript.
-                ValidateUtil.assertArg(!options.getFullPage(),"'clip' and 'fullPage' are mutually exclusive");
-                options.setClip(roundRectangle(normalizeRectangle(options.getClip())));
-            }else {
-                if(options.getFullPage()){
-                    if(!options.getCaptureBeyondViewport()){
-                        LinkedHashMap<String,Integer> scrollDimensions = (LinkedHashMap<String,Integer>)this.mainFrame().evaluate("() => {\n" +
-                                "              const element = document.documentElement;\n" +
-                                "              return {\n" +
-                                "                width: element.scrollWidth,\n" +
-                                "                height: element.scrollHeight,\n" +
-                                "              };\n" +
-                                "            }",null);
-
-                        viewport = this.viewport();
-                        viewport.setWidth(scrollDimensions.get("width"));
-                        viewport.setHeight(scrollDimensions.get("height"));
-                        this.setViewport(viewport);
-                    }
-                }else {
-                    options.setCaptureBeyondViewport(false);
+        synchronized (this.browserContext()){//一个上下文只能有一个截图操作
+            this.bringToFront();
+            if(StringUtil.isEmpty(options.getType()) && StringUtil.isNotEmpty(options.getPath())){
+                String filePath = options.getPath();
+                String extension = filePath.substring(filePath.lastIndexOf('.') + 1).toLowerCase();
+                switch (extension) {
+                    case "png":
+                        options.setType("png");
+                        break;
+                    case "jpeg":
+                    case "jpg":
+                        options.setType("jpeg");
+                        break;
+                    case "webp":
+                        options.setType("webp");
+                        break;
                 }
             }
-            return this._screenshot(options);
-        } catch (Exception e) {
-            LOGGER.error("_screenshot error: ",e);
-        }finally {
-            if (viewport != null) {
-                this.setViewport(viewport);
+            if (options.getQuality() != 0) {
+                ValidateUtil.assertArg(options.getQuality() > 0 && options.getQuality() <= 100, "Expected quality ("+ options.getQuality()+") to be between 0 and 100 ,inclusive).");
+                ValidateUtil.assertArg(StringUtil.isNotEmpty(options.getType()) && Arrays.asList("jpeg","webp").contains(options.getType()),StringUtil.isEmpty(options.getType()) ? "png" : options.getType() + "screenshots do not support quality.");
             }
+
+            if (options.getClip() != null) {
+                ValidateUtil.assertArg(options.getClip().getWidth() > 0,"'width' in 'clip' must be positive.");
+                ValidateUtil.assertArg(options.getClip().getHeight() > 0,"'height' in 'clip' must be positive.");
+            }
+            Viewport viewport = null;
+            try {
+                if(options.getClip() != null){
+                    // If `captureBeyondViewport` is `false`, then we set the viewport to
+                    // capture the full page. Note this may be affected by on-page CSS and
+                    // JavaScript.
+                    ValidateUtil.assertArg(!options.getFullPage(),"'clip' and 'fullPage' are mutually exclusive");
+                    options.setClip(roundRectangle(normalizeRectangle(options.getClip())));
+                }else {
+                    if(options.getFullPage()){
+                        if(!options.getCaptureBeyondViewport()){
+                            LinkedHashMap<String,Integer> scrollDimensions = (LinkedHashMap<String,Integer>)this.mainFrame().evaluate("() => {\n" +
+                                    "              const element = document.documentElement;\n" +
+                                    "              return {\n" +
+                                    "                width: element.scrollWidth,\n" +
+                                    "                height: element.scrollHeight,\n" +
+                                    "              };\n" +
+                                    "            }",null);
+
+                            viewport = this.viewport();
+                            viewport.setWidth(scrollDimensions.get("width"));
+                            viewport.setHeight(scrollDimensions.get("height"));
+                            this.setViewport(viewport);
+                        }
+                    }else {
+                        options.setCaptureBeyondViewport(false);
+                    }
+                }
+                return this._screenshot(options);
+            } catch (Exception e) {
+                LOGGER.error("_screenshot error: ",e);
+            }finally {
+                if (viewport != null) {
+                    this.setViewport(viewport);
+                }
+            }
+            return "";
         }
-        return "";
+
     }
 
     @SuppressWarnings({"unchecked"})
