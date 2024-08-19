@@ -5,13 +5,14 @@ import com.ruiyun.jvppeteer.core.browser.Browser;
 import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutionException;
 
 /**
  * 展示下载最新的chromuim浏览器的例子
  */
 public class DownloadChromiumExample2 {
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, URISyntaxException {
 
         Puppeteer puppeteer = new Puppeteer();
         //创建下载实例

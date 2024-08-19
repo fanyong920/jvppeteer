@@ -160,7 +160,7 @@ public class Puppeteer {
             case "firefox":
             case "chrome":
             default:
-                launcher = new ChromeLauncher(puppeteer.getProjectRoot(),puppeteer.getPreferredRevision());
+                launcher = new ChromeLauncher(System.getProperty("user.dir"),puppeteer.getPreferredRevision());
         }
         puppeteer.setLauncher(launcher);
     }
@@ -193,11 +193,11 @@ public class Puppeteer {
     }
 
     public BrowserFetcher createBrowserFetcher() {
-        return new BrowserFetcher(this.getProjectRoot(), new FetcherOptions());
+        return new BrowserFetcher(this.projectRoot, new FetcherOptions());
     }
 
     public BrowserFetcher createBrowserFetcher(FetcherOptions options) {
-        return new BrowserFetcher(this.getProjectRoot(), options);
+        return new BrowserFetcher(this.projectRoot, options);
     }
 
     private String getProductName() {

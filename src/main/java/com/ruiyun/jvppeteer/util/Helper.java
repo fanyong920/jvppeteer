@@ -45,12 +45,7 @@ import java.util.regex.Pattern;
  * 一些公共方法
  */
 public class Helper {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(Helper.class);
-    private static final String os = System.getProperty("os.name");
-    private static final boolean WINDOWS = os.startsWith("Windows");
-    private static final boolean MAC = os.startsWith("Mac");
-    private static final boolean LINUX = os.startsWith("Linux");
 
     public static String createProtocolError(JsonNode node) {
         JsonNode methodNode = node.get(Constant.MESSAGE_METHOD_PROPERTY);
@@ -68,120 +63,13 @@ public class Helper {
         return message;
     }
 
-    /**
-     * Returns true if the operating system is a form of Windows.
-     * @return windows return  true
-     */
-    public static boolean isWindows(){
-        return WINDOWS;
-    }
 
-    /**
-     * Returns true if the operating system is a form of Mac OS.
-     * @return mac return  true
-     */
-    public static boolean isMac(){
-        return MAC;
-    }
 
-    /**
-     * Returns true if the operating system is a form of Linux.
-     * @return linux return  true
-     */
-    public static boolean isLinux(){
-        return LINUX;
-    }
 
-    /**
-     *
-     * 是否是win64
-     * @return true is win64
-     */
-    public static boolean isWin64() {
-        String arch = System.getProperty("os.arch");
-        return arch.contains("64");
-    }
-
-    public static String paltform() {
+    public static String platform() {
         return System.getProperty("os.name");
     }
 
-    public static void chmod(String path, String perms) throws IOException {
-
-        if (StringUtil.isEmpty(path))
-            throw new IllegalArgumentException("Path must not be empty");
-
-        char[] chars = perms.toCharArray();
-        if (chars.length != 3) throw new IllegalArgumentException("perms length must be 3");
-
-        Path path1 = Paths.get(path);
-        Set<PosixFilePermission> permissions = new HashSet<>();
-        //own
-        if ('1' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-        } else if ('2' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-        } else if ('3' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-        } else if ('4' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-        } else if ('5' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-        } else if ('6' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-        } else if ('7' == chars[0]) {
-            permissions.add(PosixFilePermission.OWNER_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-        }
-        //group
-        if ('1' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_EXECUTE);
-        } else if ('2' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_WRITE);
-        } else if ('3' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_WRITE);
-            permissions.add(PosixFilePermission.GROUP_EXECUTE);
-        } else if ('4' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_READ);
-        } else if ('5' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_READ);
-            permissions.add(PosixFilePermission.GROUP_EXECUTE);
-        } else if ('6' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_READ);
-            permissions.add(PosixFilePermission.GROUP_WRITE);
-        } else if ('7' == chars[1]) {
-            permissions.add(PosixFilePermission.GROUP_READ);
-            permissions.add(PosixFilePermission.GROUP_WRITE);
-            permissions.add(PosixFilePermission.GROUP_EXECUTE);
-        }
-        //other
-        if ('1' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-        } else if ('2' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_WRITE);
-        } else if ('3' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_WRITE);
-            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-        } else if ('4' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_READ);
-        } else if ('5' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_READ);
-            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-        } else if ('6' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_READ);
-            permissions.add(PosixFilePermission.OWNER_WRITE);
-        } else if ('7' == chars[2]) {
-            permissions.add(PosixFilePermission.OTHERS_READ);
-            permissions.add(PosixFilePermission.OTHERS_WRITE);
-            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-        }
-
-        Files.setPosixFilePermissions(path1, permissions);
-    }
 
     public static String join(String root, String... args) {
         return java.nio.file.Paths.get(root, args).toString();

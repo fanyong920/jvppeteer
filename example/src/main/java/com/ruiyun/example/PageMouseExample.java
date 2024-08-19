@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 
 public class PageMouseExample {
 
-    public static void main(String[] args) throws IOException, ExecutionException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         //自动下载，第一次下载后不会再下载
         BrowserFetcher.downloadIfNotExist(null);
 

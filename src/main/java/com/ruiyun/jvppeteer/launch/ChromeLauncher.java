@@ -32,13 +32,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ChromeLauncher implements Launcher {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(ChromeLauncher.class);
-
     private String projectRoot;
-
     private String preferredRevision;
-
     public ChromeLauncher(String projectRoot, String preferredRevision) {
         super();
         this.projectRoot = projectRoot;
@@ -50,6 +46,9 @@ public class ChromeLauncher implements Launcher {
 
     @Override
     public Browser launch(LaunchOptions options)  {
+        if(options.getArgs() == null){
+            options.setArgs(new ArrayList<>());
+        }
         String temporaryUserDataDir = options.getUserDataDir();
         List<String> chromeArguments = new ArrayList<>();
         List<String> ignoreDefaultArgs;
@@ -143,12 +142,13 @@ public class ChromeLauncher implements Launcher {
         boolean headless = options.getHeadless();
         if (devtools) {
             chromeArguments.add("--auto-open-devtools-for-tabs");
+            //如果打开devtools，那么headless强制变为false
             headless = false;
         }
         if (headless) {
-            if(options.getHeadlessShell()){
+            if (options.getHeadlessShell()) {
                 chromeArguments.add("--headless");
-            }else {
+            } else {
                 chromeArguments.add("--headless=new");
                 chromeArguments.add("--hide-scrollbars");
                 chromeArguments.add("--mute-audio");
@@ -157,7 +157,7 @@ public class ChromeLauncher implements Launcher {
         List<String> args;
         if (ValidateUtil.isNotEmpty(args = options.getArgs())) {
             for (String arg : args) {
-                if(arg.startsWith("--")){
+                if (arg.startsWith("--")) {
                     chromeArguments.add("about:blank");
                     break;
                 }

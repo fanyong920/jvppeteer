@@ -8,12 +8,13 @@ import com.ruiyun.jvppeteer.options.LaunchOptions;
 import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 public class PageIuputExample {
 
-    public static void main(String[] args) throws InterruptedException, IOException, ExecutionException {
+    public static void main(String[] args) throws InterruptedException, IOException, ExecutionException, URISyntaxException {
         //自动下载，第一次下载后不会再下载
         BrowserFetcher.downloadIfNotExist(null);
 

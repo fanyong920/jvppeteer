@@ -14,7 +14,7 @@ import java.util.concurrent.ExecutionException;
 
 public class PagePDFExample {
 
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException {
+    public static void main(String[] args) throws Exception {
         //自动下载，第一次下载后不会再下载
         BrowserFetcher.downloadIfNotExist(null);
 

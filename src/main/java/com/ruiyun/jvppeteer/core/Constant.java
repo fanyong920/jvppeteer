@@ -22,11 +22,11 @@ public interface Constant {
 	/**
 	 * 指定版本
 	 */
-	String VERSION = "722234";
+	String VERSION = "127.0.6533.99";
 	/**
 	 * 临时文件夹前缀
 	 */
-	String PROFILE_PREFIX = "puppeteer_dev_chrome_profile-";
+	String PROFILE_PREFIX = "jvppeteer_dev_chrome_profile-";
 	/**
 	 * 把产品存放到环境变量的所有可用字段
 	 */
@@ -46,6 +46,14 @@ public interface Constant {
 	 * 读取流中的数据的buffer size
 	 */
 	int DEFAULT_BUFFER_SIZE  = 8 * 1024;
+	/**
+	 * 存放下载浏览器脚本的临时目录
+	 */
+	String SHELLS_PREFIX = "jvppeteer_browser_install_shells-";
+
+	String INSTALL_CHROME_FOR_TESTING_LINUX = "install-chrome-for-testing-linux.sh";
+	String INSTALL_CHROME_FOR_TESTING_WIN = "install-chrome-for-testing-win.ps1";
+	String INSTALL_CHROME_FOR_TESTING_MAC = "install-chrome-for-testing-mac.sh";
 	/**
 	 * 启动浏览器时，如果没有指定路径，那么会从以下路径搜索可执行的路径
 	 */

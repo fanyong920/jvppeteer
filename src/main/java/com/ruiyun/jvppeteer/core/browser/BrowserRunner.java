@@ -185,12 +185,8 @@ public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent>  {
         }
         try {
             String pid = pidMap.get(this.process);
-            if("-1".equals(pid)){
-                LOGGER.warn("Chrome process pid is -1,will not use kill cmd");
-                return false;
-            }
-            if(StringUtil.isEmpty(pid) ){
-                LOGGER.warn("Chrome process pid is empty,will not use kill cmd");
+            if("-1".equals(pid) || StringUtil.isEmpty(pid)){
+                LOGGER.warn("invalid pid ({}) ,kill chrome process failed", pid);
                 return false;
             }
             Process exec = null;
@@ -198,7 +194,7 @@ public class BrowserRunner extends EventEmitter<BrowserRunner.BroserEvent>  {
             if (Platform.isWindows()) {
                 command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
                 exec = Runtime.getRuntime().exec(command);
-            } else if (Platform.isLinux() || Platform.isAIX()) {
+            } else if (Platform.isLinux() || Platform.isMac()) {
                 command = "kill -9 " + pid;
                 exec = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",command});
             }

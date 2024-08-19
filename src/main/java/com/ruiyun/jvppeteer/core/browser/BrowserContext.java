@@ -166,9 +166,9 @@ public class BrowserContext extends EventEmitter<BrowserContext.BrowserContextEv
 		this.id = id;
 	}
 	public enum BrowserContextEvent {
-		TargetChanged("targetChanged"),
-		TargetCreated("targetCreated"),
-		TargetDestroyed("targetDestroyed");
+		TargetChanged("targetchanged"),
+		TargetCreated("targetcreated"),
+		TargetDestroyed("targetdestroyed");
 		private String eventName;
 		BrowserContextEvent(String eventName) {
 			this.eventName = eventName;

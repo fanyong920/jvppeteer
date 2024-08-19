@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.options;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BrowserLaunchArgumentOptions extends Timeoutable {
@@ -15,7 +16,7 @@ public class BrowserLaunchArgumentOptions extends Timeoutable {
      *  <a href="https://peter.sh/experiments/chromium-command-line-switches/">这里 </a>可以看到参数
      * <br/>
      */
-    private List<String> args ;
+    private List<String> args = new ArrayList<>();
     /**
      * 用户数据存储的目录
      * <br/>
