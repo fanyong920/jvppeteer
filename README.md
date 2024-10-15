@@ -305,12 +305,16 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
 
 如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js) ](https://github.com/puppeteer/puppeteer)库中的 [Troubleshooting)](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路
 
-### 四、资源
+### 四、JDK21 的尝试
+
+在 dev21分支 上使用了  jdk21 进行了部分代码修改，有兴趣可以自己打 JAR 包试试。
+
+### 五、资源
 
 1. [Puppeteer中文文档](https://pptr.nodejs.cn/) : 更加详细的 API 文档 ，多看看了解一下
 2. [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) ：CDP 协议
 3. [Chrome命令行启动参数](https://peter.sh/experiments/chromium-command-line-switches/)
 
-### 五、执照
+### 六、执照
 
 此仓库中找到的所有内容均已获得 Apache 许可。有关详细信息，请参见`LICENSE`文件
