@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.events;
 
-import com.ruiyun.jvppeteer.options.Timestamp;
-import com.ruiyun.jvppeteer.protocol.runtime.ExceptionDetails;
+import com.ruiyun.jvppeteer.entities.Timestamp;
+import com.ruiyun.jvppeteer.entities.ExceptionDetails;
 
 
 public class ExceptionThrownEvent {

@@ -1,15 +1,15 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Constant;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.core.Browser;
+import com.ruiyun.jvppeteer.core.BrowserRunner;
+import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.browser.BrowserRunner;
-import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.sun.jna.Native;
-import com.sun.jna.Platform;
 import com.sun.jna.win32.StdCallLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,15 +27,16 @@ public class KillExample {
     /**
      * 多个browser的时候用pids储存pid
      */
-    private static Map<String,Process> pids = new HashMap<>();
-    public static void main(String[] args) throws IOException, InterruptedException {
+    private static Map<String, Process> pids = new HashMap<>();
+
+    public static void main(String[] args) throws IOException {
         LaunchOptions launchOptions = new LaunchOptionsBuilder().withExecutablePath("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe").withIgnoreDefaultArgs(Collections.singletonList("--enable-automation")).withHeadless(false).build();
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         Process process = browser.process();
         String processId = getProcessId(process);
-        KillExample.LOGGER.info("process pid {}",processId);
+        KillExample.LOGGER.info("process pid {}", processId);
         kill(processId);
         // 做一些其他操作
         browser.close();
@@ -43,21 +44,22 @@ public class KillExample {
 
     public interface Kernel32 extends StdCallLibrary {
         Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
+
         long GetProcessId(Long hProcess);
     }
 
     public static String getProcessId(Process process) {
         long pid = -1;
         Field field;
-        if (Platform.isWindows()) {
+        if (Helper.isWindows()) {
             try {
                 field = process.getClass().getDeclaredField("handle");
                 field.setAccessible(true);
                 pid = KillExample.Kernel32.INSTANCE.GetProcessId((Long) field.get(process));
             } catch (Exception e) {
-                KillExample.LOGGER.error("Failed to get processId on Windows platform.",e);
+                KillExample.LOGGER.error("Failed to get processId on Windows platform.", e);
             }
-        } else if (Platform.isLinux() || Platform.isAIX()) {
+        } else if (Helper.isLinux() || Helper.isMac()) {
             try {
                 String version = System.getProperty("java.version");
                 double jdkversion = Double.parseDouble(version.substring(0, 3));
@@ -72,7 +74,7 @@ public class KillExample {
                 field.setAccessible(true);
                 pid = (Integer) field.get(process);
             } catch (Throwable e) {
-                KillExample.LOGGER.error("Failed to get processId on Linux or Aix platform.",e);
+                KillExample.LOGGER.error("Failed to get processId on Linux or Aix platform.", e);
             }
         }
         return String.valueOf(pid);
@@ -80,22 +82,22 @@ public class KillExample {
 
     public static boolean kill(String pid) {
         try {
-            if("-1".equals(pid)){
+            if ("-1".equals(pid)) {
                 LOGGER.warn("Chrome process pid is -1,will not use kill cmd");
                 return false;
             }
-            if(StringUtil.isEmpty(pid) ){
+            if (StringUtil.isEmpty(pid)) {
                 LOGGER.warn("Chrome process pid is empty,will not use kill cmd");
                 return false;
             }
             Process exec = null;
-            String command = "";
-            if (Platform.isWindows()) {
+            String command;
+            if (Helper.isWindows()) {
                 command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
                 exec = Runtime.getRuntime().exec(command);
-            } else if (Platform.isLinux() || Platform.isAIX()) {
+            } else if (Helper.isLinux() || Helper.isMac()) {
                 command = "kill -9 " + pid;
-                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh","-c",command});
+                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
             }
             if (exec != null) {
                 return exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);

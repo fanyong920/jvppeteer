@@ -312,7 +312,7 @@
   * [target.page()](#targetpage)
   * [target.type()](#targettype)
   * [target.url()](#targeturl)
-  * [target.worker()](#targetworker)
+  * [target.webWorker()](#targetworker)
 - [class: CDPSession](#class-cdpsession)
   * [cdpSession.detach()](#cdpsessiondetach)
   * [cdpSession.send(method[, ...paramArgs])](#cdpsessionsendmethod-paramargs)
@@ -342,7 +342,7 @@ Jvppeteer 提供 Java 的 API 通过 DevTools Protocol 去控制 Chromium or Chr
 - [`BrowserContext`](#class-browsercontext) 一个浏览器会话对应一个实例，能够拥有多个实例。
 - [`Page`](#class-page) 至少又一个框架：主框架. 其他的框架 可以通过 [iframe](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/iframe) 或者 [frame](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/frame) 标签创建.
 - [`Frame`](#class-frame) 至少拥有一个执行上下文 - 默认执行上下文 - 框架的 JavaScript 被执行的地方. 一个框架或许还有其他的执行上下文，这些其他的上下文是与浏览器插件相关联。
-- [`Worker`](#class-worker) 具有单个执行上下文，并便于与[WebWorkers](https://developer.mozilla.org/zh_CN/docs/Web/API/Web_Workers_API)交互.
+- [`Worker`](#class-webWorker) 具有单个执行上下文，并便于与[WebWorkers](https://developer.mozilla.org/zh_CN/docs/Web/API/Web_Workers_API)交互.
 
 ### 环境变量
 
@@ -2129,40 +2129,40 @@ This method returns all of the dedicated [WebWorkers](https://developer.mozilla.
 ### class: WebWorker
 
 The WebWorker class represents a [WebWorker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API).
-The events `workercreated` and `workerdestroyed` are emitted on the page object to signal the worker lifecycle.
+The events `workercreated` and `workerdestroyed` are emitted on the page object to signal the webWorker lifecycle.
 
 ```js
-page.on('workercreated', worker => console.log('Worker created: ' + worker.url()));
-page.on('workerdestroyed', worker => console.log('Worker destroyed: ' + worker.url()));
+page.on('workercreated', webWorker => console.log('Worker created: ' + webWorker.url()));
+page.on('workerdestroyed', webWorker => console.log('Worker destroyed: ' + webWorker.url()));
 
 console.log('Current workers:');
-for (const worker of page.workers())
-  console.log('  ' + worker.url());
+for (const webWorker of page.workers())
+  console.log('  ' + webWorker.url());
 ```
 
 #### webWorker.evaluate(pageFunction[, ...args])
-- `pageFunction` <[function]|[string]> Function to be evaluated in the worker context
+- `pageFunction` <[function]|[string]> Function to be evaluated in the webWorker context
 - `...args` <...[Serializable]|[JSHandle]> Arguments to pass to `pageFunction`
 - returns: <[Promise]<[Serializable]>> Promise which resolves to the return value of `pageFunction`
 
-If the function passed to the `worker.evaluate` returns a [Promise], then `worker.evaluate` would wait for the promise to resolve and return its value.
+If the function passed to the `webWorker.evaluate` returns a [Promise], then `webWorker.evaluate` would wait for the promise to resolve and return its value.
 
-If the function passed to the `worker.evaluate` returns a non-[Serializable] value, then `worker.evaluate` resolves to `undefined`. DevTools Protocol also supports transferring some additional values that are not serializable by `JSON`: `-0`, `NaN`, `Infinity`, `-Infinity`, and bigint literals.
+If the function passed to the `webWorker.evaluate` returns a non-[Serializable] value, then `webWorker.evaluate` resolves to `undefined`. DevTools Protocol also supports transferring some additional values that are not serializable by `JSON`: `-0`, `NaN`, `Infinity`, `-Infinity`, and bigint literals.
 
-Shortcut for [(await worker.executionContext()).evaluate(pageFunction, ...args)](#executioncontextevaluatepagefunction-args).
+Shortcut for [(await webWorker.executionContext()).evaluate(pageFunction, ...args)](#executioncontextevaluatepagefunction-args).
 
 #### webWorker.evaluateHandle(pageFunction[, ...args])
 - `pageFunction` <[function]|[string]> Function to be evaluated in the page context
 - `...args` <...[Serializable]|[JSHandle]> Arguments to pass to `pageFunction`
 - returns: <[Promise]<[JSHandle]|[ElementHandle]>> Promise which resolves to the return value of `pageFunction` as an in-page object.
 
-The only difference between `worker.evaluate` and `worker.evaluateHandle` is that `worker.evaluateHandle` returns in-page object (JSHandle).
+The only difference between `webWorker.evaluate` and `webWorker.evaluateHandle` is that `webWorker.evaluateHandle` returns in-page object (JSHandle).
 
-If the function passed to the `worker.evaluateHandle` returns a [Promise], then `worker.evaluateHandle` would wait for the promise to resolve and return its value.
+If the function passed to the `webWorker.evaluateHandle` returns a [Promise], then `webWorker.evaluateHandle` would wait for the promise to resolve and return its value.
 
 If the function returns an element, the returned handle is an [ElementHandle].
 
-Shortcut for [(await worker.executionContext()).evaluateHandle(pageFunction, ...args)](#executioncontextevaluatehandlepagefunction-args).
+Shortcut for [(await webWorker.executionContext()).evaluateHandle(pageFunction, ...args)](#executioncontextevaluatehandlepagefunction-args).
 
 #### webWorker.executionContext()
 - returns: <[Promise]<[ExecutionContext]>>
@@ -3656,7 +3656,7 @@ True if the response was served from either the browser's disk cache or memory c
 #### httpResponse.fromServiceWorker()
 - returns: <[boolean]>
 
-True if the response was served by a service worker.
+True if the response was served by a service webWorker.
 
 #### httpResponse.headers()
 - returns: <[Object]> An object with HTTP headers associated with the response. All header names are lower-case.
@@ -3759,7 +3759,7 @@ Identifies what kind of target this is. Can be `"page"`, [`"background_page"`](h
 #### target.url()
 - returns: <[string]>
 
-#### target.worker()
+#### target.webWorker()
 - returns: <[Promise]<?[WebWorker]>>
 
 If the target is not of type `"service_worker"` or `"shared_worker"`, returns `null`.
@@ -3956,7 +3956,7 @@ This method is identical to `off` and maintained for compatibility with Node's E
 [UIEvent.detail]: https://developer.mozilla.org/en-US/docs/Web/API/UIEvent/detail "UIEvent.detail"
 [USKeyboardLayout]: ../src/common/USKeyboardLayout.ts "USKeyboardLayout"
 [UnixTime]: https://en.wikipedia.org/wiki/Unix_time "Unix Time"
-[WebWorker]: #class-worker "Worker"
+[WebWorker]: #class-webWorker "Worker"
 [boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type "Boolean"
 [function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function "Function"
 [iterator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols "Iterator"

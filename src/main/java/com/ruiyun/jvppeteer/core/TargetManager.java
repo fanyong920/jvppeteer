@@ -1,14 +1,15 @@
 package com.ruiyun.jvppeteer.core;
 
-import com.ruiyun.jvppeteer.core.page.Target;
-import com.ruiyun.jvppeteer.core.page.TargetInfo;
+import com.ruiyun.jvppeteer.entities.TargetInfo;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 
+import java.util.List;
 import java.util.Map;
 
 public abstract class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent>  {
     public abstract Map<String, Target> getAvailableTargets();
+    public abstract List<Target> getChildTargets(Target target);
     public abstract void initialize();
     public abstract void dispose();
     public enum TargetManagerEvent{

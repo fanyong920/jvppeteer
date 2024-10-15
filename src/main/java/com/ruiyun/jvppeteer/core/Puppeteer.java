@@ -1,20 +1,27 @@
 package com.ruiyun.jvppeteer.core;
 
-import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.browser.BrowserFetcher;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.Environment;
+import com.ruiyun.jvppeteer.common.Product;
+import com.ruiyun.jvppeteer.entities.ConnectOptions;
+import com.ruiyun.jvppeteer.entities.FetcherOptions;
+import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;
-import com.ruiyun.jvppeteer.options.*;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
+import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.io.IOException;
 import java.util.List;
 
-import static com.ruiyun.jvppeteer.core.Constant.PRODUCT_ENV;
+import static com.ruiyun.jvppeteer.common.Constant.PRODUCT_ENV;
 
 /**
- * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chromium
+ * Puppeteer 也可以用来控制 Chrome 浏览器， 但它与绑定的 Chrome for Testing
  * 版本在一起使用效果最好。不能保证它可以与任何其他版本一起使用。谨慎地使用 executablePath 选项。 如果 Google
  * Chrome（而不是Chromium）是首选，一个 Chrome Canary 或 Dev Channel 版本是建议的
  *
@@ -22,55 +29,60 @@ import static com.ruiyun.jvppeteer.core.Constant.PRODUCT_ENV;
  */
 public class Puppeteer {
 
-    private String productName = null;
-
+    private Product product = Product.CHROME;
     private Launcher launcher;
-
     private Environment env = null;
-
-    private String projectRoot = System.getProperty("user.dir");
-
-    private String preferredRevision = Constant.VERSION;
-
-    private boolean isPuppeteerCore;
+    private String cacheDir;
 
     public Puppeteer() {
-
+        this.cacheDir = Helper.join(System.getProperty("user.dir"), ".local-browser");
     }
 
-    public Puppeteer(String projectRoot, String preferredRevision, boolean isPuppeteerCore, String productName) {
-        this.projectRoot = projectRoot;
-        this.preferredRevision = StringUtil.isEmpty(preferredRevision) ? Constant.VERSION : preferredRevision;
-        this.isPuppeteerCore = isPuppeteerCore;
-        this.productName = productName;
+    public Puppeteer(String cacheDir, Product product) {
+        this.cacheDir = StringUtil.isBlank(cacheDir) ? Helper.join(System.getProperty("user.dir"), ".local-browser") : cacheDir;
+        this.product = product;
     }
 
     /**
      * 以默认参数启动浏览器
      * launch Browser by default options
-     * @throws IOException 异常
+     *
      * @return 浏览器
+     * @throws IOException IO异常
      */
-    public static Browser launch(){
-        return Puppeteer.rawLaunch();
+    public static Browser launch() throws IOException {
+        return launch(true);
     }
 
-    public static Browser launch(boolean headless) {
-        return Puppeteer.rawLaunch(headless);
+    public static Browser launch(boolean headless) throws IOException {
+        LaunchOptions options = new LaunchOptionsBuilder().withHeadless(headless).build();
+        return launch(options);
     }
 
-    public static Browser launch(LaunchOptions options){
+    public static Browser launch(LaunchOptions options) throws IOException {
         Puppeteer puppeteer = new Puppeteer();
         return Puppeteer.rawLaunch(options, puppeteer);
     }
 
-    private static Browser rawLaunch() {
-        return Puppeteer.rawLaunch(true);
-    }
-
-    private static Browser rawLaunch(boolean headless) {
-        Puppeteer puppeteer = new Puppeteer();
-        return Puppeteer.rawLaunch(new LaunchOptionsBuilder().withHeadless(headless).build(), puppeteer);
+    /**
+     * The method launches a browser instance with given arguments. The browser will
+     * be closed when the parent java process is closed.
+     *
+     * @param options   launch options
+     *                  browserWSEndpoint、browserURL、transport三者至少选一个
+     * @param puppeteer puppeteer实例
+     * @return 浏览器实例
+     * @throws IOException IO异常
+     */
+    public static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) throws IOException {
+        if (options.getProduct() != null) {
+            puppeteer.setProduct(options.getProduct());
+        }
+        if (StringUtil.isNotBlank(options.getCacheDir())) {
+            puppeteer.setCacheDir(options.getCacheDir());
+        }
+        adoptLauncher(puppeteer);
+        return puppeteer.getLauncher().launch(options);
     }
 
     /**
@@ -79,13 +91,16 @@ public class Puppeteer {
      * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
      * <p>browserURL: 类似 localhost:8080 这个地址</p>
      * <p>transport: 之前已经创建好的 ConnectionTransport</p>
+     *
      * @param options 连接的浏览器选项
      * @return 浏览器实例
+     * @throws IOException          IO异常
+     * @throws InterruptedException 中断异常
      */
-    private static Browser connect(ConnectOptions options) {
+    private static Browser connect(ConnectOptions options) throws IOException, InterruptedException {
         Puppeteer puppeteer = new Puppeteer();
-		adapterLauncher(puppeteer);
-		return puppeteer.getLauncher().connect(options);
+        adoptLauncher(puppeteer);
+        return puppeteer.getLauncher().connect(options);
     }
 
 
@@ -93,94 +108,79 @@ public class Puppeteer {
      * 连接一个已经存在的 Browser 实例
      * <p>browserWSEndpoint:类似 UUID 的字符串，可通过{@link Browser#wsEndpoint()}获取</p>
      * <p>browserURL: 类似 localhost:8080 这个地址</p>
+     *
      * @param browserWSEndpointOrURL 一个Browser实例对应一个browserWSEndpoint
      * @return 浏览器实例
+     * @throws IOException          IO异常
+     * @throws InterruptedException 中断异常
      */
-    public static Browser connect(String browserWSEndpointOrURL) {
+    public static Browser connect(String browserWSEndpointOrURL) throws IOException, InterruptedException {
         ConnectOptions options = new ConnectOptions();
-        if(browserWSEndpointOrURL.contains(":")){
-            options.setBrowserURL(browserWSEndpointOrURL);
-            return Puppeteer.connect(options);
-        }else {
+        if (browserWSEndpointOrURL.startsWith("ws:")) {
             options.setBrowserWSEndpoint(browserWSEndpointOrURL);
-            return Puppeteer.connect(options);
+        } else {
+            options.setBrowserURL(browserWSEndpointOrURL);
         }
+        return Puppeteer.connect(options);
     }
 
     /**
      * 连接一个已经存在的 Browser 实例
      * <p>transport: 之前已经创建好的 ConnectionTransport</p>
-     * @param transport  websocket http transport 三选一
+     *
+     * @param transport websocket http transport 三选一
      * @return 浏览器实例
+     * @throws IOException          IO异常
+     * @throws InterruptedException 中断异常
      */
-    public static Browser connect(ConnectionTransport transport) {
+    public static Browser connect(ConnectionTransport transport) throws IOException, InterruptedException {
         ConnectOptions options = new ConnectOptions();
         options.setTransport(transport);
         return Puppeteer.connect(options);
     }
 
-    /**
-     * The method launches a browser instance with given arguments. The browser will
-     * be closed when the parent java process is closed.
-     */
-    private static Browser rawLaunch(LaunchOptions options, Puppeteer puppeteer) {
-        if (StringUtil.isNotBlank(options.getProduct())) {
-            puppeteer.setProductName(options.getProduct());
-        }
-        adapterLauncher(puppeteer);
-        return puppeteer.getLauncher().launch(options);
-    }
 
     /**
      * 适配chrome or firefox 浏览器
      */
-    private static void adapterLauncher(Puppeteer puppeteer) {
-        String productName;
+    private static void adoptLauncher(Puppeteer puppeteer) {
+        Product product;
         Launcher launcher;
         Environment env;
-        if (StringUtil.isEmpty(productName = puppeteer.getProductName()) && !puppeteer.getIsPuppeteerCore()) {
-
+        if ((product = puppeteer.getProduct()) == null) {
             if ((env = puppeteer.getEnv()) == null) {
                 puppeteer.setEnv(env = System::getenv);
             }
-            for (int i = 0; i < PRODUCT_ENV.length; i++) {
-                String envProductName = PRODUCT_ENV[i];
-                productName = env.getEnv(envProductName);
+            for (String envProductName : PRODUCT_ENV) {
+                String productName = env.getEnv(envProductName);
                 if (StringUtil.isNotEmpty(productName)) {
-                    puppeteer.setProductName(productName);
+                    product = Product.valueOf(productName);
+                    puppeteer.setProduct(product);
                     break;
                 }
             }
         }
-        if (StringUtil.isEmpty(productName)) {
-            productName = "chrome";
-            puppeteer.setProductName(productName);
+        if (product == null) {
+            product = Product.CHROME;
+            puppeteer.setProduct(product);
         }
-        switch (productName) {
-            case "firefox":
-            case "chrome":
+        switch (product) {
+            case FIREFOX:
+                throw new IllegalArgumentException("Firefox browser is not supported yet!");
+            case CHROME:
+            case CHROMIUM:
+            case CHROMEDRIVER:
+            case CHROMEHEADLESSSHELL:
             default:
-                launcher = new ChromeLauncher(System.getProperty("user.dir"),puppeteer.getPreferredRevision());
+                launcher = new ChromeLauncher(puppeteer.getCacheDir(), product);
         }
         puppeteer.setLauncher(launcher);
     }
 
-    /**
-     * 指定启动版本，开启浏览器
-     * @param options 启动参数
-     * @param version 浏览器版本
-     * @return 浏览器实例
-     */
-    public static Browser launch(LaunchOptions options, String version) {
-        Puppeteer puppeteer = new Puppeteer();
-        if(StringUtil.isNotEmpty(version)){
-            puppeteer.setPreferredRevision(version);
-        }
-        return Puppeteer.rawLaunch(options, puppeteer);
-    }
 
     /**
      * 返回默认的运行的参数
+     *
      * @param options 可自己添加的选项
      * @return 默认参数集合
      */
@@ -188,30 +188,61 @@ public class Puppeteer {
         return this.getLauncher().defaultArgs(options);
     }
 
-    public String executablePath() throws IOException {
+    public String executablePath() {
         return this.getLauncher().executablePath();
     }
 
-    public BrowserFetcher createBrowserFetcher() {
-        return new BrowserFetcher(this.projectRoot, new FetcherOptions());
+    /**
+     * 采用默认配置(Product#CHROME,Constant#VERSION)下载浏览器
+     * <p>
+     * 本方法负责下载用于自动化测试的浏览器该方法使用Puppeteer类来初始化浏览器Fetcher对象，
+     * 并通过该对象下载浏览器到指定的项目根目录下
+     *
+     * @return 返回一个RevisionInfo对象，包含下载浏览器的版本信息
+     * @throws IOException          如果在下载过程中发生I/O错误
+     * @throws InterruptedException 如果在下载过程中线程被中断
+     */
+    public static RevisionInfo downloadBrowser() throws IOException, InterruptedException {
+        return Puppeteer.downloadBrowser(Constant.VERSION);
     }
 
-    public BrowserFetcher createBrowserFetcher(FetcherOptions options) {
-        return new BrowserFetcher(this.projectRoot, options);
+    /**
+     * 通过自定义配置选项下载浏览器
+     * <p>
+     * 根据提供的选项下载浏览器此方法首先检查选项中提供的安装路径是否为空如果为空，
+     * 则将其默认设置为当前用户目录然后，创建一个BrowserFetcher对象并使用指定的路径和选项
+     * 开始下载过程最后，返回下载的浏览器信息
+     *
+     * @param options FetcherOptions对象，包含浏览器下载的配置选项
+     * @return RevisionInfo对象，包含下载的浏览器的信息
+     * @throws IOException          如果在下载过程中发生I/O错误
+     * @throws InterruptedException 如果在下载过程中线程被中断
+     */
+    public static RevisionInfo downloadBrowser(FetcherOptions options) throws IOException, InterruptedException {
+        if (StringUtil.isBlank(options.getCacheDir())) {
+            options.setCacheDir(Helper.join(System.getProperty("user.dir"), ".local-browser"));
+        }
+        BrowserFetcher fetcher = new BrowserFetcher(options);
+        return fetcher.downloadBrowser();
     }
 
-    private String getProductName() {
-        return productName;
+    /**
+     * 下载Product#CHROME的某个版本的浏览器
+     * <p>
+     * 本方法用于下载指定版本的浏览器它首先验证版本号是否有效，然后使用 FetcherOptions 配置下载过程，
+     * 最后通过 BrowserFetcher 执行实际的下载操作
+     *
+     * @param version 要下载的浏览器版本号版本号不能为空
+     * @return 返回一个 RevisionInfo 对象，包含下载浏览器的版本信息
+     * @throws IOException          如果在下载过程中发生 I/O 错误
+     * @throws InterruptedException 如果在下载过程中线程被中断
+     */
+    public static RevisionInfo downloadBrowser(String version) throws IOException, InterruptedException {
+        ValidateUtil.assertArg(StringUtil.isNotBlank(version), "Browser version must be specified");
+        FetcherOptions options = new FetcherOptions();
+        options.setVersion(version);
+        return Puppeteer.downloadBrowser(options);
     }
-
-    private void setProductName(String productName) {
-        this.productName = productName;
-    }
-
-    private boolean getIsPuppeteerCore() {
-        return isPuppeteerCore;
-    }
-
 
     private Launcher getLauncher() {
         return launcher;
@@ -229,20 +260,19 @@ public class Puppeteer {
         this.env = env;
     }
 
-    public String getProjectRoot() {
-        return projectRoot;
+    public String getCacheDir() {
+        return cacheDir;
     }
 
-    public void setProjectRoot(String projectRoot) {
-        this.projectRoot = projectRoot;
+    public void setCacheDir(String cacheDir) {
+        this.cacheDir = cacheDir;
     }
 
-    public String getPreferredRevision() {
-        return preferredRevision;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setPreferredRevision(String preferredRevision) {
-        this.preferredRevision = preferredRevision;
+    public void setProduct(Product product) {
+        this.product = product;
     }
-
 }

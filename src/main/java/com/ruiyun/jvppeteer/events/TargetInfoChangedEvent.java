@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.events;
 
-import com.ruiyun.jvppeteer.core.page.TargetInfo;
+import com.ruiyun.jvppeteer.entities.TargetInfo;
 
 /**
  * Issued when some information about a target has changed. This only happens between

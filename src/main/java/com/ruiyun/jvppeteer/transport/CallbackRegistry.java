@@ -1,104 +1,107 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-public class CallbackRegistry  {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CallbackRegistry.class);
-    private final Map<Integer, Callback> callbacks = new HashMap<>();
-    private final AtomicInteger idGenerator = new AtomicInteger(0);
-    public JsonNode create(String label, Integer timeout, Consumer<Integer> request,boolean isBlocking){
-        Callback callback = new Callback(idGenerator.incrementAndGet(), label);
-        this.callbacks.put(callback.id(), callback);
-        //完成时移除回调
-        callback.getSubject().doAfterTerminate(() -> this.callbacks.remove(callback.id())).subscribe();
+import static com.ruiyun.jvppeteer.common.Constant.JV_EMIT_EVENT_THREAD;
+import static com.ruiyun.jvppeteer.util.Helper.throwError;
+
+
+public class CallbackRegistry {
+    /**
+     * 用于存放所有回调
+     */
+    private final Map<Long, Callback> callbacks = new ConcurrentHashMap<>();
+    /**
+     * 用于单独记录JV_EMIT_EVENT_THREAD线程请求的回调
+     */
+    private final Map<Long, Callback> eventCallbacks = new ConcurrentHashMap<>();
+
+    public JsonNode create(Callback callback, Consumer<Long> request, boolean isBlocking) {
+        put(callback, isBlocking);
         try {
+            //send request
             request.accept(callback.id());
             //不阻塞时，不关心结果
-            if(!isBlocking) return null;
-        } catch (Exception e) {
-            try {
-                if(timeout > 0){
-                    return callback.getSubject().timeout(timeout, TimeUnit.MILLISECONDS).blockingGet();
-                }else if(timeout == 0){
-                    return callback.getSubject().blockingGet();
-                }else {
-                  throw new JvppeteerException("Timeout < 0,It shouldn't happen");
-                }
-            }catch (Exception ex){
-                LOGGER.error("Callback waiting Error:" ,e);
+            if (!isBlocking) return null;
+            return callback.waitForResponse();
+        } catch (InterruptedException e) {
+            //发生错误，移除回调
+            this.callbacks.remove(callback.id());
+            //放行线程
+            callback.reject();
+            throwError(e);
+            return null;
+        }
+    }
+
+    private void put(Callback callback, boolean isBlocking) {
+        if (isBlocking) {//只有等待结果的，才放进去
+            String name = Thread.currentThread().getName();
+            if (name.startsWith(JV_EMIT_EVENT_THREAD)) {//说明是JV_EMIT_EVENT_THREAD线程中发送的请求接受到的消息
+                eventCallbacks.put(callback.id(), callback);
+            } else {
+                callbacks.put(callback.id(), callback);
             }
-            callback.reject(e);
-            LOGGER.error("There was an error sending the request:" ,e);
-        }
-        if(timeout > 0){
-            return callback.getSubject().timeout(timeout, TimeUnit.MILLISECONDS).blockingGet();
-        }else if(timeout == 0){
-            return callback.getSubject().blockingGet();
-        }else {
-            throw new JvppeteerException("Timeout < 0");
-        }
-    }
-    public void reject(int id, String message,String originalMessage){
-        Callback callback = this.callbacks.get(id);
-        if(callback != null){
-            this._reject(callback, message,originalMessage);
         }
     }
 
-    private void _reject(Callback callback, String errorMessage, String originalMessage) {
-        ProtocolException protocolException = new ProtocolException("Protocol error (" + callback.label() + "): " + errorMessage);
-        protocolException.setCode(callback.error().getCode());
-        if(StringUtil.isNotEmpty(originalMessage)){
-            protocolException.setOriginalMessage(originalMessage);
+    public void reject(long id, String message, int code, boolean handleListenerThread) {
+        if (handleListenerThread) {
+            Callback eventCallback = this.eventCallbacks.remove(id);
+            if (eventCallback != null) {
+                this._reject(eventCallback, message, code);
+                this.callbacks.remove(id);
+            }
+        } else {
+            Callback callback = this.callbacks.remove(id);
+            if (callback != null) {
+                this._reject(callback, message, code);
+            }
         }
-        callback.setError(protocolException);
-        callback.reject(protocolException);
     }
 
-    private void _reject(Callback callback, ProtocolException error, String originalMessage) {//todo 用法
-        String message = error.getMessage();
-        ProtocolException protocolException = new ProtocolException("Protocol error (" + callback.label() + "): " + message, callback.error());
-        protocolException.setCode(error.getCode());
-        if(StringUtil.isNotEmpty(originalMessage)){
-            protocolException.setOriginalMessage(originalMessage);
-        }
-        callback.setError(protocolException);
-        callback.reject(protocolException);
+    private void _reject(Callback callback, String errorMessage, int code) {
+        callback.reject("Protocol error (method：" + callback.label() + "): " + errorMessage, code);
     }
-    public void resolve(int id, JsonNode value){
-        Callback callback = this.callbacks.get(id);
-        if(callback != null){
-            callback.resolve(value);
+
+    public void resolve(long id, JsonNode value, boolean handleListenerThread) {
+        if (handleListenerThread) {//处理JvExecuteEventThread线程的回调
+            Callback eventCallback = this.eventCallbacks.remove(id);
+            if (eventCallback != null) {
+                eventCallback.resolve(value);
+                this.callbacks.remove(id);
+            }
+        } else {
+            Callback callback = this.callbacks.remove(id);
+            if (callback != null) {
+                callback.resolve(value);
+            }
         }
+
+
     }
+
     //这里会释放线程等待，避免死锁
-    public void clear(){
-        this.callbacks.forEach((key,callback)->{
-            this._reject(callback,"Target closed","");
-        });
+    public void clear() {
+        this.callbacks.forEach((key, callback) -> this._reject(callback, "Target closed", 0));
     }
-    public List<ProtocolException> getPendingProtocolErrors(){
+
+    public List<ProtocolException> getPendingProtocolErrors() {
         List<ProtocolException> results = new ArrayList<>();
-        this.callbacks.forEach((key,callback)->{
-            ProtocolException error = callback.error();
-            if(error != null){
-                results.add(new ProtocolException(callback.error() + " timed out. Trace: " + Arrays.toString(callback.error().getStackTrace())));
+        this.callbacks.forEach((key, callback) -> {
+            String errorMsg = callback.errorMsg();
+            if (errorMsg != null) {
+                results.add(new ProtocolException(errorMsg + " timed out. Trace: "));
             }
         });
         return results;
     }
+
 }

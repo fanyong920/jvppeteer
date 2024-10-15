@@ -1,15 +1,14 @@
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.browser.Browser;
-import com.ruiyun.jvppeteer.core.page.ElementHandle;
-import com.ruiyun.jvppeteer.core.page.Page;
-import com.ruiyun.jvppeteer.core.page.PageExtend;
-import com.ruiyun.jvppeteer.options.LaunchOptions;
-import com.ruiyun.jvppeteer.options.LaunchOptionsBuilder;
+import com.ruiyun.jvppeteer.core.Browser;
+import com.ruiyun.jvppeteer.core.ElementHandle;
+import com.ruiyun.jvppeteer.core.Page;
+import com.ruiyun.jvppeteer.core.PageExtend;
+import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 

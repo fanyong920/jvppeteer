@@ -1,0 +1,32 @@
+package com.ruiyun.jvppeteer.entities;
+
+public class PageMetrics {
+
+    private String title;
+
+    private Metrics metrics;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Metrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(Metrics metrics) {
+        this.metrics = metrics;
+    }
+
+    @Override
+    public String toString() {
+        return "PageMetrics{" +
+                "title='" + title + '\'' +
+                ", metrics=" + metrics +
+                '}';
+    }
+}

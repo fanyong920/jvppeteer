@@ -5,7 +5,7 @@
     <groupId>io.github.fanyong920</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>jar</packaging>
-    <version>1.1.6</version>
+    <version>2.0.0</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <url>https://github.com/fanyong920/jvppeteer</url>
@@ -44,22 +44,16 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <junit.version>4.13.1</junit.version>
         <websocket.api.version>1.1</websocket.api.version>
         <jackson.version>2.13.4.1</jackson.version>
         <java.webSocket.version>1.5.0</java.webSocket.version>
-        <commons.compress.version>1.26.0</commons.compress.version>
-        <zip4j.version>2.11.3</zip4j.version>
-        <jna.version>5.13.0</jna.version>
-        <rxjava.version>3.1.8</rxjava.version>
-        <!-- Maven plugin versions -->
         <bnd.maven.plugin.version>4.3.1</bnd.maven.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
         <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
-        <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-        <maven.javadoc.plugin.version>2.10.3</maven.javadoc.plugin.version>
-        <maven.shade.plugin.version>3.1.0</maven.shade.plugin.version>
-        <maven.source.plugin.version>3.0.0</maven.source.plugin.version>
+        <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+        <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
+        <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
+        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <nexus.staging.maven.plugin.version>1.6.8</nexus.staging.maven.plugin.version>
     </properties>
     <dependencyManagement>
@@ -85,11 +79,6 @@
                 <artifactId>Java-WebSocket</artifactId>
                 <version>${java.webSocket.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-compress</artifactId>
-                <version>${commons.compress.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
     <distributionManagement>
@@ -114,12 +103,7 @@
             <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -130,31 +114,16 @@
             <artifactId>Java-WebSocket</artifactId>
             <version>${java.webSocket.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>${commons.compress.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>net.lingala.zip4j</groupId>
-            <artifactId>zip4j</artifactId>
-            <version>${zip4j.version}</version>
-        </dependency>
+
         <!-- https://mvnrepository.com/artifact/net.java.dev.jna/jna -->
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>${jna.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex.rxjava3</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>${rxjava.version}</version>
-        </dependency>
+        <!--        <dependency>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>jna</artifactId>
+                    <version>${jna.version}</version>
+                </dependency>-->
     </dependencies>
     <build>
         <!-- configured plugins -->
-        <sourceDirectory>src/main/java</sourceDirectory>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -216,7 +185,6 @@
                     <version>${maven.javadoc.plugin.version}</version>
                     <configuration>
                         <encoding>UTF-8</encoding>
-                        <aggregate>true</aggregate>
                         <charset>UTF-8</charset>
                         <docencoding>UTF-8</docencoding>
                     </configuration>

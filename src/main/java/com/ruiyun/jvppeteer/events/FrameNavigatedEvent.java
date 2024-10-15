@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.events;
 
-import com.ruiyun.jvppeteer.protocol.page.FramePayload;
+import com.ruiyun.jvppeteer.entities.FramePayload;
 
 /**
  * Fired once navigation of the frame has completed. Frame is now associated with the new loader.

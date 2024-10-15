@@ -1,34 +1,42 @@
 package com.ruiyun.jvppeteer.transport;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.ruiyun.jvppeteer.core.Constant;
-import com.ruiyun.jvppeteer.core.page.TargetInfo;
-import com.ruiyun.jvppeteer.events.*;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.entities.TargetInfo;
+import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import com.ruiyun.jvppeteer.protocol.debugger.ScriptParsedEvent;
-import com.ruiyun.jvppeteer.protocol.fetch.AuthRequiredEvent;
-import com.ruiyun.jvppeteer.protocol.fetch.RequestPausedEvent;
-import com.ruiyun.jvppeteer.protocol.log.EntryAddedEvent;
-import com.ruiyun.jvppeteer.protocol.network.*;
-import com.ruiyun.jvppeteer.protocol.page.*;
-import com.ruiyun.jvppeteer.protocol.performance.MetricsEvent;
-import com.ruiyun.jvppeteer.protocol.runtime.BindingCalledEvent;
-import com.ruiyun.jvppeteer.protocol.runtime.ConsoleAPICalledEvent;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextCreatedEvent;
-import com.ruiyun.jvppeteer.protocol.runtime.ExecutionContextDestroyedEvent;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.ruiyun.jvppeteer.core.Constant.*;
+import static com.ruiyun.jvppeteer.common.Constant.CODE;
+import static com.ruiyun.jvppeteer.common.Constant.JV_EMIT_EVENT_THREAD;
+import static com.ruiyun.jvppeteer.common.Constant.JV_HANDLE_MESSAGE_THREAD;
+import static com.ruiyun.jvppeteer.common.Constant.LISTENNER_CLASSES;
+import static com.ruiyun.jvppeteer.common.Constant.ERROR;
+import static com.ruiyun.jvppeteer.common.Constant.ID;
+import static com.ruiyun.jvppeteer.common.Constant.METHOD;
+import static com.ruiyun.jvppeteer.common.Constant.PARAMS;
+import static com.ruiyun.jvppeteer.common.Constant.RESULT;
+import static com.ruiyun.jvppeteer.common.Constant.SESSION_ID;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
 
 /**
@@ -42,88 +50,21 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     private final ConnectionTransport transport;
     private final int delay;
     private final int timeout;
-    private final Map<String, CDPSession> sessions = new HashMap<>();
-    public boolean closed;
-    Set<String> manuallyAttached = new HashSet<>();
+    private final Map<String, CDPSession> sessions = new ConcurrentHashMap<>();
+    protected volatile boolean closed;
+    final Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
+
+    public ConcurrentLinkedQueue<Runnable> getEventQueue() {
+        return this.eventQueue;
+    }
+
+    private final ConcurrentLinkedQueue<Runnable> eventQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<JsonNode> messagesQueue = new ConcurrentLinkedQueue<>();
     private List<String> events = null;
-    public static final Map<String, Class<?>> classes = new HashMap<String, Class<?>>(){
-        {
-            for(CDPSession.CDPSessionEvent event : CDPSession.CDPSessionEvent.values()){
-                if(event.getEventName().equals("CDPSession.Disconnected")){
-                    put(event.getEventName(), null);
-                }else if(event.getEventName().equals("CDPSession.Swapped")){
-                    //todo
-                } else if(event.getEventName().equals("CDPSession.Ready")) {
-                    //todo
-                } else if (event.getEventName().equals("sessionattached")) {
-                    put(event.getEventName(), CDPSession.class);
-                } else if (event.getEventName().equals("sessionDetached") ) {
-                    put(event.getEventName(), CDPSession.class);
-                } else if (event.getEventName().equals("Target.targetCreated")) {
-                    put(event.getEventName(), TargetCreatedEvent.class);
-                } else if (event.getEventName().equals("Target.targetDestroyed")) {
-                    put(event.getEventName(), TargetDestroyedEvent.class);
-                }else if (event.getEventName().equals("Target.targetInfoChanged")) {
-                    put(event.getEventName(), TargetInfoChangedEvent.class);
-                }else if (event.getEventName().equals("Target.attachedToTarget")) {
-                    put(event.getEventName(), AttachedToTargetEvent.class);
-                }else if (event.getEventName().equals("Target.detachedFromTarget")) {
-                    put(event.getEventName(), DetachedFromTargetEvent.class);
-                }else if (event.getEventName().equals("Page.javascriptDialogOpening")) {
-                    put(event.getEventName(), JavascriptDialogOpeningEvent.class);
-                }else if (event.getEventName().equals("Runtime.exceptionThrown")) {
-                    put(event.getEventName(), ExceptionThrownEvent.class);
-                }else if (event.getEventName().equals("Performance.metrics")) {
-                    put(event.getEventName(), MetricsEvent.class);
-                }else if (event.getEventName().equals("Log.entryAdded")) {
-                    put(event.getEventName(), EntryAddedEvent.class);
-                }else if (event.getEventName().equals("Page.fileChooserOpened")) {
-                    put(event.getEventName(), FileChooserOpenedEvent.class);
-                }else if (event.getEventName().equals("Debugger.scriptParsed")) {
-                    put(event.getEventName(), ScriptParsedEvent.class);
-                }else if (event.getEventName().equals("Runtime.executionContextCreated")) {
-                    put(event.getEventName(), ExecutionContextCreatedEvent.class);
-                }else if (event.getEventName().equals("Runtime.executionContextDestroyed")) {
-                    put(event.getEventName(), ExecutionContextDestroyedEvent.class);
-                }else if (event.getEventName().equals("CSS.styleSheetAdded")) {
-                    put(event.getEventName(), StyleSheetAddedEvent.class);
-                }else if (event.getEventName().equals("Page.frameAttached")) {
-                    put(event.getEventName(), FrameAttachedEvent.class);
-                }else if (event.getEventName().equals("Page.frameNavigated")) {
-                    put(event.getEventName(), FrameNavigatedEvent.class);
-                }else if (event.getEventName().equals("Page.navigatedWithinDocument")) {
-                    put(event.getEventName(), NavigatedWithinDocumentEvent.class);
-                }else if (event.getEventName().equals("Page.frameDetached")) {
-                    put(event.getEventName(), FrameDetachedEvent.class);
-                }else if (event.getEventName().equals("Page.frameStoppedLoading")) {
-                    put(event.getEventName(), FrameStoppedLoadingEvent.class);
-                }else if (event.getEventName().equals("Page.lifecycleEvent")) {
-                    put(event.getEventName(), LifecycleEvent.class);
-                }else if (event.getEventName().equals("Fetch.requestPaused")) {
-                    put(event.getEventName(), RequestPausedEvent.class);
-                }else if (event.getEventName().equals("Fetch.authRequired")) {
-                    put(event.getEventName(), AuthRequiredEvent.class);
-                }else if (event.getEventName().equals("Network.requestWillBeSent")) {
-                    put(event.getEventName(), RequestWillBeSentEvent.class);
-                }else if (event.getEventName().equals("Network.requestServedFromCache")) {
-                    put(event.getEventName(), RequestServedFromCacheEvent.class);
-                }else if (event.getEventName().equals("Network.responseReceived")) {
-                    put(event.getEventName(), ResponseReceivedEvent.class);
-                }else if (event.getEventName().equals("Network.loadingFinished")) {
-                    put(event.getEventName(), LoadingFinishedEvent.class);
-                }else if (event.getEventName().equals("Network.loadingFailed")) {
-                    put(event.getEventName(), LoadingFailedEvent.class);
-                }else if (event.getEventName().equals("Runtime.consoleAPICalled")) {
-                    put(event.getEventName(), ConsoleAPICalledEvent.class);
-                }else if (event.getEventName().equals("Runtime.bindingCalled")) {
-                    put(event.getEventName(), BindingCalledEvent.class);
-                }else if (event.getEventName().equals("Tracing.tracingComplete")) {
-                    put(event.getEventName(), TracingCompleteEvent.class);
-                }
-            }
-        }
-    };
+    final AtomicLong id = new AtomicLong(1);
+    private Thread handleMessageThread;
+
     public Connection(String url, ConnectionTransport transport, int delay, int timeout) {
         super();
         this.url = url;
@@ -131,37 +72,187 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.delay = delay;
         this.timeout = timeout;
         this.transport.setConnection(this);
-    }
-    public boolean isAutoAttached(String targetId) {
-        return !this.manuallyAttached.contains(targetId);
-    }
-    public JsonNode send(String method) {
-        return this.rawSend(this.callbacks, method, null, null, this.timeout, true);
-    }
-    public JsonNode send(String method, Map<String, Object> params) {
-        return this.rawSend(this.callbacks, method, params, null, this.timeout, true);
-    }
-    public JsonNode send(String method, Map<String, Object> params, Integer timeout, boolean isBlocking) {
-        return this.rawSend(this.callbacks, method, params, null, timeout, isBlocking);
+        this.startThread();
     }
 
-    public JsonNode rawSend(CallbackRegistry callbacks, String method, Map<String, Object> params, String sessionId, Integer timeout, boolean isBlocking) {
+    /**
+     * 专门处理从websocket接收到的消息的线程
+     */
+    public void startHandleMessageThread() {
+        this.handleMessageThread = new Thread(() -> {
+            do {
+                synchronized (this) {
+                    try {
+                        //如果还有event还没处理完，就等待
+                        if (!this.eventQueue.isEmpty()) {
+                            this.wait();
+                        }
+                        JsonNode response = this.messagesQueue.poll();
+                        if (response == null) {
+                            continue;
+                        }
+                        String method;
+                        if (response.hasNonNull(METHOD)) {
+                            method = response.get(METHOD).asText();
+                        } else {
+                            method = null;
+                        }
+                        String sessionId = null;
+                        JsonNode paramsNode;
+                        if (response.hasNonNull(PARAMS)) {
+                            paramsNode = response.get(PARAMS);
+                            if (paramsNode.hasNonNull(SESSION_ID)) {
+                                sessionId = paramsNode.get(SESSION_ID).asText();
+                            }
+                        } else {
+                            paramsNode = null;
+                        }
+                        String parentSessionId = "";
+                        if (response.hasNonNull(SESSION_ID)) {
+                            parentSessionId = response.get(SESSION_ID).asText();
+                        }
+                        if ("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
+                            JsonNode typeNode = paramsNode.get(Constant.TARGET_INFO).get(Constant.TYPE);
+                            CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId, parentSessionId);
+                            this.sessions.put(sessionId, cdpSession);
+                            this.eventQueue.offer(() -> this.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession));
+                            this.wait();
+                            CDPSession parentSession = this.sessions.get(parentSessionId);
+                            if (parentSession != null) {
+                                this.eventQueue.offer(() -> parentSession.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession));
+                                this.wait();
+                            }
+                        } else if ("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
+                            CDPSession cdpSession = this.sessions.get(sessionId);
+                            if (cdpSession != null) {
+                                cdpSession.onClosed();
+                                this.sessions.remove(sessionId);
+                                this.eventQueue.offer(() -> this.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession));
+                                this.wait();
+                                CDPSession parentSession = this.sessions.get(parentSessionId);
+                                if (parentSession != null) {
+                                    this.eventQueue.offer(() -> parentSession.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession));
+                                    this.wait();
+                                }
+                            }
+                        }
+                        if (StringUtil.isNotEmpty(parentSessionId)) {
+                            CDPSession parentSession = this.sessions.get(parentSessionId);
+                            if (parentSession != null) {
+                                if (parentSession.onMessage(response, callbacks)) {
+                                    this.wait();
+                                }
+                            }
+                        } else if (response.hasNonNull(ID)) {//long类型的id,说明属于这次发送消息后接受的回应
+                            long id = response.get(ID).asLong();
+                            resolveCallback(this.callbacks, response, id, false);
+                        } else {//是一个事件，那么响应监听器
+                            if (events == null) {
+                                events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
+                            }
+                            boolean match = events.contains(method);
+                            if (!match) {//不匹配就是没有监听该事件
+                                return;
+                            }
+                            this.eventQueue.offer(() -> {
+                                try {
+                                    this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENNER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENNER_CLASSES.get(method)));
+                                } catch (JsonProcessingException e) {
+                                    LOGGER.error("onMessage error:", e);
+                                }
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        LOGGER.error("Handle message error: ", e);
+                    }
+                }
+            } while (!this.messagesQueue.isEmpty() || !this.closed);
+        });
+        this.handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
+        this.handleMessageThread.start();
+    }
+
+    /**
+     * 解析回调并根据响应结果进行处理
+     * <p>
+     * 此方法主要用于根据服务器返回的响应数据来解决回调操作它检查响应中是否包含错误信息，
+     * 如果包含，则调用reject方法回传错误信息和错误代码；否则，调用resolve方法回传响应结果
+     *
+     * @param callbacks            回调注册表，用于管理所有的回调操作
+     * @param response             浏览器返回的JSON响应数据
+     * @param id                   请求的唯一标识符，用于匹配对应的回调操作
+     * @param handleListenerThread 是否在监听线程中处理回调，默认为false
+     */
+    protected static void resolveCallback(CallbackRegistry callbacks, JsonNode response, long id, boolean handleListenerThread) {
+        if (response.hasNonNull(ERROR)) {
+            callbacks.reject(id, createProtocolErrorMessage(response), response.get(ERROR).hasNonNull(CODE) ? response.get(ERROR).get(CODE).asInt() : 0, handleListenerThread);
+        } else {
+            callbacks.resolve(id, response.get(RESULT), handleListenerThread);
+        }
+    }
+
+    /**
+     * 启动用于处理监听器的线程
+     */
+    public void startEmitEventThread() {
+        //先唤醒
+        Thread emitEventThread = new Thread(() -> {
+            do {
+                synchronized (this) {
+                    try {
+                        Runnable runnable = eventQueue.poll();
+                        if (runnable == null) {
+                            this.notifyAll();//先唤醒
+                        } else {
+                            runnable.run();
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Emit event error: ", e);
+                    }
+                }
+            } while ((this.handleMessageThread != null && !this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) || !this.eventQueue.isEmpty() || !this.closed);
+        });
+        emitEventThread.setName(JV_EMIT_EVENT_THREAD + messageThreadId.getAndIncrement());
+        emitEventThread.start();
+    }
+
+    private static final AtomicLong messageThreadId = new AtomicLong(1);
+    private static final AtomicLong eventThreadId = new AtomicLong(1);
+
+    public boolean isAutoAttached(String targetId) {
+        return !this.manuallyAttached.remove(targetId);
+    }
+
+    public JsonNode send(String method) {
+        return this.rawSend(method, null, null, this.timeout, true);
+    }
+
+    public JsonNode send(String method, Map<String, Object> params) {
+        return this.rawSend(method, params, null, this.timeout, true);
+    }
+
+    public JsonNode send(String method, Map<String, Object> params, Integer timeout, boolean isBlocking) {
+        return this.rawSend(method, params, null, timeout, isBlocking);
+    }
+
+    public JsonNode rawSend(String method, Map<String, Object> params, String sessionId, Integer timeout,
+                            boolean isBlocking) {
         ValidateUtil.assertArg(!this.closed, "Protocol error: Connection closed.");
-        if(timeout == null){
+        if (timeout == null) {
             timeout = this.timeout;
         }
-        return callbacks.create(method, timeout, (id) -> {
+        Callback callback = new Callback(this.id.incrementAndGet(), method, timeout);
+        return this.callbacks.create(callback, (id) -> {
             ObjectNode objectNode = OBJECTMAPPER.createObjectNode();
-            objectNode.put(MESSAGE_METHOD_PROPERTY, method);
-            if(params != null) {
-                objectNode.set(MESSAGE_PARAMS_PROPERTY, OBJECTMAPPER.valueToTree(params));
+            objectNode.put(METHOD, method);
+            if (params != null) {
+                objectNode.set(PARAMS, OBJECTMAPPER.valueToTree(params));
             }
-            objectNode.put(MESSAGE_ID_PROPERTY, id);
-            if(StringUtil.isNotEmpty(sessionId)){
-                objectNode.put(MESSAGE_SESSION_ID_PROPERTY, sessionId);
+            objectNode.put(ID, id);
+            if (StringUtil.isNotEmpty(sessionId)) {
+                objectNode.put(SESSION_ID, sessionId);
             }
             String stringifiedMessage = objectNode.toString();
-           // System.out.println("jvppeteer:protocol:SEND ► {}"+stringifiedMessage);
             LOGGER.trace("jvppeteer:protocol:SEND ► {}", stringifiedMessage);
             this.transport.send(stringifiedMessage);
         }, isBlocking);
@@ -169,91 +260,35 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
 
     /**
      * recevie message from browser by websocket
+     *
      * @param message 从浏览器接受到的消息
      */
     public void onMessage(String message) {
-        if (delay > 0) {
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-                // 恢复中断状态
-                Thread.currentThread().interrupt();
-                LOGGER.error("slowMo browser Fail:", e);
-            }
-        }
-        //System.out.println("jvppeteer:protocol:RECV ◀ {}"+message);
-        LOGGER.trace("jvppeteer:protocol:RECV ◀ {}", message);
         try {
             if (StringUtil.isEmpty(message)) {
                 return;
             }
+            if (delay > 0) {
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    // 恢复中断状态
+                    Thread.currentThread().interrupt();
+                    LOGGER.error("slowMo browser Fail:", e);
+                }
+            }
+            LOGGER.trace("jvppeteer:protocol:RECV ◀ {}", message);
             JsonNode readTree = OBJECTMAPPER.readTree(message);
-            String method = null;
-            if (readTree.hasNonNull(MESSAGE_METHOD_PROPERTY)) {
-                method = readTree.get(MESSAGE_METHOD_PROPERTY).asText();
+            if (readTree.hasNonNull(ID)) {//long类型的id,说明属于发送请求后接收到的消息
+                long id = readTree.get(ID).asLong();
+                resolveCallback(this.callbacks, readTree, id, true);
             }
-            String sessionId = null;
-            JsonNode paramsNode = null;
-            if(readTree.hasNonNull(MESSAGE_PARAMS_PROPERTY)){
-                paramsNode = readTree.get(MESSAGE_PARAMS_PROPERTY);
-                if(paramsNode.hasNonNull(MESSAGE_SESSION_ID_PROPERTY)){
-                    sessionId = paramsNode.get(MESSAGE_SESSION_ID_PROPERTY).asText();
-                }
-            }
-            String parentSessionId = null;
-            if(readTree.hasNonNull(MESSAGE_SESSION_ID_PROPERTY)){
-                parentSessionId = readTree.get(MESSAGE_SESSION_ID_PROPERTY).asText();
-            }
-            if ("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
-                JsonNode typeNode = paramsNode.get(Constant.MESSAGE_TARGETINFO_PROPERTY).get(Constant.MESSAGE_TYPE_PROPERTY);
-                CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId,parentSessionId);
-                this.sessions.put(sessionId, cdpSession);
-                this.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
-                CDPSession parentSession = this.sessions.get(parentSessionId);
-                if(parentSession != null){
-                    parentSession.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
-                }
-            } else if ("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
-                CDPSession cdpSession = this.sessions.get(sessionId);
-                if (cdpSession != null) {
-                    cdpSession.onClosed();
-                    this.sessions.remove(sessionId);
-                    this.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
-                    CDPSession parentSession = this.sessions.get(parentSessionId);
-                    if(parentSession != null){
-                        parentSession.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
-                    }
-                }
-            }
-            if(StringUtil.isNotEmpty(parentSessionId)){
-                CDPSession parentSession = this.sessions.get(parentSessionId);
-                if (parentSession != null) {
-                    parentSession.onMessage(readTree);
-                }
-            } else if (readTree.hasNonNull(MESSAGE_ID_PROPERTY)) {//long类型的id,说明属于这次发送消息后接受的回应
-                int id = readTree.get(MESSAGE_ID_PROPERTY).asInt();
-                if(readTree.hasNonNull(MESSAGE_ERROR_PROPERTY)){
-                    this.callbacks.reject(id,createProtocolErrorMessage(readTree), readTree.get(MESSAGE_ERROR_PROPERTY).get(MESSAGE_MESSAGE_PROPERTY).asText());
-                }else {
-                    this.callbacks.resolve(id, readTree.get(MESSAGE_RESULT_PROPERTY));
-                }
-            }else{//是一个事件，那么响应监听器
-                if(events == null){
-                    events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
-                }
-                boolean match = events.contains(method);
-                if(!match){//不匹配就是没有监听该事件
-                    return;
-                }
-//                CDPSession.CDPSessionEvent cdpSessionEvent = CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_"));
-//                System.out.println("conntionevent="+cdpSessionEvent);
-
-                this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".","_")), classes.get(method) == null ? null : OBJECTMAPPER.treeToValue(paramsNode, classes.get(method)));
-            }
+            this.messagesQueue.offer(readTree);
         } catch (Exception e) {
             LOGGER.error("onMessage error:", e);
         }
     }
+
     /**
      * 从{@link CDPSession}中拿到对应的{@link Connection}
      *
@@ -271,24 +306,25 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
      * @return CDPSession client
      */
     public CDPSession createSession(TargetInfo targetInfo) {
-        return this._createSession(targetInfo,false);
+        return this._createSession(targetInfo, false);
     }
-    public CDPSession _createSession(TargetInfo targetInfo,boolean isAutoAttachEmulated) {
+
+    public CDPSession _createSession(TargetInfo targetInfo, boolean isAutoAttachEmulated) {
         if (!isAutoAttachEmulated) {
             this.manuallyAttached.add(targetInfo.getTargetId());
         }
-        Map<String, Object> params = new HashMap<>();
+        Map<String, Object> params = ParamsFactory.create();
         params.put("targetId", targetInfo.getTargetId());
         params.put("flatten", true);
-        JsonNode receivedNode = this.send("Target.attachToTarget", params, null,true);
-        this.manuallyAttached.remove(targetInfo.getTargetId());
-        if(receivedNode.hasNonNull(MESSAGE_SESSION_ID_PROPERTY)){
-            CDPSession session = this.sessions.get(receivedNode.get(MESSAGE_SESSION_ID_PROPERTY).asText());
-            if(session == null){
+        JsonNode response = this.send("Target.attachToTarget", params, null, true);
+        if (response.hasNonNull(SESSION_ID)) {
+            String sessionId = response.get(SESSION_ID).asText();
+            CDPSession cdpSession = this.sessions.get(sessionId);
+            if (cdpSession == null) {
                 throw new JvppeteerException("CDPSession creation failed.");
             }
-            return session;
-        }else {
+            return cdpSession;
+        } else {
             throw new JvppeteerException("CDPSession creation failed.");
         }
     }
@@ -297,12 +333,8 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         return this.url;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
     public CDPSession session(String sessionId) {
-        return sessions.get(sessionId);
+        return this.sessions.get(sessionId);
     }
 
     @Override
@@ -315,24 +347,34 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.transport.close();//关闭websocket
     }
 
-    public void onClose() {
+    private void onClose() {
         if (this.closed)
             return;
         this.closed = true;
         this.transport.setConnection(null);
+        while (true) {
+            if (this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) {
+                break;
+            }
+        }
         this.callbacks.clear();
         for (CDPSession session : this.sessions.values())
             session.onClosed();
         this.sessions.clear();
-        this.emit(CDPSession.CDPSessionEvent.CDPSession_Disconnected, null);
+        this.emit(CDPSession.CDPSessionEvent.CDPSession_Disconnected, true);
     }
 
     public List<ProtocolException> getPendingProtocolErrors() {
-        List<ProtocolException> result = new ArrayList<>(this.callbacks.getPendingProtocolErrors());
-        for (CDPSession session : this.sessions.values()) {
-            result.addAll(session.getPendingProtocolErrors());
-        }
-        return result;
+        return new ArrayList<>(this.callbacks.getPendingProtocolErrors());
+    }
+
+    private void startThread() {
+        this.startEmitEventThread();
+        this.startHandleMessageThread();
+    }
+
+    public boolean closed() {
+        return this.closed;
     }
 }
 

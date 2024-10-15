@@ -21,12 +21,7 @@ public class StreamUtil {
 	    }
 	  }
 
-	public static void close(Thread readLineThread) {
-		if(readLineThread != null) {
-			readLineThread = null;
-		}
-	}
-	public static final String toString(InputStream in) throws IOException {
+	public static String toString(InputStream in) throws IOException {
 		StringWriter wirter = null;
 		InputStreamReader reader = null;
 		try {

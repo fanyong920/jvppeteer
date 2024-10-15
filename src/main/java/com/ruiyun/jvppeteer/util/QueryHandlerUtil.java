@@ -1,8 +1,8 @@
 package com.ruiyun.jvppeteer.util;
 
 
-import com.ruiyun.jvppeteer.core.page.QueryHandler;
-import com.ruiyun.jvppeteer.core.page.QuerySelector;
+import com.ruiyun.jvppeteer.common.QueryHandler;
+import com.ruiyun.jvppeteer.common.QuerySelector;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ public class QueryHandlerUtil {
         customQueryHandlers.put(name, handler);
     }
 
-    public static final void unregisterCustomQueryHandler(String name) {
+    public static void unregisterCustomQueryHandler(String name) {
         customQueryHandlers.remove(name);
     }
 

@@ -1,46 +1,73 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-import io.reactivex.rxjava3.subjects.SingleSubject;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.util.StringUtil;
 
-import java.util.Optional;
-import java.util.Timer;
+import java.util.concurrent.TimeUnit;
 
 public class Callback {
-    private int id;
-    private ProtocolException error =  new ProtocolException();
-    SingleSubject<JsonNode> subject = SingleSubject.create();
-    private Timer timer;
-    public String label;
+    private final long id;
+    private String errorMsg = null;
+    public final String label;
+    private final int timeout;
+    final AwaitableResult<JsonNode> waitingResponse = AwaitableResult.create();
+    private int code;
 
-    public Callback(int id, String label) {
+    public Callback(long id, String label, int timeout) {
         this.id = id;
         this.label = label;
+        this.timeout = timeout;
     }
-    public void resolve(JsonNode value){
-        Optional.ofNullable(this.timer).ifPresent(Timer::cancel);
-        this.subject.onSuccess(value);
+
+    public void resolve(JsonNode value) {
+        this.waitingResponse.onSuccess(value);
     }
-    public void reject(Exception error){
-        Optional.ofNullable(this.timer).ifPresent(Timer::cancel);
-        this.subject.onError(error);
+
+    public void reject() {
+        this.waitingResponse.complete();
     }
-    public int id(){
+
+    public void reject(String errorMsg, int code) {
+        this.waitingResponse.complete();
+        this.errorMsg = errorMsg;
+        this.code = code;
+    }
+
+    public long id() {
         return this.id;
     }
-    public ProtocolException error(){
-        return this.error;
-    }
-    public String label(){
+
+
+    public String label() {
         return this.label;
     }
 
-    public SingleSubject<JsonNode> getSubject() {
-        return this.subject;
+    public JsonNode waitForResponse() throws InterruptedException {
+        if (this.timeout > 0) {
+            boolean waiting = waitingResponse.waiting(this.timeout, TimeUnit.MILLISECONDS);
+            if (!waiting) {
+                throw new TimeoutException("Timeout waiting for response for " + this.label);
+            }
+            if (StringUtil.isNotEmpty(errorMsg)) {
+                throw new ProtocolException(errorMsg, code);
+            }
+            return waitingResponse.get();
+        } else if (this.timeout == 0) {
+            waitingResponse.wait();
+            if (StringUtil.isNotEmpty(errorMsg)) {
+                throw new ProtocolException(errorMsg, code);
+            }
+            return waitingResponse.get();
+        } else {
+            throw new JvppeteerException("Timeout < 0");
+        }
     }
 
-    public void setError(ProtocolException error) {
-        this.error = error;
+    public String errorMsg() {
+        return this.errorMsg;
     }
 }

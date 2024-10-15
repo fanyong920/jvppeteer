@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.events;
 
-import com.ruiyun.jvppeteer.protocol.CSS.CSSStyleSheetHeader;
+import com.ruiyun.jvppeteer.entities.CSSStyleSheetHeader;
 
 public class StyleSheetAddedEvent {
     /**

@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.events;
 
-import com.ruiyun.jvppeteer.protocol.runtime.StackTrace;
+import com.ruiyun.jvppeteer.entities.StackTrace;
 
 /**
  * Fired when frame has been attached to its parent.

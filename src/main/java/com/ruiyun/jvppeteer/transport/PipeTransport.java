@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.transport;
 
-import com.ruiyun.jvppeteer.core.page.Worker;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class PipeTransport implements ConnectionTransport {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Worker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PipeTransport.class);
 
     private InputStream pipeReader;
 
@@ -26,9 +25,9 @@ public class PipeTransport implements ConnectionTransport {
 
     private Thread writerThread;
 
-    private BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
 
-    private StringBuffer pendingMessage = new StringBuffer();
+    private final StringBuffer pendingMessage = new StringBuffer();
 
     public PipeTransport() {
 
@@ -54,6 +53,7 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void onMessage(String message) {
+        System.out.println("message:"+message);
     }
 
     @Override

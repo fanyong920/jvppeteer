@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.transport;
 
-import com.ruiyun.jvppeteer.transport.factory.WebSocketTransportFactory;
+import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
@@ -10,84 +10,89 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Map;
-import java.util.function.Consumer;
+
+import static com.ruiyun.jvppeteer.common.Constant.CLOSE_REASON;
 
 /**
- * websocket client 
- * @author fff
+ * websocket client
  *
+ * @author fff
  */
 
 public class WebSocketTransport extends WebSocketClient implements ConnectionTransport {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
 
-	private Connection connection = null;
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
+    private Connection connection = null;
 
-	public WebSocketTransport(URI serverUri, Draft draft) {
-		super(serverUri, draft);
-	}
+    public WebSocketTransport(URI serverUri, Draft draft) {
+        super(serverUri, draft);
+    }
 
-	public WebSocketTransport(URI serverURI) {
-		super( serverURI );
-	}
+    public WebSocketTransport(URI serverURI) {
+        super(serverURI);
+    }
 
-	public WebSocketTransport( URI serverUri, Map<String, String> httpHeaders) {
-		super(serverUri, httpHeaders);
-	}
+    public WebSocketTransport(URI serverUri, Map<String, String> httpHeaders) {
+        super(serverUri, httpHeaders);
+    }
 
-	public static WebSocketTransport create(String browserWSEndpoint) throws InterruptedException {
-		return WebSocketTransportFactory.create(browserWSEndpoint);
-	}
+    public static WebSocketTransport create(String browserWSEndpoint) throws InterruptedException {
+        return WebSocketTransportFactory.create(browserWSEndpoint);
+    }
 
-	@Override
-	public void onMessage(String message) {
-		ValidateUtil.notNull(this.connection,"MessageConsumer must be initialized");
-		this.connection.accept(message);
-	}
-	/**
-	 *
-	 * @param code  NORMAL = 1000;
-	 *     GOING_AWAY = 1001;
-	 *     PROTOCOL_ERROR = 1002;
-	 *     REFUSE = 1003;
-	 *     NOCODE = 1005;
-	 *     ABNORMAL_CLOSE = 1006;
-	 *     NO_UTF8 = 1007;
-	 *     POLICY_VALIDATION = 1008;
-	 *     TOOBIG = 1009;
-	 *     EXTENSION = 1010;
-	 *     UNEXPECTED_CONDITION = 1011;
-	 *     SERVICE_RESTART = 1012;
-	 *     TRY_AGAIN_LATER = 1013;
-	 *     BAD_GATEWAY = 1014;
-	 *     TLS_ERROR = 1015;
-	 *     NEVER_CONNECTED = -1;
-	 *     BUGGYCLOSE = -2;
-	 *     FLASHPOLICY = -3;
-	 * @param reason 原因
-	 * @param remote 远程
-	 */
-	@Override
-	public void onClose( int code, String reason, boolean remote) {//这里是WebSocketClient的实现方法,当websocket closed的时候会调用onClose
-        LOGGER.info("Connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, reason);
-		if(this.connection != null){//浏览器以外关闭时候，connection不为空
-			this.connection.dispose();
-		}
-	}
+    @Override
+    public void onMessage(String message) {
+        ValidateUtil.notNull(this.connection, "Connection may be closed");
+        this.connection.accept(message);
+    }
 
-	@Override
-	public void onError(Exception e) {
-		LOGGER.error("Websocket error:",e);
-	}
+    /**
+     * 当websocket连接关闭时，调用此方法
+     * <p>
+     * 状态码解释如下
+     * <blockquote><pre>
+     *     1000 = 正常关闭
+     *     1001 = 终端离开, 可能因为服务端错误, 也可能因为浏览器正从打开连接的页面跳转离开
+     *     1002 = 由于协议错误而中断连接
+     *     1003 = 由于接收到不允许的数据类型而断开连接 (如仅接收文本数据的终端接收到了二进制数据)
+     *     1005 = 表示没有收到预期的状态码
+     *     1006 = 用于期望收到状态码时连接非正常关闭 (也就是说, 没有发送关闭帧)
+     *     1007 = 由于收到了格式不符的数据而断开连接 (如文本消息中包含了非 UTF-8 数据)
+     *     1008 = 由于收到不符合约定的数据而断开连接。 这是一个通用状态码, 用于不适合使用 1003 和 1009 状态码的场景
+     *     1009 = 由于收到过大的数据帧而断开连接
+     *     1010 = 客户端期望服务器商定一个或多个拓展, 但服务器没有处理, 因此客户端断开连接
+     *     1011 = 客户端由于遇到没有预料的情况阻止其完成请求, 因此服务端断开连接。
+     *     1012 = 服务器由于重启而断开连接。 这是一个通用状态码, 用于不适合使用 1001 状态码的场景
+     *     1013 = 服务器由于临时原因断开连接, 如服务器过载因此断开一部分客户端连接
+     *     1015 = 表示连接由于无法完成 TLS 握手而关闭 (例如无法验证服务器证书)
+     *     -1 = 表示连接尚未打开
+     *     -2 = 表示连接由于内部错误而关闭
+     *     -3 = 表示连接由于无法完成 flash 策略检查而关闭
+     * </pre></blockquote>
+     *
+     * @param reason 连接关闭的原因
+     * @param remote 远程
+     */
+    @Override
+    public void onClose(int code, String reason, boolean remote) {//这里是WebSocketClient的实现方法,当websocket closed的时候会调用onClose
+        LOGGER.info("Connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, StringUtil.isEmpty(reason) ? CLOSE_REASON.get(code) : reason);
+        if (this.connection != null) {//浏览器以外关闭时候，connection不为空
+            this.connection.dispose();
+        }
+    }
 
-	@Override
-	public void onOpen(ServerHandshake serverHandshake) {
+    @Override
+    public void onError(Exception e) {
+        LOGGER.error("Websocket error:", e);
+    }
+
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
         LOGGER.info("Websocket serverHandshake status: {}", serverHandshake.getHttpStatus());
-	}
+    }
 
-	@Override
-	public void setConnection(Connection connection) {
-		this.connection = connection;
-	}
+    @Override
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
 }

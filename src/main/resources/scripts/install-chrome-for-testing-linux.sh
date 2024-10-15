@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -e
 set -x
-echo "第0个参数 = $0"
-echo "第一个参数 = $1"
-echo "第二个参数 = $2"
 if [[ $(arch) == "aarch64" ]]; then
   echo "ERROR: not supported on Linux Arm64"
   exit 1
@@ -34,10 +31,10 @@ if ! command -v curl >/dev/null; then
 fi
 
 # 4. download chrome beta from dl.google.com and install it.
-cd $1 #安装目录
-curl -O -L $2 #下载地址
-unzip ./chrome-linux64.zip
-rm -rf ./chrome-linux64.zip
+cd "$1" #安装目录
+curl -O -L "$2" #下载地址
+unzip ./"$3.zip" #解压 $3例如 chrome-linux64.zip
+rm -rf ./"$3.zip"
 # 安装依赖
 if [[ -f /etc/debian_version ]]; then
     apt install -y ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgbm1 libgcc1 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 lsb-release wget xdg-utils
@@ -46,7 +43,7 @@ if [[ -f /etc/debian_version ]]; then
   else
     echo "Unknown Linux distribution."
   fi
-./chrome-linux64/chrome --version
+./"$3"/"$4" --version
 
 
 
