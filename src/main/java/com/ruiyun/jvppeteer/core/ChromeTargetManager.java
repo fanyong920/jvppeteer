@@ -283,18 +283,16 @@ public class ChromeTargetManager extends TargetManager {
         session.send("Runtime.runIfWaitingForDebugger", null, null, true);
     }
 
-    //WebSocketConnectReadThread
     private void silentDetach(Connection parentConnection, CDPSession session) {
         try {
             runIfWaitingForDebugger(session);
         } catch (Exception ignore) {
 
         }
-
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put(Constant.SESSION_ID, session.id());
-            parentConnection.send("Target.detachFromTarget", params, null, true);
+            parentConnection.send("Target.detachFromTarget", params);
         } catch (Exception ignore) {
         }
     }
@@ -308,7 +306,7 @@ public class ChromeTargetManager extends TargetManager {
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put(Constant.SESSION_ID, session.id());
-            parentSession.send("Target.detachFromTarget", params, null, true);
+            parentSession.send("Target.detachFromTarget", params);
         } catch (Exception ignore) {
         }
     }

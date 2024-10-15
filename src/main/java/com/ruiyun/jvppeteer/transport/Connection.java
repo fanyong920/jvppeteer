@@ -58,7 +58,6 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     public ConcurrentLinkedQueue<Runnable> getEventQueue() {
         return this.eventQueue;
     }
-
     private final ConcurrentLinkedQueue<Runnable> eventQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<JsonNode> messagesQueue = new ConcurrentLinkedQueue<>();
     private List<String> events = null;
@@ -79,7 +78,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
      * 专门处理从websocket接收到的消息的线程
      */
     public void startHandleMessageThread() {
-        this.handleMessageThread = new Thread(() -> {
+        Runnable runnable = () -> {
             do {
                 synchronized (this) {
                     try {
@@ -167,9 +166,8 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                     }
                 }
             } while (!this.messagesQueue.isEmpty() || !this.closed);
-        });
-        this.handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
-        this.handleMessageThread.start();
+        };
+        this.handleMessageThread = Thread.ofVirtual().name(JV_HANDLE_MESSAGE_THREAD, 1).start(runnable);
     }
 
     /**
@@ -196,7 +194,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
      */
     public void startEmitEventThread() {
         //先唤醒
-        Thread emitEventThread = new Thread(() -> {
+        Runnable eventRunnable = () -> {
             do {
                 synchronized (this) {
                     try {
@@ -211,13 +209,9 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                     }
                 }
             } while ((this.handleMessageThread != null && !this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) || !this.eventQueue.isEmpty() || !this.closed);
-        });
-        emitEventThread.setName(JV_EMIT_EVENT_THREAD + messageThreadId.getAndIncrement());
-        emitEventThread.start();
+        };
+        Thread.ofVirtual().name(JV_EMIT_EVENT_THREAD, 1).start(eventRunnable);
     }
-
-    private static final AtomicLong messageThreadId = new AtomicLong(1);
-    private static final AtomicLong eventThreadId = new AtomicLong(1);
 
     public boolean isAutoAttached(String targetId) {
         return !this.manuallyAttached.remove(targetId);

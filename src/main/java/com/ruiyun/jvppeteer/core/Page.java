@@ -70,6 +70,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
@@ -250,7 +251,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 为主要目标设置侦听器。在导航到预置页面期间，主要目标可能会更改。
      */
     private void setupPrimaryTargetListeners() {
-        Map<CDPSession.CDPSessionEvent, Consumer<?>> sessionHandlers = Collections.unmodifiableMap(new HashMap<CDPSession.CDPSessionEvent, Consumer<?>>() {{
+        Map<CDPSession.CDPSessionEvent, Consumer<?>> sessionHandlers = Collections.unmodifiableMap(new HashMap<>() {{
             put(CDPSession.CDPSessionEvent.CDPSession_Ready, (session) -> Page.this.onAttachedToTarget.accept((CDPSession) session));
             put(CDPSession.CDPSessionEvent.CDPSession_Disconnected, ((ignore) -> sessionCloseResult.onSuccess(new TargetCloseException("Target closed"))));
             put(CDPSession.CDPSessionEvent.Page_domContentEventFired, ((ignore) -> Page.this.emit(PageEvent.Domcontentloaded, true)));
@@ -919,7 +920,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 此方法导航到历史记录中的上一页
      *
      * @return 如果存在多个重定向，导航将使用最后一个重定向的响应进行解析。如果无法返回，则解析为 null。
-     * @throws JsonProcessingException
+     * @throws JsonProcessingException 如果JSON解析失败
      */
     public Response goBack() throws JsonProcessingException {
         return this.go(-1, new WaitForOptions());
@@ -1185,7 +1186,13 @@ public class Page extends EventEmitter<Page.PageEvent> {
                 } else {
                     if (options.getFullPage()) {
                         if (!options.getCaptureBeyondViewport()) {
-                            LinkedHashMap<String, Integer> scrollDimensions = (LinkedHashMap<String, Integer>) this.mainFrame().isolatedRealm().evaluate("() => {\n" + "              const element = document.documentElement;\n" + "              return {\n" + "                width: element.scrollWidth,\n" + "                height: element.scrollHeight,\n" + "              };\n" + "            }", null);
+                            LinkedHashMap<String, Integer> scrollDimensions = (LinkedHashMap<String, Integer>) this.mainFrame().isolatedRealm().evaluate("() => {\n" +
+                                    "                                                  const element = document.documentElement;\n" +
+                                    "                                                  return {\n" +
+                                    "                                                    width: element.scrollWidth,\n" +
+                                    "                                                    height: element.scrollHeight,\n" +
+                                    "                                                  };\n" +
+                                    "                                                }");
                             fullViewport = new Viewport(scrollDimensions.get("width"), scrollDimensions.get("height"), this.viewport.getDeviceScaleFactor(), this.viewport.getIsMobile(), this.viewport.getHasTouch(), this.viewport.getIsLandscape());
                             this.setViewport(fullViewport);
                         }
@@ -1344,28 +1351,20 @@ public class Page extends EventEmitter<Page.PageEvent> {
             paperHeight = format.getHeight();
         } else {
             Double width = convertPrintParameterToInches(options.getWidth(), lengthUnit);
-            if (width != null) {
+            if (width != 0.00) {
                 paperWidth = width;
             }
             Double height = convertPrintParameterToInches(options.getHeight(), lengthUnit);
-            if (height != null) {
+            if (height != 0.00) {
                 paperHeight = height;
             }
         }
         PDFMargin margin = options.getMargin();
-        Number marginTop, marginLeft, marginBottom, marginRight;
-        if ((marginTop = convertPrintParameterToInches(margin.getTop(), lengthUnit)) == null) {
-            marginTop = 0;
-        }
-        if ((marginLeft = convertPrintParameterToInches(margin.getLeft(), lengthUnit)) == null) {
-            marginLeft = 0;
-        }
-        if ((marginBottom = convertPrintParameterToInches(margin.getBottom(), lengthUnit)) == null) {
-            marginBottom = 0;
-        }
-        if ((marginRight = convertPrintParameterToInches(margin.getRight(), lengthUnit)) == null) {
-            marginRight = 0;
-        }
+        Double marginTop, marginLeft, marginBottom, marginRight;
+        marginTop = convertPrintParameterToInches(margin.getTop(), lengthUnit);
+        marginLeft = convertPrintParameterToInches(margin.getLeft(), lengthUnit);
+        marginBottom = convertPrintParameterToInches(margin.getBottom(), lengthUnit);
+        marginRight = convertPrintParameterToInches(margin.getRight(), lengthUnit);
         if (options.getOutline()) {
             options.setTagged(true);
         }
@@ -2206,7 +2205,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
 
     private Double convertPrintParameterToInches(String parameter, LengthUnit lengthUnit) {
         if (StringUtil.isEmpty(parameter)) {
-            return null;
+            return 0.00;
         }
         double pixels;
         if (Helper.isNumber(parameter)) {

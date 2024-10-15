@@ -195,6 +195,9 @@ public class Helper {
     public static boolean isWindows() {
         return platform().contains("win");
     }
+    public static boolean isWindows11() {
+        return platform().contains("windows 11");
+    }
 
     public static boolean is64() {
         return arch().contains("64");

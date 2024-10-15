@@ -128,32 +128,33 @@ public class BrowserRunner {
         if (this.closed) {
             return;
         }
-        try {
-            if ("-1".equals(pid) || StringUtil.isEmpty(pid)) {
-                this.destroyProcess(this.process);
-                return;
-            }
-            Process exec = null;
-            String command = "";
-            this.destroyProcess(this.process);
-            if (Helper.isLinux() || Helper.isMac()) {
-                command = "kill -9 " + pid;
-                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
-            } else {
-                if (this.process.isAlive()) {
-                    command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
-                    exec = Runtime.getRuntime().exec(command);
-                }
-            }
-            try {
-                if (exec != null) {
-                    LOGGER.info("kill chrome process by pid,command:  {}", command);
-                    exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-                }
-            } finally {
-                this.destroyProcess(exec);
-            }
 
+        try {
+            this.destroyProcess(this.process);
+//            if ("-1".equals(pid) || StringUtil.isEmpty(pid)) {
+//                this.destroyProcess(this.process);
+//                return;
+//            }
+//            Process exec = null;
+//            String command = "";
+//            this.destroyProcess(this.process);
+//            if (Helper.isLinux() || Helper.isMac()) {
+//                command = "kill -9 " + pid;
+//                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
+//            } else {
+//                if (this.process.isAlive()) {
+//                    command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
+//                    exec = Runtime.getRuntime().exec(command);
+//                }
+//            }
+//            try {
+//                if (exec != null) {
+//                    LOGGER.info("kill chrome process by pid,command:  {}", command);
+//                    exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+//                }
+//            } finally {
+//                this.destroyProcess(exec);
+//            }
         } catch (Exception e) {
             LOGGER.error("kill chrome process error ", e);
         } finally {

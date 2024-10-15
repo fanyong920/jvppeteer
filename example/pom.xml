@@ -7,43 +7,19 @@
     <version>1.0.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <junit.version>4.13.1</junit.version>
         <cdt.version>4.0.0</cdt.version>
-        <slf4j.version>1.7.25</slf4j.version>
+        <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.7</logback.version>
-        <httpclient.version>4.5.14</httpclient.version>
-        <guava.version>33.2.1-jre</guava.version>
-        <jsoup.version>1.11.3</jsoup.version>
-        <htmlunit.version>2.70.0</htmlunit.version>
-        <httpasyncclient.version>4.1.4</httpasyncclient.version>
-        <nuprocess.version>2.0.5</nuprocess.version>
-        <htmlparse.version>2.1</htmlparse.version>
-        <jvppeteer.version>2.0.0</jvppeteer.version>
-        <htmlunit.version>2.38.0</htmlunit.version>
+        <jackson.version>2.17.2</jackson.version>
+        <jvppeteer.version>2.0.1</jvppeteer.version>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.htmlparser</groupId>
-            <artifactId>htmlparser</artifactId>
-            <version>${htmlparse.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>nuprocess</artifactId>
-            <version>${nuprocess.version}</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.github.fanyong920</groupId>
@@ -69,7 +45,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
-    </build>
 </project>

@@ -33,7 +33,6 @@ import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -268,7 +267,7 @@ public class ElementHandle extends JSHandle {
             Path absolutePath = Paths.get(filePath).toAbsolutePath();
             boolean readable = Files.isReadable(absolutePath);
             if (!readable) {
-                throw new AccessControlException(filePath + "is not readable");
+                throw new JvppeteerException(filePath + "is not readable");
             }
             return absolutePath.toString();
         }).collect(Collectors.toList());

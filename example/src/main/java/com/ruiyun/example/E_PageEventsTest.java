@@ -71,7 +71,7 @@ public class E_PageEventsTest extends A_LaunchTest {
         page.click("#s-top-left > a:nth-child(2)");
 
         //等待5s看看效果
-        Thread.sleep(555000);
+        Thread.sleep(5000);
         //关闭浏览器
         browser.close();
     }

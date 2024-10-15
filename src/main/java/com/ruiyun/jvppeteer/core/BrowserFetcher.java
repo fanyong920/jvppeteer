@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -182,7 +183,7 @@ public class BrowserFetcher {
         else if (Helper.isLinux())
             return LINUX;
         else if (Helper.isWindows())
-            return Helper.is64() ? WIN64 : WIN32;
+            return Helper.is64() && Helper.isWindows11() ? WIN64 : WIN32;
         else
             throw new JvppeteerException("Unsupported platform: " + Helper.platform());
     }
@@ -228,7 +229,8 @@ public class BrowserFetcher {
     private boolean httpRequest(Proxy proxy, String url, String method) throws IOException {
         HttpURLConnection conn = null;
         try {
-            URL urlSend = new URL(url);
+            URI uri = URI.create(url);
+            URL urlSend = uri.toURL();
             if (proxy != null) {
                 conn = (HttpURLConnection) urlSend.openConnection(proxy);
             } else {

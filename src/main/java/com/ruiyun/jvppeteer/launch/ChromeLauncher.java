@@ -97,7 +97,7 @@ public class ChromeLauncher implements Launcher {
             if (options.getWaitForInitialPage()) {
                 browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
             }
-            runner.setPid(getBrowserPid(connection, runner.getProcess()));
+//            runner.setPid(getBrowserPid(connection, runner.getProcess()));
             return browser;
         } catch (IOException | InterruptedException e) {
             runner.closeBrowser();
