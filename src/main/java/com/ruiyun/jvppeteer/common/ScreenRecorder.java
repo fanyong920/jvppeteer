@@ -15,10 +15,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +46,10 @@ public class ScreenRecorder {
     private final Viewport defaultViewport;
     private final Viewport tempViewport;
     private String tempCacheDir;
+    private volatile BigDecimal previousTimestamp;
+    private volatile byte[] previousBuffer;
     AtomicLong imgIndex = new AtomicLong(0);
+    private volatile boolean stoped = false;
 
     public ScreenRecorder(Page page, double width, double height, ScreenRecorderOptions options, Viewport defaultViewport, Viewport tempViewport) {
         this.page = page;
@@ -55,6 +63,7 @@ public class ScreenRecorder {
         Consumer<Object> closeListener = (o) -> {
             ScreenRecorder.this.stop();
         };
+        this.stoped = false;
         page.mainFrame().client().once(CDPSession.CDPSessionEvent.disconnected, closeListener);
         page.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) this::writeFrame);
     }
@@ -67,13 +76,34 @@ public class ScreenRecorder {
         Map<String, Object> params = ParamsFactory.create();
         params.put("sessionId", event.getSessionId());
         page.mainFrame().client().send("Page.screencastFrameAck", params);
-        if (event.getMetadata().getTimestamp() != null && event.getMetadata().getTimestamp() != 0) {
-            byte[] buffer = Base64Util.decode(event.getData().getBytes());
-            try {
-                Path imgPath = Paths.get(Helper.join(this.tempCacheDir, imgIndex.incrementAndGet() + ".png"));
-                Files.write(imgPath, buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-            } catch (IOException e) {
-                LOGGER.error("jvppeteer error", e);
+        BigDecimal timestamp = event.getMetadata().getTimestamp();
+        byte[] buffer = Base64Util.decode(event.getData().getBytes());
+        if (timestamp != null) {
+            if (Objects.isNull(this.previousTimestamp) && Objects.isNull(this.previousBuffer)) {
+                this.previousTimestamp = timestamp;
+                this.previousBuffer = buffer;
+                return;
+            }
+            long count = ((new BigDecimal(DEFAULT_FPS).multiply(timestamp.subtract(this.previousTimestamp))).max(BigDecimal.ZERO)).setScale(0, RoundingMode.HALF_UP).longValue();
+            toFile(count);
+            if (this.stoped) {
+                this.previousTimestamp = currentTimestamp();
+            } else {
+                this.previousTimestamp = timestamp;
+            }
+            this.previousBuffer = buffer;
+        }
+    }
+
+    private void toFile(long count) {
+        if (count > 0) {
+            for (int i = 0; i < count; i++) {
+                try {
+                    Path imgPath = Paths.get(Helper.join(this.tempCacheDir, imgIndex.incrementAndGet() + ".png"));
+                    Files.write(imgPath, this.previousBuffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                } catch (IOException e) {
+                    LOGGER.error("jvppeteer error", e);
+                }
             }
         }
     }
@@ -107,7 +137,11 @@ public class ScreenRecorder {
     public void stop() {
         //先暂停屏幕录制
         try {
+            this.previousTimestamp = currentTimestamp();
             this.page.stopScreencast();
+            this.stoped = true;
+            long count = (new BigDecimal(DEFAULT_FPS).multiply(currentTimestamp().subtract(this.previousTimestamp))).divide(new BigDecimal(1000), 6, RoundingMode.HALF_UP).setScale(0, RoundingMode.HALF_UP).max(new BigDecimal(1)).longValue();
+            toFile(count);
             convert();
         } catch (Exception e) {
             LOGGER.error("jvppeteer error: ", e);
@@ -183,5 +217,33 @@ public class ScreenRecorder {
         Process process = pb.start();
         LOGGER.info(StreamUtil.toString(process.getInputStream()));
         process.waitFor();
+    }
+
+    /**
+     * 获取有纳秒的时间戳
+     *
+     * @return 纳秒时间戳
+     */
+    private BigDecimal currentTimestamp() {
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+
+        // 将 LocalDateTime 转换为 Instant
+        Instant instant = now.atZone(ZoneOffset.UTC).toInstant();
+
+        // 将 Instant 转换为毫秒时间戳
+        long timestampMillis = instant.toEpochMilli();
+
+        // 将毫秒时间戳转换为 BigDecimal
+        BigDecimal timestampDecimal = new BigDecimal(timestampMillis);
+
+        // 获取纳秒部分
+        int nanoseconds = instant.getNano();
+
+        // 将纳秒部分转换为毫秒部分的小数形式
+        BigDecimal nanosecondsAsMilli = new BigDecimal(nanoseconds).divide(new BigDecimal(1_000_000), 6, RoundingMode.HALF_UP);
+
+        // 将毫秒时间戳和纳秒部分合并
+        return timestampDecimal.add(nanosecondsAsMilli);
     }
 }

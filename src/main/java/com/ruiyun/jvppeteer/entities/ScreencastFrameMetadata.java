@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
+
 public class ScreencastFrameMetadata {
 
     /**
@@ -29,7 +31,7 @@ public class ScreencastFrameMetadata {
     /**
      * Frame swap timestamp.
      */
-    private Long timestamp;
+    private BigDecimal timestamp;
 
     public double getOffsetTop() {
         return offsetTop;
@@ -79,11 +81,11 @@ public class ScreencastFrameMetadata {
         this.scrollOffsetY = scrollOffsetY;
     }
 
-    public Long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 
