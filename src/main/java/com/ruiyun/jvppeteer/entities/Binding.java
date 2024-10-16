@@ -72,8 +72,8 @@ public class Binding {
                     "        }", params);
 
             for (Object arg : args) {
-                if (arg instanceof JSHandle) {
-                    ((JSHandle) arg).dispose();
+                if (arg instanceof JSHandle jsHandle) {
+                    jsHandle.dispose();
                 }
             }
         } catch (Exception e) {

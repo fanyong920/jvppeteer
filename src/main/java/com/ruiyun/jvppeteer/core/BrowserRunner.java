@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.core;
 
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
@@ -8,7 +7,6 @@ import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
-import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
@@ -27,11 +25,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.ruiyun.jvppeteer.util.FileUtil.removeFolder;
+import static com.ruiyun.jvppeteer.util.FileUtil.removeFolderOnExit;
 
 public class BrowserRunner {
 
@@ -228,7 +226,7 @@ public class BrowserRunner {
                     if (matcher.find()) {
                         return matcher.group(1);
                     }
-                    if (chromeOutputBuilder.length() != 0) {
+                    if (!chromeOutputBuilder.isEmpty()) {
                         chromeOutputBuilder.append(System.lineSeparator());
                     }
                     chromeOutputBuilder.append(line);
@@ -286,7 +284,7 @@ public class BrowserRunner {
     private void deleteTempUserDir() {
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             try {
-                removeFolder(this.tempDirectory);
+                removeFolderOnExit(this.tempDirectory);
                 Path path = Paths.get(this.tempDirectory);
                 if (Files.exists(path)) {
                     Path deleteTxt = Paths.get(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
@@ -310,10 +308,6 @@ public class BrowserRunner {
             } catch (IOException ignored) {
             }
         }
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
     }
 
     /**

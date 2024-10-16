@@ -4,7 +4,7 @@ public class ScreenRecorderOptions {
     private Double speed;
     private BoundingBox crop;
     private String path;
-    private ScreenCastFormat format = ScreenCastFormat.WEBM;
+    private ScreenCastFormat format;
     private Double scale;
     private String ffmpegPath;
 

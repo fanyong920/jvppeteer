@@ -8,11 +8,11 @@ import com.ruiyun.jvppeteer.entities.KeyPressOptions;
 import com.ruiyun.jvppeteer.entities.KeyboardTypeOptions;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.ruiyun.jvppeteer.util.Helper.justWait;
@@ -449,7 +449,7 @@ public class Keyboard {
         int shift = this.modifiers & 8;
         KeyDescription description = new KeyDescription("", 0, "", "", 0);
         KeyDefinition definition = keyDefinitions.get(keyString);
-        ValidateUtil.notNull(definition, "Unknown key: " + keyString);
+        Objects.requireNonNull(definition, "Unknown key: " + keyString);
 
         if (StringUtil.isNotEmpty(definition.getKey()))
             description.setKey(definition.getKey());

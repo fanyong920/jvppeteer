@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.util;
 
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,7 +28,7 @@ public class FileUtil {
         try {
             return Files.createTempDirectory(prefix).toRealPath().toString();
         } catch (Exception e) {
-            throw new RuntimeException("create temp profile dir fail:", e);
+            throw new JvppeteerException("Create temp profile dir fail:", e);
         }
 
     }
@@ -40,6 +42,23 @@ public class FileUtil {
     public static boolean assertExecutable(String executablePath) {
         Path path = Paths.get(executablePath);
         return Files.isRegularFile(path) && Files.isReadable(path) && Files.isExecutable(path);
+    }
+
+    /**
+     * 程序退出时删除文件
+     *
+     * @param path 要移除的路径
+     * @throws IOException 异常
+     */
+    public static void removeFolderOnExit(String path) throws IOException {
+        Path userDirPath = Paths.get(path);
+        if (Files.exists(userDirPath)) {
+            try (Stream<Path> paths = Files.walk(userDirPath)) {
+                // 确保先删除子目录中的文件和子目录
+                paths .map(Path::toFile).forEach(File::deleteOnExit);
+            }
+            userDirPath.toFile().deleteOnExit();
+        }
     }
 
     /**

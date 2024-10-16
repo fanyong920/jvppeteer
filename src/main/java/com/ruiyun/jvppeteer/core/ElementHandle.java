@@ -43,6 +43,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,17 +111,17 @@ public class ElementHandle extends JSHandle {
         if (isolatedResult == this.isolatedHandle) {
             return (T) this;
         }
-        if (isolatedResult instanceof JSHandle) {
-            return (T) this.realm().transferHandle((JSHandle) isolatedResult);
+        if (isolatedResult instanceof JSHandle jsHandle) {
+            return (T) this.realm().transferHandle(jsHandle);
         }
 
         if (isolatedResult.getClass().isArray()) {
             Object[] resultArray = new Object[Array.getLength(isolatedResult)];
             for (int i = 0; i < Array.getLength(isolatedResult); i++) {
                 Object item = Array.get(isolatedResult, i);
-                if (item instanceof JSHandle) {
+                if (item instanceof JSHandle jsHandle) {
                     try {
-                        resultArray[i] = this.realm().transferHandle((JSHandle) item);
+                        resultArray[i] = this.realm().transferHandle(jsHandle);
                     } catch (JsonProcessingException e) {
                         resultArray[i] = item;
                     }
@@ -130,12 +131,12 @@ public class ElementHandle extends JSHandle {
             }
             return (T) resultArray;
         }
-        if (isolatedResult instanceof Collection<?>) {
+        if (isolatedResult instanceof Collection<?> results) {
             List<Object> resultList = new ArrayList<>();
-            for (Object item : (Collection<?>) isolatedResult) {
-                if (item instanceof JSHandle) {
+            for (Object item : results) {
+                if (item instanceof JSHandle jsHandle) {
                     try {
-                        resultList.add(this.realm().transferHandle((JSHandle) item));
+                        resultList.add(this.realm().transferHandle(jsHandle));
                     } catch (JsonProcessingException e) {
                         resultList.add(item);
                     }
@@ -146,13 +147,13 @@ public class ElementHandle extends JSHandle {
             return (T) resultList;
         }
         // 处理 Map 情况
-        if (isolatedResult instanceof Map<?, ?>) {
+        if (isolatedResult instanceof Map<?, ?> results) {
             Map<Object, Object> resultMap = new HashMap<>();
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) isolatedResult).entrySet()) {
+            for (Map.Entry<?, ?> entry : results.entrySet()) {
                 Object value = entry.getValue();
-                if (value instanceof JSHandle) {
+                if (value instanceof JSHandle jsHandle) {
                     try {
-                        value = this.realm().transferHandle((JSHandle) value);
+                        value = this.realm().transferHandle(jsHandle);
                     } catch (JsonProcessingException e) {
                         // 处理异常
                         // 或者记录日志并继续处理其他条目
@@ -901,7 +902,7 @@ public class ElementHandle extends JSHandle {
 
     private BoundingBox nonEmptyVisibleBoundingBox() throws JsonProcessingException, EvaluateException {
         BoundingBox box = this.boundingBox();
-        ValidateUtil.notNull(box, "Node is either not visible or not an HTMLElement");
+        Objects.requireNonNull(box, "Node is either not visible or not an HTMLElement");
         ValidateUtil.assertArg(box.getWidth() != 0, "Node has 0 width.");
         ValidateUtil.assertArg(box.getHeight() != 0, "Node has 0 height.");
         return box;

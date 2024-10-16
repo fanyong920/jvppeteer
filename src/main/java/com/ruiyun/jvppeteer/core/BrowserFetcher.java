@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -159,7 +159,7 @@ public class BrowserFetcher {
         this.downloadHost = downloadURLs.get(this.product).get("host");
         this.version = Constant.VERSION;
         detectBrowserPlatform();
-        ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+        Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
     /**
@@ -174,7 +174,7 @@ public class BrowserFetcher {
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : detectBrowserPlatform();
         this.version = options.getVersion();
         this.proxy = options.getProxy();
-        ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+        Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
     private static String detectBrowserPlatform() {
@@ -405,8 +405,6 @@ public class BrowserFetcher {
     private void shell(String url, String folderPath, String archiveName, String executableName) throws IOException, InterruptedException {
         Process process;
         Path shellPath = null;
-        BufferedReader stderrReader = null;
-        BufferedReader stdoutReader = null;
         try {
             if (Helper.isLinux()) {
                 shellPath = copyShellFile(INSTALL_CHROME_FOR_TESTING_LINUX);
@@ -422,12 +420,7 @@ public class BrowserFetcher {
             }
             // 读取输出流
             if (process != null) {
-                stdoutReader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-                stderrReader = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
-                String stdoutLine;
-                while ((stdoutLine = stdoutReader.readLine()) != null) {
-                    LOGGER.info(stdoutLine);
-                }
+                LOGGER.info(StreamUtil.toString(process.getInputStream()));
                 // 等待进程完成
                 boolean exitCode = process.waitFor(10L, TimeUnit.MINUTES);
                 if (!exitCode) {
@@ -436,16 +429,9 @@ public class BrowserFetcher {
                 }
             }
         } finally {
-            // 关闭资源
-            if (stdoutReader != null) {
-                stdoutReader.close();
-            }
-            if (stderrReader != null) {
-                stderrReader.close();
-            }
             if (shellPath != null) {
-                shellPath.toFile().delete();
-                shellPath.getParent().toFile().delete();
+                shellPath.toFile().deleteOnExit();
+                shellPath.getParent().toFile().deleteOnExit();
             }
         }
     }
@@ -453,45 +439,31 @@ public class BrowserFetcher {
     private String executableName() {
         String executableName;
         if (Product.CHROME.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executableName = "Google Chrome for Testing";
-            } else if (LINUX.equals(this.platform)) {
-                executableName = "chrome";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executableName = "chrome.exe";
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executableName = switch (this.platform) {
+                case MAC_ARM64, MAC_X64 -> "Google Chrome for Testing";
+                case LINUX -> "chrome";
+                case WIN32, WIN64 -> "chrome.exe";
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMIUM.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executableName = "Chromium";
-            } else if (LINUX.equals(this.platform)) {
-                executableName = "chrome";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executableName = "chrome.exe";
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executableName = switch (this.platform) {
+                case MAC_ARM64, MAC_X64 -> "Chromium";
+                case LINUX -> "chrome";
+                case WIN32, WIN64 -> "chrome.exe";
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMEDRIVER.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executableName = "chromedriver";
-            } else if (LINUX.equals(this.platform)) {
-                executableName = "chromedriver";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executableName = "chromedriver.exe";
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executableName = switch (this.platform) {
+                case MAC_ARM64, MAC_X64, LINUX -> "chromedriver";
+                case WIN32, WIN64 -> "chromedriver.exe";
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMEHEADLESSSHELL.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executableName = "chrome-headless-shell";
-            } else if (LINUX.equals(this.platform)) {
-                executableName = "chrome-headless-shell";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executableName = "chrome-headless-shell.exe";
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executableName = switch (this.platform) {
+                case MAC_ARM64, MAC_X64, LINUX -> "chrome-headless-shell";
+                case WIN32, WIN64 -> "chrome-headless-shell.exe";
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else {
             throw new IllegalArgumentException("Unsupported product: " + this.product);
         }
@@ -549,35 +521,31 @@ public class BrowserFetcher {
         String versionPath = this.relativeVersionPath(revision);
         String executablePath;
         if (Product.CHROME.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "Google Chrome for Testing.app", "Contents", "MacOS", "Google Chrome for Testing");
-            } else if (LINUX.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome");
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome.exe");
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executablePath = switch (this.platform) {
+                case MAC_ARM64, MAC_X64 ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "Google Chrome for Testing.app", "Contents", "MacOS", "Google Chrome for Testing");
+                case LINUX -> Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome");
+                case WIN32, WIN64 ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome.exe");
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMIUM.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "Chromium.app", "Contents", "MacOS", "Chromium");
-            } else if (LINUX.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome");
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome.exe");
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executablePath = switch (this.platform) {
+                case MAC_ARM64, MAC_X64 ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "Chromium.app", "Contents", "MacOS", "Chromium");
+                case LINUX -> Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome");
+                case WIN32, WIN64 ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome.exe");
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMEDRIVER.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chromedriver");
-            } else if (LINUX.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chromedriver");
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chromedriver.exe");
-            } else {
-                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
-            }
+            executablePath = switch (this.platform) {
+                case MAC_ARM64, MAC_X64, LINUX ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "chromedriver");
+                case WIN32, WIN64 ->
+                        Helper.join(versionPath, archive(this.product, this.platform, revision), "chromedriver.exe");
+                case null, default -> throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            };
         } else if (Product.CHROMEHEADLESSSHELL.equals(this.product)) {
             if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
                 executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "chrome-headless-shell");

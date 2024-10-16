@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -746,7 +747,7 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
 
     public void click(String selector, ClickOptions options) throws JsonProcessingException, EvaluateException {
         ElementHandle handle = this.$(selector);
-        ValidateUtil.notNull(handle, "No node found for selector: " + selector);
+        Objects.requireNonNull(handle, "No node found for selector: " + selector);
         handle.click(options);
         handle.dispose();
     }

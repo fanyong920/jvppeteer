@@ -26,17 +26,6 @@ public class ValidateUtil {
 	}
 
 	/**
-	 * 判断
-	 * @param object 要判空的对象
-	 * @param message 提示信息
-	 */
-	public static void notNull(Object object, String message) {
-		if (object == null) {
-			throw new NullPointerException(message);
-		}
-	}
-
-	/**
 	 * 断言参数是否
 	 * @param condition 断言失败是false 会抛异常
 	 * @param errorText 异常信息提示

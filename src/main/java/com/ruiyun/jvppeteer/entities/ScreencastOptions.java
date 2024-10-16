@@ -27,6 +27,10 @@ public class ScreencastOptions {
      * 如果 ffmpeg 不在你的 PATH 中，则为必需。
      */
     private String ffmpegPath;
+    /**
+     * 录制的格式：webm或者gif
+     */
+    private ScreenCastFormat format;
 
     public String getPath() {
         return path;
@@ -68,6 +72,14 @@ public class ScreencastOptions {
         this.ffmpegPath = ffmpegPath;
     }
 
+    public ScreenCastFormat getFormat() {
+        return format;
+    }
+
+    public void setFormat(ScreenCastFormat format) {
+        this.format = format;
+    }
+
     @Override
     public String toString() {
         return "ScreencastOptions{" +
@@ -76,6 +88,7 @@ public class ScreencastOptions {
                 ", scale=" + scale +
                 ", speed=" + speed +
                 ", ffmpegPath='" + ffmpegPath + '\'' +
+                ", format=" + format +
                 '}';
     }
 }

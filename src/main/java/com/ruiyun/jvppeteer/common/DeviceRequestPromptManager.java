@@ -2,11 +2,11 @@ package com.ruiyun.jvppeteer.common;
 
 import com.ruiyun.jvppeteer.events.DeviceRequestPromptedEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +25,7 @@ public class DeviceRequestPromptManager {
 
     private void onDeviceRequestPrompted(DeviceRequestPromptedEvent event) {
         if (this.deviceRequestPromps.isEmpty()) return;
-        ValidateUtil.notNull(this.client, "Session is detached");
+        Objects.requireNonNull(this.client, "Session is detached");
         DeviceRequestPrompt devicePrompt = new DeviceRequestPrompt(this.client, this.timeoutSettings, event);
         for (AwaitableResult<DeviceRequestPrompt> subject : this.deviceRequestPromps) {
             subject.onSuccess(devicePrompt);
@@ -34,7 +34,7 @@ public class DeviceRequestPromptManager {
     }
 
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
-        ValidateUtil.notNull(this.client, "Cannot wait for device prompt through detached session!");
+        Objects.requireNonNull(this.client, "Cannot wait for device prompt through detached session!");
         boolean needsEnable = this.deviceRequestPromps.isEmpty();
         AwaitableResult<DeviceRequestPrompt> enableSubject = AwaitableResult.create();
         try {

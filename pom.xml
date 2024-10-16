@@ -41,7 +41,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>2.0.16</slf4j.version>
-        <logback.version>1.5.7</logback.version>
         <jackson.version>2.17.2</jackson.version>
         <java.webSocket.version>1.5.7</java.webSocket.version>
         <bnd.maven.plugin.version>5.2.0</bnd.maven.plugin.version>
@@ -71,6 +70,11 @@
                 <artifactId>Java-WebSocket</artifactId>
                 <version>${java.webSocket.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <distributionManagement>
@@ -87,35 +91,20 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>${java.webSocket.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/net.java.dev.jna/jna -->
-        <!--        <dependency>
-                    <groupId>net.java.dev.jna</groupId>
-                    <artifactId>jna</artifactId>
-                    <version>${jna.version}</version>
-                </dependency>-->
     </dependencies>
     <build>
         <!-- configured plugins -->
@@ -182,6 +171,7 @@
                         <encoding>UTF-8</encoding>
                         <charset>UTF-8</charset>
                         <docencoding>UTF-8</docencoding>
+                        <additionalOptions>-Xdoclint:none</additionalOptions>
                     </configuration>
                     <executions>
                         <execution>
@@ -190,6 +180,7 @@
                                 <goal>jar</goal>
                             </goals>
                         </execution>
+
                     </executions>
                 </plugin>
                 <plugin>
@@ -269,6 +260,9 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalOptions>-Xdoclint:none</additionalOptions>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -85,7 +86,7 @@ public class DeviceRequestPrompt {
      * @param device 要选择的设备
      */
     public void select(DeviceRequestPromptDevice device) {
-        ValidateUtil.notNull(this.client, "Cannot select device through detached session!");
+        Objects.requireNonNull(this.client, "Cannot select device through detached session!");
         ValidateUtil.assertArg(this.devices.contains(device), "Cannot select unknown device!");
         ValidateUtil.assertArg(!this.handled, "Cannot select DeviceRequestPrompt which is already handled!");
         this.client.off(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
@@ -103,7 +104,7 @@ public class DeviceRequestPrompt {
      * 通过调用此方法，会向CDP会话发送取消请求，并更新当前请求的状态
      */
     public void cancel() {
-        ValidateUtil.notNull(this.client, "Cannot cancel prompt through detached session!");
+        Objects.requireNonNull(this.client, "Cannot cancel prompt through detached session!");
         ValidateUtil.assertArg(!this.handled, "Cannot cancel DeviceRequestPrompt which is already handled!");
         this.client.off(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
         this.handled = true;
