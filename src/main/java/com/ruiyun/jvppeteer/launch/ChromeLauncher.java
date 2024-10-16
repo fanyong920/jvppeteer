@@ -84,7 +84,6 @@ public class ChromeLauncher implements Launcher {
             }
 
         }
-
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
         LOGGER.info("Calling {} {}", chromeExecutable, String.join(" ", chromeArguments));
         LOGGER.trace("Calling {} {}", this.chromeExecutable, String.join(" ", chromeArguments));

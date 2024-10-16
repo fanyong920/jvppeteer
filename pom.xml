@@ -40,14 +40,10 @@
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.3</logback.version>
-        <websocket.api.version>1.1</websocket.api.version>
-        <jackson.version>2.13.4.1</jackson.version>
-        <java.webSocket.version>1.5.0</java.webSocket.version>
-        <bnd.maven.plugin.version>4.3.1</bnd.maven.plugin.version>
+        <slf4j.version>2.0.16</slf4j.version>
+        <jackson.version>2.17.2</jackson.version>
+        <java.webSocket.version>1.5.7</java.webSocket.version>
+        <bnd.maven.plugin.version>5.2.0</bnd.maven.plugin.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
         <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
@@ -79,6 +75,11 @@
                 <artifactId>Java-WebSocket</artifactId>
                 <version>${java.webSocket.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <distributionManagement>
@@ -95,24 +96,20 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>${slf4j.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>${java.webSocket.version}</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/net.java.dev.jna/jna -->
@@ -187,6 +184,7 @@
                         <encoding>UTF-8</encoding>
                         <charset>UTF-8</charset>
                         <docencoding>UTF-8</docencoding>
+                        <additionalOptions>-Xdoclint:none</additionalOptions>
                     </configuration>
                     <executions>
                         <execution>
@@ -332,6 +330,9 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalOptions>-Xdoclint:none</additionalOptions>
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
