@@ -825,18 +825,13 @@ public class Page extends EventEmitter<Page.PageEvent> {
 
     private void emitMetrics(MetricsEvent event) {
         PageMetrics pageMetrics = new PageMetrics();
-        Metrics metrics = null;
-        try {
-            metrics = this.buildMetricsObject(event.getMetrics());
-        } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
-            throwError(e);
-        }
+        Metrics metrics = this.buildMetricsObject(event.getMetrics());
         pageMetrics.setMetrics(metrics);
         pageMetrics.setTitle(event.getTitle());
         this.emit(PageEvent.Metrics, pageMetrics);
     }
 
-    private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+    private Metrics buildMetricsObject(List<Metric> metrics)  {
         Metrics result = new Metrics();
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
