@@ -143,9 +143,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
         super();
         this.primaryTargetClient = client;
         this.tabTargetClient = client.parentSession();
-        ValidateUtil.notNull(this.tabTargetClient, "Tab target session is not defined.");
+         Objects.requireNonNull(this.tabTargetClient, "Tab target session is not defined.");
         this.tabTarget = this.tabTargetClient.getTarget();
-        ValidateUtil.notNull(this.tabTarget, "Tab target is not defined.");
+         Objects.requireNonNull(this.tabTarget, "Tab target is not defined.");
         this.primaryTarget = target;
         this.targetManager = target.targetManager();
         this.keyboard = new Keyboard(client);
@@ -240,7 +240,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
     private void onActivation(CDPSession newSession) {
         this.primaryTargetClient = newSession;
         this.primaryTarget = this.primaryTargetClient.getTarget();
-        ValidateUtil.notNull(this.primaryTarget, "Missing target on swap");
+         Objects.requireNonNull(this.primaryTarget, "Missing target on swap");
         this.keyboard.updateClient(newSession);
         this.mouse.updateClient(newSession);
         this.touchscreen.updateClient(newSession);
@@ -319,7 +319,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
             return;
         }
         Frame frame = this.frameManager.frame(event.getFrameId());
-        ValidateUtil.notNull(frame, "This should never happen.");
+         Objects.requireNonNull(frame, "This should never happen.");
         IsolatedWorld mainWorld = frame.worlds().get(MAIN_WORLD);
         ElementHandle handle = null;
         try {

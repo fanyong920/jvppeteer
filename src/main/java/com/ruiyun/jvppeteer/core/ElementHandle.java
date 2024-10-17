@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -902,7 +903,7 @@ public class ElementHandle extends JSHandle {
 
     private BoundingBox nonEmptyVisibleBoundingBox() throws JsonProcessingException, EvaluateException {
         BoundingBox box = this.boundingBox();
-        ValidateUtil.notNull(box, "Node is either not visible or not an HTMLElement");
+         Objects.requireNonNull(box, "Node is either not visible or not an HTMLElement");
         ValidateUtil.assertArg(box.getWidth() != 0, "Node has 0 width.");
         ValidateUtil.assertArg(box.getHeight() != 0, "Node has 0 height.");
         return box;

@@ -1,7 +1,6 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
 import org.java_websocket.handshake.ServerHandshake;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.ruiyun.jvppeteer.common.Constant.CLOSE_REASON;
 
@@ -42,7 +42,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
     @Override
     public void onMessage(String message) {
-        ValidateUtil.notNull(this.connection, "Connection may be closed");
+        Objects.requireNonNull(this.connection, "Connection may be closed");
         this.connection.accept(message);
     }
 

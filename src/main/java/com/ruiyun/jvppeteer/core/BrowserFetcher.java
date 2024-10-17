@@ -158,7 +158,7 @@ public class BrowserFetcher {
         this.downloadHost = downloadURLs.get(this.product).get("host");
         this.version = Constant.VERSION;
         detectBrowserPlatform();
-        ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+         Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
     /**
@@ -173,7 +173,7 @@ public class BrowserFetcher {
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : detectBrowserPlatform();
         this.version = options.getVersion();
         this.proxy = options.getProxy();
-        ValidateUtil.notNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+         Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
     }
 
     private static String detectBrowserPlatform() {

@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.core;
 
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.entities.ClickOptions;
 import com.ruiyun.jvppeteer.entities.DragData;
 import com.ruiyun.jvppeteer.entities.DragInterceptedEvent;
@@ -13,11 +13,11 @@ import com.ruiyun.jvppeteer.entities.MouseWheelOptions;
 import com.ruiyun.jvppeteer.entities.Point;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -150,7 +150,7 @@ public class Mouse {
 
     public void down(MouseOptions options) {
         MouseButtonFlag flag = this.getFlag(options.getButton());
-        ValidateUtil.notNull(flag, "Unsupported mouse button: " + options.getButton());
+        Objects.requireNonNull(flag, "Unsupported mouse button: " + options.getButton());
         if ((this.state.getButtons() & flag.getValue()) != 0) {
             throw new JvppeteerException("Mouse button " + options.getButton() + " is already pressed");
         }
@@ -178,7 +178,7 @@ public class Mouse {
 
     public void up(MouseOptions options) {
         MouseButtonFlag flag = this.getFlag(options.getButton());
-        ValidateUtil.notNull(flag, "Unsupported mouse button: " + options.getButton());
+        Objects.requireNonNull(flag, "Unsupported mouse button: " + options.getButton());
         if ((this.state.getButtons() & flag.getValue()) == 0) {
             throw new JvppeteerException("Mouse button " + options.getButton() + " is not pressed.");
         }

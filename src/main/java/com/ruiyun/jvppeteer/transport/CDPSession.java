@@ -159,7 +159,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     }
 
     public Target getTarget() {
-        ValidateUtil.notNull(this.target, "Target must exist");
+         Objects.requireNonNull(this.target, "Target must exist");
         return this.target;
     }
 

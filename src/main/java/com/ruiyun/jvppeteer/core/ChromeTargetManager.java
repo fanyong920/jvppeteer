@@ -1,9 +1,9 @@
 package com.ruiyun.jvppeteer.core;
 
 
+import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.entities.FilterEntry;
 import com.ruiyun.jvppeteer.entities.TargetInfo;
 import com.ruiyun.jvppeteer.events.AttachedToTargetEvent;
@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -365,7 +366,7 @@ public class ChromeTargetManager extends TargetManager {
         boolean wasInitialized = target.initializedResult.isDone() && Target.InitializationStatus.SUCCESS.equals(target.initializedResult.get());
         if (isPageTargetBecomingPrimary(target, event.getTargetInfo())) {
             CDPSession session = target.session();
-            ValidateUtil.notNull(session, "Target that is being activated is missing a CDPSession.");
+            Objects.requireNonNull(session, "Target that is being activated is missing a CDPSession.");
             if (session.parentSession() != null) {
                 session.parentSession().emit(CDPSession.CDPSessionEvent.CDPSession_Swapped, session);
             }

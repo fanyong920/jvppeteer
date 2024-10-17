@@ -2,12 +2,12 @@ package com.ruiyun.jvppeteer.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DeviceRequestPromptManager;
 import com.ruiyun.jvppeteer.common.FrameProvider;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.entities.Binding;
 import com.ruiyun.jvppeteer.entities.ExecutionContextDescription;
 import com.ruiyun.jvppeteer.entities.FramePayload;
@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -211,7 +212,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
 
     public Frame mainFrame() {
         Frame mainFrame = this.frameTree.getMainFrame();
-        ValidateUtil.notNull(mainFrame, "Requesting main frame too early!");
+         Objects.requireNonNull(mainFrame, "Requesting main frame too early!");
         return mainFrame;
     }
 
