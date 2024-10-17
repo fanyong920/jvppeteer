@@ -1,22 +1,29 @@
 package com.ruiyun.jvppeteer.core;
 
 import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FrameTree {
-    private final Map<String, Frame> frames = new HashMap<>();
-    private final Map<String, String> parentIds = new HashMap<>();
-    private final Map<String, Set<String>> childIds = new HashMap<>();
+    private final Map<String, Frame> frames = Collections.synchronizedMap(new LinkedHashMap<>());
+    private final Map<String, String> parentIds = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> childIds = new ConcurrentHashMap<>();
     private Frame mainFrame;
-    private boolean isMainFrameStale;
+    private final AtomicBoolean isMainFrameStale = new AtomicBoolean(false);
     final Map<String, Set<AwaitableResult<Frame>>> waitRequests = new HashMap<>();
 
     public Frame getMainFrame() {
@@ -34,18 +41,13 @@ public class FrameTree {
      * @return 等待的frame
      */
     public Frame waitForFrame(String frameId) {
+        AwaitableResult<Frame> awaitableResult = AwaitableResult.create();
+        waitRequests.computeIfAbsent(frameId, k -> new CopyOnWriteArraySet<>()).add(awaitableResult);
         Frame frame = this.getById(frameId);
         if (frame != null) {
             return frame;
         }
-        AwaitableResult<Frame> waitableResult = AwaitableResult.create();
-        Set<AwaitableResult<Frame>> callbacks = waitRequests.get(frameId);
-        if (callbacks == null) {
-            callbacks = new HashSet<>();
-        }
-        callbacks.add(waitableResult);
-        waitRequests.put(frameId, callbacks);
-        return waitableResult.waitingGetResult();
+        return awaitableResult.waitingGetResult(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
     }
 
     public List<Frame> frames() {
@@ -57,9 +59,9 @@ public class FrameTree {
         if (StringUtil.isNotEmpty(frame.parentId())) {
             this.parentIds.put(frame.id(), frame.parentId());
             this.childIds.computeIfAbsent(frame.parentId(), k -> new HashSet<>()).add(frame.id());
-        } else if (this.mainFrame == null || this.isMainFrameStale) {
+        } else if (this.mainFrame == null || this.isMainFrameStale.get()) {
             this.mainFrame = frame;
-            this.isMainFrameStale = false;
+            this.isMainFrameStale.set(false);
         }
         Set<AwaitableResult<Frame>> callbacks = this.waitRequests.get(frame.id());
         if (ValidateUtil.isNotEmpty(callbacks)) {
@@ -78,7 +80,7 @@ public class FrameTree {
                 children.remove(frameId);
             }
         } else {
-            isMainFrameStale = true;
+            this.isMainFrameStale.set(true);
         }
     }
 

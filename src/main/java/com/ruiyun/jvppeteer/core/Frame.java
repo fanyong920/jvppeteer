@@ -308,8 +308,8 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
                 timeout = this.frameManager.timeoutSettings().navigationTimeout();
             }
         }
-        this.setFrameContent(html);
         LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager.networkManager(), this, waitUntil);
+        this.setFrameContent(html);
         try {
             long base = System.currentTimeMillis();
             long now = 0;
@@ -433,26 +433,10 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
         if (parentFrame == null) {
             return null;
         }
-        JSHandle list = parentFrame.isolatedRealm().evaluateHandle("() => {\n" +
-                "      return document.querySelectorAll('iframe,frame');\n" +
-                "    }");
-        ElementHandle result = null;
-        List<JSHandle> lists = this.transposeIterableHandle(list);
-        try {
-            for (JSHandle iframe : lists) {
-                Frame frame = iframe.asElement().contentFrame();
-                if (frame != null && frame.id().equals(this.id)) {
-                    result = iframe.asElement();
-                    lists.remove(iframe);
-                    break;
-                }
-            }
-
-        } finally {
-            lists.forEach(JSHandle::dispose);
-            Optional.of(list).ifPresent(JSHandle::dispose);
-        }
-        return result;
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("frameId", this.id);
+        JsonNode response = parentFrame.client().send("DOM.getFrameOwner", params);
+        return parentFrame.mainRealm().adoptBackendNode(response.get("backendNodeId").asInt()).asElement();
     }
 
     private List<JSHandle> transposeIterableHandle(JSHandle list) throws JsonProcessingException {

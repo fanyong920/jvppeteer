@@ -190,7 +190,7 @@ public class A_LaunchTest {
         Thread.sleep(10000);
     }
 
-    private Browser getBrowser() throws IOException {
+    public Browser getBrowser() throws IOException {
         return Puppeteer.launch(launchOptions);
     }
 
