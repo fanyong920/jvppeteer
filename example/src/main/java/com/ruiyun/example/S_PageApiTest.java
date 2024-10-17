@@ -883,4 +883,25 @@ public class S_PageApiTest extends A_LaunchTest {
         browser.close();
     }
 
+    /**
+     * 录制屏幕某个区域 录制格式gif
+     */
+    @Test
+    public void test27() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test.gif");
+        screencastOptions.setFormat(ScreenCastFormat.GIF);
+        BoundingBox boundingBox = page.$("#username").boundingBox();
+        screencastOptions.setCrop(boundingBox);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
 }

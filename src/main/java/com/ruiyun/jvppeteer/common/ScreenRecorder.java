@@ -208,14 +208,17 @@ public class ScreenRecorder {
             builder.append(",scale=iw*").append(options.getScale()).append(":").append("-1");
         }
         if (GIF.equals(options.getFormat())) {
-            builder.append(",fps=5,palettegen=stats_mode=single[pal],[0:v][pal]paletteuse");
+            builder.append(",fps=5,split[s0][s1];[s0]palettegen=stats_mode=diff[pal];[s1][pal]paletteuse");
         }
         commands.add(builder.toString());
         //输出文件
         commands.add(this.options.getPath());
         ProcessBuilder pb = new ProcessBuilder(commands).redirectErrorStream(true);
         Process process = pb.start();
-        LOGGER.info(StreamUtil.toString(process.getInputStream()));
+        String input;
+        if (StringUtil.isNotEmpty(input = StreamUtil.toString(process.getInputStream()))) {
+            LOGGER.info(input);
+        }
         process.waitFor();
     }
 
