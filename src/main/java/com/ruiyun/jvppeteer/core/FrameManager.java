@@ -217,7 +217,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
     }
 
     public List<Frame> frames() {
-        return new ArrayList<>(this.frameTree.frames());
+        return this.frameTree.frames();
     }
 
     @Override
