@@ -93,8 +93,8 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page1 = browser.newPage();
         //不等待页面加载完成，就直接返回，单纯是发送访问url的请求
         page1.goTo("https://pptr.nodejs.cn/api/puppeteer.page._", false);
-        //这样我们就可以等待某个元素出现了
-        ElementHandle elementHandle = page1.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_nDJs > div > nav > a.pagination-nav__link.pagination-nav__link--prev > div.pagination-nav__label");
+        //这样我们就可以等待某个元素出现了,元素可能更改，及时更新就行
+        ElementHandle elementHandle = page1.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > nav > a.pagination-nav__link.pagination-nav__link--prev > div.pagination-nav__label");
 
         //这个元素是可以点击的，我们点击它
         elementHandle.click();

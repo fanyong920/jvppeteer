@@ -7,7 +7,6 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,15 +15,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FrameTree {
     private final Map<String, Frame> frames = Collections.synchronizedMap(new LinkedHashMap<>());
     private final Map<String, String> parentIds = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> childIds = new ConcurrentHashMap<>();
     private Frame mainFrame;
-    private final AtomicBoolean isMainFrameStale = new AtomicBoolean(false);
-    final Map<String, Set<AwaitableResult<Frame>>> waitRequests = new HashMap<>();
+    private volatile boolean isMainFrameStale = false;
+    final Map<String, Set<AwaitableResult<Frame>>> waitRequests = new ConcurrentHashMap<>();
 
     public Frame getMainFrame() {
         return this.mainFrame;
@@ -42,7 +40,7 @@ public class FrameTree {
      */
     public Frame waitForFrame(String frameId) {
         AwaitableResult<Frame> awaitableResult = AwaitableResult.create();
-        waitRequests.computeIfAbsent(frameId, k -> new CopyOnWriteArraySet<>()).add(awaitableResult);
+        this.waitRequests.computeIfAbsent(frameId, k -> new CopyOnWriteArraySet<>()).add(awaitableResult);
         Frame frame = this.getById(frameId);
         if (frame != null) {
             return frame;
@@ -59,15 +57,14 @@ public class FrameTree {
         if (StringUtil.isNotEmpty(frame.parentId())) {
             this.parentIds.put(frame.id(), frame.parentId());
             this.childIds.computeIfAbsent(frame.parentId(), k -> new HashSet<>()).add(frame.id());
-        } else if (this.mainFrame == null || this.isMainFrameStale.get()) {
+        } else if (this.mainFrame == null || this.isMainFrameStale) {
             this.mainFrame = frame;
-            this.isMainFrameStale.set(false);
+            this.isMainFrameStale = false;
         }
-        Set<AwaitableResult<Frame>> callbacks = this.waitRequests.get(frame.id());
+        Set<AwaitableResult<Frame>> callbacks = this.waitRequests.remove(frame.id());
         if (ValidateUtil.isNotEmpty(callbacks)) {
             callbacks.forEach(request -> request.onSuccess(frame));
         }
-
     }
 
     public void removeFrame(Frame frame) {
@@ -80,7 +77,7 @@ public class FrameTree {
                 children.remove(frameId);
             }
         } else {
-            this.isMainFrameStale.set(true);
+            this.isMainFrameStale = true;
         }
     }
 

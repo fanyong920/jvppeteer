@@ -210,7 +210,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                         LOGGER.error("Emit event error: ", e);
                     }
                 }
-            } while ((this.handleMessageThread != null && !this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) || !this.eventQueue.isEmpty() || !this.closed);
+            } while (!this.messagesQueue.isEmpty() || !this.eventQueue.isEmpty() || !this.closed);
         });
         emitEventThread.setName(JV_EMIT_EVENT_THREAD + messageThreadId.getAndIncrement());
         emitEventThread.start();
@@ -353,7 +353,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.closed = true;
         this.transport.setConnection(null);
         while (true) {
-            if (this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) {
+            if (this.messagesQueue.isEmpty()) {
                 break;
             }
         }
