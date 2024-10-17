@@ -22,7 +22,7 @@ public class FrameTree {
     private final Map<String, String> parentIds = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> childIds = new ConcurrentHashMap<>();
     private Frame mainFrame;
-    private final AtomicBoolean isMainFrameStale = new AtomicBoolean(false);
+    private volatile boolean isMainFrameStale = false;
     final Map<String, Set<AwaitableResult<Frame>>> waitRequests = new ConcurrentHashMap<>();
 
     public Frame getMainFrame() {
@@ -58,9 +58,9 @@ public class FrameTree {
         if (StringUtil.isNotEmpty(frame.parentId())) {
             this.parentIds.put(frame.id(), frame.parentId());
             this.childIds.computeIfAbsent(frame.parentId(), k -> new HashSet<>()).add(frame.id());
-        } else if (this.mainFrame == null || this.isMainFrameStale.get()) {
+        } else if (this.mainFrame == null || this.isMainFrameStale) {
             this.mainFrame = frame;
-            this.isMainFrameStale.set(false);
+            this.isMainFrameStale = false;
         }
         Set<AwaitableResult<Frame>> callbacks = this.waitRequests.remove(frame.id());
         if (ValidateUtil.isNotEmpty(callbacks)) {
@@ -78,7 +78,7 @@ public class FrameTree {
                 children.remove(frameId);
             }
         } else {
-            this.isMainFrameStale.set(true);
+            this.isMainFrameStale = true;
         }
     }
 

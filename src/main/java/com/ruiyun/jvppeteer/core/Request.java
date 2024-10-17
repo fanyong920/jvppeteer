@@ -300,7 +300,7 @@ public class Request {
      * @param overrides 重写请求的信息。
      */
     public void continueRequest(ContinueRequestOverrides overrides, Integer priority) {
-        if (this.url().startsWith("data:")) {
+        if (!this.canBeIntercepted()) {
             return;
         }
         ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
@@ -363,7 +363,7 @@ public class Request {
     }
 
     public void respond(ResponseForRequest response, Integer priority) {
-        if (this.url().startsWith("data:")) {
+        if (!this.canBeIntercepted()) {
             return;
         }
         ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
@@ -429,7 +429,7 @@ public class Request {
     }
 
     public void abort(ErrorCode errorCode, Integer priority) {
-        if (this.url().startsWith("data:")) {
+        if (!this.canBeIntercepted()) {
             return;
         }
         ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
@@ -528,6 +528,10 @@ public class Request {
                 this.respond(this.interception.getResponse(), null);
                 break;
         }
+    }
+
+    private boolean canBeIntercepted() {
+        return !this.url().startsWith("data:") && !this.fromMemoryCache;
     }
 
 

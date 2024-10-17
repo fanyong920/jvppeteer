@@ -20,6 +20,7 @@ import com.ruiyun.jvppeteer.events.RequestServedFromCacheEvent;
 import com.ruiyun.jvppeteer.events.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.events.ResponseReceivedEvent;
 import com.ruiyun.jvppeteer.events.ResponseReceivedExtraInfoEvent;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -71,7 +73,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         client.on(CDPSession.CDPSessionEvent.Network_requestWillBeSent, requestWillBeSent);
         listeners.put(CDPSession.CDPSessionEvent.Network_requestWillBeSent, requestWillBeSent);
 
-        Consumer<RequestServedFromCacheEvent> requestServedFromCache = this::onRequestServedFromCache;
+        Consumer<RequestServedFromCacheEvent> requestServedFromCache = event -> this.onRequestServedFromCache(client, event);
         client.on(CDPSession.CDPSessionEvent.Network_requestServedFromCache, requestServedFromCache);
         listeners.put(CDPSession.CDPSessionEvent.Network_requestServedFromCache, requestServedFromCache);
 
@@ -239,12 +241,12 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             if (requestPausedEvent != null) {
                 String fetchRequestId = requestPausedEvent.getRequestId();
                 this.patchRequestEventHeaders(event, requestPausedEvent);
-                this.onRequest(client, event, fetchRequestId);
+                this.onRequest(client, event, fetchRequestId,false);
                 this.networkEventManager.forgetRequestPaused(networkRequestId);
             }
             return;
         }
-        this.onRequest(client, event, null);
+        this.onRequest(client, event, null,false);
     }
 
     //WebSocketConnectReadThread
@@ -295,7 +297,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         }
         if (requestWillBeSentEvent != null) {
             this.patchRequestEventHeaders(requestWillBeSentEvent, event);
-            this.onRequest(client, requestWillBeSentEvent, requestId);
+            this.onRequest(client, requestWillBeSentEvent, requestId,false);
         } else {
             this.networkEventManager.storeRequestPaused(networkId, event);
         }
@@ -330,7 +332,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         RedirectInfo redirectInfo = this.networkEventManager.takeQueuedRedirectInfo(event.getRequestId());
         if (redirectInfo != null) {
             this.networkEventManager.responseExtraInfo(event.getRequestId()).offer(event);
-            this.onRequest(client, redirectInfo.getEvent(), redirectInfo.getFetchRequestId());
+            this.onRequest(client, redirectInfo.getEvent(), redirectInfo.getFetchRequestId(),false);
             return;
         }
         QueuedEventGroup queuedEvents = this.networkEventManager.getQueuedEventGroup(event.getRequestId());
@@ -375,7 +377,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     }
 
 
-    private void onRequest(CDPSession client, RequestWillBeSentEvent event, String fetchRequestId) {
+    private void onRequest(CDPSession client, RequestWillBeSentEvent event, String fetchRequestId, boolean fromMemoryCache) {
         List<Request> redirectChain = new ArrayList<>();
         if (event.getRedirectResponse() != null) {
             ResponseReceivedExtraInfoEvent redirectResponseExtraInfo = null;
@@ -401,6 +403,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             frame = this.frameManager.frame(frameId);
         }
         Request request = new Request(client, frame, fetchRequestId, this.userRequestInterceptionEnabled, event, redirectChain);
+        request.setFromMemoryCache(fromMemoryCache);
         this.networkEventManager.storeRequest(event.getRequestId(), request);
         this.emit(NetworkManagerEvent.Request, request);
         request.finalizeInterceptions();
@@ -463,10 +466,20 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         }
     }
 
-    public void onRequestServedFromCache(RequestServedFromCacheEvent event) {
+    public void onRequestServedFromCache(CDPSession client, RequestServedFromCacheEvent event) {
+        RequestWillBeSentEvent requestWillBeSentEvent = this.networkEventManager.getRequestWillBeSent(event.getRequestId());
         Request request = this.networkEventManager.getRequest(event.getRequestId());
-        if (request != null)
+        if (Objects.nonNull(request)) {
             request.setFromMemoryCache(true);
+        }
+        if (Objects.isNull(request) && Objects.nonNull(requestWillBeSentEvent)) {
+            this.onRequest(client, requestWillBeSentEvent, null, true);
+            request = this.networkEventManager.getRequest(event.getRequestId());
+        }
+        if (Objects.isNull(request)) {
+            LOGGER.error("Request {} was served from cache but we could not find the corresponding request object", event.getRequestId(), new JvppeteerException());
+            return;
+        }
         this.emit(NetworkManagerEvent.RequestServedFromCache, request);
     }
 

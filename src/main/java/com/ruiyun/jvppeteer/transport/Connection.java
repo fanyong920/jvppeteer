@@ -58,6 +58,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     public ConcurrentLinkedQueue<Runnable> getEventQueue() {
         return this.eventQueue;
     }
+
     private final ConcurrentLinkedQueue<Runnable> eventQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<JsonNode> messagesQueue = new ConcurrentLinkedQueue<>();
     private List<String> events = null;
@@ -208,7 +209,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                         LOGGER.error("Emit event error: ", e);
                     }
                 }
-            } while ((this.handleMessageThread != null && !this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) || !this.eventQueue.isEmpty() || !this.closed);
+            } while (!this.messagesQueue.isEmpty() || !this.eventQueue.isEmpty() || !this.closed);
         };
         Thread.ofVirtual().name(JV_EMIT_EVENT_THREAD, 1).start(eventRunnable);
     }
@@ -347,7 +348,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.closed = true;
         this.transport.setConnection(null);
         while (true) {
-            if (this.handleMessageThread.getState().equals(Thread.State.TERMINATED)) {
+            if (this.messagesQueue.isEmpty()) {
                 break;
             }
         }
