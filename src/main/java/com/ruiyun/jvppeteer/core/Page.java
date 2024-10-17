@@ -8,10 +8,12 @@ import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.entities.Binding;
 import com.ruiyun.jvppeteer.entities.BindingPayload;
+import com.ruiyun.jvppeteer.entities.BoundingBox;
 import com.ruiyun.jvppeteer.entities.CallFrame;
 import com.ruiyun.jvppeteer.entities.ClickOptions;
 import com.ruiyun.jvppeteer.entities.ConsoleMessage;
@@ -43,6 +45,8 @@ import com.ruiyun.jvppeteer.entities.PDFOptions;
 import com.ruiyun.jvppeteer.entities.PageMetrics;
 import com.ruiyun.jvppeteer.entities.PaperFormats;
 import com.ruiyun.jvppeteer.entities.RemoteObject;
+import com.ruiyun.jvppeteer.entities.ScreenRecorderOptions;
+import com.ruiyun.jvppeteer.entities.ScreencastOptions;
 import com.ruiyun.jvppeteer.entities.ScreenshotClip;
 import com.ruiyun.jvppeteer.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.entities.StackTrace;
@@ -59,6 +63,7 @@ import com.ruiyun.jvppeteer.events.ExceptionThrownEvent;
 import com.ruiyun.jvppeteer.events.FileChooserOpenedEvent;
 import com.ruiyun.jvppeteer.events.JavascriptDialogOpeningEvent;
 import com.ruiyun.jvppeteer.events.MetricsEvent;
+import com.ruiyun.jvppeteer.events.ScreencastFrameEvent;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -92,6 +97,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -836,8 +842,47 @@ public class Page extends EventEmitter<Page.PageEvent> {
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
                 if (supportedMetrics.contains(metric.getName())) {
-                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(), Metrics.class);
-                    descriptor.getWriteMethod().invoke(result, metric.getValue());
+                    switch (metric.getName()) {
+                        case "Timestamp":
+                            result.setTimestamp(metric.getValue());
+                            break;
+                        case "Documents":
+                            result.setDocuments(metric.getValue());
+                            break;
+                        case "Frames":
+                            result.setFrames(metric.getValue());
+                            break;
+                        case "JSEventListeners":
+                            result.setJSEventListeners(metric.getValue());
+                            break;
+                        case "Nodes":
+                            result.setNodes(metric.getValue());
+                            break;
+                        case "LayoutCount":
+                            result.setLayoutCount(metric.getValue());
+                            break;
+                        case "RecalcStyleCount":
+                            result.setRecalcStyleCount(metric.getValue());
+                            break;
+                        case "LayoutDuration":
+                            result.setLayoutDuration(metric.getValue());
+                            break;
+                        case "RecalcStyleDuration":
+                            result.setRecalcStyleDuration(metric.getValue());
+                            break;
+                        case "ScriptDuration":
+                            result.setScriptDuration(metric.getValue());
+                            break;
+                        case "TaskDuration":
+                            result.setTaskDuration(metric.getValue());
+                            break;
+                        case "JSHeapUsedSize":
+                            result.setJSHeapUsedSize(metric.getValue());
+                            break;
+                        case "JSHeapTotalSize":
+                            result.setJSHeapTotalSize(metric.getValue());
+                            break;
+                    }
                 }
             }
         }
@@ -2274,6 +2319,107 @@ public class Page extends EventEmitter<Page.PageEvent> {
 
     public Accessibility accessibility() {
         return this.mainFrame().accessibility();
+    }
+
+    AtomicLong screencastSessionCount = new AtomicLong(0);
+    private volatile boolean startScreencasted = false;
+
+    /**
+     * 捕获此 page 的截屏视频。可录制为webm和gif
+     *
+     * @param options 配置截屏行为
+     * @return ScreenRecorder 屏幕录制实例，用于停止录制
+     * @throws IOException IO异常
+     */
+    public ScreenRecorder screencast(ScreencastOptions options) throws IOException {
+        ValidateUtil.assertArg(StringUtil.isNotBlank(options.getPath()), "Path must be specified");
+        if (options.getFormat() != null) {
+            ValidateUtil.assertArg(options.getPath().endsWith(options.getFormat().getFormat()), "Extension of Path (" + options.getPath() + ")+ has to match the used output format (" + options.getFormat().getFormat() + ").");
+        }
+        Viewport defaultViewport = this.viewport();
+        Viewport tempViewport = null;
+        if (defaultViewport != null && defaultViewport.getDeviceScaleFactor() != 0) {
+            tempViewport = new Viewport(defaultViewport.getWidth(), defaultViewport.getHeight(), 0.00, defaultViewport.getIsMobile(), defaultViewport.getHasTouch(), defaultViewport.getIsLandscape());
+            this.setViewport(tempViewport);
+        }
+        ArrayList<?> response = (ArrayList<?>) this.mainFrame().isolatedRealm().evaluate("() => {\n" +
+                "                    return [\n" +
+                "                      window.visualViewport.width * window.devicePixelRatio,\n" +
+                "                      window.visualViewport.height * window.devicePixelRatio,\n" +
+                "                      window.devicePixelRatio,\n" +
+                "                    ]\n" +
+                "                }");
+        double width = Double.parseDouble(response.get(0) + "");
+        double height = Double.parseDouble(response.get(1) + "");
+        double devicePixelRatio = Double.parseDouble(response.get(2) + "");
+        BoundingBox crop = null;
+        if (Objects.nonNull(options.getCrop())) {
+            BoundingBox boundingBox = roundRectangle(normalizeRectangle(new ScreenshotClip(options.getCrop().getX(), options.getCrop().getY(), options.getCrop().getWidth(), options.getCrop().getHeight())));
+            if (boundingBox.getX() < 0 || boundingBox.getY() < 0) {
+                throw new JvppeteerException("crop.x and crop.y must be greater than or equal to 0.");
+            }
+            if (boundingBox.getWidth() <= 0 || boundingBox.getHeight() <= 0) {
+                throw new JvppeteerException("crop.width and crop.height must be greater than 0.");
+            }
+
+            double viewportWidth = width / devicePixelRatio;
+            double viewportHeight = height / devicePixelRatio;
+            if (boundingBox.getX() + boundingBox.getWidth() > viewportWidth) {
+                throw new JvppeteerException(
+                        "crop.width cannot be larger than the viewport width(" + viewportWidth + ")");
+            }
+            if (boundingBox.getY() + boundingBox.getHeight() > viewportHeight) {
+                throw new JvppeteerException(
+                        "crop.height cannot be larger than the viewport width(" + viewportHeight + ")");
+            }
+            crop = new BoundingBox(boundingBox.getX() * devicePixelRatio, boundingBox.getY() * devicePixelRatio, boundingBox.getWidth() * devicePixelRatio, boundingBox.getHeight() * devicePixelRatio);
+        }
+        if (options.getSpeed() <= 0) {
+            throw new JvppeteerException("speed must be greater than 0.");
+        }
+        if (options.getScale() <= 0) {
+            throw new JvppeteerException("scale must be greater than 0.");
+        }
+        ScreenRecorder recorder = new ScreenRecorder(this, width, height, new ScreenRecorderOptions(options.getSpeed(), crop, options.getPath(), options.getFormat(), options.getScale(), options.getFfmpegPath()), defaultViewport, tempViewport);
+        try {
+            this.startScreencast();
+        } catch (Exception e) {
+            recorder.stop();
+            LOGGER.error("startScreencast error: ", e);
+            return null;
+        }
+        return recorder;
+
+    }
+
+    private void startScreencast() {
+        screencastSessionCount.incrementAndGet();
+        if (!startScreencasted) {
+            synchronized (this) {
+                if (!this.startScreencasted) {
+                    AwaitableResult<Boolean> awaitableResult = AwaitableResult.create();
+                    this.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) event -> {
+                        awaitableResult.complete();
+                    });
+                    Map<String, Object> params = ParamsFactory.create();
+                    params.put("format", "png");
+                    this.mainFrame().client().send("Page.startScreencast", params);
+                    awaitableResult.waiting();
+                    this.startScreencasted = true;
+                }
+            }
+        }
+    }
+
+    public void stopScreencast() {
+        long count = screencastSessionCount.decrementAndGet();
+        if (!this.startScreencasted) {
+            return;
+        }
+        this.startScreencasted = false;
+        if (count == 0) {
+            this.mainFrame().client().send("Page.stopScreencast");
+        }
     }
 
     public enum PageEvent {

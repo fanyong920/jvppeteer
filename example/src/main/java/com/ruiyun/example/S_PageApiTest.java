@@ -3,6 +3,7 @@ package com.ruiyun.example;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.core.ElementHandle;
@@ -15,6 +16,7 @@ import com.ruiyun.jvppeteer.core.Request;
 import com.ruiyun.jvppeteer.core.Response;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.core.WebWorker;
+import com.ruiyun.jvppeteer.entities.BoundingBox;
 import com.ruiyun.jvppeteer.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.entities.Cookie;
 import com.ruiyun.jvppeteer.entities.CoverageEntry;
@@ -27,6 +29,7 @@ import com.ruiyun.jvppeteer.entities.JSCoverageOptions;
 import com.ruiyun.jvppeteer.entities.MediaFeature;
 import com.ruiyun.jvppeteer.entities.Metrics;
 import com.ruiyun.jvppeteer.entities.NewDocumentScriptEvaluation;
+import com.ruiyun.jvppeteer.entities.ScreenCastFormat;
 import com.ruiyun.jvppeteer.entities.ScreencastOptions;
 import com.ruiyun.jvppeteer.entities.Viewport;
 import com.ruiyun.jvppeteer.entities.VisionDeficiency;
@@ -816,6 +819,87 @@ public class S_PageApiTest extends A_LaunchTest {
             }
         });
         System.out.println("frame: "+frame.url());
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕 录制格式webm
+     */
+    @Test
+    public void test24() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test1.webm");
+        screencastOptions.setFormat(ScreenCastFormat.WEBM);
+        //指定ffmpeg路径，如果配置了系统的环境变量，那么可以不指定
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕某个区域 录制格式webm
+     */
+    @Test
+    public void test25() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test2.webm");
+        screencastOptions.setFormat(ScreenCastFormat.WEBM);
+        //指定ffmpeg路径，如果配置了系统的环境变量，那么可以不指定
+        BoundingBox boundingBox = page.$("#username").boundingBox();
+        screencastOptions.setCrop(boundingBox);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕 录制格式gif
+     */
+    @Test
+    public void test26() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test.gif");
+        screencastOptions.setFormat(ScreenCastFormat.GIF);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕某个区域 录制格式gif
+     */
+    @Test
+    public void test27() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test2.gif");
+        screencastOptions.setFormat(ScreenCastFormat.GIF);
+        screencastOptions.setCrop(page.$("#password").boundingBox());
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
         browser.close();
     }
 
