@@ -6,9 +6,7 @@ import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransportFactory;
-import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,26 +14,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.ruiyun.jvppeteer.util.FileUtil.removeFolder;
 import static com.ruiyun.jvppeteer.util.FileUtil.removeFolderOnExit;
 
 public class BrowserRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
     private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile("^DevTools listening on (ws://.*)$");
-    public static final String WAIT_TO_DELETE_TEMP_USER_DIR_TXT = "wait-to-delete-temp-user-dir.txt";
     private final String executablePath;
     private final List<String> processArguments;
     private final String tempDirectory;
@@ -44,35 +33,7 @@ public class BrowserRunner {
     private volatile boolean closed;
     private static final List<BrowserRunner> runners = new ArrayList<>();
     private static boolean isRegisterShutdownHook = false;
-    /**
-     * 浏览器进程id
-     */
-    private String pid;
 
-    /*
-      删除残留的临时目录
-     */
-    static {
-        Path path = Paths.get(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-        if (Files.exists(path)) {
-            try {
-                List<String> userDirs = Files.readAllLines(path);
-                if (ValidateUtil.isNotEmpty(userDirs)) {
-                    for (String userDir : userDirs) {
-                        removeFolder(userDir);
-                    }
-                }
-            } catch (IOException ignored) {
-
-            } finally {
-                try {
-                    Files.delete(path);
-                } catch (IOException ignored) {
-
-                }
-            }
-        }
-    }
 
     public BrowserRunner(String executablePath, List<String> processArguments, String tempDirectory) {
         super();
@@ -118,41 +79,15 @@ public class BrowserRunner {
         }
     }
 
-
     /**
      * kill 掉浏览器进程
      */
-    public void destroy() {
+    public void destroyBrowser() {
         if (this.closed) {
             return;
         }
-
         try {
             this.destroyProcess(this.process);
-//            if ("-1".equals(pid) || StringUtil.isEmpty(pid)) {
-//                this.destroyProcess(this.process);
-//                return;
-//            }
-//            Process exec = null;
-//            String command = "";
-//            this.destroyProcess(this.process);
-//            if (Helper.isLinux() || Helper.isMac()) {
-//                command = "kill -9 " + pid;
-//                exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
-//            } else {
-//                if (this.process.isAlive()) {
-//                    command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
-//                    exec = Runtime.getRuntime().exec(command);
-//                }
-//            }
-//            try {
-//                if (exec != null) {
-//                    LOGGER.info("kill chrome process by pid,command:  {}", command);
-//                    exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
-//                }
-//            } finally {
-//                this.destroyProcess(exec);
-//            }
         } catch (Exception e) {
             LOGGER.error("kill chrome process error ", e);
         } finally {
@@ -276,40 +211,18 @@ public class BrowserRunner {
         if (this.connection != null && !this.connection.closed()) {
             this.connection.send("Browser.close");
         }
-        this.destroy();
+        this.destroyBrowser();
         this.closed = true;
-
     }
 
     private void deleteTempUserDir() {
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             try {
                 removeFolderOnExit(this.tempDirectory);
-                Path path = Paths.get(this.tempDirectory);
-                if (Files.exists(path)) {
-                    Path deleteTxt = Paths.get(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-                    FileUtil.createNewFile(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-                    try (FileChannel channel = FileChannel.open(deleteTxt, StandardOpenOption.APPEND)) {
-                        try (FileLock ignored = channel.lock()) {
-                            ByteBuffer buffer = ByteBuffer.allocate(1024);
-                            byte[] tempDirectoryBytes = this.tempDirectory.getBytes();
-                            buffer.put(tempDirectoryBytes);
-                            buffer.flip();
-                            channel.write(buffer);
-                            buffer.clear();
-                            byte[] newlineBytes = System.lineSeparator().getBytes();
-                            buffer.put(newlineBytes);
-                            buffer.flip();
-                            channel.write(buffer);
-                            buffer.clear();
-                        }
-                    }
-                }
             } catch (IOException ignored) {
             }
         }
     }
-
     /**
      * 注册钩子
      */
