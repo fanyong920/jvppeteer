@@ -7,10 +7,8 @@ import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransportFactory;
-import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,26 +16,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.ruiyun.jvppeteer.util.FileUtil.removeFolder;
+import static com.ruiyun.jvppeteer.util.FileUtil.removeFolderOnExit;
 
 public class BrowserRunner {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
     private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile("^DevTools listening on (ws://.*)$");
-    public static final String WAIT_TO_DELETE_TEMP_USER_DIR_TXT = "wait-to-delete-temp-user-dir.txt";
     private final String executablePath;
     private final List<String> processArguments;
     private final String tempDirectory;
@@ -50,31 +40,6 @@ public class BrowserRunner {
      * 浏览器进程id
      */
     private String pid;
-
-    /*
-      删除残留的临时目录
-     */
-    static {
-        Path path = Paths.get(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-        if (Files.exists(path)) {
-            try {
-                List<String> userDirs = Files.readAllLines(path);
-                if (ValidateUtil.isNotEmpty(userDirs)) {
-                    for (String userDir : userDirs) {
-                        removeFolder(userDir);
-                    }
-                }
-            } catch (IOException ignored) {
-
-            } finally {
-                try {
-                    Files.delete(path);
-                } catch (IOException ignored) {
-
-                }
-            }
-        }
-    }
 
     public BrowserRunner(String executablePath, List<String> processArguments, String tempDirectory) {
         super();
@@ -285,27 +250,7 @@ public class BrowserRunner {
     private void deleteTempUserDir() {
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             try {
-                removeFolder(this.tempDirectory);
-                Path path = Paths.get(this.tempDirectory);
-                if (Files.exists(path)) {
-                    Path deleteTxt = Paths.get(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-                    FileUtil.createNewFile(WAIT_TO_DELETE_TEMP_USER_DIR_TXT);
-                    try (FileChannel channel = FileChannel.open(deleteTxt, StandardOpenOption.APPEND)) {
-                        try (FileLock ignored = channel.lock()) {
-                            ByteBuffer buffer = ByteBuffer.allocate(1024);
-                            byte[] tempDirectoryBytes = this.tempDirectory.getBytes();
-                            buffer.put(tempDirectoryBytes);
-                            buffer.flip();
-                            channel.write(buffer);
-                            buffer.clear();
-                            byte[] newlineBytes = System.lineSeparator().getBytes();
-                            buffer.put(newlineBytes);
-                            buffer.flip();
-                            channel.write(buffer);
-                            buffer.clear();
-                        }
-                    }
-                }
+                removeFolderOnExit(this.tempDirectory);
             } catch (IOException ignored) {
             }
         }
