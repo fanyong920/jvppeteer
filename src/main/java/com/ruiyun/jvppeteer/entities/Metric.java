@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
+
 /**
  * Run-time execution metric.
  */
@@ -11,7 +13,7 @@ public class Metric {
     /**
      * Metric value.
      */
-    private int value;
+    private BigDecimal value;
 
     public String getName() {
         return name;
@@ -21,11 +23,11 @@ public class Metric {
         this.name = name;
     }
 
-    public int getValue() {
+    public BigDecimal getValue() {
         return value;
     }
 
-    public void setValue(int value) {
+    public void setValue(BigDecimal value) {
         this.value = value;
     }
 }

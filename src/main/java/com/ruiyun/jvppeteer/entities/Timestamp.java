@@ -1,16 +1,22 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
+
 public class Timestamp {
-    private double value;
+    private BigDecimal value;
+
     public Timestamp() {
     }
-    public Timestamp(double value) {
+
+    public Timestamp(BigDecimal value) {
         this.value = value;
     }
-    public double getValue() {
+
+    public BigDecimal getValue() {
         return value;
     }
-    public void setValue(double value) {
+
+    public void setValue(BigDecimal value) {
         this.value = value;
     }
 

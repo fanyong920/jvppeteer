@@ -719,24 +719,25 @@ public class ElementHandle extends JSHandle {
             if (elementHandle == null) {
                 throw new JvppeteerException("Unsupported frame type");
             }
-            LinkedHashMap<String, Integer> parentBox = (LinkedHashMap<String, Integer>) elementHandle.evaluate("element => {\n" +
-                    "        // Element is not visible.\n" +
-                    "        if (element.getClientRects().length === 0) {\n" +
-                    "          return null;\n" +
-                    "        }\n" +
-                    "        const rect = element.getBoundingClientRect();\n" +
-                    "        const style = window.getComputedStyle(element);\n" +
-                    "        return {\n" +
-                    "          left:\n" +
-                    "            rect.left +\n" +
-                    "            parseInt(style.paddingLeft, 10) +\n" +
-                    "            parseInt(style.borderLeftWidth, 10),\n" +
-                    "          top:\n" +
-                    "            rect.top +\n" +
-                    "            parseInt(style.paddingTop, 10) +\n" +
-                    "            parseInt(style.borderTopWidth, 10),\n" +
-                    "        };\n" +
-                    "      }");
+            LinkedHashMap<String, Integer> parentBox = (LinkedHashMap<String, Integer>) elementHandle.evaluate("""
+                    element => {
+                            // Element is not visible.
+                            if (element.getClientRects().length === 0) {
+                              return null;
+                            }
+                            const rect = element.getBoundingClientRect();
+                            const style = window.getComputedStyle(element);
+                            return {
+                              left:
+                                rect.left +
+                                parseInt(style.paddingLeft, 10) +
+                                parseInt(style.borderLeftWidth, 10),
+                              top:
+                                rect.top +
+                                parseInt(style.paddingTop, 10) +
+                                parseInt(style.borderTopWidth, 10),
+                            };
+                          }""");
             if (parentBox == null) {
                 return null;
             }

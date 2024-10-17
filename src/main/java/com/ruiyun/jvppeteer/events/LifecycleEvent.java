@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.events;
 
+import java.math.BigDecimal;
+
 /**
  * Fired for top level page lifecycle events such as navigation, load, paint, etc.
  */
@@ -16,7 +18,7 @@ public class LifecycleEvent {
 
     private String name;
 
-   private long  timestamp;
+   private BigDecimal timestamp;
 
     public String getFrameId() {
         return frameId;
@@ -42,11 +44,11 @@ public class LifecycleEvent {
         this.name = name;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 }
