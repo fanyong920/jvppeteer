@@ -1303,7 +1303,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
             y = clip.getY();
             height = clip.getHeight();
         }
-        return clip.copy(x, y, width, height);
+        ScreenshotClip copy = clip.copy(x, y, width, height);
+        copy.setScale(clip.getScale());
+        return copy;
     }
 
     /**

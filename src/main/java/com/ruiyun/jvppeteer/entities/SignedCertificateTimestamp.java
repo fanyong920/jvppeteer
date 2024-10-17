@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
+
 public class SignedCertificateTimestamp {
     /**
      * Validation status.
@@ -25,7 +27,7 @@ public class SignedCertificateTimestamp {
      * Issuance date. Unlike TimeSinceEpoch, this contains the number of
      * milliseconds since January 1, 1970, UTC, not the number of seconds.
      */
-    private long timestamp;
+    private BigDecimal timestamp;
 
     /**
      * Hash algorithm.
@@ -74,11 +76,11 @@ public class SignedCertificateTimestamp {
         this.hashAlgorithm = hashAlgorithm;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 

@@ -4,6 +4,8 @@ import com.ruiyun.jvppeteer.entities.Initiator;
 import com.ruiyun.jvppeteer.entities.RequestPayload;
 import com.ruiyun.jvppeteer.entities.ResponsePayload;
 
+import java.math.BigDecimal;
+
 /**
  * Fired when page is about to send HTTP request.
  */
@@ -28,7 +30,7 @@ public class RequestWillBeSentEvent {
     /**
      * Timestamp.
      */
-    private long timestamp;
+    private BigDecimal timestamp;
     /**
      * Timestamp.
      */
@@ -93,11 +95,11 @@ public class RequestWillBeSentEvent {
         this.request = request;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 

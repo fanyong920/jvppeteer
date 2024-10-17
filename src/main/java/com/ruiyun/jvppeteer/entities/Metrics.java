@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
+
 /**
  * Timestamp 时间点(when the metrics sample was taken)
  * Documents  页面的documents数量。
@@ -17,133 +19,133 @@ package com.ruiyun.jvppeteer.entities;
  */
 public class Metrics {
 
-    private int Timestamp;
+    private BigDecimal Timestamp;
 
-    private int Documents;
+    private BigDecimal Documents;
 
-    private int  Frames;
+    private BigDecimal  Frames;
 
-    private int JSEventListeners;
+    private BigDecimal JSEventListeners;
 
-    private int Nodes;
+    private BigDecimal Nodes;
 
-    private int LayoutCount;
+    private BigDecimal LayoutCount;
 
-    private int RecalcStyleCount;
+    private BigDecimal RecalcStyleCount;
 
-    private int LayoutDuration;
+    private BigDecimal LayoutDuration;
 
-    private int RecalcStyleDuration;
+    private BigDecimal RecalcStyleDuration;
 
-    private int ScriptDuration;
+    private BigDecimal ScriptDuration;
 
-    private int  TaskDuration;
+    private BigDecimal  TaskDuration;
 
-    private int JSHeapUsedSize;
+    private BigDecimal JSHeapUsedSize;
 
-    private int  JSHeapTotalSize;
+    private BigDecimal  JSHeapTotalSize;
 
-    public int getTimestamp() {
+    public BigDecimal getTimestamp() {
         return Timestamp;
     }
 
-    public void setTimestamp(int timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         Timestamp = timestamp;
     }
 
-    public int getDocuments() {
+    public BigDecimal getDocuments() {
         return Documents;
     }
 
-    public void setDocuments(int documents) {
+    public void setDocuments(BigDecimal documents) {
         Documents = documents;
     }
 
-    public int getFrames() {
+    public BigDecimal getFrames() {
         return Frames;
     }
 
-    public void setFrames(int frames) {
+    public void setFrames(BigDecimal frames) {
         Frames = frames;
     }
 
-    public int getJSEventListeners() {
+    public BigDecimal getJSEventListeners() {
         return JSEventListeners;
     }
 
-    public void setJSEventListeners(int JSEventListeners) {
+    public void setJSEventListeners(BigDecimal JSEventListeners) {
         this.JSEventListeners = JSEventListeners;
     }
 
-    public int getNodes() {
+    public BigDecimal getNodes() {
         return Nodes;
     }
 
-    public void setNodes(int nodes) {
+    public void setNodes(BigDecimal nodes) {
         Nodes = nodes;
     }
 
-    public int getLayoutCount() {
+    public BigDecimal getLayoutCount() {
         return LayoutCount;
     }
 
-    public void setLayoutCount(int layoutCount) {
+    public void setLayoutCount(BigDecimal layoutCount) {
         LayoutCount = layoutCount;
     }
 
-    public int getRecalcStyleCount() {
+    public BigDecimal getRecalcStyleCount() {
         return RecalcStyleCount;
     }
 
-    public void setRecalcStyleCount(int recalcStyleCount) {
+    public void setRecalcStyleCount(BigDecimal recalcStyleCount) {
         RecalcStyleCount = recalcStyleCount;
     }
 
-    public int getLayoutDuration() {
+    public BigDecimal getLayoutDuration() {
         return LayoutDuration;
     }
 
-    public void setLayoutDuration(int layoutDuration) {
+    public void setLayoutDuration(BigDecimal layoutDuration) {
         LayoutDuration = layoutDuration;
     }
 
-    public int getRecalcStyleDuration() {
+    public BigDecimal getRecalcStyleDuration() {
         return RecalcStyleDuration;
     }
 
-    public void setRecalcStyleDuration(int recalcStyleDuration) {
+    public void setRecalcStyleDuration(BigDecimal recalcStyleDuration) {
         RecalcStyleDuration = recalcStyleDuration;
     }
 
-    public int getScriptDuration() {
+    public BigDecimal getScriptDuration() {
         return ScriptDuration;
     }
 
-    public void setScriptDuration(int scriptDuration) {
+    public void setScriptDuration(BigDecimal scriptDuration) {
         ScriptDuration = scriptDuration;
     }
 
-    public int getTaskDuration() {
+    public BigDecimal getTaskDuration() {
         return TaskDuration;
     }
 
-    public void setTaskDuration(int taskDuration) {
+    public void setTaskDuration(BigDecimal taskDuration) {
         TaskDuration = taskDuration;
     }
 
-    public int getJSHeapUsedSize() {
+    public BigDecimal getJSHeapUsedSize() {
         return JSHeapUsedSize;
     }
 
-    public void setJSHeapUsedSize(int JSHeapUsedSize) {
+    public void setJSHeapUsedSize(BigDecimal JSHeapUsedSize) {
         this.JSHeapUsedSize = JSHeapUsedSize;
     }
 
-    public int getJSHeapTotalSize() {
+    public BigDecimal getJSHeapTotalSize() {
         return JSHeapTotalSize;
     }
 
-    public void setJSHeapTotalSize(int JSHeapTotalSize) {
+    public void setJSHeapTotalSize(BigDecimal JSHeapTotalSize) {
         this.JSHeapTotalSize = JSHeapTotalSize;
     }
 

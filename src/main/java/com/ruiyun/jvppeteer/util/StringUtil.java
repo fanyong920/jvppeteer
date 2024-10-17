@@ -3,15 +3,15 @@ package com.ruiyun.jvppeteer.util;
 import java.time.LocalDateTime;
 
 public class StringUtil {
-	
+
 	public static boolean isEmpty(String s) {
 		return s == null || s.isEmpty();
 	}
-	
+
 	public static boolean isNotEmpty(String s) {
 		return !StringUtil.isEmpty(s);
 	}
-	
+
 	public static boolean isBlank(String str) {
         int strLen;
         if (str == null || (strLen = str.length()) == 0) {
@@ -24,17 +24,9 @@ public class StringUtil {
         }
         return true;
     }
-	
+
 	public static boolean isNotBlank(String str) {
         return !StringUtil.isBlank(str);
     }
-	
-	
-	public static int getTimestamp() {
-		synchronized (StringUtil.class) {
-			return LocalDateTime.now().getNano();
-		}
-	}
-	
-	
+
 }

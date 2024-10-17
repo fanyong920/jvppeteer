@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.events;
 import com.ruiyun.jvppeteer.entities.RemoteObject;
 import com.ruiyun.jvppeteer.entities.StackTrace;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -26,17 +27,17 @@ public class ConsoleAPICalledEvent {
     /**
      * Call timestamp.
      */
-    private long timestamp;
+    private BigDecimal timestamp;
     /**
      * Stack trace captured when the call was made. The async stack chain is automatically reported for
-     the following call types: `assert`, `error`, `trace`, `warning`. For other types the async call
-     chain can be retrieved using `Debugger.getStackTrace` and `stackTrace.parentId` field.
+     * the following call types: `assert`, `error`, `trace`, `warning`. For other types the async call
+     * chain can be retrieved using `Debugger.getStackTrace` and `stackTrace.parentId` field.
      */
     private StackTrace stackTrace;
     /**
      * Console context descriptor for calls on non-default console context (not console.*):
-     'anonymous#unique-logger-id' for call on unnamed context, 'name#unique-logger-id' for call
-     on named context.
+     * 'anonymous#unique-logger-id' for call on unnamed context, 'name#unique-logger-id' for call
+     * on named context.
      */
     private String context;
 
@@ -64,11 +65,11 @@ public class ConsoleAPICalledEvent {
         this.executionContextId = executionContextId;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 

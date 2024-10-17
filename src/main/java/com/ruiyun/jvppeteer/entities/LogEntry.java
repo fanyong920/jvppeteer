@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.entities;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public class LogEntry {
     /**
      * Timestamp when this entry was added.
      */
-    private long timestamp;
+    private BigDecimal timestamp;
     /**
      * URL of the resource if known.
      */
@@ -76,11 +77,11 @@ public class LogEntry {
         this.text = text;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 

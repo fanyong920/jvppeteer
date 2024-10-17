@@ -2,6 +2,8 @@ package com.ruiyun.jvppeteer.events;
 
 import com.ruiyun.jvppeteer.entities.ResponsePayload;
 
+import java.math.BigDecimal;
+
 /**
  * Fired when HTTP response is available.
  */
@@ -18,7 +20,7 @@ public class ResponseReceivedEvent {
     /**
      * Timestamp.
      */
-    private long timestamp;
+    private BigDecimal timestamp;
     /**
      * Resource type.
      */
@@ -53,11 +55,11 @@ public class ResponseReceivedEvent {
         this.loaderId = loaderId;
     }
 
-    public long getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(long timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -84,9 +86,11 @@ public class ResponseReceivedEvent {
     public void setFrameId(String frameId) {
         this.frameId = frameId;
     }
+
     public boolean getHasExtraInfo() {
         return hasExtraInfo;
     }
+
     public void setHasExtraInfo(boolean hasExtraInfo) {
         this.hasExtraInfo = hasExtraInfo;
     }
