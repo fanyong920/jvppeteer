@@ -61,7 +61,8 @@ public class ChromeLauncher implements Launcher {
         }
         this.chromeExecutable = this.lookForExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
         String temporaryUserDataDir = options.getUserDataDir();
-        List<String> chromeArguments = this.defaultArgs(options);
+        List<String> defaultArgs = this.defaultArgs(options);
+        List<String> chromeArguments = new ArrayList<>(defaultArgs);
         boolean isCustomUserDir = false;
         boolean isCustomRemoteDebugger = false;
         for (String arg : chromeArguments) {
@@ -93,7 +94,9 @@ public class ChromeLauncher implements Launcher {
             runner.start();
             Connection connection = runner.setUpConnection(usePipe, options.getProtocolTimeout(), options.getSlowMo(), options.getDumpio());
             Runnable closeCallback = runner::closeBrowser;
-            Browser browser = Browser.create("chrome", connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
+            Browser browser = Browser.create(options.getProduct(), connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
+            browser.setExecutablePath(this.chromeExecutable);
+            browser.setDefaultArgs(defaultArgs);
             if (options.getWaitForInitialPage()) {
                 browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
             }
@@ -330,7 +333,7 @@ public class ChromeLauncher implements Launcher {
         List<String> browserContextIds;
         Runnable closeFunction = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
-        return Browser.create("chrome", connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
+        return Browser.create(Product.CHROME, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
     }
 
     /**

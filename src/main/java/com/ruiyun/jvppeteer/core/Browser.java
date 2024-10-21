@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.entities.BrowserContextOptions;
 import com.ruiyun.jvppeteer.entities.DebugInfo;
 import com.ruiyun.jvppeteer.entities.GetVersionResponse;
@@ -45,15 +46,18 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
     private final Process process;
     private final Connection connection;
     private final Runnable closeCallback;
+    private final Product product;
     private Function<Target, Boolean> isPageTargetCallback;
     private final BrowserContext defaultContext;
     private final Map<String, BrowserContext> contexts = new HashMap<>();
     private final TargetManager targetManager;
+    private String executablePath;
+    private List<String> defaultArgs;
 
 
-    public Browser(String product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+    public Browser(Product product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
         super();
-        product = StringUtil.isEmpty(product) ? "chrome" : product;
+        this.product = product;
         this.defaultViewport = viewport;
         this.process = process;
         this.connection = connection;
@@ -67,7 +71,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
         }
         Function<Target, Boolean> targetFilterCallback1 = targetFilterCallback;
         this.setIsPageTargetCallback(isPageTargetCallback);
-        if ("firefox".equals(product)) {
+        if (Product.FIREFOX.equals(product)) {
             throw new JvppeteerException("Not Support firefox");
         } else {
             this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback1, waitForInitiallyDiscoveredTargets);
@@ -106,6 +110,15 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
      */
     public Process process() {
         return this.process;
+    }
+
+    /**
+     * 返回浏览器的可执行路径。
+     *
+     * @return 可执行路径
+     */
+    public String executablePath() {
+        return this.executablePath;
     }
 
     public TargetManager targetManager() {
@@ -402,7 +415,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
         return waitForCondition(conditionChecker, timeout, "Waiting for target failed: timeout " + timeout + "ms exceeded");
     }
 
-    public static Browser create(String product, Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+    public static Browser create(Product product, Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
         Browser browser = new Browser(product, connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
@@ -413,6 +426,26 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
         return browser;
     }
 
+    public void setExecutablePath(String executablePath) {
+        this.executablePath = executablePath;
+    }
+
+    /**
+     * 返回默认的运行的参数
+     *
+     * @return 默认参数集合
+     */
+    public List<String> defaultArgs() {
+        return this.defaultArgs;
+    }
+
+    public void setDefaultArgs(List<String> defaultArgs) {
+        this.defaultArgs = defaultArgs;
+    }
+
+    public Product product() {
+        return product;
+    }
 
     public enum BrowserEvent {
         /**

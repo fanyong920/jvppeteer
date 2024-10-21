@@ -22,17 +22,11 @@ import java.util.function.Consumer;
 public class CSSCoverage {
 
     private CDPSession client;
-
     private boolean enabled;
-
     private final HashMap<String, String> stylesheetURLs = new HashMap<>();
-
     private final HashMap<String, String> stylesheetSources = new HashMap<>();
-
     private final Map<CDPSession.CDPSessionEvent, Consumer<?>> listeners = new HashMap<>();
-
     private boolean resetOnNavigation;
-
     public CSSCoverage(CDPSession client) {
         this.client = client;
     }
@@ -67,7 +61,6 @@ public class CSSCoverage {
         this.stylesheetSources.clear();
     }
 
-    //不能阻塞 WebsocketConnectionReadThread
     private void onStyleSheet(StyleSheetAddedEvent event) {
         CSSStyleSheetHeader header = event.getHeader();
         // Ignore anonymous scripts
@@ -110,7 +103,6 @@ public class CSSCoverage {
             List<Range> ranges = Coverage.convertToDisjointRanges(styleSheetIdToCoverage.get(styleSheetId));
             coverage.add(new CoverageEntry(url, ranges, text));
         }
-
         return coverage;
     }
 

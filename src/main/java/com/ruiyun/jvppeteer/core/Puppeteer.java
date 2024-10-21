@@ -177,21 +177,6 @@ public class Puppeteer {
         puppeteer.setLauncher(launcher);
     }
 
-
-    /**
-     * 返回默认的运行的参数
-     *
-     * @param options 可自己添加的选项
-     * @return 默认参数集合
-     */
-    public List<String> defaultArgs(LaunchOptions options) {
-        return this.getLauncher().defaultArgs(options);
-    }
-
-    public String executablePath() {
-        return this.getLauncher().executablePath();
-    }
-
     /**
      * 采用默认配置(Product#CHROME,Constant#VERSION)下载浏览器
      * <p>
