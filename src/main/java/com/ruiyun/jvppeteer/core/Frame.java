@@ -37,7 +37,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +49,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 import static com.ruiyun.jvppeteer.common.Constant.CDP_BINDING_PREFIX;
-import static com.ruiyun.jvppeteer.common.Constant.DEFAULT_BATCH_SIZE;
 import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 import static com.ruiyun.jvppeteer.common.Constant.PUPPETEER_WORLD;
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
@@ -418,10 +416,9 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
 
     public ElementHandle document() throws JsonProcessingException, EvaluateException {
         if (this.document == null) {
-            this.document = this.mainRealm().evaluateHandle("""
-                    () => {
-                            return document;
-                          }""", null).asElement();
+            this.document = this.mainRealm().evaluateHandle("() => {\n" +
+                    "        return document;\n" +
+                    "      }", null).asElement();
         }
         return this.document;
     }
@@ -435,60 +432,10 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
         if (parentFrame == null) {
             return null;
         }
-        JsonNode response = parentFrame.client().send("DOM.getFrameOwner", Map.of("frameId", this.id));
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("frameId", this.id);
+        JsonNode response = parentFrame.client().send("DOM.getFrameOwner", params);
         return parentFrame.mainRealm().adoptBackendNode(response.get("backendNodeId").asInt()).asElement();
-    }
-
-    private List<JSHandle> transposeIterableHandle(JSHandle list) throws JsonProcessingException {
-        JSHandle generatorHandle = null;
-        try {
-            generatorHandle = list.evaluateHandle("""
-                    iterable => {
-                        return (async function* () {
-                          yield* iterable;
-                        })();
-                      }""");
-            return transposeIteratorHandle(generatorHandle);
-        } finally {
-            Optional.ofNullable(generatorHandle).ifPresent(JSHandle::dispose);
-        }
-    }
-
-    private List<JSHandle> transposeIteratorHandle(JSHandle iterator) throws JsonProcessingException, EvaluateException {
-        int size = DEFAULT_BATCH_SIZE;
-        List<JSHandle> results = new ArrayList<>();
-        List<JSHandle> result;
-        while ((result = fastTransposeIteratorHandle(iterator, size)) != null) {
-            results.addAll(result);
-            size <<= 1;
-        }
-        return results;
-    }
-
-    private List<JSHandle> fastTransposeIteratorHandle(JSHandle iterator, int size) throws JsonProcessingException, EvaluateException {
-        JSHandle array = null;
-        Collection<JSHandle> handles;
-        try {
-            array = iterator.evaluateHandle("async (iterator, size) => {\n" +
-                    "    const results = [];\n" +
-                    "    while (results.length < size) {\n" +
-                    "      const result = await iterator.next();\n" +
-                    "      if (result.done) {\n" +
-                    "        break;\n" +
-                    "      }\n" +
-                    "      results.push(result.value);\n" +
-                    "    }\n" +
-                    "    return results;\n" +
-                    "  }", Collections.singletonList(size));
-            Map<String, JSHandle> properties = array.getProperties();
-            handles = properties.values();
-            if (properties.isEmpty()) {
-                return null;
-            }
-            return new ArrayList<>(handles);
-        } finally {
-            Optional.ofNullable(array).ifPresent(JSHandle::dispose);
-        }
     }
 
     public ElementHandle $(String selector) throws JsonProcessingException, EvaluateException {
@@ -731,7 +678,7 @@ public class Frame extends EventEmitter<Frame.FrameEvent> {
 
     public void click(String selector, ClickOptions options) throws JsonProcessingException, EvaluateException {
         ElementHandle handle = this.$(selector);
-        Objects.requireNonNull(handle, "No node found for selector: " + selector);
+         Objects.requireNonNull(handle, "No node found for selector: " + selector);
         handle.click(options);
         handle.dispose();
     }
