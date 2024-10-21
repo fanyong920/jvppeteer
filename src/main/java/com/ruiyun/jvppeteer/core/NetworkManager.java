@@ -93,6 +93,11 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         client.on(CDPSession.CDPSessionEvent.Network_responseReceivedExtraInfo, responseReceivedExtraInfo);
         listeners.put(CDPSession.CDPSessionEvent.Network_responseReceivedExtraInfo, responseReceivedExtraInfo);
 
+        Consumer<Object> disconnected = (ignore) -> this.removeClient(client);
+        client.on(CDPSession.CDPSessionEvent.CDPSession_Disconnected, disconnected);
+        listeners.put(CDPSession.CDPSessionEvent.CDPSession_Disconnected, disconnected);
+
+
         this.clients.put(client, listeners);
         client.send("Network.enable");
         this.applyExtraHTTPHeaders(client);
@@ -231,7 +236,6 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.clients.forEach((client1, disposables) -> this.applyProtocolRequestInterception(client1));
     }
 
-    //WebSocketConnectReadThread
     public void onRequestWillBeSent(CDPSession client, RequestWillBeSentEvent event) {
         // Request interception doesn't happen for data URLs with Network Service.
         if (this.protocolRequestInterceptionEnabled && !event.getRequest().getUrl().startsWith("data:")) {
@@ -241,15 +245,14 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             if (requestPausedEvent != null) {
                 String fetchRequestId = requestPausedEvent.getRequestId();
                 this.patchRequestEventHeaders(event, requestPausedEvent);
-                this.onRequest(client, event, fetchRequestId,false);
+                this.onRequest(client, event, fetchRequestId, false);
                 this.networkEventManager.forgetRequestPaused(networkRequestId);
             }
             return;
         }
-        this.onRequest(client, event, null,false);
+        this.onRequest(client, event, null, false);
     }
 
-    //WebSocketConnectReadThread
     public void onAuthRequired(CDPSession client, AuthRequiredEvent event) {
         /* @type {"Default"|"CancelAuth"|"ProvideCredentials"} */
         AuthChallengeResponse authChallengeResponse = new AuthChallengeResponse();
@@ -297,7 +300,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         }
         if (requestWillBeSentEvent != null) {
             this.patchRequestEventHeaders(requestWillBeSentEvent, event);
-            this.onRequest(client, requestWillBeSentEvent, requestId,false);
+            this.onRequest(client, requestWillBeSentEvent, requestId, false);
         } else {
             this.networkEventManager.storeRequestPaused(networkId, event);
         }
@@ -332,7 +335,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         RedirectInfo redirectInfo = this.networkEventManager.takeQueuedRedirectInfo(event.getRequestId());
         if (redirectInfo != null) {
             this.networkEventManager.responseExtraInfo(event.getRequestId()).offer(event);
-            this.onRequest(client, redirectInfo.getEvent(), redirectInfo.getFetchRequestId(),false);
+            this.onRequest(client, redirectInfo.getEvent(), redirectInfo.getFetchRequestId(), false);
             return;
         }
         QueuedEventGroup queuedEvents = this.networkEventManager.getQueuedEventGroup(event.getRequestId());

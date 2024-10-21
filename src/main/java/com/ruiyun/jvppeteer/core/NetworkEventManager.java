@@ -58,9 +58,9 @@ public class NetworkEventManager {
      * handle redirects, we have to make them Arrays to represent the chain of
      * events.
      */
-    private final Map<String, LinkedList<ResponseReceivedExtraInfoEvent>> responseReceivedExtraInfoMap = new ConcurrentHashMap<>();
-    private final Map<String, LinkedList<RedirectInfo>> queuedRedirectInfoMap = new ConcurrentHashMap<>();
-    private final Map<String, QueuedEventGroup> queuedEventGroupMap = new ConcurrentHashMap<>();
+    private final Map<String, LinkedList<ResponseReceivedExtraInfoEvent>> responseReceivedExtraInfoMap = new HashMap<>();
+    private final Map<String, LinkedList<RedirectInfo>> queuedRedirectInfoMap = new HashMap<>();
+    private final Map<String, QueuedEventGroup> queuedEventGroupMap = new HashMap<>();
 
     public void forget(String networkRequestId) {
         this.requestWillBeSentMap.remove(networkRequestId);
@@ -70,14 +70,14 @@ public class NetworkEventManager {
         this.responseReceivedExtraInfoMap.remove(networkRequestId);
     }
 
-    public synchronized LinkedList<ResponseReceivedExtraInfoEvent> responseExtraInfo(String networkRequestId) {
+    public LinkedList<ResponseReceivedExtraInfoEvent> responseExtraInfo(String networkRequestId) {
         if (!this.responseReceivedExtraInfoMap.containsKey(networkRequestId)) {
             this.responseReceivedExtraInfoMap.put(networkRequestId, new LinkedList<>());
         }
         return this.responseReceivedExtraInfoMap.get(networkRequestId);
     }
 
-    private synchronized LinkedList<RedirectInfo> queuedRedirectInfo(String fetchRequestId) {
+    private LinkedList<RedirectInfo> queuedRedirectInfo(String fetchRequestId) {
         if (!this.queuedRedirectInfoMap.containsKey(fetchRequestId)) {
             this.queuedRedirectInfoMap.put(fetchRequestId, new LinkedList<>());
         }
