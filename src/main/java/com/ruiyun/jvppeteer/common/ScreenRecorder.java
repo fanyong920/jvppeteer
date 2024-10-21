@@ -150,7 +150,7 @@ public class ScreenRecorder {
                 this.page.setViewport(defaultViewport);
             }
             try {
-                FileUtil.removeFolderOnExit(this.tempCacheDir);
+                FileUtil.removeFolder(this.tempCacheDir);
             } catch (IOException ignored) {
 
             }
