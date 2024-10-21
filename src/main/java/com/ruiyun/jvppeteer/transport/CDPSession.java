@@ -67,21 +67,15 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     }
 
     public JsonNode send(String method) {
-        if (connection == null) {
-            throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
-        }
-        return this.connection.rawSend(method, null, this.sessionId, null, true);
+        return this.send(method, null);
     }
 
     public JsonNode send(String method, Map<String, Object> params) {
-        if (connection == null) {
-            throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
-        }
-        return this.connection.rawSend(method, params, this.sessionId, null, true);
+        return this.send(method, params, null, true);
     }
 
     public JsonNode send(String method, Map<String, Object> params, Integer timeout, boolean isBlocking) {
-        if (connection == null) {
+        if (this.connection == null || this.connection.closed) {
             throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
         return this.connection.rawSend(method, params, this.sessionId, timeout, isBlocking);
@@ -91,7 +85,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
      * 页面分离浏览器
      */
     public void detach() {
-        if (connection == null) {
+        if (this.connection == null) {
             throw new JvppeteerException("Session already detached. Most likely the" + this.targetType + "has been closed.");
         }
         Map<String, Object> params = ParamsFactory.create();
@@ -159,7 +153,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     }
 
     public Target getTarget() {
-         Objects.requireNonNull(this.target, "Target must exist");
+        Objects.requireNonNull(this.target, "Target must exist");
         return this.target;
     }
 
@@ -169,7 +163,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
         CDPSession_Ready("CDPSession.Ready"),
         sessionAttached("sessionattached"),
         sessionDetached("sessiondetached"),
-        //暂时先放这里吧
+
         Page_domContentEventFired("Page.domContentEventFired"),
         Page_loadEventFired("Page.loadEventFired"),
         Page_javascriptDialogOpening("Page.javascriptDialogOpening"),
@@ -221,6 +215,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
 
         Tracing_tracingComplete("Tracing.tracingComplete"),
         Input_dragIntercepted("Input.dragIntercepted");
+
         private String eventName;
 
         CDPSessionEvent(String eventName) {

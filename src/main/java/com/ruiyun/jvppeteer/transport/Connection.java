@@ -54,6 +54,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     protected volatile boolean closed;
     final Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
+    private volatile boolean handleMessageThreadFinish = false;
 
     public ConcurrentLinkedQueue<Runnable> getEventQueue() {
         return this.eventQueue;
@@ -167,6 +168,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                     }
                 }
             } while (!this.messagesQueue.isEmpty() || !this.closed);
+            this.handleMessageThreadFinish = true;
         });
         this.handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
         this.handleMessageThread.start();
@@ -210,7 +212,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                         LOGGER.error("Emit event error: ", e);
                     }
                 }
-            } while (!this.messagesQueue.isEmpty() || !this.eventQueue.isEmpty() || !this.closed);
+            } while (!this.handleMessageThreadFinish || !this.eventQueue.isEmpty() || !this.closed);
         });
         emitEventThread.setName(JV_EMIT_EVENT_THREAD + messageThreadId.getAndIncrement());
         emitEventThread.start();
@@ -352,16 +354,20 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
             return;
         this.closed = true;
         this.transport.setConnection(null);
-        while (true) {
-            if (this.messagesQueue.isEmpty()) {
-                break;
-            }
-        }
+        waitForHandleMessageThreadFinish();
         this.callbacks.clear();
         for (CDPSession session : this.sessions.values())
             session.onClosed();
         this.sessions.clear();
         this.emit(CDPSession.CDPSessionEvent.CDPSession_Disconnected, true);
+    }
+
+    private void waitForHandleMessageThreadFinish() {
+        while (true) {
+            if (this.handleMessageThreadFinish) {
+                break;
+            }
+        }
     }
 
     public List<ProtocolException> getPendingProtocolErrors() {
