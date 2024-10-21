@@ -106,7 +106,7 @@ public class S_PageApiTest extends A_LaunchTest {
         // 查询所有Map实例并将它们放入数组中
         JSHandle mapInstances = page.queryObjects(mapPrototype);
         // 计算堆中Map对象的数量
-        Object count = page.evaluate("maps => maps.length", Collections.singletonList(mapInstances));
+        Object count = page.evaluate("maps => maps.length",List.of(mapInstances));
         System.out.println("count: " + count);
         mapPrototype.dispose();
         mapInstances.dispose();
@@ -768,26 +768,26 @@ public class S_PageApiTest extends A_LaunchTest {
      * Page.waitForFunction()
      */
     @Test
-    public void test21() throws IOException {
+    public void test21() throws IOException, InterruptedException {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://www.baidu.com/");
         page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         String username = "github-username";
-        JSHandle jsHandle = page.waitForFunction("async username => {\n" +
-                "    // show the avatar\n" +
-                "    const img = document.createElement('img');\n" +
-                "    // 创建一个新的 div 元素\n" +
-                "    let newDiv = document.createElement(\"div\");\n" +
-                "    // 给它一些内容\n" +
-                "    let newContent = document.createTextNode(username);\n" +
-                "    // 添加文本节点 到这个新的 div 元素\n" +
-                "    newDiv.appendChild(newContent);\n" +
-                "    // wait 3 seconds\n" +
-                "    await new Promise((resolve, reject) => setTimeout(resolve, 3000));\n" +
-                "    console.log('username:', username);\n" +
-                "}", new WaitForSelectorOptions(), username);
+        JSHandle jsHandle = page.waitForFunction("""
+                async username => {
+                    // 创建一个新的 div 元素
+                    let newDiv = document.createElement("div");
+                    // 给它一些内容
+                    let newContent = document.createTextNode(username);
+                    // 添加文本节点 到这个新的 div 元素
+                    newDiv.appendChild(newContent);
+                    document.body.appendChild(newDiv);
+                    // wait 3 seconds
+                    await new Promise((resolve, reject) => setTimeout(resolve, 3000));
+                    console.log('username:', username);
+                }""", new WaitForSelectorOptions(), username);
         System.out.println(jsHandle);
+        Thread.sleep(5000);
         browser.close();
     }
 
