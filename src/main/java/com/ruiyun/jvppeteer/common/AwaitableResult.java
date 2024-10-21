@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 public class AwaitableResult<T> {
 
     private final CountDownLatch latch = new CountDownLatch(1);
-    private T response;
+    private volatile T response;
 
     public static <T> AwaitableResult<T> create() {
         return new AwaitableResult<>();
