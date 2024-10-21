@@ -229,7 +229,7 @@ public class S_PageApiTest extends A_LaunchTest {
         button1.dispose();
         button2.dispose();
         button3.dispose();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
         browser.close();
     }
 

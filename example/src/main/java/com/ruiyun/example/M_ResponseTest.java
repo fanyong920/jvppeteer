@@ -43,7 +43,7 @@ public class M_ResponseTest extends A_LaunchTest {
         //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
         options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.pageevent", options);
-        Thread.sleep(25000);
+        Thread.sleep(5000);
         browser.close();
     }
 }

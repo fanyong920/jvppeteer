@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class KillExample {
+public class Z_KillExample {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserRunner.class);
     /**
@@ -36,7 +36,7 @@ public class KillExample {
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         Process process = browser.process();
         String processId = getProcessId(process);
-        KillExample.LOGGER.info("process pid {}", processId);
+        Z_KillExample.LOGGER.info("process pid {}", processId);
         kill(processId);
         // 做一些其他操作
         browser.close();
@@ -55,9 +55,9 @@ public class KillExample {
             try {
                 field = process.getClass().getDeclaredField("handle");
                 field.setAccessible(true);
-                pid = KillExample.Kernel32.INSTANCE.GetProcessId((Long) field.get(process));
+                pid = Z_KillExample.Kernel32.INSTANCE.GetProcessId((Long) field.get(process));
             } catch (Exception e) {
-                KillExample.LOGGER.error("Failed to get processId on Windows platform.", e);
+                Z_KillExample.LOGGER.error("Failed to get processId on Windows platform.", e);
             }
         } else if (Helper.isLinux() || Helper.isMac()) {
             try {
@@ -74,7 +74,7 @@ public class KillExample {
                 field.setAccessible(true);
                 pid = (Integer) field.get(process);
             } catch (Throwable e) {
-                KillExample.LOGGER.error("Failed to get processId on Linux or Aix platform.", e);
+                Z_KillExample.LOGGER.error("Failed to get processId on Linux or Aix platform.", e);
             }
         }
         return String.valueOf(pid);

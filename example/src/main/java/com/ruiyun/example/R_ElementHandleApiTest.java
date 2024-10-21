@@ -169,7 +169,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
             drop.dispose();
             target.dispose();
         }
-        Thread.sleep(50000);
+        Thread.sleep(5000);
         browser.close();
     }
 
@@ -209,7 +209,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         ElementHandle elementHandle = page.$("body > form");
         elementHandle.autofill(new AutofillData(new CreditCard("12346", "张三", "2023", "01", "123")));
         elementHandle.dispose();
-        Thread.sleep(500000);
+        Thread.sleep(5000);
         browser.close();
     }
 

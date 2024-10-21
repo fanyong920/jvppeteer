@@ -34,7 +34,7 @@ public class O_WaitForNavigationTest extends A_LaunchTest {
         String title = page.title();
         System.out.println("title: " + title);
         System.out.println(response.url());
-        Thread.sleep(25000);
+        Thread.sleep(5000);
         browser.close();
     }
 

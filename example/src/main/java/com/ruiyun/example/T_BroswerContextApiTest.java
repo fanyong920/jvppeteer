@@ -46,7 +46,7 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
         System.out.println("close: " + browserContext.closed());
         //默认浏览器不能关闭
         defaultBrowserContext.close();
-        Thread.sleep(15000);
+        Thread.sleep(5000);
         browser.close();
     }
 

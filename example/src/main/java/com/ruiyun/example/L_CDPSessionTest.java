@@ -33,7 +33,7 @@ public class L_CDPSessionTest extends A_LaunchTest {
         String version2 = browser.version();
         System.out.println("version2: " + version2);
         //打开任务管理器对比一下进程id
-        Thread.sleep(50000);
+        Thread.sleep(5000);
         //关闭浏览器
         browser.close();
     }

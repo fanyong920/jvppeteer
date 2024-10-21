@@ -79,7 +79,7 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
                 "    const content = await window.readfile('C:/Windows/System32/drivers/etc/hosts');\n" +
                 "    console.log(content);\n" +
                 "  }");
-        Thread.sleep(25000);
+        Thread.sleep(5000);
         browser.close();
     }
 

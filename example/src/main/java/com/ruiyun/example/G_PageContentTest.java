@@ -49,7 +49,6 @@ public class G_PageContentTest extends A_LaunchTest {
                 "</html>\n");
 
         //等待5s看看效果
-        Thread.sleep(5000);
         //关闭浏览器
         browser.close();
     }
@@ -86,7 +85,6 @@ public class G_PageContentTest extends A_LaunchTest {
         System.out.println("通过api获取的页面内容： " + content1);
 
         //等待5s看看效果
-        Thread.sleep(5000);
         //关闭浏览器
         browser.close();
     }

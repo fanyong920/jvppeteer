@@ -18,6 +18,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
 
     @Test
     public void test3() throws Exception {
+        launchOptions.setDebuggingPort(9222);
         Browser browser = Puppeteer.launch(launchOptions);
         browser.on(Browser.BrowserEvent.TargetCreated, (Consumer<Target>) target -> System.out.println("targetCreate: " + target.url()));
         browser.on(Browser.BrowserEvent.TargetChanged, (Consumer<Target>) target -> System.out.println("targetChanged: " + target.url()));
