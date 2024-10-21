@@ -12,7 +12,7 @@
 ## 注意
 >通过maven导入的jar包，1.1.5及之前的版本，都存在linux上杀不死chrome的bug，可以通过<a href="https://github.com/fanyong920/jvppeteer/blob/master/1.1.5%E7%89%88%E6%9C%AC%E4%B9%8B%E5%89%8D%E7%9A%84%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.md" alt="链接"> 1.1.5版本之前的内存问题解决方案</a> 自行解决，仓库的代码已经将解决方案代码加上了，拉取下来打jar也可以用。
 
-**本库的灵感来自 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer), API 也与其基本上保持一致，做这个库是为了方便使用 Java 操控 [用于测试的Chrome]([Chrome for Testing availability (googlechromelabs.github.io)](https://googlechromelabs.github.io/chrome-for-testing/#stable)) （即Chrome for Testing，下面简称 Chrome）或 Chromium**
+**本库的灵感来自 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer), API 也与其基本上保持一致，做这个库是为了方便使用 Java 操控 [用于测试的Chrome](https://googlechromelabs.github.io/chrome-for-testing/#stable) （即Chrome for Testing，下面简称 Chrome）或 Chromium**
 
 
 
@@ -73,7 +73,7 @@ compile "io.github.fanyong920:jvppeteer:2.0.0"
 
 #### 1、下载浏览器
 
-从2.0.0版本开始，Jvppeteer与 [Chrome ]([Chrome for Testing availability (googlechromelabs.github.io)](https://googlechromelabs.github.io/chrome-for-testing/#stable))配合使用， [Chrome ]([Chrome for Testing availability (googlechromelabs.github.io)](https://googlechromelabs.github.io/chrome-for-testing/#stable)) 使用的是新的无头模式，旧的无头模式现在是一个名为 [chrome-headless-shell](https://developer.chrome.com/blog/chrome-headless-shell) 的独立程序。无论你使用 [Chrome](https://googlechromelabs.github.io/chrome-for-testing/#stable) 还是 [chrome-headless-shell](https://developer.chrome.com/blog/chrome-headless-shell) ，你只要将 headless 设置为 true， Jvppeteer 会自动匹配新的无头模式和旧的无头模式.
+从2.0.0版本开始，Jvppeteer与 [Chrome ](https://googlechromelabs.github.io/chrome-for-testing/#stable) 配合使用， [Chrome ](https://googlechromelabs.github.io/chrome-for-testing/#stable) 使用的是新的无头模式，旧的无头模式现在是一个名为 [chrome-headless-shell](https://developer.chrome.com/blog/chrome-headless-shell) 的独立程序。无论你使用 [Chrome](https://googlechromelabs.github.io/chrome-for-testing/#stable) 还是 [chrome-headless-shell](https://developer.chrome.com/blog/chrome-headless-shell) ，你只要将 headless 设置为 true， Jvppeteer 会自动匹配新的无头模式和旧的无头模式.
 
 在此版本之前，Jvppeteer 下载并与 Chromium 配合使用。
 
@@ -114,7 +114,7 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 
 下载 Chromium、ChromeDriver、Chrome Headless Shell 必须明确下载版本，Chrome 有默认版本，存放在Constant#VERSION 中。
 
-关于下载浏览器的版本选择，可以浏览一下这两个网页：[Chrome for Testing availability]([Chrome for Testing availability (googlechromelabs.github.io)](https://googlechromelabs.github.io/chrome-for-testing/#stable)) 与  [JSON API endpoints]([GoogleChromeLabs/chrome-for-testing (github.com)](https://github.com/GoogleChromeLabs/chrome-for-testing))
+关于下载浏览器的版本选择，可以浏览一下这两个网页：[Chrome for Testing availability](https://googlechromelabs.github.io/chrome-for-testing/#stable) 与  [JSON API endpoints](https://github.com/GoogleChromeLabs/chrome-for-testing)
 
 **Mac必须withExcutablePath是用來指定启动Chrome.exe的路径。在Mac下载浏览器有问题。**
 
@@ -126,7 +126,7 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 
 | Jvppeteer | Chrome                                                       |
 | --------- | ------------------------------------------------------------ |
-| 2.0.0     | [Chrome for Testing]([Chrome for Testing availability (googlechromelabs.github.io)](https://googlechromelabs.github.io/chrome-for-testing/#stable)) 128.0.6613.137 |
+| 2.0.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 | 1.1.6     | Chromium 722234                                              |
 | 1.1.5     | Chromium 722234                                              |
 | 1.1.4     | Chromium 722234                                              |
@@ -303,7 +303,7 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
 
 ### 三、遇到问题怎么办
 
-如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js) ](https://github.com/puppeteer/puppeteer)库中的 [Troubleshooting)](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路
+如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer) 库中的 [Troubleshooting](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路
 
 ### 四、JDK21 的尝试
 
