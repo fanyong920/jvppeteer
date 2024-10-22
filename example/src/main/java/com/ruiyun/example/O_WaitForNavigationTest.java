@@ -1,5 +1,6 @@
 package com.ruiyun.example;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
@@ -7,6 +8,8 @@ import com.ruiyun.jvppeteer.core.Response;
 import com.ruiyun.jvppeteer.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import org.junit.Test;
+
+import java.util.Map;
 
 public class O_WaitForNavigationTest extends A_LaunchTest {
 
@@ -25,9 +28,12 @@ public class O_WaitForNavigationTest extends A_LaunchTest {
         WaitForOptions options = new WaitForOptions();
         options.setIgnoreSameDocumentNavigation(true);
         Response response = page.waitForNavigation(options);
+
+        JsonNode res = cdpSession.send("DOM.getDocument", Map.of("depth", -1, "pierce", true));
+        System.out.println("res:" + res);
         cdpSession.detach();
         //方式2：
-       // page.reload();
+        // page.reload();
 
         //方式1是方式2的具体实现
 

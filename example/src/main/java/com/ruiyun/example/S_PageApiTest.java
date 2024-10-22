@@ -773,19 +773,18 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page = browser.newPage();
         page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         String username = "github-username";
-        JSHandle jsHandle = page.waitForFunction("""
-                async username => {
-                    // 创建一个新的 div 元素
-                    let newDiv = document.createElement("div");
-                    // 给它一些内容
-                    let newContent = document.createTextNode(username);
-                    // 添加文本节点 到这个新的 div 元素
-                    newDiv.appendChild(newContent);
-                    document.body.appendChild(newDiv);
-                    // wait 3 seconds
-                    await new Promise((resolve, reject) => setTimeout(resolve, 3000));
-                    console.log('username:', username);
-                }""", new WaitForSelectorOptions(), username);
+        JSHandle jsHandle = page.waitForFunction("async username => {\n" +
+                "                    // 创建一个新的 div 元素\n" +
+                "                    let newDiv = document.createElement(\"div\");\n" +
+                "                    // 给它一些内容\n" +
+                "                    let newContent = document.createTextNode(username);\n" +
+                "                    // 添加文本节点 到这个新的 div 元素\n" +
+                "                    newDiv.appendChild(newContent);\n" +
+                "                    document.body.appendChild(newDiv);\n" +
+                "                    // wait 3 seconds\n" +
+                "                    await new Promise((resolve, reject) => setTimeout(resolve, 3000));\n" +
+                "                    console.log('username:', username);\n" +
+                "                }", new WaitForSelectorOptions(), username);
         System.out.println(jsHandle);
         Thread.sleep(5000);
         browser.close();

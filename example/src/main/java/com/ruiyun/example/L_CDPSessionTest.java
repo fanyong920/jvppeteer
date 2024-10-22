@@ -8,10 +8,7 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import org.junit.Test;
 
 public class L_CDPSessionTest extends A_LaunchTest {
-    /**
-     * 要打印成什么样子的pdf，自己手动在浏览器按Ctrl+p，弹出的窗口就是pdf样式，，再把各个选项点一下，看一下预览效果
-     * 然后再回来写代码
-     */
+
     @Test
     public void test2() throws Exception {
 
@@ -28,10 +25,13 @@ public class L_CDPSessionTest extends A_LaunchTest {
         System.out.println("processInfo: " + send);
         String version = browser.version();
         System.out.println("version1: " + version);
+
         //断开连接
         session.detach();
         String version2 = browser.version();
         System.out.println("version2: " + version2);
+
+
         //打开任务管理器对比一下进程id
         Thread.sleep(50000);
         //关闭浏览器
