@@ -191,11 +191,7 @@ public class ScreenRecorder {
         commands.addAll(getFormatArgs(Objects.isNull(options.getFormat()) ? WEBM : options.getFormat()));
         commands.add("-b:v");
         commands.add("0");
-        if (GIF.equals(options.getFormat())) {
-            commands.add("-filter_complex");
-        } else {
-            commands.add("-vf");
-        }
+        commands.add("-vf");
         StringBuilder builder = new StringBuilder();
         if (options.getSpeed() != null) {
             builder.append("setpts=").append(1 / options.getSpeed()).append("*PTS");
@@ -216,7 +212,7 @@ public class ScreenRecorder {
         ProcessBuilder pb = new ProcessBuilder(commands).redirectErrorStream(true);
         Process process = pb.start();
         String input;
-        if(StringUtil.isNotEmpty(input = StreamUtil.toString(process.getInputStream()))){
+        if (StringUtil.isNotEmpty(input = StreamUtil.toString(process.getInputStream()))) {
             LOGGER.info(input);
         }
         process.waitFor();

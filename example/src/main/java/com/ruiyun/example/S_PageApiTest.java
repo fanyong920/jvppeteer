@@ -771,23 +771,23 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test21() throws IOException {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://www.baidu.com/");
         page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
-        String username = "github-username";
-        JSHandle jsHandle = page.waitForFunction("async username => {\n" +
-                "    // show the avatar\n" +
-                "    const img = document.createElement('img');\n" +
-                "    // 创建一个新的 div 元素\n" +
-                "    let newDiv = document.createElement(\"div\");\n" +
-                "    // 给它一些内容\n" +
-                "    let newContent = document.createTextNode(username);\n" +
-                "    // 添加文本节点 到这个新的 div 元素\n" +
-                "    newDiv.appendChild(newContent);\n" +
-                "    // wait 3 seconds\n" +
-                "    await new Promise((resolve, reject) => setTimeout(resolve, 3000));\n" +
-                "    console.log('username:', username);\n" +
+        String username = "GoogleChromeLabs";
+        page.waitForFunction("async username => {\n" +
+                "  const githubResponse = await fetch(\n" +
+                "    `https://api.github.com/users/${username}`\n" +
+                "  );\n" +
+                "  const githubUser = await githubResponse.json();\n" +
+                "  // show the avatar\n" +
+                "  const img = document.createElement('img');\n" +
+                "  img.src = githubUser.avatar_url;\n" +
+                "  const div = document.createElement('div');\n" +
+                "  div.appendChild(img);\n" +
+                "  document.body.appendChild(div);\n" +
+                "  // wait 3 seconds\n" +
+                "  await new Promise((resolve, reject) => setTimeout(resolve, 10000));\n" +
+                "  img.remove();\n" +
                 "}", new WaitForSelectorOptions(), username);
-        System.out.println(jsHandle);
         browser.close();
     }
 

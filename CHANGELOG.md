@@ -138,3 +138,18 @@
 - [过kill杀死linux上残留的chrome进程](https://github.com/fanyong920/jvppeteer/commit/efc9a2404e922b8dbbedba82b33bc11b005e0284)
 - [Puppeteer增加指定版本启动浏览器](https://github.com/fanyong920/jvppeteer/commit/6b8855c5f01ddd64dfbc5a0a1b98f8733afed02a)
 
+### Version Release 2.0.0(2024/10/15)
+
+- 重写
+
+### Version Release 2.1.0(2024/10/22)
+
+- [修复 Frame.java 的 frameElement 方法](https://github.com/fanyong920/jvppeteer/commit/25106d311a68f00495d0576f29a27042236d442f)
+- [添加 Page#screencast 方法用于屏幕录制](https://github.com/fanyong920/jvppeteer/commit/eb6f814a83f0a8c3c3225775c4635bf800d997ca)
+- [有小数点的 时间戳用 BigDecimal 表示](https://github.com/fanyong920/jvppeteer/commit/d949ac933ebd1666f32d9cface4624935709a280)
+- [修复：在拦截期间处理 RequestServedFromCache](https://github.com/fanyong920/jvppeteer/commit/8926db2952ab718132d7ecc32f5b7c9a8e451878)
+- [将 Puppeteer 的默认参数和启动路径方法移动到 Browser](https://github.com/fanyong920/jvppeteer/commit/b62600cab188c994886bb0a730e9a752d3a0f593)
+- [将 ScreenRecorder 的删除临时照片由系统退出时删除改为录制结束时删除](https://github.com/fanyong920/jvppeteer/commit/54448f2a1011001fdf33112e16346ac3a96c0ded)
+- [AwaitableResult 的结果可见性修改](https://github.com/fanyong920/jvppeteer/commit/eae438287beda538a63d46f7a32aa31c9249e19d)
+- [修改 Connection 处理消息的逻辑](https://github.com/fanyong920/jvppeteer/commit/6e53c7a8cd96648025369cbca451392416a84a7c)
+- [将 NetworkEventManager 的 Map改为 HashMap](https://github.com/fanyong920/jvppeteer/commit/f21bc163e099404d2681780c5a683875847348c0)
