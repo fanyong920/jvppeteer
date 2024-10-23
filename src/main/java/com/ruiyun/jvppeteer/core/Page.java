@@ -831,7 +831,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         this.emit(PageEvent.Metrics, pageMetrics);
     }
 
-    private Metrics buildMetricsObject(List<Metric> metrics) {
+    private Metrics buildMetricsObject(List<Metric> metrics)  {
         Metrics result = new Metrics();
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
