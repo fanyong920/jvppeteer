@@ -2361,9 +2361,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
             synchronized (this) {
                 if (!this.startScreencasted) {
                     AwaitableResult<Boolean> awaitableResult = AwaitableResult.create();
-                    this.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) event -> {
-                        awaitableResult.complete();
-                    });
+                    this.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) event -> awaitableResult.complete());
                     Map<String, Object> params = ParamsFactory.create();
                     params.put("format", "png");
                     this.mainFrame().client().send("Page.startScreencast", params);

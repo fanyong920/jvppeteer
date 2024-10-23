@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_LINUX;
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_MAC;
@@ -295,7 +296,9 @@ public class BrowserFetcher {
     public List<String> localRevisions() throws IOException {
         if (!exists(this.downloadsFolder))
             return new ArrayList<>();
-        return Files.list(Paths.get(this.downloadsFolder)).map(revisionsPath -> parseRevisionsPath(this.product, revisionsPath)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(RevisionEntry::getRevision).collect(Collectors.toList());
+        try (Stream<Path> list = Files.list(Paths.get(this.downloadsFolder))) {
+            return list.map(revisionsPath -> parseRevisionsPath(this.product, revisionsPath)).filter(entry -> entry != null && this.platform.equals(entry.getPlatform())).map(RevisionEntry::getRevision).collect(Collectors.toList());
+        }
     }
 
     /**
@@ -340,8 +343,8 @@ public class BrowserFetcher {
                 return null;
         }
 
-        try {
-            List<Path> products = Files.list(revisionsPath).filter(path -> path.getFileName().toString().contains(archive(product, split[0], split[1]))).collect(Collectors.toList());
+        try (Stream<Path> list = Files.list(revisionsPath)) {
+            List<Path> products = list.filter(path -> path.getFileName().toString().contains(archive(product, split[0], split[1]))).collect(Collectors.toList());
             if (products.isEmpty()) {
                 return null;
             }

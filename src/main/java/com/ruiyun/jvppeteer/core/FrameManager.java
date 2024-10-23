@@ -460,7 +460,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
             return;
         }
         CDPSession client;
-        if (frame != null && frame.client() != null) {
+        if (frame.client() != null) {
             client = frame.client();
         } else {
             client = this.client;

@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,21 +13,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class A_LaunchTest {
-    public final LaunchOptions launchOptions = new LaunchOptionsBuilder().
-            //有界面模式 true未无界面
-                    withHeadless(false).withDebuggingPort(9222)
-            //手动配置chrome执行路径
-            //.withExecutablePath("C:\\Users\\fanyong\\Desktop\\chrome-win-131\\chrome-win\\chrome.exe")
-            //.withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").withDebuggingPort(9222)
-            .build();
-
+    public final LaunchOptions launchOptions = LaunchOptions.builder().headless(false).build();
     /**
      * 手动配置路径来启动浏览器
      * 优先级： 1 高
      */
     @Test
-    public void test99() throws InterruptedException, IOException {
-        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\chrome-win-131\\chrome-win\\chrome.exe");
+    public void test99() throws IOException {
+        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         Browser browser = getBrowser();
         //打开一个页面
         Page page = browser.newPage();
@@ -39,7 +31,6 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
-        Thread.sleep(10000);
     }
 
     /**
@@ -48,7 +39,7 @@ public class A_LaunchTest {
      * {@link com.ruiyun.jvppeteer.common.Constant#EXECUTABLE_ENV}
      */
     @Test
-    public void test98() throws InterruptedException, IOException {
+    public void test98() throws IOException {
         System.setProperty("JVPPETEER_EXECUTABLE_PATH", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         //System.setProperty("java_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         //System.setProperty("java_package_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
@@ -62,7 +53,6 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
-        Thread.sleep(10000);
     }
 
     /**
@@ -129,12 +119,12 @@ public class A_LaunchTest {
         browser2.close();
 
         //CHROMEDRIVER不适应程序的启动逻辑，这里只是验证是否能正确找到浏览器版本
-        launchOptions.setProduct(Product.CHROMEDRIVER);
-        launchOptions.setHeadless(true);
-        Browser browser3 = Puppeteer.launch(launchOptions);
-        String version3 = browser3.version();
-        System.out.println("cdp协议获取到版本信息3：" + version3);
-        browser3.close();
+//        launchOptions.setProduct(Product.CHROMEDRIVER);
+//        launchOptions.setHeadless(true);
+//        Browser browser3 = Puppeteer.launch(launchOptions);
+//        String version3 = browser3.version();
+//        System.out.println("cdp协议获取到版本信息3：" + version3);
+//        browser3.close();
     }
 
     /**
@@ -143,7 +133,7 @@ public class A_LaunchTest {
      * {@link com.ruiyun.jvppeteer.common.Constant#PROBABLE_CHROME_EXECUTABLE_PATH}
      */
     @Test
-    public void test97() throws InterruptedException, IOException {
+    public void test97() throws IOException {
         Browser browser = getBrowser();
         //打开一个页面
         Page page = browser.newPage();
@@ -154,7 +144,6 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
-        Thread.sleep(10000);
     }
 
     @Test
@@ -173,9 +162,8 @@ public class A_LaunchTest {
     }
 
     @Test
-    public void test0() throws InterruptedException, IOException {
+    public void test0() throws IOException {
         //添加启动命令行参数，这个参数使得浏览器最大化
-        launchOptions.setPipe(true);
         launchOptions.setArgs(Collections.singletonList("--start-maximized"));
         Browser browser = getBrowser();
         //打开一个页面
@@ -187,7 +175,6 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
-        Thread.sleep(10000);
     }
 
     @Test

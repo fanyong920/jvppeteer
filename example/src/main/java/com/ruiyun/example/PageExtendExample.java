@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.core.ElementHandle;
 import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.PageExtend;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -16,8 +15,8 @@ public class PageExtendExample {
 
     @Test
     public void test1() throws Exception {
-      
-        LaunchOptions launchOptions = new LaunchOptionsBuilder().withIgnoreDefaultArgs(Collections.singletonList("--enable-automation")).withHeadless(false).withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
+
+        LaunchOptions launchOptions = LaunchOptions.builder().ignoreDefaultArgs(Collections.singletonList("--enable-automation")).headless(false).executablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").build();
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com");

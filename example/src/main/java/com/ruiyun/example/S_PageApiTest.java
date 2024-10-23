@@ -1,8 +1,8 @@
 package com.ruiyun.example;
 
+import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.core.Browser;
@@ -106,7 +106,7 @@ public class S_PageApiTest extends A_LaunchTest {
         // 查询所有Map实例并将它们放入数组中
         JSHandle mapInstances = page.queryObjects(mapPrototype);
         // 计算堆中Map对象的数量
-        Object count = page.evaluate("maps => maps.length",List.of(mapInstances));
+        Object count = page.evaluate("maps => maps.length", Collections.singletonList(mapInstances));
         System.out.println("count: " + count);
         mapPrototype.dispose();
         mapInstances.dispose();
@@ -229,7 +229,7 @@ public class S_PageApiTest extends A_LaunchTest {
         button1.dispose();
         button2.dispose();
         button3.dispose();
-        Thread.sleep(20000);
+        Thread.sleep(5000);
         browser.close();
     }
 

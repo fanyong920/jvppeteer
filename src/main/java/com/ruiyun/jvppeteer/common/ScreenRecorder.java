@@ -60,9 +60,7 @@ public class ScreenRecorder {
         this.tempViewport = tempViewport;
         createTempCacheDir();
 
-        Consumer<Object> closeListener = (o) -> {
-            ScreenRecorder.this.stop();
-        };
+        Consumer<Object> closeListener = (o) -> ScreenRecorder.this.stop();
         this.stoped = false;
         page.mainFrame().client().once(CDPSession.CDPSessionEvent.disconnected, closeListener);
         page.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) this::writeFrame);
