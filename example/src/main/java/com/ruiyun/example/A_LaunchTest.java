@@ -14,6 +14,7 @@ import java.util.List;
 
 public class A_LaunchTest {
     public final LaunchOptions launchOptions = LaunchOptions.builder().headless(false).build();
+
     /**
      * 手动配置路径来启动浏览器
      * 优先级： 1 高
@@ -144,6 +145,7 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
+        browser.close();
     }
 
     @Test
@@ -159,6 +161,7 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
+        browser.close();
     }
 
     @Test
@@ -175,6 +178,7 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
+        browser.close();
     }
 
     @Test
@@ -191,11 +195,10 @@ public class A_LaunchTest {
         for (Target target : targets) {
             System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
         }
+        browser.close();
     }
 
     public Browser getBrowser() throws IOException {
         return Puppeteer.launch(launchOptions);
     }
-
-
 }
