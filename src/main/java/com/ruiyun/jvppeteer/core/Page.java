@@ -958,7 +958,6 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * 此方法导航到历史记录中的上一页
      *
      * @return 如果存在多个重定向，导航将使用最后一个重定向的响应进行解析。如果无法返回，则解析为 null。
-     * @throws JsonProcessingException
      */
     public Response goBack() throws JsonProcessingException {
         return this.go(-1, new WaitForOptions());
