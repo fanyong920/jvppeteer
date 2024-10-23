@@ -6,13 +6,12 @@
     <artifactId>example</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
         <cdt.version>4.0.0</cdt.version>
         <slf4j.version>2.0.16</slf4j.version>
         <logback.version>1.5.7</logback.version>
         <jackson.version>2.17.2</jackson.version>
-        <jvppeteer.version>2.0.1</jvppeteer.version>
+        <jvppeteer.version>2.1.1</jvppeteer.version>
     </properties>
     <dependencies>
 

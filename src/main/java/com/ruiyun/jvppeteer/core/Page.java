@@ -75,9 +75,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
@@ -827,24 +825,58 @@ public class Page extends EventEmitter<Page.PageEvent> {
 
     private void emitMetrics(MetricsEvent event) {
         PageMetrics pageMetrics = new PageMetrics();
-        Metrics metrics = null;
-        try {
-            metrics = this.buildMetricsObject(event.getMetrics());
-        } catch (IntrospectionException | InvocationTargetException | IllegalAccessException e) {
-            throwError(e);
-        }
+        Metrics metrics = this.buildMetricsObject(event.getMetrics());
         pageMetrics.setMetrics(metrics);
         pageMetrics.setTitle(event.getTitle());
         this.emit(PageEvent.Metrics, pageMetrics);
     }
 
-    private Metrics buildMetricsObject(List<Metric> metrics) throws IntrospectionException, InvocationTargetException, IllegalAccessException {
+    private Metrics buildMetricsObject(List<Metric> metrics) {
         Metrics result = new Metrics();
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
                 if (supportedMetrics.contains(metric.getName())) {
-                    PropertyDescriptor descriptor = new PropertyDescriptor(metric.getName(), Metrics.class);
-                    descriptor.getWriteMethod().invoke(result, metric.getValue());
+                    switch (metric.getName()) {
+                        case "Timestamp":
+                            result.setTimestamp(metric.getValue());
+                            break;
+                        case "Documents":
+                            result.setDocuments(metric.getValue());
+                            break;
+                        case "Frames":
+                            result.setFrames(metric.getValue());
+                            break;
+                        case "JSEventListeners":
+                            result.setJSEventListeners(metric.getValue());
+                            break;
+                        case "Nodes":
+                            result.setNodes(metric.getValue());
+                            break;
+                        case "LayoutCount":
+                            result.setLayoutCount(metric.getValue());
+                            break;
+                        case "RecalcStyleCount":
+                            result.setRecalcStyleCount(metric.getValue());
+                            break;
+                        case "LayoutDuration":
+                            result.setLayoutDuration(metric.getValue());
+                            break;
+                        case "RecalcStyleDuration":
+                            result.setRecalcStyleDuration(metric.getValue());
+                            break;
+                        case "ScriptDuration":
+                            result.setScriptDuration(metric.getValue());
+                            break;
+                        case "TaskDuration":
+                            result.setTaskDuration(metric.getValue());
+                            break;
+                        case "JSHeapUsedSize":
+                            result.setJSHeapUsedSize(metric.getValue());
+                            break;
+                        case "JSHeapTotalSize":
+                            result.setJSHeapTotalSize(metric.getValue());
+                            break;
+                    }
                 }
             }
         }
@@ -1192,13 +1224,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
                 } else {
                     if (options.getFullPage()) {
                         if (!options.getCaptureBeyondViewport()) {
-                            LinkedHashMap<String, Integer> scrollDimensions = (LinkedHashMap<String, Integer>) this.mainFrame().isolatedRealm().evaluate("() => {\n" +
-                                    "                                                  const element = document.documentElement;\n" +
-                                    "                                                  return {\n" +
-                                    "                                                    width: element.scrollWidth,\n" +
-                                    "                                                    height: element.scrollHeight,\n" +
-                                    "                                                  };\n" +
-                                    "                                                }");
+                            LinkedHashMap<String, Integer> scrollDimensions = (LinkedHashMap<String, Integer>) this.mainFrame().isolatedRealm().evaluate("() => {\n" + "              const element = document.documentElement;\n" + "              return {\n" + "                width: element.scrollWidth,\n" + "                height: element.scrollHeight,\n" + "              };\n" + "            }", null);
                             fullViewport = new Viewport(scrollDimensions.get("width"), scrollDimensions.get("height"), this.viewport.getDeviceScaleFactor(), this.viewport.getIsMobile(), this.viewport.getHasTouch(), this.viewport.getIsLandscape());
                             this.setViewport(fullViewport);
                         }
@@ -2304,14 +2330,13 @@ public class Page extends EventEmitter<Page.PageEvent> {
             tempViewport = new Viewport(defaultViewport.getWidth(), defaultViewport.getHeight(), 0.00, defaultViewport.getIsMobile(), defaultViewport.getHasTouch(), defaultViewport.getIsLandscape());
             this.setViewport(tempViewport);
         }
-        ArrayList<?> response = (ArrayList<?>) this.mainFrame().isolatedRealm().evaluate("""
-                () => {
-                    return [
-                      window.visualViewport.width * window.devicePixelRatio,
-                      window.visualViewport.height * window.devicePixelRatio,
-                      window.devicePixelRatio,
-                    ]
-                }""");
+        ArrayList<?> response = (ArrayList<?>) this.mainFrame().isolatedRealm().evaluate("() => {\n" +
+                "                    return [\n" +
+                "                      window.visualViewport.width * window.devicePixelRatio,\n" +
+                "                      window.visualViewport.height * window.devicePixelRatio,\n" +
+                "                      window.devicePixelRatio,\n" +
+                "                    ]\n" +
+                "                }");
         double width = Double.parseDouble(response.get(0) + "");
         double height = Double.parseDouble(response.get(1) + "");
         double devicePixelRatio = Double.parseDouble(response.get(2) + "");
