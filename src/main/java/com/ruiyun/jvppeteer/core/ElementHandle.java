@@ -1139,9 +1139,9 @@ public class ElementHandle extends JSHandle {
             }
             target.hover();
         } catch (JsonProcessingException | EvaluateException e) {
+            page.setIsDragging(false);
             throw e;
         }
-        page.setIsDragging(false);
         return null;
     }
 

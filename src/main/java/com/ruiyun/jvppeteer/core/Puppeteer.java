@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.Launcher;
@@ -16,7 +15,6 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.ruiyun.jvppeteer.common.Constant.PRODUCT_ENV;
 
@@ -55,8 +53,7 @@ public class Puppeteer {
     }
 
     public static Browser launch(boolean headless) throws IOException {
-        LaunchOptions options = new LaunchOptionsBuilder().withHeadless(headless).build();
-        return launch(options);
+        return launch(LaunchOptions.builder().headless(headless).build());
     }
 
     public static Browser launch(LaunchOptions options) throws IOException {

@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -14,15 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class A_LaunchTest {
-    public final LaunchOptions launchOptions = new LaunchOptionsBuilder().
-            //有界面模式 true未无界面
-                    withHeadless(false)
-//            .withDebuggingPort(9222)
-            //手动配置chrome执行路径
-            //.withExecutablePath("C:\\Users\\fanyong\\Desktop\\chrome-win-131\\chrome-win\\chrome.exe")
-            //.withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").withDebuggingPort(9222)
-            .build();
-
+    public final LaunchOptions launchOptions = LaunchOptions.builder().headless(false).build();
     /**
      * 手动配置路径来启动浏览器
      * 优先级： 1 高

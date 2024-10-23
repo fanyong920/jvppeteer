@@ -808,16 +808,11 @@ public class S_PageApiTest extends A_LaunchTest {
      * Page.waitForFunction()
      */
     @Test
-    public void test23() throws InterruptedException, IOException {
+    public void test23() throws IOException {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://example.com/",false);
-        Frame frame = page.waitForFrame(new Predicate<Frame>() {
-            @Override
-            public boolean test(Frame frame) {
-                return frame.url().contains("example.com");
-            }
-        });
+        Frame frame = page.waitForFrame(frame1 -> frame1.url().contains("example.com"));
         System.out.println("frame: "+frame.url());
         browser.close();
     }

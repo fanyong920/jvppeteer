@@ -5,14 +5,13 @@ import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptionsBuilder;
 import com.ruiyun.jvppeteer.entities.RevisionInfo;
 
 public class Test {
     public static void main(String[] args) throws Exception {
-        LaunchOptions launchOptions = new LaunchOptionsBuilder().
+        LaunchOptions launchOptions = LaunchOptions.builder().
                 //有界面模式 true未无界面
-                        withHeadless(true)
+                        headless(true)
                 //手动配置chrome执行路径
 //            .withExecutablePath("C:\\Users\\fanyong\\Desktop\\chrome-win-131\\chrome-win\\chrome.exe").withDebuggingPort(9222)
 //            .withExecutablePath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe").withDebuggingPort(9222)

@@ -19,16 +19,13 @@ public class X_WorkingWithExtension {
         additionalArgs.add("--disable-setuid-sandbox");
         //指定插件所在的文件夹,如果手上暂时没有插件，可以我个人的插件https://github.com/fanyong920/crawlItem.git 克隆下来即可
         String pathToExtension = "C:\\Users\\fanyong\\Desktop\\crawlItem-master\\crawlItem-master\\";
-        additionalArgs.add("--disable-extensions-except="+pathToExtension);
-        additionalArgs.add("--load-extension="+pathToExtension);
-        LaunchOptions options = new LaunchOptions();
-        options.setArgs(additionalArgs);
-        options.setHeadless(false);
+        additionalArgs.add("--disable-extensions-except=" + pathToExtension);
+        additionalArgs.add("--load-extension=" + pathToExtension);
         //插件的加载在有头模式下才能生效
-        Browser browser = Puppeteer.launch(options);
-        List<Target> targets =  browser.targets();
+        Browser browser = Puppeteer.launch(LaunchOptions.builder().args(additionalArgs).headless(false).build());
+        List<Target> targets = browser.targets();
         for (Target target : targets) {
-            if(TargetType.BACKGROUND_PAGE.equals(target.type())){
+            if (TargetType.BACKGROUND_PAGE.equals(target.type())) {
                 System.out.println("目标名称=" + target.getTargetInfo().getTitle());
             }
         }
