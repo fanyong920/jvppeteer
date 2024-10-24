@@ -41,7 +41,7 @@
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>2.1.1<version>
+  <version>2.0.0<version>
 </dependency>
 ```
 
@@ -56,7 +56,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:2.1.1"
+compile "io.github.fanyong920:jvppeteer:2.0.0"
 ```
 
 #### Logging
@@ -303,18 +303,14 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
 
 ### 三、遇到问题怎么办
 
-如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer) 库中的 [Troubleshooting](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路，或者google baidu puppeteer的解决方案，再应用到你的问题上。
+如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer) 库中的 [Troubleshooting](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路
 
-### 四、JDK21 的尝试
-
-在 dev21分支 上使用了  jdk21 进行了部分代码修改，主要在 Connection 类上使用了虚拟线程处理消息，有兴趣可以自己打 JAR 包试试。
-
-### 五、资源
+### 四、资源
 
 1. [Puppeteer中文文档](https://pptr.nodejs.cn/) : 更加详细的 API 文档 ，多看看了解一下
 2. [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) ：CDP 协议
 3. [Chrome命令行启动参数](https://peter.sh/experiments/chromium-command-line-switches/)
 
-### 六、执照
+### 五、执照
 
 此仓库中找到的所有内容均已获得 Apache 许可。有关详细信息，请参见`LICENSE`文件
