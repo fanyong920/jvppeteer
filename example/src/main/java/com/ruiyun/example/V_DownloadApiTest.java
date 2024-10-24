@@ -1,5 +1,6 @@
 package com.ruiyun.example;
 
+import com.ruiyun.jvppeteer.common.ChromeReleaseChannel;
 import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.core.Puppeteer;
@@ -63,7 +64,6 @@ public class V_DownloadApiTest extends A_LaunchTest {
         System.out.println("cdp协议获取到版本信息3：" + version3);
         browser3.close();
 
-
         //CHROMEDRIVER不适应程序的启动逻辑，这里只是验证是否能正确找到浏览器版本
         launchOptions.setProduct(Product.CHROMEDRIVER);
         launchOptions.setHeadless(true);
@@ -72,6 +72,31 @@ public class V_DownloadApiTest extends A_LaunchTest {
         System.out.println("cdp协议获取到版本信息4：" + version4);
         browser4.close();
 
+    }
+
+    @Test
+    public void test4() throws Exception {
+
+        //下载 CHROMIUM 的 CANARY 下的最新版本
+        FetcherOptions fetcherOptions1 = new FetcherOptions();
+        fetcherOptions1.setChannel(ChromeReleaseChannel.LATEST);//CHROMIUM 只支持 latest
+        fetcherOptions1.setProduct(Product.CHROMIUM);
+        RevisionInfo revisionInfo1 = Puppeteer.downloadBrowser(fetcherOptions1);
+        System.out.println("revisionInfo1: " + revisionInfo1);
+
+        //下载 CHROME 的 114.0.5708 milestone 下的最新版本
+        FetcherOptions fetcherOptions2 = new FetcherOptions();
+        fetcherOptions2.setProduct(Product.CHROME);
+        fetcherOptions2.setMilestone("117");
+        RevisionInfo revisionInfo2 = Puppeteer.downloadBrowser(fetcherOptions2);
+        System.out.println("revisionInfo2: " + revisionInfo2);
+
+        //下载 CHROMEDRIVER 的 117 build 下的最新版本
+        FetcherOptions fetcherOptions3 = new FetcherOptions();
+        fetcherOptions3.setProduct(Product.CHROMEDRIVER);
+        fetcherOptions3.setBuild("132.0.6784");
+        RevisionInfo revisionInfo3 = Puppeteer.downloadBrowser(fetcherOptions3);
+        System.out.println("revisionInfo3: " + revisionInfo3);
 
     }
 

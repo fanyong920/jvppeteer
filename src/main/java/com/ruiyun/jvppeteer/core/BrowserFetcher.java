@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.common.ChromeReleaseChannel;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.entities.FetcherOptions;
@@ -7,6 +9,7 @@ import com.ruiyun.jvppeteer.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
@@ -19,7 +22,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,6 +42,7 @@ import java.util.stream.Stream;
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_LINUX;
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_MAC;
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_WIN;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.common.Constant.SHELLS_PREFIX;
 
 
@@ -89,7 +92,7 @@ public class BrowserFetcher {
 
     static {
         Map<String, String> chrome = new HashMap<>();
-        chrome.put("host", "https://storage.googleapis.com");
+        chrome.put("host", "http://storage.googleapis.com");
         chrome.put(LINUX, "%s/chrome-for-testing-public/%s/linux64/%s.zip");
         chrome.put(MAC_ARM64, "%s/chrome-for-testing-public/%s/mac-arm64/%s.zip");
         chrome.put(MAC_X64, "%s/chrome-for-testing-public/%s/mac-x64/%s.zip");
@@ -148,19 +151,6 @@ public class BrowserFetcher {
      * 目前支持两种产品：chrome or firefix
      */
     private final Product product;
-    /**
-     * 目前支持两种产品：chrome or firefix
-     */
-    private Proxy proxy;
-
-    BrowserFetcher() {
-        this.product = Product.CHROME;
-        this.downloadsFolder = Helper.join(System.getProperty("user.dir"), ".local-browser");
-        this.downloadHost = downloadURLs.get(this.product).get("host");
-        this.version = Constant.VERSION;
-        detectBrowserPlatform();
-        Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
-    }
 
     /**
      * 创建 BrowserFetcher 对象
@@ -172,9 +162,100 @@ public class BrowserFetcher {
         this.downloadsFolder = options.getCacheDir();
         this.downloadHost = StringUtil.isNotEmpty(options.getHost()) ? options.getHost() : downloadURLs.get(this.product).get("host");
         this.platform = StringUtil.isNotEmpty(options.getPlatform()) ? options.getPlatform() : detectBrowserPlatform();
-        this.version = options.getVersion();
-        this.proxy = options.getProxy();
+        this.version = resolveVersion(options);
         Objects.requireNonNull(downloadURLs.get(this.product).get(this.platform), "Unsupported platform: " + this.platform);
+    }
+
+    private String resolveVersion(FetcherOptions options) {
+        //指定了版本，直接使用指定版本
+        if (StringUtil.isNotBlank(options.getVersion())) {
+            return options.getVersion();
+        }
+        //指定了渠道，返回该渠道下的最新版本
+        if (Objects.nonNull(options.getChannel())) {
+            return getLastKnownGoodReleaseForChannel(options.getChannel());
+        }
+        //指定了里程碑，返回该里程碑下的最新版本
+        if (StringUtil.isNotBlank(options.getMilestone())) {
+            return getLastKnownGoodReleaseForMilestone(options.getMilestone());
+        }
+        //指定了buildId，返回该buildId下的最新版本
+        if (StringUtil.isNotBlank(options.getBuild())) {
+            return getLastKnownGoodReleaseForBuild(options.getBuild());
+        }
+        return null;
+    }
+
+
+    private String getLastKnownGoodReleaseForChannel(ChromeReleaseChannel channel) {
+        String json;
+        try {
+            String url = "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json";
+            if (Product.CHROMIUM.equals(this.product)) {
+                if (channel == ChromeReleaseChannel.LATEST) {//只能是latest
+                    url = "https://storage.googleapis.com/chromium-browser-snapshots/" + folder() + "/LAST_CHANGE";
+                    return sendRequest(url, "GET");
+                } else {
+                    throw new JvppeteerException(channel + " is not supported for Chromium. Use 'latest' instead.");
+                }
+            } else {
+                if (channel == ChromeReleaseChannel.LATEST) {
+                    channel = ChromeReleaseChannel.CANARY;
+                }
+            }
+            json = sendRequest(url, "GET");
+            JsonNode data = OBJECTMAPPER.readTree(json);
+            Map<String, JsonNode> channels = new HashMap<>();
+            data.get("channels").fields().forEachRemaining(entry -> {
+                channels.put(entry.getKey().toLowerCase(), entry.getValue());
+            });
+            JsonNode channelData = channels.get(channel.getValue());
+            if (channelData == null) {
+                throw new JvppeteerException("No Such channel: " + channel.getValue());
+            }
+            return channelData.get("version").asText();
+        } catch (Exception e) {
+            LOGGER.error("Fail to get release by channel {}", channel, e);
+            return null;
+        }
+    }
+
+    private String getLastKnownGoodReleaseForBuild(String buildPrefix) {
+        Pattern pattern = Pattern.compile("^\\d+\\.\\d+\\.\\d+$");
+        ValidateUtil.assertArg(pattern.matcher(buildPrefix).matches(), "Invalid buildId: " + buildPrefix);
+        String url = "https://googlechromelabs.github.io/chrome-for-testing/latest-patch-versions-per-build.json";
+        String json;
+        try {
+            json = sendRequest(url, "GET");
+            JsonNode data = OBJECTMAPPER.readTree(json);
+            JsonNode build = data.get("builds").get(buildPrefix);
+            if (build == null) {
+                throw new JvppeteerException("No Such buildId: " + buildPrefix);
+            }
+            return build.get("version").asText();
+        } catch (Exception e) {
+            LOGGER.error("Fail to get release by build {}", buildPrefix, e);
+            return null;
+        }
+    }
+
+    private String getLastKnownGoodReleaseForMilestone(String milestone) {
+        Pattern pattern = Pattern.compile("^\\d+$");
+        ValidateUtil.assertArg(pattern.matcher(milestone).matches(), "Invalid milestone: " + milestone);
+        String url = "https://googlechromelabs.github.io/chrome-for-testing/latest-versions-per-milestone.json";
+        String json;
+        try {
+            json = sendRequest(url, "GET");
+            JsonNode data = OBJECTMAPPER.readTree(json);
+            JsonNode milestoneData = data.get("milestones").get(milestone);
+            if (milestoneData == null) {
+                throw new JvppeteerException("No Such milestone: " + milestone);
+            }
+            return milestoneData.get("version").asText();
+        } catch (Exception e) {
+            LOGGER.error("Fail to get release by milestone {}", milestone, e);
+            return null;
+        }
     }
 
     private static String detectBrowserPlatform() {
@@ -198,7 +279,7 @@ public class BrowserFetcher {
      * @throws IOException          异常
      */
     public RevisionInfo downloadBrowser() throws InterruptedException, IOException {
-        ValidateUtil.assertArg(StringUtil.isNotBlank(version), "Browser version must be specified");
+        ValidateUtil.assertArg(StringUtil.isNotBlank(this.version), "Browser version must be specified");
         RevisionInfo revisionInfo = this.revisionInfo(this.version);
         if (!revisionInfo.getLocal()) {
             return this.download(this.version);
@@ -209,48 +290,43 @@ public class BrowserFetcher {
     /**
      * 检测对应的浏览器版本是否可以下载
      *
-     * @param url   下载地址
-     * @param proxy cant be null
+     * @param url 下载地址
      * @return boolean 是否能下载
-     * @throws IOException 异常
      */
-    public boolean canDownload(String url, Proxy proxy) throws IOException {
-        return httpRequest(proxy, url, "HEAD");
+    public boolean canDownload(String url) {
+        try {
+            sendRequest(url, "HEAD");
+            return true;
+        } catch (IOException e) {
+            LOGGER.error("Fail to check if browser is downloadable", e);
+            return false;
+        }
     }
 
     /**
      * 发送一个http请求
      *
-     * @param proxy  代理 可以为null
      * @param url    请求的url
      * @param method 请求方法 get post head
      * @return boolean
      */
-    private boolean httpRequest(Proxy proxy, String url, String method) throws IOException {
+    private String sendRequest(String url, String method) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL urlSend = new URL(url);
-            if (proxy != null) {
-                conn = (HttpURLConnection) urlSend.openConnection(proxy);
-            } else {
-                conn = (HttpURLConnection) urlSend.openConnection();
-            }
+            conn = (HttpURLConnection) urlSend.openConnection();
             conn.setRequestMethod(method);
             conn.connect();
-            if (conn.getResponseCode() >= 300 && conn.getResponseCode() <= 400 && StringUtil.isNotEmpty(conn.getHeaderField("Location"))) {
-                httpRequest(proxy, conn.getHeaderField("Location"), method);
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                return StreamUtil.toString(conn.getInputStream());
             } else {
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    return true;
-                }
+                throw new IOException("Failed to fetch data: HTTP error code " + conn.getResponseCode());
             }
-
         } finally {
             if (conn != null) {
                 conn.disconnect();
             }
         }
-        return false;
     }
 
     /**
@@ -263,7 +339,7 @@ public class BrowserFetcher {
      */
     private RevisionInfo download(String revision) throws IOException, InterruptedException {
         String url = getDownloadURL(this.product, this.platform, this.downloadHost, revision);
-        boolean canDownload = this.canDownload(url, this.proxy);
+        boolean canDownload = this.canDownload(url);
         if (!canDownload) {
             throw new JvppeteerException("The URL: " + url + " cannot be downloaded");
         }
@@ -327,13 +403,14 @@ public class BrowserFetcher {
 
         if (downloadURLs.get(product).get(split[0]) == null)
             return null;
-
+        // CHROME CHROMEHEADLESSSHELL CHROMEDRIVER 符合 xxx.xxx.xxx.xxx 格式
         if (product.equals(Product.CHROME) || product.equals(Product.CHROMEHEADLESSSHELL) || product.equals(Product.CHROMEDRIVER)) {
             Pattern pattern = Pattern.compile("^\\d+\\.\\d+\\.\\d+(.\\d+)?$");
             Matcher matcher = pattern.matcher(split[1]);
             if (!matcher.matches())
                 return null;
         }
+        // CHROMIUM 全是数字
         if (product.equals(Product.CHROMIUM)) {
             Pattern pattern = Pattern.compile("^\\d+$");
             Matcher matcher = pattern.matcher(split[1]);
@@ -643,6 +720,15 @@ public class BrowserFetcher {
             else throw new JvppeteerException("Unsupported platform: " + platform);
         }
         return null;
+    }
+
+    private String folder() {
+        String[] strings = downloadURLs.get(this.product).get(this.platform).split("/");
+        if (Product.CHROMIUM.equals(this.product)) {
+            return strings[2];
+        } else {
+            return strings[3];
+        }
     }
 
     /**

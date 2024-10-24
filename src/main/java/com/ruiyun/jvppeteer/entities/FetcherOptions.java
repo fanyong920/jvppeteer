@@ -1,8 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
+import com.ruiyun.jvppeteer.common.ChromeReleaseChannel;
 import com.ruiyun.jvppeteer.common.Product;
-
-import java.net.Proxy;
 
 public class FetcherOptions {
     /**
@@ -24,25 +23,51 @@ public class FetcherOptions {
      */
     private Product product = Product.CHROME;
     /**
-     * 浏览器的版本
+     * 浏览器的版本，格式是xxx.xxx.xxx.xxx，一共四位数，例如 80.0.3987.87
+     * <p>
+     * 每个版本已经特属于某个 milestone，也特属于某个 channel，也特属于某个 build
+     * <p>
+     * 因此，指定了版本，就不用配置 milestone channel build 了
      */
     private String version;
+
     /**
-     * 下载代理
+     * 浏览器的渠道，例如：stable, dev, beta, canary，latest(特属于 CHROMIUM)。
+     * <p>
+     * 如果配置此项并没有指定 version，那么会下载该渠道下的最新版本的浏览器。
+     * <p>
+     * channel milestone  build 三个配置选择其一就可以了。
      */
-    private Proxy proxy;
+    private ChromeReleaseChannel channel;
+
+    /**
+     * 里程碑号，如果配置此项并没有指定 version，那么会下载该里程碑号下的最新版本的浏览器。
+     * <p>
+     * chrome浏览器版本号是4位数，例如 80.0.3987.87，里程碑号是第1位数，例如 80。
+     * <p>
+     * 第一个数字：主版本号（里程碑号）：表示主要版本，每次增加都意味着有显著的新功能或重大改进。
+     * <p>
+     * 第二个数字：次版本号：表示次要更新，可能包括小的功能改进或安全修复。
+     * <p>
+     * 第三个数字：构建版本号：表示具体的构建版本，每次构建都会递增。
+     * <p>
+     * 第四个数字：修订版本号：表示特定构建的修订次数，用于修复已知问题或进行微调。
+     * <p>
+     * channel milestone  build 三个配置选择其一就可以了。
+     */
+    private String milestone;
+
+    /**
+     * 构建版本号，例如：112.0.23,即 version 前3位数
+     * <p>
+     * 如果配置此项并没有指定 version，那么会下载该构建版本号下的最新版本的浏览器。
+     * <p>
+     * channel milestone  build 三个配置选择其一就可以了。
+     */
+    private String build;
 
     public FetcherOptions() {
         super();
-    }
-
-    public FetcherOptions(String platform, String cacheDir, String host, Product product, String version) {
-        super();
-        this.platform = platform;
-        this.cacheDir = cacheDir;
-        this.host = host;
-        this.product = product;
-        this.version = version;
     }
 
     public String getPlatform() {
@@ -85,11 +110,27 @@ public class FetcherOptions {
         this.version = version;
     }
 
-    public Proxy getProxy() {
-        return proxy;
+    public String getMilestone() {
+        return milestone;
     }
 
-    public void setProxy(Proxy proxy) {
-        this.proxy = proxy;
+    public void setMilestone(String milestone) {
+        this.milestone = milestone;
+    }
+
+    public ChromeReleaseChannel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(ChromeReleaseChannel channel) {
+        this.channel = channel;
+    }
+
+    public String getBuild() {
+        return build;
+    }
+
+    public void setBuild(String build) {
+        this.build = build;
     }
 }
