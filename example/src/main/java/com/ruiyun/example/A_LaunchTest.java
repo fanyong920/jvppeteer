@@ -22,15 +22,16 @@ public class A_LaunchTest {
     @Test
     public void test99() throws IOException {
         launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
     }
 
@@ -44,15 +45,16 @@ public class A_LaunchTest {
         System.setProperty("JVPPETEER_EXECUTABLE_PATH", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         //System.setProperty("java_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         //System.setProperty("java_package_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
     }
 
@@ -135,67 +137,67 @@ public class A_LaunchTest {
      */
     @Test
     public void test97() throws IOException {
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
-        browser.close();
     }
 
     @Test
     public void test1() throws IOException {
         //启动浏览器
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
-        browser.close();
     }
 
     @Test
     public void test0() throws IOException {
         //添加启动命令行参数，这个参数使得浏览器最大化
         launchOptions.setArgs(Collections.singletonList("--start-maximized"));
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
-        browser.close();
     }
 
     @Test
     public void test17() throws IOException {
         //指定chrome浏览器的缓存目录
         launchOptions.setCacheDir("C:\\Users\\fanyong\\Desktop\\.local-browser");
-        Browser browser = getBrowser();
-        //打开一个页面
-        Page page = browser.newPage();
-        Target target1 = page.target();
-        System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-        List<Target> targets = browser.targets();
-        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-        for (Target target : targets) {
-            System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+            }
         }
-        browser.close();
     }
 
     public Browser getBrowser() throws IOException {

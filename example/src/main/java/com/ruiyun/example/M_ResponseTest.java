@@ -23,27 +23,27 @@ public class M_ResponseTest extends A_LaunchTest {
     public void test4() throws Exception {
         //打开开发者工具
         launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
-        //打开一个页面
-        Page page = browser.newPage();
-        page.setRequestInterception(true);
-        page.on(Page.PageEvent.Request, (Consumer<Request>) request -> {
-            if (request.resourceType().equals(ResourceType.Image)) {//拦截图片
-                request.abort();
-            } else {
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            //打开一个页面
+            Page page = browser.newPage();
+            page.setRequestInterception(true);
+            page.on(Page.PageEvent.Request, (Consumer<Request>) request -> {
+                if (request.resourceType().equals(ResourceType.Image)) {//拦截图片
+                    request.abort();
+                } else {
 
-                Map<String, String> headers = request.headers();
-                headers.put("foo", "bar");
-                ContinueRequestOverrides overrides = new ContinueRequestOverrides();
-                overrides.setHeaders(headers);
-                request.continueRequest(overrides);
-            }
-        });
-        GoToOptions options = new GoToOptions();
-        //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-        options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
-        page.goTo("https://pptr.nodejs.cn/api/puppeteer.pageevent", options);
-        Thread.sleep(25000);
-        browser.close();
+                    Map<String, String> headers = request.headers();
+                    headers.put("foo", "bar");
+                    ContinueRequestOverrides overrides = new ContinueRequestOverrides();
+                    overrides.setHeaders(headers);
+                    request.continueRequest(overrides);
+                }
+            });
+            GoToOptions options = new GoToOptions();
+            //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
+            options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
+            page.goTo("https://pptr.nodejs.cn/api/puppeteer.pageevent", options);
+            Thread.sleep(5000);
+        }
     }
 }

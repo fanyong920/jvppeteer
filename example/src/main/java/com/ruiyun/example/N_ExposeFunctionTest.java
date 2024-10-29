@@ -22,65 +22,65 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
     public void test4() throws Exception {
         //打开开发者工具
         launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
-        //打开一个页面
-        Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
-        //exposeFunction有两个参数，第一个参数是在页面创建了一个函数名为md5的函数，函数实现逻辑为第二个参数。可以使用page.evaluate()调用md5函数进行测试
-        page.exposeFunction("md5", (args) -> {
-            try {
-                System.out.println("args: " + Constant.OBJECTMAPPER.writeValueAsString(args));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-            String md5 = getMD5((String) args.get(0));
-            System.out.println("自行打印md5:" + md5);
-            return md5;
-        });
-        //调用md5函数
-        page.evaluate("async () => {\n" +
-                "    // use window.md5 to compute hashes\n" +
-                "    const myString = 'PUPPETEER';\n" +
-                "    const myHash = await window.md5(myString);\n" +
-                "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
-                "  }");
-        //删除md5函数
-        page.removeExposedFunction("md5");
-        //再次执行md5函数，报错
-        page.evaluate("async () => {\n" +
-                "    // use window.md5 to compute hashes\n" +
-                "    const myString = 'PUPPETEER';\n" +
-                "    const myHash = await window.md5(myString);\n" +
-                "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
-                "  }");
-        browser.close();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            //打开一个页面
+            Page page = browser.newPage();
+            page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+            //exposeFunction有两个参数，第一个参数是在页面创建了一个函数名为md5的函数，函数实现逻辑为第二个参数。可以使用page.evaluate()调用md5函数进行测试
+            page.exposeFunction("md5", (args) -> {
+                try {
+                    System.out.println("args: " + Constant.OBJECTMAPPER.writeValueAsString(args));
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+                String md5 = getMD5((String) args.get(0));
+                System.out.println("自行打印md5:" + md5);
+                return md5;
+            });
+            //调用md5函数
+            page.evaluate("async () => {\n" +
+                    "    // use window.md5 to compute hashes\n" +
+                    "    const myString = 'PUPPETEER';\n" +
+                    "    const myHash = await window.md5(myString);\n" +
+                    "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
+                    "  }");
+            //删除md5函数
+            page.removeExposedFunction("md5");
+            //再次执行md5函数，报错
+            page.evaluate("async () => {\n" +
+                    "    // use window.md5 to compute hashes\n" +
+                    "    const myString = 'PUPPETEER';\n" +
+                    "    const myHash = await window.md5(myString);\n" +
+                    "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
+                    "  }");
+        }
     }
 
     @Test
     public void test5() throws Exception {
         //打开开发者工具
         launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
-        //打开一个页面
-        Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
-        page.exposeFunction("readfile", (filePath) -> {
-            try {
-                List<String> strings = Files.readAllLines(Paths.get((String) filePath.get(0)), StandardCharsets.UTF_8);
-                System.out.println("自行打印readfile: " + String.join("\n", strings));
-                return String.join("\n", strings);
-            } catch (IOException e) {
-                return "出错啦";
-            }
-        });
-        //调用md5函数
-        page.evaluate("async () => {\n" +
-                "    // use window.readfile to read contents of a file\n" +
-                "    const content = await window.readfile('C:/Windows/System32/drivers/etc/hosts');\n" +
-                "    console.log(content);\n" +
-                "  }");
-        Thread.sleep(25000);
-        browser.close();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            //打开一个页面
+            Page page = browser.newPage();
+            page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+            page.exposeFunction("readfile", (filePath) -> {
+                try {
+                    List<String> strings = Files.readAllLines(Paths.get((String) filePath.get(0)), StandardCharsets.UTF_8);
+                    System.out.println("自行打印readfile: " + String.join("\n", strings));
+                    return String.join("\n", strings);
+                } catch (IOException e) {
+                    return "出错啦";
+                }
+            });
+            //调用md5函数
+            page.evaluate("async () => {\n" +
+                    "    // use window.readfile to read contents of a file\n" +
+                    "    const content = await window.readfile('C:/Windows/System32/drivers/etc/hosts');\n" +
+                    "    console.log(content);\n" +
+                    "  }");
+            Thread.sleep(5000);
+        }
     }
 
     public static String getMD5(String info) {

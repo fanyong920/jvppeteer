@@ -14,17 +14,16 @@ public class F_PageViewPortTest extends A_LaunchTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器
-        Browser browser = Puppeteer.launch(launchOptions);
-        //打开一个页面
-        Page page = browser.newPage();
-        page.goTo("https://www.baidu.com");
-        //修改页面大小
-        page.setViewport(new Viewport(2000, 1800));
-        //等待5s看看效果
-        Thread.sleep(5000);
-        //关闭浏览器
-        browser.close();
-
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            //打开一个页面
+            Page page = browser.newPage();
+            page.goTo("https://www.baidu.com");
+            //修改页面大小
+            page.setViewport(new Viewport(2000, 1800));
+            //等待5s看看效果
+            Thread.sleep(5000);
+            //关闭浏览器
+        }
     }
 
     @Test
