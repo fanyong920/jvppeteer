@@ -41,15 +41,15 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private final FrameProvider frameManager;
     private final NetworkEventManager networkEventManager = new NetworkEventManager();
     private Map<String, String> extraHTTPHeaders = new HashMap<>();
-    private Credentials credentials;
+    private volatile Credentials credentials;
     private final Set<String> attemptedAuthentications = new HashSet<>();
-    private boolean protocolRequestInterceptionEnabled;
-    private Boolean userCacheDisabled;
+    private volatile boolean protocolRequestInterceptionEnabled;
+    private volatile Boolean userCacheDisabled;
     private InternalNetworkConditions emulatedNetworkConditions;
-    private String userAgent;
-    private UserAgentMetadata userAgentMetadata;
+    private volatile String userAgent;
+    private volatile UserAgentMetadata userAgentMetadata;
     private final Map<CDPSession, Map<CDPSession.CDPSessionEvent, Consumer<?>>> clients = new HashMap<>();
-    private boolean userRequestInterceptionEnabled = false;
+    private volatile boolean userRequestInterceptionEnabled = false;
 
     public NetworkManager(FrameProvider frameManager) {
         super();

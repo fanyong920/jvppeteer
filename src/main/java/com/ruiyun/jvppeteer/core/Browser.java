@@ -41,7 +41,7 @@ import static com.ruiyun.jvppeteer.util.Helper.waitForCondition;
  * <p>
  * 第三方代码不应直接调用构造函数或创建扩展 Browser 类的子类。
  */
-public class Browser extends EventEmitter<Browser.BrowserEvent> {
+public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoCloseable {
     private final Viewport defaultViewport;
     private final Process process;
     private final Connection connection;
@@ -55,15 +55,14 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
     private List<String> defaultArgs;
 
 
-    public Browser(Product product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+    Browser(Product product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
         super();
         this.product = product;
         this.defaultViewport = viewport;
         this.process = process;
         this.connection = connection;
         if (closeCallback == null) {
-            closeCallback = () -> {
-            };
+            closeCallback = () -> {};
         }
         this.closeCallback = closeCallback;
         if (targetFilterCallback == null) {
@@ -358,6 +357,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> {
         return version.getUserAgent();
     }
 
+    @Override
     public void close() {
         this.closeCallback.run();
         this.disconnect();

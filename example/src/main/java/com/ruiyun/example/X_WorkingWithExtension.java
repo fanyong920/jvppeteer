@@ -1,18 +1,19 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Browser;
+import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.entities.TargetType;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class X_WorkingWithExtension {
 
-    public static void main(String[] args) throws Exception {
-        //自动下载，第一次下载后不会再下载
+    @Test
+    public  void test2() throws Exception {
 
         ArrayList<String> additionalArgs = new ArrayList<>();
         additionalArgs.add("--no-sandbox");

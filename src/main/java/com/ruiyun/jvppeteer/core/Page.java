@@ -1794,7 +1794,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * <p>主页面不能加载
      *
      * @param url      url
-     * @param options: <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     * @param options  <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
      *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
      *                 <p>load - 页面的load事件触发时
      *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
@@ -1816,7 +1816,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * <p>主页面不能加载
      *
      * @param url      url
-     * @param options: <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     * @param options  <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
      *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
      *                 <p>load - 页面的load事件触发时
      *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
