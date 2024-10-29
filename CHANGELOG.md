@@ -153,3 +153,8 @@
 - [AwaitableResult 的结果可见性修改](https://github.com/fanyong920/jvppeteer/commit/eae438287beda538a63d46f7a32aa31c9249e19d)
 - [修改 Connection 处理消息的逻辑](https://github.com/fanyong920/jvppeteer/commit/6e53c7a8cd96648025369cbca451392416a84a7c)
 - [将 NetworkEventManager 的 Map改为 HashMap](https://github.com/fanyong920/jvppeteer/commit/f21bc163e099404d2681780c5a683875847348c0)
+
+### Version Release 2.1.2(2024/10/29)
+
+- [下载浏览器添加 channel milestone buiid选项](https://github.com/fanyong920/jvppeteer/commit/477f0c616c4c851a36e72c8787ca5ae002d0b9c2)
+- [给Browser加上AutoCloseable接口](https://github.com/fanyong920/jvppeteer/commit/ac535f860a1b1fe42eb5cb33b4b0974d77c3e3d9)
