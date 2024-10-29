@@ -299,6 +299,53 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
     }
 ```
 
+#### 8、录制屏幕
+
+要捕录制屏幕，请使用 Page.screencast()。
+
+```java
+	/**
+     * 录制屏幕某个区域 录制格式webm
+     */
+    @Test
+    public void test25() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test2.webm");
+        screencastOptions.setFormat(ScreenCastFormat.WEBM);
+        //指定ffmpeg路径，如果配置了系统的环境变量，那么可以不指定
+        BoundingBox boundingBox = page.$("#username").boundingBox();
+        screencastOptions.setCrop(boundingBox);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+	/**
+     * 录制屏幕 录制格式gif
+     */
+    @Test
+    public void test26() throws IOException {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test.gif");
+        screencastOptions.setFormat(ScreenCastFormat.GIF);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+```
+
 #### **更多的例子请看项目内的example文件夹** 点击[这里](https://github.com/fanyong920/jvppeteer/tree/master/example/src/main/java/com/ruiyun/example)，是入门级别的例子，对如何使用 Jvppeteer 有很大帮助。
 
 ### 三、遇到问题怎么办
