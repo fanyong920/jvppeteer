@@ -143,9 +143,9 @@ public class Page extends EventEmitter<Page.PageEvent> {
         super();
         this.primaryTargetClient = client;
         this.tabTargetClient = client.parentSession();
-         Objects.requireNonNull(this.tabTargetClient, "Tab target session is not defined.");
+        Objects.requireNonNull(this.tabTargetClient, "Tab target session is not defined.");
         this.tabTarget = this.tabTargetClient.getTarget();
-         Objects.requireNonNull(this.tabTarget, "Tab target is not defined.");
+        Objects.requireNonNull(this.tabTarget, "Tab target is not defined.");
         this.primaryTarget = target;
         this.targetManager = target.targetManager();
         this.keyboard = new Keyboard(client);
@@ -240,7 +240,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
     private void onActivation(CDPSession newSession) {
         this.primaryTargetClient = newSession;
         this.primaryTarget = this.primaryTargetClient.getTarget();
-         Objects.requireNonNull(this.primaryTarget, "Missing target on swap");
+        Objects.requireNonNull(this.primaryTarget, "Missing target on swap");
         this.keyboard.updateClient(newSession);
         this.mouse.updateClient(newSession);
         this.touchscreen.updateClient(newSession);
@@ -319,7 +319,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
             return;
         }
         Frame frame = this.frameManager.frame(event.getFrameId());
-         Objects.requireNonNull(frame, "This should never happen.");
+        Objects.requireNonNull(frame, "This should never happen.");
         IsolatedWorld mainWorld = frame.worlds().get(MAIN_WORLD);
         ElementHandle handle = null;
         try {
@@ -831,7 +831,7 @@ public class Page extends EventEmitter<Page.PageEvent> {
         this.emit(PageEvent.Metrics, pageMetrics);
     }
 
-    private Metrics buildMetricsObject(List<Metric> metrics)  {
+    private Metrics buildMetricsObject(List<Metric> metrics) {
         Metrics result = new Metrics();
         if (ValidateUtil.isNotEmpty(metrics)) {
             for (Metric metric : metrics) {
@@ -1793,14 +1793,14 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * <p>超时
      * <p>主页面不能加载
      *
-     * @param url      url
-     * @param options  <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
-     *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
-     *                 <p>load - 页面的load事件触发时
-     *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
-     *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
-     *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
-     *                 <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     * @param url     url
+     * @param options <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     *                <p>load - 页面的load事件触发时
+     *                <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
+     *                <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     *                <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *                <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
     public Response goTo(String url, GoToOptions options) {
@@ -1815,15 +1815,15 @@ public class Page extends EventEmitter<Page.PageEvent> {
      * <p>超时
      * <p>主页面不能加载
      *
-     * @param url      url
-     * @param options  <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
-     *                 <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
-     *                 <p>load - 页面的load事件触发时
-     *                 <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
-     *                 <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
-     *                 <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
-     *                 <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
-     * @param isBlock  是否阻塞，不阻塞代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
+     * @param url     url
+     * @param options <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     *                <p>load - 页面的load事件触发时
+     *                <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
+     *                <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     *                <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *                <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     * @param isBlock 是否阻塞，不阻塞代表只是发导航命令出去，并不等待导航结果，同时也不会抛异常
      * @return Response
      */
     public Response goTo(String url, GoToOptions options, boolean isBlock) {
