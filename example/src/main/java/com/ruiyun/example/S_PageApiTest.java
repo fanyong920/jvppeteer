@@ -808,12 +808,15 @@ public class S_PageApiTest extends A_LaunchTest {
      * Page.waitForFunction()
      */
     @Test
-    public void test23() throws IOException {
+    public void test23() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://example.com/",false);
         Frame frame = page.waitForFrame(frame1 -> frame1.url().contains("example.com"));
         System.out.println("frame: "+frame.url());
+        page.setOfflineMode(true);
+        page.goTo("https://baidu.com",false);
+        Thread.sleep(2000);
         browser.close();
     }
 
