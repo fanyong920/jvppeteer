@@ -284,7 +284,6 @@ public class ChromeTargetManager extends TargetManager {
         session.send("Runtime.runIfWaitingForDebugger", null, null, true);
     }
 
-    //WebSocketConnectReadThread
     private void silentDetach(Connection parentConnection, CDPSession session) {
         try {
             runIfWaitingForDebugger(session);

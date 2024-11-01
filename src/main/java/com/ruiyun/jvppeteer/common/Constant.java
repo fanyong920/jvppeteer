@@ -11,6 +11,8 @@ import com.ruiyun.jvppeteer.events.AuthRequiredEvent;
 import com.ruiyun.jvppeteer.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.events.DetachedFromTargetEvent;
+import com.ruiyun.jvppeteer.events.DownloadProgressEvent;
+import com.ruiyun.jvppeteer.events.DownloadWillBeginEvent;
 import com.ruiyun.jvppeteer.events.EntryAddedEvent;
 import com.ruiyun.jvppeteer.events.ExceptionThrownEvent;
 import com.ruiyun.jvppeteer.events.ExecutionContextCreatedEvent;
@@ -253,7 +255,7 @@ public interface Constant {
     /**
      * connection cdpsession的监听器执行时所对应的类
      */
-    Map<String, Class<?>> LISTENNER_CLASSES = new HashMap<String, Class<?>>() {
+    Map<String, Class<?>>  LISTENER_CLASSES = new HashMap<String, Class<?>>() {
         {
             for (CDPSession.CDPSessionEvent event : CDPSession.CDPSessionEvent.values()) {
                 switch (event.getEventName()) {
@@ -365,6 +367,13 @@ public interface Constant {
                         break;
                     case "Input.dragIntercepted":
                         put(event.getEventName(), DragInterceptedEvent.class);
+                        break;
+                    case "Browser.downloadProgress":
+                        put(event.getEventName(), DownloadProgressEvent.class);
+                        break;
+                    case "Browser.downloadWillBegin":
+                        put(event.getEventName(), DownloadWillBeginEvent.class);
+                        break;
                 }
             }
         }

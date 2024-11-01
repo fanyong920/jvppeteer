@@ -7,6 +7,8 @@ import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.entities.BrowserContextOptions;
 import com.ruiyun.jvppeteer.entities.DebugInfo;
+import com.ruiyun.jvppeteer.entities.DownloadBehavior;
+import com.ruiyun.jvppeteer.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.entities.TargetInfo;
 import com.ruiyun.jvppeteer.entities.TargetType;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -62,7 +65,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         this.process = process;
         this.connection = connection;
         if (closeCallback == null) {
-            closeCallback = () -> {};
+            closeCallback = () -> {
+            };
         }
         this.closeCallback = closeCallback;
         if (targetFilterCallback == null) {
@@ -84,9 +88,13 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
     }
 
     private final Consumer<Object> emitDisconnected = (ignore) -> this.emit(BrowserEvent.Disconnected, true);
+    private final Consumer<Object> emitDownloadProgress = (event) -> this.emit(BrowserEvent.Browser_downloadProgress, event);
+    private final Consumer<Object> emitDownloadWillBegin = (event) -> this.emit(BrowserEvent.Browser_downloadWillBegin, event);
 
     private void attach() {
         this.connection.on(CDPSession.CDPSessionEvent.CDPSession_Disconnected, this.emitDisconnected);
+        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadProgress,this.emitDownloadProgress);
+        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadWillBegin,this.emitDownloadWillBegin);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetAvailable, this.onAttachedToTarget);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetGone, this.onDetachedFromTarget);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetChanged, this.onTargetChanged);
@@ -96,6 +104,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
 
     private void detach() {
         this.connection.off(CDPSession.CDPSessionEvent.CDPSession_Disconnected, this.emitDisconnected);
+        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadProgress,this.emitDownloadProgress);
+        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadWillBegin,this.emitDownloadWillBegin);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetAvailable, this.onAttachedToTarget);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetGone, this.onDetachedFromTarget);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetChanged, this.onTargetChanged);
@@ -447,6 +457,28 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         return product;
     }
 
+    /**
+     * 设置下载行为
+     *
+     * @param options 可选配置，可以设置下载的存放路径，是否接受下载事件，拒绝还是接受下载
+     *                如果没有指定 browserContextId,则设置默认浏览器上下文的下载行为
+     */
+    public void setDownloadBehavior(DownloadOptions options){
+        if (Objects.isNull(options.getBehavior())) {
+            options.setBehavior(DownloadBehavior.Default);
+        }
+        if(options.getBehavior().equals(DownloadBehavior.Allow) || options.getBehavior().equals(DownloadBehavior.AllowAndName)){
+            if(StringUtil.isBlank(options.getDownloadPath())){
+                throw new JvppeteerException("This is required if behavior is set to 'allow' or 'allowAndName'.");
+            }
+        }
+        Map<String,Object> params = ParamsFactory.create();
+        params.put("behavior", options.getBehavior().getBehavior());
+        params.put("downloadPath", options.getDownloadPath());
+        params.put("browserContextId", options.getBrowserContextId());
+        params.put("eventsEnabled", options.getEventsEnabled());
+        this.connection.send("Browser.setDownloadBehavior", params);
+    }
     public enum BrowserEvent {
         /**
          * 创建target
@@ -472,7 +504,16 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
          * 断开连接
          * Object
          */
-        Disconnected("disconnected");
+        Disconnected("disconnected"),
+        /**
+         * 下载进度时触发
+         */
+        Browser_downloadProgress("Browser.downloadProgress"),
+
+        /**
+         * 当页面准备开始下载时促发
+         */
+        Browser_downloadWillBegin("Browser.downloadWillBegin");
         private final String eventName;
 
         BrowserEvent(String eventName) {

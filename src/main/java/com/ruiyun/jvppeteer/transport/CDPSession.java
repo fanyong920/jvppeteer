@@ -131,7 +131,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
                 }
                 connection.getEventQueue().offer(() -> {
                     try {
-                        this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENNER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENNER_CLASSES.get(method)));
+                        this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
                     } catch (IllegalArgumentException | JsonProcessingException e) {
                         LOGGER.error("emit error", e);
                     }
@@ -214,8 +214,16 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
         Network_responseReceivedExtraInfo("Network.responseReceivedExtraInfo"),
 
         Tracing_tracingComplete("Tracing.tracingComplete"),
-        Input_dragIntercepted("Input.dragIntercepted");
+        Input_dragIntercepted("Input.dragIntercepted"),
+        /**
+         * 下载进度时触发
+         */
+        Browser_downloadProgress("Browser.downloadProgress"),
 
+        /**
+         * 当页面准备开始下载时促发
+         */
+        Browser_downloadWillBegin("Browser.downloadWillBegin");
         private String eventName;
 
         CDPSessionEvent(String eventName) {

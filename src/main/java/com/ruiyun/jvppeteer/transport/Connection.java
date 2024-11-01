@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 import static com.ruiyun.jvppeteer.common.Constant.CODE;
 import static com.ruiyun.jvppeteer.common.Constant.JV_EMIT_EVENT_THREAD;
 import static com.ruiyun.jvppeteer.common.Constant.JV_HANDLE_MESSAGE_THREAD;
-import static com.ruiyun.jvppeteer.common.Constant.LISTENNER_CLASSES;
+import static com.ruiyun.jvppeteer.common.Constant.LISTENER_CLASSES;
 import static com.ruiyun.jvppeteer.common.Constant.ERROR;
 import static com.ruiyun.jvppeteer.common.Constant.ID;
 import static com.ruiyun.jvppeteer.common.Constant.METHOD;
@@ -157,7 +157,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                             }
                             this.eventQueue.offer(() -> {
                                 try {
-                                    this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENNER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENNER_CLASSES.get(method)));
+                                    this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
                                 } catch (JsonProcessingException e) {
                                     LOGGER.error("onMessage error:", e);
                                 }
