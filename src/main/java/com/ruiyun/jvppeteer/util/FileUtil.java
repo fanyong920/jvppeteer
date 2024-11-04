@@ -18,6 +18,8 @@ import java.util.stream.Stream;
  */
 public class FileUtil {
 
+    static Set<PosixFilePermission> rwxrwxrwx = PosixFilePermissions.fromString("rwxrwxrwx");
+
     /**
      * 根据给定的前缀创建临时文件夹
      *
@@ -88,20 +90,24 @@ public class FileUtil {
     public static void createNewFile(String path) throws IOException {
         Path path1 = Paths.get(path);
         if (!Files.exists(path1)) {
-            Set<PosixFilePermission> rwxrwxrwx = PosixFilePermissions.fromString("rwxrwxrwx");
+
             Path parent = path1.getParent();
             if (parent != null && !Files.exists(parent)) {
-                if (Helper.isMac() || Helper.isLinux()) {
-                    Files.createDirectories(path1.getParent(), PosixFilePermissions.asFileAttribute(rwxrwxrwx));
-                } else if (Helper.isWindows()) {
-                    Files.createDirectories(path1.getParent());
-                }
+                createDirs(parent);
             }
             if (Helper.isMac() || Helper.isLinux()) {
                 Files.createFile(path1, PosixFilePermissions.asFileAttribute(rwxrwxrwx));
             } else if (Helper.isWindows()) {
                 Files.createFile(path1);
             }
+        }
+    }
+
+    public static void createDirs(Path path) throws IOException {
+        if (Helper.isMac() || Helper.isLinux()) {
+            Files.createDirectories(path, PosixFilePermissions.asFileAttribute(rwxrwxrwx));
+        } else if (Helper.isWindows()) {
+            Files.createDirectories(path);
         }
     }
 
