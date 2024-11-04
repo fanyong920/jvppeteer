@@ -16,9 +16,6 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +29,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ChromeTargetManager extends TargetManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ChromeTargetManager.class);
     private final Connection connection;
     private final Map<String, TargetInfo> discoveredTargetsByTargetId = new HashMap<>();
     private final Map<String, Target> attachedTargetsByTargetId = new ConcurrentHashMap<>();
