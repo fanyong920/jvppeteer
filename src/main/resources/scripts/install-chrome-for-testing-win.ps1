@@ -13,7 +13,7 @@ Write-Host "Downloading Chrome Browser"
 $wc = New-Object net.webclient
 #下载
 $wc.Downloadfile($url, "$savePath\$archive.zip")
-Write-Host "Unziping Chrome Browser"
+Write-Host "Unzipping Chrome Browser"
 
 #解压文件
 Expand-Archive -LiteralPath "$savePath\$archive.zip" -DestinationPath "$savePath"
