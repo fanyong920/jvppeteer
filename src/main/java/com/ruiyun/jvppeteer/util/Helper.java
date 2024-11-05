@@ -6,12 +6,14 @@ import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.entities.CallFrame;
 import com.ruiyun.jvppeteer.entities.ExceptionDetails;
+import com.ruiyun.jvppeteer.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.entities.RemoteObject;
 import com.ruiyun.jvppeteer.entities.StackTrace;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.transport.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -474,6 +476,10 @@ public class Helper {
         } else {
             throw new JvppeteerException(error);
         }
+    }
+
+    public static GetVersionResponse getVersion(Connection connection) throws JsonProcessingException {
+        return Constant.OBJECTMAPPER.treeToValue(connection.send("Browser.getVersion"), GetVersionResponse.class);
     }
 
 }

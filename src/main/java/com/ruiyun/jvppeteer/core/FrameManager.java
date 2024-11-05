@@ -185,15 +185,15 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
             Optional.ofNullable(this.frameTreeHandled).ifPresent(handle -> handle.onSuccess(true));
             this.frameTreeHandled = AwaitableResult.create();
             this.networkManager.addClient(client);
-            client.send("Page.enable");
+            client.send("Page.enable",null,null,false);
             /* @type Protocol.Page.getFrameTreeReturnValue*/
-            JsonNode result = client.send("Page.getFrameTree");
+            JsonNode result = client.send("Page.getFrameTree",null,null,true);
             FrameTreeEvent frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTreeEvent.class);
             this.handleFrameTree(client, frameTree);
             Optional.ofNullable(this.frameTreeHandled).ifPresent(handle -> handle.onSuccess(true));
             Map<String, Object> params = ParamsFactory.create();
             params.put("enabled", true);
-            client.send("Page.setLifecycleEventsEnabled", params);
+            client.send("Page.setLifecycleEventsEnabled", params,null,false);
             client.send("Runtime.enable");
             this.createIsolatedWorld(client, UTILITY_WORLD_NAME);
             if (frame != null) {

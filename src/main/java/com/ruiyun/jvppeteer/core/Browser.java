@@ -20,7 +20,6 @@ import com.ruiyun.jvppeteer.transport.Connection;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,9 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+
 import static com.ruiyun.jvppeteer.util.Helper.filter;
+import static com.ruiyun.jvppeteer.util.Helper.getVersion;
 import static com.ruiyun.jvppeteer.util.Helper.waitForCondition;
 
 /**
@@ -72,12 +73,11 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         if (targetFilterCallback == null) {
             targetFilterCallback = (ignore) -> true;
         }
-        Function<Target, Boolean> targetFilterCallback1 = targetFilterCallback;
         this.setIsPageTargetCallback(isPageTargetCallback);
         if (Product.FIREFOX.equals(product)) {
-            throw new JvppeteerException("Not Support firefox");
+            this.targetManager = new FirefoxTargetManager(connection, this.createTarget(), targetFilterCallback);
         } else {
-            this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback1, waitForInitiallyDiscoveredTargets);
+            this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
         }
         this.defaultContext = new BrowserContext(connection, this, "");
         if (ValidateUtil.isNotEmpty(contextIds)) {
@@ -93,8 +93,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
 
     private void attach() {
         this.connection.on(CDPSession.CDPSessionEvent.CDPSession_Disconnected, this.emitDisconnected);
-        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadProgress,this.emitDownloadProgress);
-        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadWillBegin,this.emitDownloadWillBegin);
+        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadProgress, this.emitDownloadProgress);
+        this.connection.on(CDPSession.CDPSessionEvent.Browser_downloadWillBegin, this.emitDownloadWillBegin);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetAvailable, this.onAttachedToTarget);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetGone, this.onDetachedFromTarget);
         this.targetManager.on(TargetManager.TargetManagerEvent.TargetChanged, this.onTargetChanged);
@@ -104,8 +104,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
 
     private void detach() {
         this.connection.off(CDPSession.CDPSessionEvent.CDPSession_Disconnected, this.emitDisconnected);
-        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadProgress,this.emitDownloadProgress);
-        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadWillBegin,this.emitDownloadWillBegin);
+        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadProgress, this.emitDownloadProgress);
+        this.connection.off(CDPSession.CDPSessionEvent.Browser_downloadWillBegin, this.emitDownloadWillBegin);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetAvailable, this.onAttachedToTarget);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetGone, this.onDetachedFromTarget);
         this.targetManager.off(TargetManager.TargetManagerEvent.TargetChanged, this.onTargetChanged);
@@ -343,6 +343,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
      * 获取表示此 浏览器的 名称和版本的字符串。
      * <p>
      * 对于无头浏览器，这与 "HeadlessChrome/61.0.3153.0" 类似。对于非无头或新无头，这与 "Chrome/61.0.3153.0" 类似。
+     *
+     * 对于火狐浏览器，这与 "Firefox/116.0a1"类似
      * <p>
      * Browser.version() 的格式可能会随着浏览器的未来版本而改变。
      *
@@ -350,20 +352,20 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
      * @throws JsonProcessingException 序列化错误
      */
     public String version() throws JsonProcessingException {
-        GetVersionResponse version = this.getVersion();
+        GetVersionResponse version = getVersion(this.connection);
         return version.getProduct();
     }
 
     /**
      * 获取此 浏览器的 原始用户代理。
      * <p>
-     * Pages 可以使用 Page.setUserAgent() 覆盖用户代理。
+     * Pages 可以使用 Page.setUserAgent() 覆盖用户代理。e
      *
      * @return 原始用户代理
      * @throws JsonProcessingException 序列化错误
      */
     public String userAgent() throws JsonProcessingException {
-        GetVersionResponse version = this.getVersion();
+        GetVersionResponse version = getVersion(this.connection);
         return version.getUserAgent();
     }
 
@@ -391,9 +393,6 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         return !this.connection.closed();
     }
 
-    private GetVersionResponse getVersion() throws JsonProcessingException {
-        return Constant.OBJECTMAPPER.treeToValue(this.connection.send("Browser.getVersion"), GetVersionResponse.class);
-    }
 
     public DebugInfo debugInfo() {
         return new DebugInfo(this.connection.getPendingProtocolErrors());
@@ -463,22 +462,23 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
      * @param options 可选配置，可以设置下载的存放路径，是否接受下载事件，拒绝还是接受下载
      *                如果没有指定 browserContextId,则设置默认浏览器上下文的下载行为
      */
-    public void setDownloadBehavior(DownloadOptions options){
+    public void setDownloadBehavior(DownloadOptions options) {
         if (Objects.isNull(options.getBehavior())) {
             options.setBehavior(DownloadBehavior.Default);
         }
-        if(options.getBehavior().equals(DownloadBehavior.Allow) || options.getBehavior().equals(DownloadBehavior.AllowAndName)){
-            if(StringUtil.isBlank(options.getDownloadPath())){
+        if (options.getBehavior().equals(DownloadBehavior.Allow) || options.getBehavior().equals(DownloadBehavior.AllowAndName)) {
+            if (StringUtil.isBlank(options.getDownloadPath())) {
                 throw new JvppeteerException("This is required if behavior is set to 'allow' or 'allowAndName'.");
             }
         }
-        Map<String,Object> params = ParamsFactory.create();
+        Map<String, Object> params = ParamsFactory.create();
         params.put("behavior", options.getBehavior().getBehavior());
         params.put("downloadPath", options.getDownloadPath());
         params.put("browserContextId", options.getBrowserContextId());
         params.put("eventsEnabled", options.getEventsEnabled());
         this.connection.send("Browser.setDownloadBehavior", params);
     }
+
     public enum BrowserEvent {
         /**
          * 创建target

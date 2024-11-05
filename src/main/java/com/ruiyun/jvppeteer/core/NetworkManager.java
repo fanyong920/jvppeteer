@@ -40,7 +40,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkManager.class);
     private final FrameProvider frameManager;
     private final NetworkEventManager networkEventManager = new NetworkEventManager();
-    private Map<String, String> extraHTTPHeaders = new HashMap<>();
+    private Map<String, String> extraHTTPHeaders;
     private volatile Credentials credentials;
     private final Set<String> attemptedAuthentications = new HashSet<>();
     private volatile boolean protocolRequestInterceptionEnabled;
@@ -151,7 +151,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     }
 
     public Map<String, String> extraHTTPHeaders() {
-        return this.extraHTTPHeaders;
+        return Objects.isNull(this.extraHTTPHeaders) ? new HashMap<>() : this.extraHTTPHeaders;
     }
 
     private void applyProtocolCacheDisabled(CDPSession client) {

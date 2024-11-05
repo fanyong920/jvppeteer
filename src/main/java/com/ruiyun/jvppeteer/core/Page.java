@@ -72,9 +72,6 @@ import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -101,6 +98,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static com.ruiyun.jvppeteer.common.Constant.ABOUT_BLANK;
 import static com.ruiyun.jvppeteer.common.Constant.CDP_BINDING_PREFIX;
@@ -1245,9 +1245,10 @@ public class Page extends EventEmitter<Page.PageEvent> {
     }
 
     private String _screenshot(ScreenshotOptions options) {
+        boolean isFirefox = this.target().targetManager() instanceof FirefoxTargetManager;
         Map<String, Object> params = ParamsFactory.create();
         try {
-            if (options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
+            if (!isFirefox && options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
                 this.emulationManager.setTransparentBackgroundColor();
             }
             ScreenshotClip clip = options.getClip();

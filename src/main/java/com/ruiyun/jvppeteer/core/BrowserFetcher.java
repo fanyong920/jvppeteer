@@ -12,9 +12,6 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -38,6 +35,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_LINUX;
 import static com.ruiyun.jvppeteer.common.Constant.INSTALL_CHROME_FOR_TESTING_MAC;
@@ -127,6 +127,15 @@ public class BrowserFetcher {
         chrome_headless_shell.put(WIN32, "%s/chrome-for-testing-public/%s/win32/%s.zip");
         chrome_headless_shell.put(WIN64, "%s/chrome-for-testing-public/%s/win64/%s.zip");
         downloadURLs.put(Product.CHROMEHEADLESSSHELL, chrome_headless_shell);
+
+        Map<String, String> firefox = new HashMap<>();
+        firefox.put("host", "https://archive.mozilla.org/pub/firefox/releases");
+        firefox.put(LINUX, "%s/%s/linux-x86_64/%s.tar.bz2");
+        firefox.put(MAC_ARM64, "%s/%s/mac/%s.dmg");
+        firefox.put(MAC_X64, "%s/%s/mac/%s.dmg");
+        firefox.put(WIN32, "%s/%s/win32/%s.exe");
+        firefox.put(WIN64, "%s/%s/win32/%s.exe");
+        downloadURLs.put(Product.FIREFOX, firefox);
     }
 
     private final String version;
@@ -666,6 +675,16 @@ public class BrowserFetcher {
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + this.platform);
             }
+        } else if (Product.FIREFOX.equals(this.product)) {
+            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
+                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision), "Firefox.app","Contents", "MacOS", "firefox");
+            } else if (LINUX.equals(this.platform)) {
+                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision),"firefox");
+            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
+                executablePath = Helper.join(versionPath, archive(this.product, this.platform, revision),"firefox.exe");
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + this.platform);
+            }
         } else {
             throw new IllegalArgumentException("Unsupported product: " + this.product);
         }
@@ -718,6 +737,8 @@ public class BrowserFetcher {
             if (match)
                 return "chrome-headless-shell-" + platform;
             else throw new JvppeteerException("Unsupported platform: " + platform);
+        } else if (Product.FIREFOX.equals(product)) {
+            return platform;
         }
         return null;
     }

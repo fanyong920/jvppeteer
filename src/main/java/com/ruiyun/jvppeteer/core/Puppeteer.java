@@ -7,14 +7,15 @@ import com.ruiyun.jvppeteer.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.entities.RevisionInfo;
+import com.ruiyun.jvppeteer.launch.BrowserLauncher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
-import com.ruiyun.jvppeteer.launch.Launcher;
+import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-
 import java.io.IOException;
+
 
 import static com.ruiyun.jvppeteer.common.Constant.PRODUCT_ENV;
 
@@ -28,7 +29,7 @@ import static com.ruiyun.jvppeteer.common.Constant.PRODUCT_ENV;
 public class Puppeteer {
 
     private Product product = Product.CHROME;
-    private Launcher launcher;
+    private BrowserLauncher launcher;
     private Environment env = null;
     private String cacheDir;
 
@@ -142,7 +143,7 @@ public class Puppeteer {
      */
     private static void adoptLauncher(Puppeteer puppeteer) {
         Product product;
-        Launcher launcher;
+        BrowserLauncher launcher;
         Environment env;
         if ((product = puppeteer.getProduct()) == null) {
             if ((env = puppeteer.getEnv()) == null) {
@@ -163,7 +164,8 @@ public class Puppeteer {
         }
         switch (product) {
             case FIREFOX:
-                throw new IllegalArgumentException("Firefox browser is not supported yet!");
+                launcher = new FirefoxLauncher(puppeteer.getCacheDir(), product);
+                break;
             case CHROME:
             case CHROMIUM:
             case CHROMEDRIVER:
@@ -226,11 +228,11 @@ public class Puppeteer {
         return Puppeteer.downloadBrowser(options);
     }
 
-    private Launcher getLauncher() {
+    private BrowserLauncher getLauncher() {
         return launcher;
     }
 
-    private void setLauncher(Launcher launcher) {
+    private void setLauncher(BrowserLauncher launcher) {
         this.launcher = launcher;
     }
 

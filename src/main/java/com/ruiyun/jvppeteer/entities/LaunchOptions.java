@@ -8,6 +8,7 @@ import com.ruiyun.jvppeteer.core.Target;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class LaunchOptions extends BrowserConnectOptions {
@@ -25,6 +26,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         this.waitForInitialPage = builder.waitForInitialPage;
         this.preferredRevision = builder.preferredRevision;
         this.cacheDir = builder.cacheDir;
+        this.extraPrefsFirefox = builder.extraPrefsFirefox;
         this.setAcceptInsecureCerts(builder.acceptInsecureCerts);
         this.setDefaultViewport(builder.defaultViewport);
         this.setSlowMo(builder.slowMo);
@@ -102,7 +104,10 @@ public class LaunchOptions extends BrowserConnectOptions {
      * 如果不配置启动路径，那么会扫面存放目录下是否有chrome浏览器
      */
     private String cacheDir;
-
+    /**
+     * {@link <a href="https://searchfox.org/mozilla-release/source/modules/libpref/init/all.js">| Additional preferences</a>} that can be passed when launching with Firefox.
+     */
+    private Map<String, Object> extraPrefsFirefox;
     public static Builder builder() {
         return new Builder();
     }
@@ -131,6 +136,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         private boolean waitForInitialPage = true;
         private String preferredRevision;
         private String cacheDir;
+        private Map<String, Object> extraPrefsFirefox;
 
         private Builder() {
         }
@@ -245,6 +251,11 @@ public class LaunchOptions extends BrowserConnectOptions {
             return this;
         }
 
+        public Builder extraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
+            this.extraPrefsFirefox = extraPrefsFirefox;
+            return this;
+        }
+
         public LaunchOptions build() {
             return new LaunchOptions(this);
         }
@@ -328,5 +339,13 @@ public class LaunchOptions extends BrowserConnectOptions {
 
     public void setIgnoreAllDefaultArgs(boolean ignoreAllDefaultArgs) {
         this.ignoreAllDefaultArgs = ignoreAllDefaultArgs;
+    }
+
+    public Map<String, Object> getExtraPrefsFirefox() {
+        return extraPrefsFirefox;
+    }
+
+    public void setExtraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
+        this.extraPrefsFirefox = extraPrefsFirefox;
     }
 }
