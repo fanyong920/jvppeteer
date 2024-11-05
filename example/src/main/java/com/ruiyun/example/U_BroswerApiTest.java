@@ -173,4 +173,41 @@ public class U_BroswerApiTest extends A_LaunchTest {
         }
     }
 
+    /**
+     * 取消下载
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test7() throws Exception {
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            BrowserContext browserContext = browser.createBrowserContext();
+            Map<String, AtomicBoolean> atomicBooleanMap = new ConcurrentHashMap<>();
+            browser.on(Browser.BrowserEvent.Browser_downloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
+                System.out.println("downloadProgressEvent: " + downloadProgressEvent);
+                if (downloadProgressEvent.getState().equals(DownloadState.Completed)) {
+                    atomicBooleanMap.get(downloadProgressEvent.getGuid()).set(true);
+                }
+            });
+            browser.on(Browser.BrowserEvent.Browser_downloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
+                System.out.println("downloadWillBeginEvent: " + downloadWillBeginEvent);
+                atomicBooleanMap.put(downloadWillBeginEvent.getGuid(), new AtomicBoolean(false));
+            });
+            Page page = browserContext.newPage();
+            //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
+            browser.setDownloadBehavior(new DownloadOptions(DownloadBehavior.Allow, browserContext.getId(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
+            page.goTo("https://mirrors.huaweicloud.com/openjdk/22.0.2/");
+            //点击，进行下载
+            page.click("body > pre:nth-child(4) > a:nth-child(6)");
+            Thread.sleep(1000);
+            //点击，进行下载
+            page.click("body > pre:nth-child(4) > a:nth-child(5)");
+            Thread.sleep(3000);
+            //取消下载
+            for (Map.Entry<String, AtomicBoolean> entry : atomicBooleanMap.entrySet()) {
+                browser.cancelDownload(entry.getKey(), browserContext.getId());
+            }
+        }
+    }
+
 }

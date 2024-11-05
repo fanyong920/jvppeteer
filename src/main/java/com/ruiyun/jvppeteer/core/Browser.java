@@ -343,7 +343,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
      * 获取表示此 浏览器的 名称和版本的字符串。
      * <p>
      * 对于无头浏览器，这与 "HeadlessChrome/61.0.3153.0" 类似。对于非无头或新无头，这与 "Chrome/61.0.3153.0" 类似。
-     *
+     * <p>
      * 对于火狐浏览器，这与 "Firefox/116.0a1"类似
      * <p>
      * Browser.version() 的格式可能会随着浏览器的未来版本而改变。
@@ -478,6 +478,20 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         params.put("eventsEnabled", options.getEventsEnabled());
         this.connection.send("Browser.setDownloadBehavior", params);
     }
+
+    /**
+     * 设置下载行为
+     *
+     * @param guid             下载的全局唯一标识符。
+     * @param browserContextId BrowserContext 在其中执行操作。省略时，将使用默认浏览器上下文。
+     */
+    public void cancelDownload(String guid, String browserContextId) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("guid", guid);
+        params.put("browserContextId", browserContextId);
+        this.connection.send("Browser.cancelDownload", params);
+    }
+
 
     public enum BrowserEvent {
         /**
