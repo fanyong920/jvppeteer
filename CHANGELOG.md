@@ -158,3 +158,10 @@
 
 - [下载浏览器添加 channel milestone buiid选项](https://github.com/fanyong920/jvppeteer/commit/477f0c616c4c851a36e72c8787ca5ae002d0b9c2)
 - [给Browser加上AutoCloseable接口](https://github.com/fanyong920/jvppeteer/commit/ac535f860a1b1fe42eb5cb33b4b0974d77c3e3d9)
+
+### Version Release 2.2.0(2024/11/05)
+
+- [Browser 添加取消下载功能](https://github.com/fanyong920/jvppeteer/commit/4f46fd5099f4b5e7bbe1b1fa95865b7f0963ce7d)
+- [从默认参数 中删除 --disable-component-update](https://github.com/fanyong920/jvppeteer/commit/73e673d2307008c259adefc16ca68282070abbcd)
+- [将 chrome 首选版本升级为 130.0.6723.58](https://github.com/fanyong920/jvppeteer/commit/673a9588758769da149610678cb71e806d186a85)
+- [添加下载文件的功能](https://github.com/fanyong920/jvppeteer/commit/3a59b4c3efcb1c584d465248d5a0db34fe004a65)
