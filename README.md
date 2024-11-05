@@ -126,6 +126,7 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 
 | Jvppeteer | Chrome                                                       |
 | --------- | ------------------------------------------------------------ |
+| 2.2.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
 | 2.1.2     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 | 2.1.1     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 | 2.1.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
