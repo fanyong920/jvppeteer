@@ -62,11 +62,15 @@ public interface Constant {
     /**
      * 默认浏览器版本，最好使用默认指定的版本，否则有些cdp api参数会失效
      */
-    String VERSION = "128.0.6613.137";
+    String VERSION = "130.0.6723.58";
     /**
-     * 临时文件夹前缀
+     * chrome 临时文件夹前缀
      */
-    String PROFILE_PREFIX = "jvppeteer_dev_chrome_profile-";
+    String CHROME_PROFILE_PREFIX = "jvppeteer_dev_chrome_profile-";
+    /**
+     * firefox 临时文件夹前缀
+     */
+    String FIREFOX_PROFILE_PREFIX = "jvppeteer_dev_firefox_profile-";
     /**
      * 把产品存放到环境变量的所有可用字段
      */
@@ -80,7 +84,7 @@ public interface Constant {
     /**
      * 把浏览器版本存放到环境变量的字段
      */
-    String JVPPETEER_CHROMIUM_REVISION_ENV = "JVPPETEER_CHROMIUM_REVISION";
+    String JVPPETEER_PRODUCT_REVISION_ENV = "JVPPETEER_PRODUCT_REVISION";
 
     /**
      * 读取流中的数据的buffer size
