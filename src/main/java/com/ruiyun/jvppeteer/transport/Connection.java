@@ -11,32 +11,33 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static com.ruiyun.jvppeteer.common.Constant.CODE;
+import static com.ruiyun.jvppeteer.common.Constant.ERROR;
+import static com.ruiyun.jvppeteer.common.Constant.ID;
 import static com.ruiyun.jvppeteer.common.Constant.JV_EMIT_EVENT_THREAD;
 import static com.ruiyun.jvppeteer.common.Constant.JV_HANDLE_MESSAGE_THREAD;
 import static com.ruiyun.jvppeteer.common.Constant.LISTENER_CLASSES;
-import static com.ruiyun.jvppeteer.common.Constant.ERROR;
-import static com.ruiyun.jvppeteer.common.Constant.ID;
 import static com.ruiyun.jvppeteer.common.Constant.METHOD;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.common.Constant.PARAMS;
 import static com.ruiyun.jvppeteer.common.Constant.RESULT;
 import static com.ruiyun.jvppeteer.common.Constant.SESSION_ID;
-import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
 
 /**
@@ -55,16 +56,10 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     final Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
     private volatile boolean handleMessageThreadFinish = false;
-
-    public ConcurrentLinkedQueue<Runnable> getEventQueue() {
-        return this.eventQueue;
-    }
-
     private final ConcurrentLinkedQueue<Runnable> eventQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<JsonNode> messagesQueue = new ConcurrentLinkedQueue<>();
     private List<String> events = null;
     final AtomicLong id = new AtomicLong(1);
-    private Thread handleMessageThread;
 
     public Connection(String url, ConnectionTransport transport, int delay, int timeout) {
         super();
@@ -76,11 +71,15 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.startThread();
     }
 
+    public ConcurrentLinkedQueue<Runnable> getEventQueue() {
+        return this.eventQueue;
+    }
+
     /**
      * 专门处理从websocket接收到的消息的线程
      */
     public void startHandleMessageThread() {
-        this.handleMessageThread = new Thread(() -> {
+        Thread handleMessageThread = new Thread(() -> {
             do {
                 synchronized (this) {
                     try {
@@ -113,6 +112,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                             parentSessionId = response.get(SESSION_ID).asText();
                         }
                         if ("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
+                            assert paramsNode != null;
                             JsonNode typeNode = paramsNode.get(Constant.TARGET_INFO).get(Constant.TYPE);
                             CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId, parentSessionId);
                             this.sessions.put(sessionId, cdpSession);
@@ -148,30 +148,31 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                             long id = response.get(ID).asLong();
                             resolveCallback(this.callbacks, response, id, false);
                         } else {//是一个事件，那么响应监听器
-                            if (events == null) {
-                                events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
+                            if (Objects.isNull(this.events)) {
+                                this.events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
                             }
-                            boolean match = events.contains(method);
-                            if (!match) {//不匹配就是没有监听该事件
-                                return;
+                            boolean match = this.events.contains(method);
+                            if (match) {//匹配就是有监听该事件
+                                this.eventQueue.offer(() -> {
+                                    try {
+                                        assert method != null;
+                                        this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
+                                    } catch (JsonProcessingException e) {
+                                        LOGGER.error("onMessage error:", e);
+                                    }
+                                });
                             }
-                            this.eventQueue.offer(() -> {
-                                try {
-                                    this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
-                                } catch (JsonProcessingException e) {
-                                    LOGGER.error("onMessage error:", e);
-                                }
-                            });
+
                         }
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         LOGGER.error("Handle message error: ", e);
                     }
                 }
             } while (!this.messagesQueue.isEmpty() || !this.closed);
             this.handleMessageThreadFinish = true;
         });
-        this.handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
-        this.handleMessageThread.start();
+        handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
+        handleMessageThread.start();
     }
 
     /**
@@ -202,8 +203,8 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
             do {
                 synchronized (this) {
                     try {
-                        Runnable runnable = eventQueue.poll();
-                        if (runnable == null) {
+                        Runnable runnable = this.eventQueue.poll();
+                        if (Objects.isNull(runnable)) {
                             this.notifyAll();//先唤醒
                         } else {
                             runnable.run();

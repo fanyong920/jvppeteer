@@ -126,7 +126,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
                 if (!match) {//不匹配就是没有监听该事件
                     return false;
                 }
-                if (connection == null) {
+                if (Objects.isNull(connection)) {
                     return false;
                 }
                 connection.getEventQueue().offer(() -> {
