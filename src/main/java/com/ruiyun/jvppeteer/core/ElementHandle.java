@@ -105,6 +105,7 @@ public class ElementHandle extends JSHandle {
      * @return T
      * @throws JsonProcessingException 序列化错误
      */
+    @SuppressWarnings("unchecked")
     public <T> T adoptResult(T isolatedResult) throws JsonProcessingException {
         if (isolatedResult == null) {
             return null;
