@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.entities;
 
-public enum ErrorCode {
+public enum ErrorReasons {
 
     ABORTED("Aborted"),
     ACCESSDENIED("AccessDenied"),
@@ -19,7 +19,7 @@ public enum ErrorCode {
 
     private String name;
 
-    ErrorCode(String name) {
+    ErrorReasons(String name) {
         this.name = name;
     }
 

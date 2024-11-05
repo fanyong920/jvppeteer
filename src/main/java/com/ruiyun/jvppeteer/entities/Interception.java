@@ -10,7 +10,7 @@ public class Interception {
     private InterceptResolutionState resolutionState = new InterceptResolutionState();
     private ContinueRequestOverrides requestOverrides = new ContinueRequestOverrides();
     private ResponseForRequest response;
-    private ErrorCode abortReason;
+    private ErrorReasons abortReason;
 
     public boolean getEnabled() {
         return enabled;
@@ -20,11 +20,11 @@ public class Interception {
         this.enabled = enabled;
     }
 
-    public ErrorCode getAbortReason() {
+    public ErrorReasons getAbortReason() {
         return abortReason;
     }
 
-    public void setAbortReason(ErrorCode abortReason) {
+    public void setAbortReason(ErrorReasons abortReason) {
         this.abortReason = abortReason;
     }
 

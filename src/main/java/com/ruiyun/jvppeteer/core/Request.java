@@ -11,7 +11,7 @@ import com.ruiyun.jvppeteer.entities.InterceptResolutionState;
 import com.ruiyun.jvppeteer.entities.Interception;
 import com.ruiyun.jvppeteer.entities.ResponseForRequest;
 import com.ruiyun.jvppeteer.entities.HeaderEntry;
-import com.ruiyun.jvppeteer.entities.ErrorCode;
+import com.ruiyun.jvppeteer.entities.ErrorReasons;
 import com.ruiyun.jvppeteer.entities.Initiator;
 import com.ruiyun.jvppeteer.events.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.transport.CDPSession;
@@ -428,7 +428,7 @@ public class Request {
         return responseHeaders;
     }
 
-    public void abort(ErrorCode errorCode, Integer priority) {
+    public void abort(ErrorReasons errorCode, Integer priority) {
         if (!this.canBeIntercepted()) {
             return;
         }
@@ -444,7 +444,7 @@ public class Request {
         }
     }
 
-    private void _abort(ErrorCode errorCode) {
+    private void _abort(ErrorReasons errorCode) {
         this.interception.setHandled(true);
         ValidateUtil.assertArg(StringUtil.isNotEmpty(this.interceptionId), "HTTPRequest is missing _interceptionId needed for Fetch.fulfillRequest");
         String errorReason = errorCode.getName();
@@ -483,7 +483,7 @@ public class Request {
     }
 
     public void abort() {
-        this.abort(ErrorCode.FAILED, null);
+        this.abort(ErrorReasons.FAILED, null);
     }
 
 
@@ -557,7 +557,7 @@ public class Request {
         return this.interception.getRequestOverrides();
     }
 
-    public ErrorCode abortErrorReason() {
+    public ErrorReasons abortErrorReason() {
         ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
         return this.interception.getAbortReason();
     }
