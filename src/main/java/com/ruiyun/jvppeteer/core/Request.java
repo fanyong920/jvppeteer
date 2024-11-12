@@ -345,7 +345,7 @@ public class Request {
 
     private void handleError(Exception e) {
         if (e instanceof ProtocolException) {
-            boolean flag = ((ProtocolException) e).getOriginalMessage().contains("Invalid header") || ((ProtocolException) e).getOriginalMessage().contains("Expected \"header\"") || ((ProtocolException) e).getOriginalMessage().contains("invalid argument");
+            boolean flag = e.getMessage().contains("Invalid header") || e.getMessage().contains("Expected \"header\"") || e.getMessage().contains("invalid argument");
             if (flag) {
                 throw (ProtocolException) e;
             }

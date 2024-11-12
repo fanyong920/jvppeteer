@@ -7,6 +7,9 @@ public class CookieParam {
     private String url;
     private String domain;
     private String path;
+    /**
+     * UTC time in seconds, counted from January 1, 1970.
+     */
     private Number expires;
     private boolean httpOnly;
     private boolean secure;

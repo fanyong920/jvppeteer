@@ -19,6 +19,7 @@ import com.ruiyun.jvppeteer.core.WebWorker;
 import com.ruiyun.jvppeteer.entities.BoundingBox;
 import com.ruiyun.jvppeteer.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.entities.Cookie;
+import com.ruiyun.jvppeteer.entities.CookieParam;
 import com.ruiyun.jvppeteer.entities.CoverageEntry;
 import com.ruiyun.jvppeteer.entities.Credentials;
 import com.ruiyun.jvppeteer.entities.FrameAddScriptTagOptions;
@@ -798,9 +799,9 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test22() throws IOException {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://example.com/",false);
+        page.goTo("https://example.com/", false);
         Frame frame = page.waitForFrame("https://example.com/");
-        System.out.println("frame: "+frame.url());
+        System.out.println("frame: " + frame.url());
         browser.close();
     }
 
@@ -811,11 +812,11 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test23() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://example.com/",false);
+        page.goTo("https://example.com/", false);
         Frame frame = page.waitForFrame(frame1 -> frame1.url().contains("example.com"));
-        System.out.println("frame: "+frame.url());
+        System.out.println("frame: " + frame.url());
         page.setOfflineMode(true);
-        page.goTo("https://baidu.com",false);
+        page.goTo("https://baidu.com", false);
         Thread.sleep(2000);
         browser.close();
     }
@@ -898,6 +899,36 @@ public class S_PageApiTest extends A_LaunchTest {
         page.type("#username", "123456789", 200);
         page.type("#password", "123456789", 200);
         screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕 录制格式gif
+     */
+    @Test
+    public void test28() throws Exception {
+        launchOptions.setDevtools(true);
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        List<CookieParam> cookieParams = new ArrayList<>();
+        CookieParam cookieParam = new CookieParam();
+        cookieParam.setPath("/");
+        cookieParam.setName("ANON");
+        cookieParam.setSecure(true);
+        cookieParam.setSameSite("None");
+        //UTC time in seconds, counted from January 1, 1970.
+        cookieParam.setExpires(System.currentTimeMillis() / 1000 -500000);
+        cookieParam.setValue("hahaah");
+        cookieParams.add(cookieParam);
+        //domain一定要设置正确
+        cookieParam.setDomain("www.geetest.com");
+        page.setCookie(cookieParams);
+        List<Cookie> cookies1 = page.cookies();
+        for (Cookie cookie : cookies1) {
+            System.out.println("cookies1：" + cookie);
+        }
+        System.out.println("完成了");
         browser.close();
     }
 
