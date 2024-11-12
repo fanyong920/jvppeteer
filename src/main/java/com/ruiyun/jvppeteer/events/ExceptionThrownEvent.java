@@ -2,10 +2,11 @@ package com.ruiyun.jvppeteer.events;
 
 import com.ruiyun.jvppeteer.entities.Timestamp;
 import com.ruiyun.jvppeteer.entities.ExceptionDetails;
+import java.math.BigDecimal;
 
 
 public class ExceptionThrownEvent {
-    private Timestamp timestamp;
+    private BigDecimal timestamp;
     private ExceptionDetails exceptionDetails;
 
     public ExceptionThrownEvent() {
@@ -15,11 +16,11 @@ public class ExceptionThrownEvent {
         this.exceptionDetails = exceptionDetails;
     }
 
-    public Timestamp getTimestamp() {
+    public BigDecimal getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Timestamp timestamp) {
+    public void setTimestamp(BigDecimal timestamp) {
         this.timestamp = timestamp;
     }
 
