@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.entities;
 
 public class GetVersionResponse {
+    private String protocolVersion;
     private String product;
     private String revision;
     private String userAgent;
@@ -28,5 +29,13 @@ public class GetVersionResponse {
     }
     public void setJsVersion(String jsVersion) {
         this.jsVersion = jsVersion;
+    }
+
+    public String getProtocolVersion() {
+        return protocolVersion;
+    }
+
+    public void setProtocolVersion(String protocolVersion) {
+        this.protocolVersion = protocolVersion;
     }
 }
