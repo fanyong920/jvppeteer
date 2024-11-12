@@ -165,3 +165,7 @@
 - [从默认参数 中删除 --disable-component-update](https://github.com/fanyong920/jvppeteer/commit/73e673d2307008c259adefc16ca68282070abbcd)
 - [将 chrome 首选版本升级为 130.0.6723.58](https://github.com/fanyong920/jvppeteer/commit/673a9588758769da149610678cb71e806d186a85)
 - [添加下载文件的功能](https://github.com/fanyong920/jvppeteer/commit/3a59b4c3efcb1c584d465248d5a0db34fe004a65)
+
+### Version Release 2.2.1(2024/11/12)
+
+- [修复： ExceptionThrownEvent 中timestamp的类型](https://github.com/fanyong920/jvppeteer/commit/e669225b4fdc330b1e7a0b500664c7a1677a5aa5)
