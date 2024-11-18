@@ -169,3 +169,8 @@
 ### Version Release 2.2.1(2024/11/12)
 
 - [修复： ExceptionThrownEvent 中timestamp的类型](https://github.com/fanyong920/jvppeteer/commit/e669225b4fdc330b1e7a0b500664c7a1677a5aa5)
+
+### Version Release 2.2.2(2024/11/18)
+
+- [当设置--user-data-dir参数后，会报错Can't get WSEndpoint](https://github.com/fanyong920/jvppeteer/issues/164)
+- [线程 JvEmitEventThread 和 JvHandleMessageThread CPU占用极高](https://github.com/fanyong920/jvppeteer/issues/163)

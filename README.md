@@ -41,7 +41,7 @@
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>2.2.1<version>
+  <version>2.2.2<version>
 </dependency>
 ```
 
@@ -56,7 +56,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:2.2.1"
+compile "io.github.fanyong920:jvppeteer:2.2.2"
 ```
 
 #### Logging
@@ -124,18 +124,20 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 
 下表提供了 Jvppeteer 版本与绑定的浏览器版本之间的映射。如果没有列出完全匹配的 Jvppeteer 版本，则支持的浏览器版本是紧接在前的版本：
 
-| Jvppeteer | Chrome                                                       |
-| --------- | ------------------------------------------------------------ |
-| 2.2.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
-| 2.1.2     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
-| 2.1.1     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
-| 2.1.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
-| 2.0.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
-| 1.1.6     | Chromium 722234                                              |
-| 1.1.5     | Chromium 722234                                              |
-| 1.1.4     | Chromium 722234                                              |
-| 1.1.3     | Chromium 722234                                              |
-| 1.1.2     | Chromium 722234                                              |
+|       |                                                              |
+| ----- | ------------------------------------------------------------ |
+| 2.2.2 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
+| 2.2.1 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
+| 2.2.0 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
+| 2.1.2 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
+| 2.1.1 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
+| 2.1.0 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
+| 2.0.0 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
+| 1.1.6 | Chromium 722234                                              |
+| 1.1.5 | Chromium 722234                                              |
+| 1.1.4 | Chromium 722234                                              |
+| 1.1.3 | Chromium 722234                                              |
+| 1.1.2 | Chromium 722234                                              |
 
 #### 3、启动浏览器
 
