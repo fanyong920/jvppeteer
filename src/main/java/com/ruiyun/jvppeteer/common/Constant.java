@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 存放所用到的常量
@@ -424,4 +425,6 @@ public interface Constant {
             put(WebPermission.MIDI_SYSEX, "midiSysex");
         }
     };
+
+      List<String> EVENTS =  Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
 }

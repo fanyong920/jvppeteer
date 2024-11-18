@@ -28,7 +28,7 @@ public class ChromeLauncher extends BrowserLauncher {
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
-        String temporaryUserDataDir = options.getUserDataDir();
+        String temporaryUserDataDir = null;
         List<String> defaultArgs = this.defaultArgs(options);
         List<String> chromeArguments = new ArrayList<>(defaultArgs);
         boolean isCustomUserDir = false;
@@ -36,7 +36,8 @@ public class ChromeLauncher extends BrowserLauncher {
         for (String arg : chromeArguments) {
             if (arg.startsWith("--remote-debugging-")) {
                 isCustomRemoteDebugger = true;
-            } else if (arg.startsWith("--user-data-dir")) {
+            }
+            if (arg.startsWith("--user-data-dir")) {
                 isCustomUserDir = true;
             }
         }

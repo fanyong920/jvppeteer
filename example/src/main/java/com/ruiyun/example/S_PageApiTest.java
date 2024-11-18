@@ -35,6 +35,8 @@ import com.ruiyun.jvppeteer.entities.ScreencastOptions;
 import com.ruiyun.jvppeteer.entities.Viewport;
 import com.ruiyun.jvppeteer.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.entities.WaitForSelectorOptions;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -44,7 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class S_PageApiTest extends A_LaunchTest {
     /**
@@ -912,22 +913,61 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         List<CookieParam> cookieParams = new ArrayList<>();
-        CookieParam cookieParam = new CookieParam();
-        cookieParam.setPath("/");
-        cookieParam.setName("ANON");
-        cookieParam.setSecure(true);
-        cookieParam.setSameSite("None");
+        CookieParam cookieParam1 = new CookieParam();
+        cookieParam1.setPath("/");
+        cookieParam1.setName("ANON");
+        cookieParam1.setSecure(true);
+        cookieParam1.setSameSite("None");
         //UTC time in seconds, counted from January 1, 1970.
-        cookieParam.setExpires(System.currentTimeMillis() / 1000 -500000);
-        cookieParam.setValue("hahaah");
-        cookieParams.add(cookieParam);
+        cookieParam1.setExpires(System.currentTimeMillis() / 1000 - 500);
+        cookieParam1.setValue("hahaah");
         //domain一定要设置正确
-        cookieParam.setDomain("www.geetest.com");
+        cookieParam1.setDomain("www.geetest.com");
+        cookieParams.add(cookieParam1);
+
+        CookieParam cookieParam2 = new CookieParam();
+        cookieParam2.setPath("/");
+        cookieParam2.setName("ANON2");
+        cookieParam2.setSecure(true);
+        cookieParam2.setSameSite("None");
+        //UTC time in seconds, counted from January 1, 1970.
+        cookieParam2.setExpires(System.currentTimeMillis() / 1000 + 500);
+        cookieParam2.setValue("hahaah2");
+        //domain一定要设置正确
+        cookieParam2.setDomain("www.geetest.com");
+        cookieParams.add(cookieParam2);
         page.setCookie(cookieParams);
         List<Cookie> cookies1 = page.cookies();
         for (Cookie cookie : cookies1) {
             System.out.println("cookies1：" + cookie);
         }
+        System.out.println("完成了");
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕 录制格式gif
+     */
+    @Test
+    public void test29() throws Exception {
+        launchOptions.setDevtools(true);
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        List<CookieParam> cookieParams = new ArrayList<>();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date expires = format.parse("2025-05-30 21:23:57");
+        CookieParam cookieANON = new CookieParam();
+        cookieANON.setName("ANON");
+        cookieANON.setValue("A=3BA4B946A45109124C797104FFFFFFFF&E=1e78&W=1");
+        cookieANON.setDomain(".live.com");
+        cookieANON.setPath("/");
+        cookieANON.setHttpOnly(true);
+        cookieANON.setSecure(true);
+        cookieANON.setSameSite("None");
+        cookieANON.setExpires(expires.getTime());
+        cookieParams.add(cookieANON);
+        page.setCookie(cookieParams);
         System.out.println("完成了");
         browser.close();
     }

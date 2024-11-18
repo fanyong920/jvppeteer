@@ -9,7 +9,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-import static com.ruiyun.jvppeteer.common.Constant.JV_EMIT_EVENT_THREAD;
+
+import static com.ruiyun.jvppeteer.common.Constant.JV_HANDLE_MESSAGE_THREAD;
 import static com.ruiyun.jvppeteer.util.Helper.throwError;
 
 
@@ -44,7 +45,7 @@ public class CallbackRegistry {
     private void put(Callback callback, boolean isBlocking) {
         if (isBlocking) {//只有等待结果的，才放进去
             String name = Thread.currentThread().getName();
-            if (name.startsWith(JV_EMIT_EVENT_THREAD)) {//说明是JV_EMIT_EVENT_THREAD线程中发送的请求接受到的消息
+            if (name.startsWith(JV_HANDLE_MESSAGE_THREAD)) {//说明是 JV_HANDLE_MESSAGE_THREAD 线程中发送的请求接受到的消息
                 eventCallbacks.put(callback.id(), callback);
             } else {
                 callbacks.put(callback.id(), callback);

@@ -32,7 +32,7 @@ public class FirefoxLauncher extends BrowserLauncher {
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
-        String temporaryUserDataDir = options.getUserDataDir();
+        String temporaryUserDataDir = null;
         List<String> defaultArgs = this.defaultArgs(options);
         List<String> firefoxArguments = new ArrayList<>(defaultArgs);
         boolean isCustomUserDir = false;
@@ -40,7 +40,8 @@ public class FirefoxLauncher extends BrowserLauncher {
         for (String arg : firefoxArguments) {
             if (arg.startsWith("--remote-debugging-")) {
                 isCustomRemoteDebugger = true;
-            } else if (arg.equals("-profile") || arg.equals("--profile")) {
+            }
+            if (arg.equals("-profile") || arg.equals("--profile")) {
                 isCustomUserDir = true;
             }
         }

@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class A_LaunchTest {
-    public final LaunchOptions launchOptions = LaunchOptions.builder().headless(false).build();
+    public final LaunchOptions launchOptions = LaunchOptions.builder().executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-130.0.6723.58\\chrome-win32\\chrome.exe").headless(true).build();
 
     /**
      * 手动配置路径来启动浏览器
@@ -21,7 +21,8 @@ public class A_LaunchTest {
      */
     @Test
     public void test99() throws IOException {
-        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
+        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-130.0.6723.58\\chrome-win32\\chrome.exe");
+        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\dir");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();

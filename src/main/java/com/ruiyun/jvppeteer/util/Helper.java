@@ -61,10 +61,10 @@ public class Helper {
             return valueFromRemoteObject(exceptionDetails.getException());
         } else {
             String[] lines;
-            lines = Optional.of(exceptionDetails).flatMap(details -> Optional.ofNullable(details.getException().getDescription())).orElse("").split("\\n {4}at ");
-            int size = Math.min(Optional.of(exceptionDetails).flatMap(details -> Optional.of(details.getStackTrace().getCallFrames().size())).orElse(0), lines.length - 1);
+            lines = Optional.of(exceptionDetails).map(ExceptionDetails::getException).map(RemoteObject::getDescription).orElse("").split("\\n {4}at ");
+            int size = Math.min(Optional.of(exceptionDetails).map(ExceptionDetails::getStackTrace).map(StackTrace::getCallFrames).map(List::size).orElse(0), lines.length - 1);
             lines = Arrays.stream(lines).limit(lines.length - size).toArray(String[]::new);
-            String className = Optional.of(exceptionDetails).flatMap(details -> Optional.of(details.getException().getClassName())).get();
+            String className = Optional.of(exceptionDetails).map(ExceptionDetails::getException).map(RemoteObject::getClassName).orElse("");
             if (StringUtil.isNotEmpty(className)) {
                 name = className;
             }

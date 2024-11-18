@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -146,7 +147,7 @@ public class BrowserRunner {
      * @return 连接对象
      * @throws InterruptedException 打断异常
      */
-    public Connection setUpConnection(boolean usePipe, int timeout, int slowMo, boolean dumpio) throws InterruptedException {
+    public Connection setUpConnection(boolean usePipe, int timeout, int slowMo, boolean dumpio) throws InterruptedException, IOException {
         if (usePipe) {/* pipe connection*/
             throw new LaunchException("Temporarily not supported pipe connect to chromuim.If you have a pipe connect to chromium idea,pleaze new a issue in github:https://github.com/fanyong920/jvppeteer/issues");
         } else {/*websocket connection*/
@@ -159,7 +160,8 @@ public class BrowserRunner {
     }
 
     static class StreamReader {
-        private final StringBuilder ws = new StringBuilder();
+        private final StringBuilder chromeOutputBuilder = new StringBuilder();
+        private volatile String wsEndpoint = null;
         private final int timeout;
         private final boolean dumpio;
         private final InputStream inputStream;
@@ -168,41 +170,50 @@ public class BrowserRunner {
             this.timeout = timeout;
             this.dumpio = dumpio;
             this.inputStream = inputStream;
+            start();
         }
 
-        public String getResult() {
-            StringBuilder chromeOutputBuilder = new StringBuilder();
+        private void start() {
+            Runnable runnable = () -> {
+                try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                     BufferedReader reader = new BufferedReader(inputStreamReader)) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        if (dumpio) {
+                            System.out.println(line);
+                        }
+                        Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
+                        if (matcher.find()) {
+                            wsEndpoint = matcher.group(1);
+                            break;
+                        }
+                        if (chromeOutputBuilder.length() != 0) {
+                            chromeOutputBuilder.append(System.lineSeparator());
+                        }
+                        chromeOutputBuilder.append(line);
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Failed to launch the browser process!{},{}", chromeOutputBuilder, e.getMessage(), e);
+                }
+            };
+            new Thread(runnable).start();
+        }
+
+        public String waitFor() {
             long now = System.currentTimeMillis();
             long base = 0;
-            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                 BufferedReader reader = new BufferedReader(inputStreamReader)
-            ) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    if (dumpio) {
-                        System.out.println(line);
-                    }
-                    long remaining = timeout - base;
-                    if (remaining <= 0) {
-                        throw new TimeoutException("Timed out after " + timeout + " ms while trying to connect to the browser!"
-                                + "Chrome output: "
-                                + chromeOutputBuilder);
-                    }
-                    Matcher matcher = WS_ENDPOINT_PATTERN.matcher(line);
-                    if (matcher.find()) {
-                        return matcher.group(1);
-                    }
-                    if (chromeOutputBuilder.length() != 0) {
-                        chromeOutputBuilder.append(System.lineSeparator());
-                    }
-                    chromeOutputBuilder.append(line);
-                    base = System.currentTimeMillis() - now;
+            while (true) {
+                if (Objects.nonNull(wsEndpoint)) {
+                    return wsEndpoint;
                 }
-
-            } catch (Exception e) {
-                LOGGER.error("Failed to launch the browser process!please see TROUBLESHOOTING: https://github.com/puppeteer/puppeteer/blob/master/docs/troubleshooting.md:", e);
+                long remaining = timeout - base;
+                if (remaining <= 0) {
+                    throw new TimeoutException("Failed to launch the browser process!"
+                            + "Chrome output: "
+                            + chromeOutputBuilder);
+                }
+                base = System.currentTimeMillis() - now;
             }
-            throw new LaunchException("Can't get WSEndpoint");
         }
 
 
@@ -216,8 +227,7 @@ public class BrowserRunner {
      * @return ws url
      */
     private String waitForWSEndpoint(int timeout, boolean dumpio) {
-        StreamReader reader = new StreamReader(timeout, dumpio, process.getInputStream());
-        return reader.getResult();
+        return new StreamReader(timeout, dumpio, process.getInputStream()).waitFor();
     }
 
     public Process getProcess() {

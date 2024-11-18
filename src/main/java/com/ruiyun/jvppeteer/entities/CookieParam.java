@@ -10,7 +10,7 @@ public class CookieParam {
     /**
      * UTC time in seconds, counted from January 1, 1970.
      */
-    private Number expires;
+    private long expires;
     private boolean httpOnly;
     private boolean secure;
     /**
@@ -58,11 +58,11 @@ public class CookieParam {
         this.path = path;
     }
 
-    public Number getExpires() {
+    public long getExpires() {
         return expires;
     }
 
-    public void setExpires(Number expires) {
+    public void setExpires(long expires) {
         this.expires = expires;
     }
 

@@ -1,6 +1,5 @@
 package com.ruiyun.jvppeteer.transport;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.core.Target;
@@ -8,13 +7,19 @@ import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
 
-import static com.ruiyun.jvppeteer.common.Constant.*;
+import static com.ruiyun.jvppeteer.common.Constant.EVENTS;
+import static com.ruiyun.jvppeteer.common.Constant.ID;
+import static com.ruiyun.jvppeteer.common.Constant.LISTENER_CLASSES;
+import static com.ruiyun.jvppeteer.common.Constant.METHOD;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.common.Constant.PARAMS;
+import static com.ruiyun.jvppeteer.common.Constant.SESSION_ID;
 import static com.ruiyun.jvppeteer.transport.Connection.resolveCallback;
 
 /**
@@ -34,7 +39,6 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
     private Connection connection;
     private final String parentSessionId;
     private Target target;
-    private List<String> events = null;
 
     public CDPSession(Connection connection, String targetType, String sessionId, String parentSessionId) {
         super();
@@ -107,9 +111,8 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
      *
      * @param response  接受到的返回值
      * @param callbacks 回调
-     * @return boolean
      */
-    public boolean onMessage(JsonNode response, CallbackRegistry callbacks) {
+    public void onMessage(JsonNode response, CallbackRegistry callbacks) {
         JsonNode paramsNode = response.get(PARAMS);
         JsonNode methodNode = response.get(METHOD);
         try {
@@ -118,30 +121,18 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
                 resolveCallback(callbacks, response, id, false);
             } else {//发射数据，执行事件的监听方法
                 ValidateUtil.assertArg(!response.hasNonNull(ID), "Should not contain id, " + response);
-                String method = methodNode.asText();
-                if (events == null) {
-                    events = Arrays.stream(CDPSession.CDPSessionEvent.values()).map(CDPSession.CDPSessionEvent::getEventName).collect(Collectors.toList());
-                }
-                boolean match = events.contains(method);
-                if (!match) {//不匹配就是没有监听该事件
-                    return false;
-                }
                 if (Objects.isNull(connection)) {
-                    return false;
+                    return;
                 }
-                connection.getEventQueue().offer(() -> {
-                    try {
-                        this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
-                    } catch (IllegalArgumentException | JsonProcessingException e) {
-                        LOGGER.error("emit error", e);
-                    }
-                });
-                return true;
+                String method = methodNode.asText();
+                boolean match = EVENTS.contains(method);
+                if (match) {//不匹配就是没有监听该事件
+                    this.emit(CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
+                }
             }
         } catch (Exception e) {
             LOGGER.error("emit error", e);
         }
-        return false;
     }
 
     public Connection getConnection() {
