@@ -174,3 +174,7 @@
 
 - [当设置--user-data-dir参数后，会报错Can't get WSEndpoint](https://github.com/fanyong920/jvppeteer/issues/164)
 - [线程 JvEmitEventThread 和 JvHandleMessageThread CPU占用极高](https://github.com/fanyong920/jvppeteer/issues/163)
+
+### Version Release 2.2.3(2024/11/18)
+
+- [线程 JvEmitEventThread 和 JvHandleMessageThread CPU占用极高](https://github.com/fanyong920/jvppeteer/issues/163)

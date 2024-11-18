@@ -17,7 +17,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -52,9 +54,8 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     protected volatile boolean closed;
     final Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
-    private volatile boolean handleMessageThreadFinish = false;
-    private final ConcurrentLinkedQueue<JsonNode> messagesQueue = new ConcurrentLinkedQueue<>();
     final AtomicLong id = new AtomicLong(1);
+    ExecutorService handleMessageExecutorService = Executors.newSingleThreadExecutor(r -> new Thread(r, JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement()));
 
     public Connection(String url, ConnectionTransport transport, int delay, int timeout) {
         super();
@@ -63,89 +64,75 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
         this.delay = delay;
         this.timeout = timeout;
         this.transport.setConnection(this);
-        this.startThread();
     }
-    /**
-     * 专门处理从websocket接收到的消息的线程
-     */
-    public void startHandleMessageThread() {
-        Thread handleMessageThread = new Thread(() -> {
-            try {
-                do {
-                    try {
-                        JsonNode response = this.messagesQueue.poll();
-                        if (Objects.isNull(response)) {
-                            continue;
-                        }
-                        String method;
-                        if (response.hasNonNull(METHOD)) {
-                            method = response.get(METHOD).asText();
-                        } else {
-                            method = null;
-                        }
-                        String sessionId = null;
-                        JsonNode paramsNode;
-                        if (response.hasNonNull(PARAMS)) {
-                            paramsNode = response.get(PARAMS);
-                            if (paramsNode.hasNonNull(SESSION_ID)) {
-                                sessionId = paramsNode.get(SESSION_ID).asText();
-                            }
-                        } else {
-                            paramsNode = null;
-                        }
-                        String parentSessionId = "";
-                        if (response.hasNonNull(SESSION_ID)) {
-                            parentSessionId = response.get(SESSION_ID).asText();
-                        }
-                        if ("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
-                            assert paramsNode != null;
-                            JsonNode typeNode = paramsNode.get(Constant.TARGET_INFO).get(Constant.TYPE);
-                            CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId, parentSessionId);
-                            this.sessions.put(sessionId, cdpSession);
-                            this.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
-                            CDPSession parentSession = this.sessions.get(parentSessionId);
-                            if (Objects.nonNull(parentSession)) {
-                                parentSession.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
-                            }
-                        } else if ("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
-                            CDPSession cdpSession = this.sessions.get(sessionId);
-                            if (Objects.nonNull(cdpSession)) {
-                                cdpSession.onClosed();
-                                this.sessions.remove(sessionId);
-                                this.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
-                                CDPSession parentSession = this.sessions.get(parentSessionId);
-                                if (Objects.nonNull(parentSession)) {
-                                    parentSession.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
-                                }
-                            }
-                        }
-                        if (StringUtil.isNotEmpty(parentSessionId)) {
-                            CDPSession parentSession = this.sessions.get(parentSessionId);
-                            if (Objects.nonNull(parentSession)) {
-                                parentSession.onMessage(response, callbacks);
-                            }
-                        } else if (response.hasNonNull(ID)) {//long类型的id,说明属于这次发送消息后接受的回应
-                            long id = response.get(ID).asLong();
-                            resolveCallback(this.callbacks, response, id, false);
-                        } else {//是一个事件，那么响应监听器
-                            boolean match = EVENTS.contains(method);
-                            if (match) {//匹配就是有监听该事件
-                                assert method != null;
-                                this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
-                            }
 
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("Handle message error: ", e);
+    private Runnable handleMessageRunnable(JsonNode response) {
+        return () -> {
+            try {
+                String method;
+                if (response.hasNonNull(METHOD)) {
+                    method = response.get(METHOD).asText();
+                } else {
+                    method = null;
+                }
+                String sessionId = null;
+                JsonNode paramsNode;
+                if (response.hasNonNull(PARAMS)) {
+                    paramsNode = response.get(PARAMS);
+                    if (paramsNode.hasNonNull(SESSION_ID)) {
+                        sessionId = paramsNode.get(SESSION_ID).asText();
                     }
-                } while (!this.messagesQueue.isEmpty() || !this.closed);
-            } finally {
-                this.handleMessageThreadFinish = true;
+                } else {
+                    paramsNode = null;
+                }
+                String parentSessionId = "";
+                if (response.hasNonNull(SESSION_ID)) {
+                    parentSessionId = response.get(SESSION_ID).asText();
+                }
+                if ("Target.attachedToTarget".equals(method)) {//attached to target -> page attached to browser
+                    assert paramsNode != null;
+                    JsonNode typeNode = paramsNode.get(Constant.TARGET_INFO).get(Constant.TYPE);
+                    CDPSession cdpSession = new CDPSession(this, typeNode.asText(), sessionId, parentSessionId);
+                    this.sessions.put(sessionId, cdpSession);
+                    this.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
+                    CDPSession parentSession = this.sessions.get(parentSessionId);
+                    if (Objects.nonNull(parentSession)) {
+                        parentSession.emit(CDPSession.CDPSessionEvent.sessionAttached, cdpSession);
+                    }
+                } else if ("Target.detachedFromTarget".equals(method)) {//页面与浏览器脱离关系
+                    CDPSession cdpSession = this.sessions.get(sessionId);
+                    if (Objects.nonNull(cdpSession)) {
+                        cdpSession.onClosed();
+                        this.sessions.remove(sessionId);
+                        this.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
+                        CDPSession parentSession = this.sessions.get(parentSessionId);
+                        if (Objects.nonNull(parentSession)) {
+                            parentSession.emit(CDPSession.CDPSessionEvent.sessionDetached, cdpSession);
+                        }
+                    }
+                }
+                if (StringUtil.isNotEmpty(parentSessionId)) {
+                    CDPSession parentSession = this.sessions.get(parentSessionId);
+                    if (Objects.nonNull(parentSession)) {
+                        parentSession.onMessage(response, callbacks);
+                    }
+                } else if (response.hasNonNull(ID)) {//long类型的id,说明属于这次发送消息后接受的回应
+                    long id = response.get(ID).asLong();
+                    resolveCallback(this.callbacks, response, id, false);
+                } else {//是一个事件，那么响应监听器
+                    boolean match = EVENTS.contains(method);
+                    if (match) {//匹配就是有监听该事件
+                        assert method != null;
+                        this.emit(CDPSession.CDPSessionEvent.valueOf(method.replace(".", "_")), LISTENER_CLASSES.get(method) == null ? true : OBJECTMAPPER.treeToValue(paramsNode, LISTENER_CLASSES.get(method)));
+                    }
+
+                }
+            } catch (Exception e) {
+                LOGGER.error("Handle message error: ", e);
             }
 
-        });
-        handleMessageThread.setName(JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement());
-        handleMessageThread.start();
+        };
+
     }
 
     /**
@@ -234,7 +221,7 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
                 long id = readTree.get(ID).asLong();
                 resolveCallback(this.callbacks, readTree, id, true);
             }
-            this.messagesQueue.offer(readTree);
+            this.handleMessageExecutorService.submit(handleMessageRunnable(readTree));
         } catch (Exception e) {
             LOGGER.error("onMessage error:", e);
         }
@@ -312,19 +299,19 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     }
 
     private void waitForHandleMessageThreadFinish() {
-        while (true) {
-            if (this.handleMessageThreadFinish) {
-                break;
-            }
+        //暂停接受任务
+        this.handleMessageExecutorService.shutdown();
+        //等待三分钟执行剩下的任务
+        try {
+            this.handleMessageExecutorService.awaitTermination(3, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            LOGGER.error("jvppeteer error", e);
         }
+
     }
 
     public List<ProtocolException> getPendingProtocolErrors() {
         return new ArrayList<>(this.callbacks.getPendingProtocolErrors());
-    }
-
-    private void startThread() {
-        this.startHandleMessageThread();
     }
 
     public boolean closed() {

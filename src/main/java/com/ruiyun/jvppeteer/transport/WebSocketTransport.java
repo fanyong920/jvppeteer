@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Objects;
 
+
 import static com.ruiyun.jvppeteer.common.Constant.CLOSE_REASON;
 
 /**
@@ -24,16 +25,8 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketTransport.class);
     private Connection connection = null;
 
-    public WebSocketTransport(URI serverUri, Draft draft) {
-        super(serverUri, draft);
-    }
-
-    public WebSocketTransport(URI serverURI) {
-        super(serverURI);
-    }
-
-    public WebSocketTransport(URI serverUri, Map<String, String> httpHeaders) {
-        super(serverUri, httpHeaders);
+    public WebSocketTransport(URI serverUri, Draft protocolDraft, Map<String, String> httpHeaders, int timeout) {
+        super(serverUri, protocolDraft, httpHeaders, timeout);
     }
 
     public static WebSocketTransport create(String browserWSEndpoint) throws InterruptedException {
@@ -88,7 +81,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
-        LOGGER.info("Websocket serverHandshake status: {}", serverHandshake.getHttpStatus());
+        LOGGER.info("Websocket serverHandshake status: {}", serverHandshake.getHttpStatusMessage());
     }
 
     @Override

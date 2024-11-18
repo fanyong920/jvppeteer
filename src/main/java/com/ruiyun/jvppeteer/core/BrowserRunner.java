@@ -152,9 +152,9 @@ public class BrowserRunner {
             throw new LaunchException("Temporarily not supported pipe connect to chromuim.If you have a pipe connect to chromium idea,pleaze new a issue in github:https://github.com/fanyong920/jvppeteer/issues");
         } else {/*websocket connection*/
             String waitForWSEndpoint = this.waitForWSEndpoint(timeout, dumpio);
+            LOGGER.info("Connect to browser by websocket url: {}", waitForWSEndpoint);
             WebSocketTransport transport = WebSocketTransportFactory.create(waitForWSEndpoint);
             this.connection = new Connection(waitForWSEndpoint, transport, slowMo, timeout);
-            LOGGER.trace("Connect to browser by websocket url: {}", waitForWSEndpoint);
         }
         return this.connection;
     }
@@ -208,9 +208,7 @@ public class BrowserRunner {
                 }
                 long remaining = timeout - base;
                 if (remaining <= 0) {
-                    throw new TimeoutException("Failed to launch the browser process!"
-                            + "Chrome output: "
-                            + chromeOutputBuilder);
+                    throw new TimeoutException("Failed to launch the browser process!" + "Chrome output: " + chromeOutputBuilder);
                 }
                 base = System.currentTimeMillis() - now;
             }

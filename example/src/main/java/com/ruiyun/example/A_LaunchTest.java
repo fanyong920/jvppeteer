@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import java.util.ArrayList;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -21,11 +22,16 @@ public class A_LaunchTest {
      */
     @Test
     public void test99() throws IOException {
-        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-130.0.6723.58\\chrome-win32\\chrome.exe");
+        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win64-128.0.6613.137\\chrome-win64\\chrome.exe");
         launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\dir");
+        ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
+        args.add("--no-sandbox");
+        launchOptions.setArgs(args);
+        launchOptions.setDumpio(true);
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
+            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
             Target target1 = page.target();
             System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
             List<Target> targets = browser.targets();
