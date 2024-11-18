@@ -43,25 +43,25 @@ import java.util.Map;
 public class Request {
     private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
 
-    private String id;
+    private volatile String id;
     private List<Request> redirectChain;
     private Response response;
     private CDPSession client;
-    private boolean isNavigationRequest;
-    private String url;
-    private String interceptionId;
-    private ResourceType resourceType;
-    private String method;
-    private boolean hasPostData;
-    private String postData;
-    private Map<String, String> headers = new HashMap<>();
+    private volatile boolean isNavigationRequest;
+    private volatile String url;
+    private volatile String interceptionId;
+    private volatile ResourceType resourceType;
+    private volatile String method;
+    private volatile boolean hasPostData;
+    private volatile String postData;
+    private volatile Map<String, String> headers = new HashMap<>();
     private Frame frame;
-    private Initiator initiator;
+    private volatile Initiator initiator;
     private final Interception interception = new Interception();
 
-    private String failureText;
+    private volatile String failureText;
     private static final Map<Integer, String> STATUS_TEXTS = new HashMap<>();
-    private boolean fromMemoryCache;
+    private volatile boolean fromMemoryCache;
 
     static {
         // List taken from https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml with extra 306 and 418 codes.
@@ -151,7 +151,6 @@ public class Request {
         this.method = event.getRequest().getMethod();
         this.postData = event.getRequest().getPostData();
         this.hasPostData = event.getRequest().getHasPostData();
-        this.headers = new HashMap<>();
         this.frame = frame;
         this.redirectChain = redirectChain;
         this.initiator = event.getInitiator();

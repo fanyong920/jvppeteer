@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 import static com.ruiyun.jvppeteer.util.Helper.throwError;
 
 public class Response {
@@ -28,14 +29,14 @@ public class Response {
     private Request request;
     private final AwaitableResult<byte[]> contentResult = AwaitableResult.create();
     private final AwaitableResult<String> bodyLoadedResult = AwaitableResult.create();
-    private RemoteAddress remoteAddress;
-    private int status;
-    private String statusText;
-    private String url;
-    private boolean fromDiskCache;
-    private boolean fromServiceWorker;
-    private Map<String, String> headers;
-    private ResponseSecurityDetails securityDetails;
+    private volatile RemoteAddress remoteAddress;
+    private volatile int status;
+    private volatile String statusText;
+    private volatile String url;
+    private volatile boolean fromDiskCache;
+    private volatile boolean fromServiceWorker;
+    private volatile Map<String, String> headers;
+    private volatile ResponseSecurityDetails securityDetails;
     private ResourceTiming timing;
 
     public Response() {
