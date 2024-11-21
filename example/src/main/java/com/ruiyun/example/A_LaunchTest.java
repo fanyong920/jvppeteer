@@ -6,12 +6,11 @@ import com.ruiyun.jvppeteer.core.Page;
 import com.ruiyun.jvppeteer.core.Puppeteer;
 import com.ruiyun.jvppeteer.core.Target;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import java.util.ArrayList;
-import org.junit.Test;
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Test;
 
 public class A_LaunchTest {
     public final LaunchOptions launchOptions = LaunchOptions.builder().executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-130.0.6723.58\\chrome-win32\\chrome.exe").headless(true).build();
@@ -22,12 +21,11 @@ public class A_LaunchTest {
      */
     @Test
     public void test99() throws IOException {
-        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win64-128.0.6613.137\\chrome-win64\\chrome.exe");
-        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\dir");
-        ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
-        args.add("--no-sandbox");
-        launchOptions.setArgs(args);
-        launchOptions.setDumpio(true);
+//        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win64-128.0.6613.137\\chrome-win64\\chrome.exe");
+//        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\chrome\\chrome");
+
+//        launchOptions.setArgs(getLaunchArguments());
+
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -40,6 +38,21 @@ public class A_LaunchTest {
                 System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
             }
         }
+    }
+    private static ArrayList<String> getLaunchArguments() {
+        ArrayList<String> argList = new ArrayList<>();
+        argList.add("--no-sandbox");
+        argList.add("--disable-setuid-sandbox");
+        //argList.add("--disable-blink-features=AutomationControlled");
+        //argList.add("--auto-open-devtools-for-tabs");
+        argList.add("--disable-infobars");
+        //argList.add("--enable-webgl");
+        //argList.add("--use-gl=swiftshader");
+        argList.add("--disable-dev-shm-usage");
+        argList.add("--lang=zh-CN");
+        argList.add("--start-maximized");
+        //设置插件
+        return argList;
     }
 
     /**

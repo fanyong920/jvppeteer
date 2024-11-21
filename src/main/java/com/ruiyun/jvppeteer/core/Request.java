@@ -333,7 +333,7 @@ public class Request {
         } else {
             params.put("postData", "");
         }
-        params.put("headers", headersArray(headers));
+        params.put("headers", headersArray(overrides.getHeaders()));
         try {
             this.client.send("Fetch.continueRequest", params);
         } catch (Exception e) {

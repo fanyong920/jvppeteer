@@ -38,6 +38,21 @@ public class L_CDPSessionTest extends A_LaunchTest {
     }
 
 
+    @Test
+    public void test3() throws Exception {
+
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            Target target = browser.target();//browser对应的target
+            CDPSession session = target.session();//已经附属到target的session
+            if (session == null) {
+                session = target.createCDPSession();
+            }
+            JsonNode res = session.send("Browser.getVersion");
+            System.out.println("version: " + res);
+        }
+    }
+
+
 
 
 

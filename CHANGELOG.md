@@ -178,3 +178,7 @@
 ### Version Release 2.2.3(2024/11/18)
 
 - [线程 JvEmitEventThread 和 JvHandleMessageThread CPU占用极高](https://github.com/fanyong920/jvppeteer/issues/163)
+
+### Version Release 2.2.4(2024/11/21)
+
+- 修改获取chrome pid 的方式：放弃通过 cdp 的 SystemInfo.getProcessInfo 方式

@@ -57,7 +57,11 @@ public class FileUtil {
         if (Files.exists(userDirPath)) {
             try (Stream<Path> paths = Files.walk(userDirPath)) {
                 // 确保先删除子目录中的文件和子目录
-                paths .map(Path::toFile).forEach(File::deleteOnExit);
+                paths.map(Path::toFile).forEach(file -> {
+                    if (file.exists()) {
+                        file.deleteOnExit();
+                    }
+                });
             }
             userDirPath.toFile().deleteOnExit();
         }
@@ -75,7 +79,11 @@ public class FileUtil {
             try (Stream<Path> paths = Files.walk(userDirPath)) {
                 paths.sorted(Comparator.reverseOrder())  // 确保先删除子目录中的文件和子目录
                         .map(Path::toFile)
-                        .forEach(File::delete);
+                        .forEach(file -> {
+                            if (file.exists()) {
+                                file.delete();
+                            }
+                        });
             }
         }
     }

@@ -13,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -187,10 +188,7 @@ public class BrowserRunner {
                             wsEndpoint = matcher.group(1);
                             break;
                         }
-                        if (chromeOutputBuilder.length() != 0) {
-                            chromeOutputBuilder.append(System.lineSeparator());
-                        }
-                        chromeOutputBuilder.append(line);
+                        chromeOutputBuilder.append(line).append(System.lineSeparator());
                     }
                 } catch (Exception e) {
                     LOGGER.error("Failed to launch the browser process!{},{}", chromeOutputBuilder, e.getMessage(), e);
@@ -259,7 +257,7 @@ public class BrowserRunner {
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             try {
                 removeFolderOnExit(this.tempDirectory);
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
     }

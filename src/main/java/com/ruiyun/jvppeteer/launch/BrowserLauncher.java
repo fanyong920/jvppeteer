@@ -12,7 +12,6 @@ import com.ruiyun.jvppeteer.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.entities.LaunchOptions;
-
 import com.ruiyun.jvppeteer.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.entities.TargetType;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
@@ -32,7 +31,6 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +140,7 @@ public abstract class BrowserLauncher {
             if (options.getWaitForInitialPage()) {
                 browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
             }
-            runner.setPid(getBrowserPid(connection, runner.getProcess()));
+            runner.setPid(getBrowserPid(runner.getProcess()));
             return browser;
         } catch (IOException | InterruptedException e) {
             runner.closeBrowser();
@@ -154,21 +152,10 @@ public abstract class BrowserLauncher {
     /**
      * 通过cdp的SystemInfo.getProcessInfo获取浏览器pid，如果通过cdp没获取pid，并且是mac或者linux平台，那么尝试通过反射获取pid
      */
-    private String getBrowserPid(Connection connection, Process process) {
+    private String getBrowserPid(Process process) {
         long pid = -1;
         try {
-            JsonNode result = connection.send("SystemInfo.getProcessInfo");
-            Iterator<JsonNode> processInfos = result.get("processInfo").elements();
-            while (processInfos.hasNext()) {
-                JsonNode processInfo = processInfos.next();
-                if (processInfo.get(Constant.TYPE).asText().equals("browser")) {
-                    pid = processInfo.get(Constant.ID).asLong();
-                    break;
-                }
-            }
-            if (pid == -1) {
-                pid = Helper.getPidForLinuxOrMac(process);
-            }
+            pid = Helper.getPidForLinuxOrMac(process);
         } catch (Exception e) {
             LOGGER.error("get browser pid error: ", e);
         }
@@ -199,7 +186,7 @@ public abstract class BrowserLauncher {
         Runnable closeFunction = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
         GetVersionResponse version = getVersion(connection);
-        Product product = version.getProduct().toLowerCase().contains("firefox") ?Product.FIREFOX :Product.CHROME;
+        Product product = version.getProduct().toLowerCase().contains("firefox") ? Product.FIREFOX : Product.CHROME;
         return Browser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
     }
 

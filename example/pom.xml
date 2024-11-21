@@ -8,7 +8,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
-        <jvppeteer.version>2.2.3</jvppeteer.version>
+        <jvppeteer.version>2.2.4</jvppeteer.version>
         <slf4j.version>2.0.16</slf4j.version>
     </properties>
     <dependencies>

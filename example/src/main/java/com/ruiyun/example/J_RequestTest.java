@@ -80,7 +80,7 @@ public class J_RequestTest extends A_LaunchTest {
                     responseForRequest.setBody("百度一下，你就知道");
                     responseForRequest.setStatus(404);
                     responseForRequest.setContentType("text/plain; charset=utf-8");
-                    request.respond(responseForRequest);
+                    request.continueRequest();
                 } else {
                     //修改请求头
                     Map<String, String> headers = request.headers();
@@ -94,7 +94,7 @@ public class J_RequestTest extends A_LaunchTest {
             //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
             options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
             page.goTo("https://www.baidu.com/", options);
-            Thread.sleep(5000);
+            Thread.sleep(115000);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.entities;
 
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.core.Target;
 
 import java.util.function.Function;
@@ -34,7 +35,7 @@ public class BrowserConnectOptions extends BrowserLaunchArgumentOptions {
     /**
      * Timeout setting for individual protocol (CDP) calls.
      */
-    private int protocolTimeout = 180_000;
+    private int protocolTimeout = Constant.DEFAULT_TIMEOUT;
 
     public BrowserConnectOptions() {
         super();

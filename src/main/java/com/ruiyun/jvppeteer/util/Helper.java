@@ -14,6 +14,8 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.transport.CDPSession;
 import com.ruiyun.jvppeteer.transport.Connection;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +43,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 import static com.ruiyun.jvppeteer.common.Constant.INTERNAL_URL;
 import static com.ruiyun.jvppeteer.common.Constant.SOURCE_URL_REGEX;
@@ -376,24 +379,22 @@ public class Helper {
      *
      * @param process 进程
      * @return 进程id
-     * @throws ClassNotFoundException class not found
      * @throws NoSuchFieldException   field not found
      * @throws IllegalAccessException illegal access
      */
-    public static long getPidForLinuxOrMac(Process process) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+    public static long getPidForLinuxOrMac(Process process) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         long pid = -1;
         if (Helper.isMac() || Helper.isLinux()) {
             String version = System.getProperty("java.version");
-            double jdkversion = Double.parseDouble(version.substring(0, 3));
-            Class<?> clazz;
-            if (jdkversion <= 1.8) {
-                clazz = Class.forName("java.lang.UNIXProcess");
+            double jdkVersion = Double.parseDouble(version.substring(0, 3));
+            if (jdkVersion <= 1.8) {
+                Field field = process.getClass().getDeclaredField("pid");
+                field.setAccessible(true);
+                pid = field.getLong(process);
             } else {
-                clazz = Class.forName("java.lang.ProcessImpl");
+                Method pidMethod = Process.class.getMethod("pid");
+                pid = (long) pidMethod.invoke(process);
             }
-            Field field = clazz.getDeclaredField("pid");
-            field.setAccessible(true);
-            pid = (Integer) field.get(process);
         }
         return pid;
     }
