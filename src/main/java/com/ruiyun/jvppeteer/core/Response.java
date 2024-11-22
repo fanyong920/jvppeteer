@@ -25,7 +25,6 @@ import static com.ruiyun.jvppeteer.util.Helper.throwError;
 
 public class Response {
 
-    private CDPSession client;
     private Request request;
     private final AwaitableResult<byte[]> contentResult = AwaitableResult.create();
     private final AwaitableResult<String> bodyLoadedResult = AwaitableResult.create();
@@ -42,8 +41,7 @@ public class Response {
     public Response() {
     }
 
-    public Response(CDPSession client, Request request, ResponsePayload responsePayload, ResponseReceivedExtraInfoEvent extraInfo) {
-        this.client = client;
+    public Response(Request request, ResponsePayload responsePayload, ResponseReceivedExtraInfoEvent extraInfo) {
         this.request = request;
         this.remoteAddress = new RemoteAddress(responsePayload.getRemoteIPAddress(), responsePayload.getRemotePort());
         this.statusText = StringUtil.isNotEmpty(this.parseStatusTextFromExtraInfo(extraInfo)) ? this.parseStatusTextFromExtraInfo(extraInfo) : responsePayload.getStatusText();
@@ -112,7 +110,7 @@ public class Response {
         Map<String, Object> params = ParamsFactory.create();
         params.put("requestId", this.request.id());
         try {
-            JsonNode response = this.client.send("Network.getResponseBody", params);
+            JsonNode response = this.request.client().send("Network.getResponseBody", params);
             if (response != null) {
                 if (response.get("base64Encoded").asBoolean()) {
                     this.contentResult.onSuccess(Base64.getDecoder().decode(response.get("body").asText()));
@@ -169,8 +167,9 @@ public class Response {
         if (!this.contentResult.isDone()) {
             if (StringUtil.isEmpty(this.bodyLoadedResult.get())) {
                 this.getResponseBody();
+            }else {
+                throw new JvppeteerException(this.bodyLoadedResult.get());
             }
-            throw new JvppeteerException(this.bodyLoadedResult.get());
         }
         return this.contentResult.get();
     }
@@ -180,7 +179,7 @@ public class Response {
      *
      * @return 字节数组
      */
-    public byte[] getContentIgoreRedirect() {
+    public byte[] getContentForcibly() {
         if (!this.contentResult.isDone()) {
             this.getResponseBody();
         }

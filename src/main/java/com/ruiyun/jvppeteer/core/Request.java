@@ -45,6 +45,15 @@ public class Request {
 
     private volatile String id;
     private List<Request> redirectChain;
+
+    public CDPSession getClient() {
+        return client;
+    }
+
+    public void setClient(CDPSession client) {
+        this.client = client;
+    }
+
     private Response response;
     private CDPSession client;
     private volatile boolean isNavigationRequest;

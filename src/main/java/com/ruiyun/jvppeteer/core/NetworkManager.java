@@ -84,7 +84,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         client.on(CDPSession.CDPSessionEvent.Network_loadingFinished, loadingFinished);
         listeners.put(CDPSession.CDPSessionEvent.Network_loadingFinished, loadingFinished);
 
-        Consumer<LoadingFailedEvent> loadingFailed = this::onLoadingFailed;
+        Consumer<LoadingFailedEvent> loadingFailed = event -> this.onLoadingFailed(client,event);
         client.on(CDPSession.CDPSessionEvent.Network_loadingFailed, loadingFailed);
         listeners.put(CDPSession.CDPSessionEvent.Network_loadingFailed, loadingFailed);
 
@@ -342,21 +342,22 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             this.networkEventManager.forgetQueuedEventGroup(event.getRequestId());
             this.emitResponseEvent(client, queuedEvents.getResponseReceivedEvent(), event);
             if (queuedEvents.getLoadingFinishedEvent() != null) {
-                this.emitLoadingFinished(queuedEvents.getLoadingFinishedEvent());
+                this.emitLoadingFinished(client,queuedEvents.getLoadingFinishedEvent());
             }
             if (queuedEvents.getLoadingFailedEvent() != null) {
-                this.emitLoadingFailed(queuedEvents.getLoadingFailedEvent());
+                this.emitLoadingFailed(client,queuedEvents.getLoadingFailedEvent());
             }
             return;
         }
         this.networkEventManager.responseExtraInfo(event.getRequestId()).offer(event);
     }
 
-    private void emitLoadingFailed(LoadingFailedEvent event) {
+    private void emitLoadingFailed(CDPSession client, LoadingFailedEvent event) {
         Request request = this.networkEventManager.getRequest(event.getRequestId());
         if (request == null) {
             return;
         }
+        this.maybeReassignOOPIFRequestClient(client, request);
         request.setFailureText(event.getErrorText());
         Response response = request.response();
         if (response != null) {
@@ -366,16 +367,28 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.emit(NetworkManagerEvent.RequestFailed, request);
     }
 
-    private void emitLoadingFinished(LoadingFinishedEvent event) {
+    private void emitLoadingFinished(CDPSession client,LoadingFinishedEvent event) {
         Request request = this.networkEventManager.getRequest(event.getRequestId());
         if (request == null) {
             return;
         }
+        this.maybeReassignOOPIFRequestClient(client, request);
         if (request.response() != null) {
             request.response().resolveBody(null);
         }
         this.forgetRequest(request, true);
         this.emit(NetworkManagerEvent.RequestFinished, request);
+    }
+
+    private void maybeReassignOOPIFRequestClient(CDPSession client, Request request) {
+        // Document requests for OOPIFs start in the parent frame but are adopted by their
+        // child frame, meaning their loadingFinished and loadingFailed events are fired on
+        // the child session. In this case we reassign the request CDPSession to ensure all
+        // subsequent actions use the correct session (e.g. retrieving response body in
+        // HTTPResponse).
+        if (client != request.client() && request.isNavigationRequest()) {
+            request.setClient(client);
+        }
     }
 
 
@@ -412,8 +425,8 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     }
 
     //不能阻塞 WebSocketConnectReadThread
-    private void handleRequestRedirect(CDPSession client, Request request, ResponsePayload responsePayload, ResponseReceivedExtraInfoEvent extraInfo) {
-        Response response = new Response(client, request, responsePayload, extraInfo);
+    private void handleRequestRedirect(CDPSession _client, Request request, ResponsePayload responsePayload, ResponseReceivedExtraInfoEvent extraInfo) {
+        Response response = new Response(request, responsePayload, extraInfo);
         request.setResponse(response);
         request.redirectChain().add(request);
         response.resolveBody("Response body is unavailable for redirect responses，request url: " + request.url());
@@ -435,12 +448,12 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         }
     }
 
-    public void onLoadingFinished(CDPSession _client, LoadingFinishedEvent event) {
+    public void onLoadingFinished(CDPSession client, LoadingFinishedEvent event) {
         QueuedEventGroup queuedEvents = this.networkEventManager.getQueuedEventGroup(event.getRequestId());
         if (queuedEvents != null) {
             queuedEvents.setLoadingFinishedEvent(event);
         } else {
-            this.emitLoadingFinished(event);
+            this.emitLoadingFinished(client,event);
         }
     }
 
@@ -459,12 +472,12 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.emitResponseEvent(client, event, extraInfo);
     }
 
-    public void onLoadingFailed(LoadingFailedEvent event) {
+    public void onLoadingFailed(CDPSession client,LoadingFailedEvent event) {
         QueuedEventGroup queuedEvents = this.networkEventManager.getQueuedEventGroup(event.getRequestId());
         if (queuedEvents != null) {
             queuedEvents.setLoadingFailedEvent(event);
         } else {
-            this.emitLoadingFailed(event);
+            this.emitLoadingFailed(client,event);
         }
     }
 
@@ -485,7 +498,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.emit(NetworkManagerEvent.RequestServedFromCache, request);
     }
 
-    public void emitResponseEvent(CDPSession client, ResponseReceivedEvent responseReceived, ResponseReceivedExtraInfoEvent extraInfo) {
+    public void emitResponseEvent(CDPSession _client, ResponseReceivedEvent responseReceived, ResponseReceivedExtraInfoEvent extraInfo) {
         Request request = this.networkEventManager.getRequest(responseReceived.getRequestId());
         if (request == null) {
             return;
@@ -497,7 +510,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         if (responseReceived.getResponse().getFromDiskCache()) {
             extraInfo = null;
         }
-        Response response = new Response(client, request, responseReceived.getResponse(), extraInfo);
+        Response response = new Response(request, responseReceived.getResponse(), extraInfo);
         request.setResponse(response);
         this.emit(NetworkManagerEvent.Response, response);
     }
