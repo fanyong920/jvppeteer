@@ -182,3 +182,8 @@
 ### Version Release 2.2.4(2024/11/21)
 
 - 修改获取chrome pid 的方式：放弃通过 cdp 的 SystemInfo.getProcessInfo 方式
+
+### Version Release 2.2.5(2024/11/22)
+
+- [fix: correctly resolve OOPIF response bodies](https://github.com/fanyong920/jvppeteer/commit/ca19d06697567b9984f610b20a26a4a1c1cc1c79)
+- [增强 Browser 关闭逻辑](https://github.com/fanyong920/jvppeteer/commit/d13eb41b11901da5986cbc8b8d1e288d802d8d5f)
