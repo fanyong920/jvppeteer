@@ -43,6 +43,7 @@ public abstract class BrowserLauncher {
     protected Product product;
     protected String cacheDir;
     protected String executablePath;
+
     public BrowserLauncher(String cacheDir, Product product) {
         super();
         this.cacheDir = cacheDir;
@@ -140,6 +141,7 @@ public abstract class BrowserLauncher {
             if (options.getWaitForInitialPage()) {
                 browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
             }
+            connection.setBrowser(browser);
             runner.setPid(getBrowserPid(runner.getProcess()));
             return browser;
         } catch (IOException | InterruptedException e) {
@@ -187,7 +189,9 @@ public abstract class BrowserLauncher {
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
         GetVersionResponse version = getVersion(connection);
         Product product = version.getProduct().toLowerCase().contains("firefox") ? Product.FIREFOX : Product.CHROME;
-        return Browser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
+        Browser browser = Browser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
+        connection.setBrowser(browser);
+        return browser;
     }
 
     /**

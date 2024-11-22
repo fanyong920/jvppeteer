@@ -90,7 +90,7 @@ public class CDPSession extends EventEmitter<CDPSession.CDPSessionEvent> {
      */
     public void detach() {
         if (this.connection == null) {
-            throw new JvppeteerException("Session already detached. Most likely the" + this.targetType + "has been closed.");
+            throw new JvppeteerException("Session already detached. Most likely the " + this.targetType + "has been closed.");
         }
         Map<String, Object> params = ParamsFactory.create();
         params.put(SESSION_ID, this.sessionId);

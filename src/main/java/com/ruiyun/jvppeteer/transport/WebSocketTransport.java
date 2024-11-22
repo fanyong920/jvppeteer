@@ -1,8 +1,11 @@
 package com.ruiyun.jvppeteer.transport;
 
+import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.util.StringUtil;
+import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
+import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,9 +71,15 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
      */
     @Override
     public void onClose(int code, String reason, boolean remote) {//这里是WebSocketClient的实现方法,当websocket closed的时候会调用onClose
-        LOGGER.info("Connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, StringUtil.isEmpty(reason) ? CLOSE_REASON.get(code) : reason);
-        if (this.connection != null) {//浏览器以外关闭时候，connection不为空
-            this.connection.dispose();
+        LOGGER.info("Websocket connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, StringUtil.isEmpty(reason) ? CLOSE_REASON.get(code) : reason);
+        if (Objects.nonNull(this.connection)) {//浏览器以外关闭时候，connection不为空
+            Browser browser = connection.browser();
+
+            if (!browser.isClosing()) {
+                LOGGER.info("Websocket connection has been closed,now shutting down browser process");
+                browser.disconnect();
+                browser.close();
+            }
         }
     }
 
@@ -82,6 +91,11 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
         LOGGER.info("Websocket serverHandshake status: {}", serverHandshake.getHttpStatusMessage());
+    }
+
+    @Override
+    public void onWebsocketPong(WebSocket conn, Framedata f) {
+        LOGGER.trace("Websocket connection receive pong: {}", f);
     }
 
     @Override

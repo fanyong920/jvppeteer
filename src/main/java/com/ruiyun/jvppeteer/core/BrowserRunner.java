@@ -13,7 +13,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import static com.ruiyun.jvppeteer.util.FileUtil.removeFolder;
 import static com.ruiyun.jvppeteer.util.FileUtil.removeFolderOnExit;
 
 public class BrowserRunner {
@@ -114,7 +115,7 @@ public class BrowserRunner {
             }
             try {
                 if (exec != null) {
-                    LOGGER.info("kill chrome process by pid,command:  {}", command);
+                    LOGGER.trace("kill chrome process by pid,command:  {}", command);
                     exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
                 }
             } finally {
@@ -245,18 +246,20 @@ public class BrowserRunner {
             return;
         }
         //发送关闭指令
-        if (this.connection != null && !this.connection.closed()) {
-            this.connection.send("Browser.close");
+        if (Objects.nonNull(this.connection) && !this.connection.closed()) {
+            this.connection.send("Browser.close", null, null, false);
         }
         this.destroy();
         this.closed = true;
-
     }
 
     private void deleteTempUserDir() {
         if (StringUtil.isNotEmpty(this.tempDirectory)) {
             try {
-                removeFolderOnExit(this.tempDirectory);
+                removeFolder(this.tempDirectory);
+                if (Paths.get(this.tempDirectory).toFile().exists()) {
+                    removeFolderOnExit(this.tempDirectory);
+                }
             } catch (Exception ignored) {
             }
         }

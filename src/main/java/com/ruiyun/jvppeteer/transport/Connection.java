@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.core.Browser;
 import com.ruiyun.jvppeteer.entities.TargetInfo;
 import com.ruiyun.jvppeteer.events.EventEmitter;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
@@ -55,7 +56,9 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     final Set<String> manuallyAttached = new HashSet<>();
     private final CallbackRegistry callbacks = new CallbackRegistry();//并发
     final AtomicLong id = new AtomicLong(1);
-    ExecutorService handleMessageExecutorService = Executors.newSingleThreadExecutor(r -> new Thread(r, JV_HANDLE_MESSAGE_THREAD + eventThreadId.getAndIncrement()));
+    private Browser browser;
+
+    ExecutorService handleMessageExecutorService = Executors.newSingleThreadExecutor(r -> new Thread(r, JV_HANDLE_MESSAGE_THREAD + messageThreadId.getAndIncrement()));
 
     public Connection(String url, ConnectionTransport transport, int delay, int timeout) {
         super();
@@ -155,7 +158,6 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
     }
 
     private static final AtomicLong messageThreadId = new AtomicLong(1);
-    private static final AtomicLong eventThreadId = new AtomicLong(1);
 
     public boolean isAutoAttached(String targetId) {
         return !this.manuallyAttached.remove(targetId);
@@ -290,7 +292,8 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
             return;
         this.closed = true;
         this.transport.setConnection(null);
-        waitForHandleMessageThreadFinish();
+        this.handleMessageExecutorService.shutdown();
+//        waitForHandleMessageThreadFinish();
         this.callbacks.clear();
         for (CDPSession session : this.sessions.values())
             session.onClosed();
@@ -316,6 +319,14 @@ public class Connection extends EventEmitter<CDPSession.CDPSessionEvent> impleme
 
     public boolean closed() {
         return this.closed;
+    }
+
+    public Browser browser() {
+        return browser;
+    }
+
+    public void setBrowser(Browser browser) {
+        this.browser = browser;
     }
 }
 

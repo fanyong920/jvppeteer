@@ -44,11 +44,13 @@ public class J_RequestTest extends A_LaunchTest {
                         System.out.println("url: " + request.url() + ", id: " + request.id());
                         try {
                             Response response1 = request.response();
-                            System.out.println("response: " + new String(response1.content()));
+                            System.out.println("response1: " + new String(response1.content()));
                         } catch (Exception e) {
                             System.out.println("request(id:" + request.id() + ")重定向,不能获取response.content()");
                         }
                     }
+                }else {
+                    System.out.println("response2: " + new String(response.content()));
                 }
             });
             //这个页面有重定向请求，你可以按F12打开devtool开发者工具，自己刷新页面看网络请求
@@ -94,7 +96,7 @@ public class J_RequestTest extends A_LaunchTest {
             //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
             options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
             page.goTo("https://www.baidu.com/", options);
-            Thread.sleep(115000);
+            Thread.sleep(2000);
         }
     }
 

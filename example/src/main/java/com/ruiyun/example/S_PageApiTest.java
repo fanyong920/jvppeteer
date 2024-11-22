@@ -35,8 +35,10 @@ import com.ruiyun.jvppeteer.entities.ScreencastOptions;
 import com.ruiyun.jvppeteer.entities.Viewport;
 import com.ruiyun.jvppeteer.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.entities.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -484,6 +486,9 @@ public class S_PageApiTest extends A_LaunchTest {
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/", false);
         WaitForSelectorOptions options = new WaitForSelectorOptions(true, false);
         ElementHandle elementHandle = page.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > article > div.theme-doc-markdown.markdown > header > h1", options);
+        if(Objects.isNull(elementHandle)) {
+            throw new JvppeteerException("No such element");
+        }
         elementHandle.dispose();
         System.out.println(elementHandle.id());
         browser.close();

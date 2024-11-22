@@ -57,6 +57,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
     private final TargetManager targetManager;
     private String executablePath;
     private List<String> defaultArgs;
+     volatile boolean isClosing;
 
 
     Browser(Product product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
@@ -88,8 +89,8 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
     }
 
     private final Consumer<Object> emitDisconnected = (ignore) -> this.emit(BrowserEvent.Disconnected, true);
-    private final Consumer<Object> emitDownloadProgress = (event) -> this.emit(BrowserEvent.Browser_downloadProgress, event);
-    private final Consumer<Object> emitDownloadWillBegin = (event) -> this.emit(BrowserEvent.Browser_downloadWillBegin, event);
+    private final Consumer<Object> emitDownloadProgress = (event) -> this.emit(BrowserEvent.DownloadProgress, event);
+    private final Consumer<Object> emitDownloadWillBegin = (event) -> this.emit(BrowserEvent.DownloadWillBegin, event);
 
     private void attach() {
         this.connection.on(CDPSession.CDPSessionEvent.CDPSession_Disconnected, this.emitDisconnected);
@@ -371,6 +372,7 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
 
     @Override
     public void close() {
+        this.isClosing = true;
         this.closeCallback.run();
         this.disconnect();
     }
@@ -492,51 +494,52 @@ public class Browser extends EventEmitter<Browser.BrowserEvent> implements AutoC
         this.connection.send("Browser.cancelDownload", params);
     }
 
+    /**
+     * 是否正在关闭浏览器，用于判断是浏览器自己关闭还是程序手动关闭
+     *
+     * @return 是否
+     */
+    public boolean isClosing() {
+        return this.isClosing;
+    }
 
     public enum BrowserEvent {
         /**
          * 创建target
          * {@link Target}
          */
-        TargetCreated("targetcreated"),
+        TargetCreated,
         /**
          * 销毁target
          * {@link Target}
          */
-        TargetDestroyed("targetdestroyed"),
+        TargetDestroyed,
         /**
          * target变化
          * {@link Target}
          */
-        TargetChanged("targetchanged"),
+        TargetChanged,
         /**
          * 发现target
          * {@link TargetInfo}
          */
-        TargetDiscovered("targetdiscovered"),
+        TargetDiscovered,
         /**
          * 断开连接
          * Object
          */
-        Disconnected("disconnected"),
+        Disconnected,
         /**
          * 下载进度时触发
          */
-        Browser_downloadProgress("Browser.downloadProgress"),
+        DownloadProgress,
 
         /**
          * 当页面准备开始下载时促发
          */
-        Browser_downloadWillBegin("Browser.downloadWillBegin");
-        private final String eventName;
+        DownloadWillBegin
 
-        BrowserEvent(String eventName) {
-            this.eventName = eventName;
-        }
 
-        public String getEventName() {
-            return eventName;
-        }
     }
 
 }
