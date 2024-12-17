@@ -29,7 +29,7 @@ Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>2.2.5<version>
+  <version>3.0.0<version>
 </dependency>
 ```
 
@@ -44,7 +44,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:2.2.5"
+compile "io.github.fanyong920:jvppeteer:3.0.0"
 ```
 
 #### Logging
