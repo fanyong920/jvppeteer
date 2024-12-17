@@ -5,8 +5,9 @@
 </p>
 # Java API For Chrome and Firefox
 
+Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)  and [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 控制 Chrome for Testing（下面简称 Chrome）或 Firefox。 默认情况下，以  headless （无 UI）模式运行，也可以通过配置运行'有UI'模式。
 
-Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)  and [WebDriver](https://pptr.nodejs.cn/webdriver-bidi) 控制 Chrome for Testing（下面简称 Chrome）或 Firefox。目前，Jvppeteer 仅支持通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 控制 Chrome、默认通过 [WebDriver](https://pptr.nodejs.cn/webdriver-bidi) 控制 Firefox。 默认情况下，以  headless （无 UI）模式运行，也可以通过配置运行'有UI'模式。
+目前，Jvppeteer 控制 Chrome 仅支持通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 、控制 Firefox 支持 [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi)  和 [DevTools](https://chromedevtools.github.io/devtools-protocol/)，但 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 对于 firefox 来说不是最佳选择。[WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 并不支持所有功能，不支持的功能 会抛出 UnsupportedOperationException,  [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 支持的功能查看： [WebDriver BiDi 支持](https://pptr.nodejs.cn/webdriver-bidi)
 
 
 你可以在浏览器中手动执行的绝大多数操作都可以使用 Jvppeteer 来完成！ 下面是一些示例：
