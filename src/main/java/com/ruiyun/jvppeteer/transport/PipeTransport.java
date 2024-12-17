@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.transport;
 
+import com.ruiyun.jvppeteer.api.core.Connection;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

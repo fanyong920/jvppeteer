@@ -5,5 +5,5 @@ public enum FirefoxChannel {
     ESR,
     DEVEDITION,
     BETA,
-    NIGHTLY;
+    NIGHTLY
 }

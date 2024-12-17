@@ -2,23 +2,25 @@ package com.ruiyun.jvppeteer.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.bidi.entities.SameSite;
+import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
+import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CookiePriority;
+import com.ruiyun.jvppeteer.cdp.entities.CookieSameSite;
+import com.ruiyun.jvppeteer.cdp.entities.CookieSourceScheme;
+import com.ruiyun.jvppeteer.cdp.entities.ExceptionDetails;
+import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
+import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
+import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.entities.CallFrame;
-import com.ruiyun.jvppeteer.entities.ExceptionDetails;
-import com.ruiyun.jvppeteer.entities.GetVersionResponse;
-import com.ruiyun.jvppeteer.entities.RemoteObject;
-import com.ruiyun.jvppeteer.entities.StackTrace;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
-import com.ruiyun.jvppeteer.transport.CDPSession;
-import com.ruiyun.jvppeteer.transport.Connection;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -38,14 +40,21 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
+import static com.ruiyun.jvppeteer.common.Constant.CDP_SPECIFIC_PREFIX;
 import static com.ruiyun.jvppeteer.common.Constant.INTERNAL_URL;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.common.Constant.SOURCE_URL_REGEX;
 
 /**
@@ -100,7 +109,7 @@ public class Helper {
         return error;
     }
 
-    public static Object createEvaluationError(ExceptionDetails exceptionDetails) {
+    public static Object createCdpEvaluationError(ExceptionDetails exceptionDetails) {
         String name = "";
         String message;
         if (exceptionDetails.getException() == null) {
@@ -156,6 +165,39 @@ public class Helper {
         return error;
     }
 
+    public static void createBidiEvaluationError(com.ruiyun.jvppeteer.bidi.entities.ExceptionDetails details) {
+        if (!Objects.equals("error", details.getException().getType())) {
+            throw new EvaluateException(String.valueOf(details.getException().getValue()));
+        }
+        String[] parts = details.getText().split(": ", 2);
+        String name = parts.length > 0 ? parts[0] : "";
+        String message = parts.length > 1 ? String.join(": ", Arrays.copyOfRange(parts, 1, parts.length)) : "";
+        LinkedList<String> stackLines = new LinkedList<>();
+        StringBuilder stringBuilder = new StringBuilder();
+        if (details.getStackTrace() != null) {
+            for (int i = details.getStackTrace().getCallFrames().size(); i-- > 0; ) {
+                CallFrame callFrame = details.getStackTrace().getCallFrames().get(i);
+                if (isPuppeteerURL(callFrame.getUrl()) && !INTERNAL_URL.equals(callFrame.getUrl())) {
+                    PuppeteerURL url = parse(callFrame.getUrl());
+                    try {
+                        stringBuilder.append("\n    jvppeteer print: at ").append(URLDecoder.decode(url.getSiteString(), StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                        stringBuilder.append(url.getSiteString()).append(", <anonymous>:").append(callFrame.getLineNumber()).append(":").append(callFrame.getColumnNumber());
+                    }
+                    stackLines.addFirst(stringBuilder.toString());
+                    stringBuilder.setLength(0);
+                } else {
+                    String functionName = StringUtil.isNotEmpty(callFrame.getFunctionName()) ? callFrame.getFunctionName() : "<anonymous>";
+                    stringBuilder.append("\n    at ").append(functionName).append("(").append(callFrame.getUrl()).append(":").append(callFrame.getLineNumber()).append(":").append(callFrame.getColumnNumber());
+                    stackLines.add(stringBuilder.toString());
+                    stringBuilder.setLength(0);
+                }
+            }
+        }
+        throw new EvaluateException("name: " + name + ", text: " + details.getText() + ", message: " + message + String.join("\n", stackLines));
+    }
+
+
     public static PuppeteerURL parse(String url) {
         url = url.substring("pptr:".length());
         String[] split = url.split(";");
@@ -172,9 +214,9 @@ public class Helper {
         return new PuppeteerURL();
     }
 
-    public static String withSourcePuppeteerURLIfNone(String functionName, String pageFunction) {
-        if (SOURCE_URL_REGEX.matcher(pageFunction).find()) {
-            return pageFunction;
+    public static String withSourcePuppeteerURLIfNone(String functionName, String pptrFunction) {
+        if (SOURCE_URL_REGEX.matcher(pptrFunction).find()) {
+            return pptrFunction;
         } else {
             List<String> args = new ArrayList<>();
             // 获取当前调用堆栈
@@ -185,7 +227,7 @@ public class Helper {
             } catch (UnsupportedEncodingException e) {
                 args.add("ModuleJob.run%20(node%3Ainternal%2Fmodules%2Fesm%2Fmodule_job%3A222%3A25)");
             }
-            return pageFunction + "\n" + "//# sourceURL=pptr:" + String.join(";", args) + "\n";
+            return pptrFunction + "\n" + "//# sourceURL=pptr:" + String.join(";", args) + "\n";
         }
     }
 
@@ -366,12 +408,12 @@ public class Helper {
     /**
      * 判断js字符串是否是一个函数
      *
-     * @param pageFunction js字符串
+     * @param pptrFunction js字符串
      * @return true代表是js函数
      */
-    public static boolean isFunction(String pageFunction) {
-        pageFunction = pageFunction.trim();
-        return pageFunction.startsWith("function") || pageFunction.startsWith("async") || pageFunction.contains("=>");
+    public static boolean isFunction(String pptrFunction) {
+        pptrFunction = pptrFunction.trim();
+        return pptrFunction.startsWith("function") || pptrFunction.startsWith("async") || pptrFunction.contains("=>");
     }
 
     /**
@@ -379,22 +421,24 @@ public class Helper {
      *
      * @param process 进程
      * @return 进程id
+     * @throws ClassNotFoundException class not found
      * @throws NoSuchFieldException   field not found
      * @throws IllegalAccessException illegal access
      */
-    public static long getPidForLinuxOrMac(Process process) throws NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public static long getPidForLinuxOrMac(Process process) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         long pid = -1;
         if (Helper.isMac() || Helper.isLinux()) {
             String version = System.getProperty("java.version");
             double jdkVersion = Double.parseDouble(version.substring(0, 3));
+            Class<?> clazz;
             if (jdkVersion <= 1.8) {
-                Field field = process.getClass().getDeclaredField("pid");
-                field.setAccessible(true);
-                pid = field.getLong(process);
+                clazz = Class.forName("java.lang.UNIXProcess");
             } else {
-                Method pidMethod = Process.class.getMethod("pid");
-                pid = (long) pidMethod.invoke(process);
+                clazz = Class.forName("java.lang.ProcessImpl");
             }
+            Field field = clazz.getDeclaredField("pid");
+            field.setAccessible(true);
+            pid = (Integer) field.get(process);
         }
         return pid;
     }
@@ -445,14 +489,11 @@ public class Helper {
     }
 
     public static void justWait(long timeout) {
-        long now = System.currentTimeMillis();
-        long base = 0;
-        while (true) {
-            long remaining = timeout - base;
-            if (remaining <= 0) {
-                break;
-            }
-            base = System.currentTimeMillis() - now;
+        CountDownLatch latch = new CountDownLatch(1);
+        try {
+            latch.await(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw new JvppeteerException(e);
         }
     }
 
@@ -471,7 +512,7 @@ public class Helper {
         return url.startsWith("pptr:");
     }
 
-    public static void throwError(Exception error) {
+    public static void throwError(Throwable error) {
         if (error instanceof RuntimeException) {
             throw (RuntimeException) error;
         } else {
@@ -479,8 +520,105 @@ public class Helper {
         }
     }
 
-    public static GetVersionResponse getVersion(Connection connection) throws JsonProcessingException {
-        return Constant.OBJECTMAPPER.treeToValue(connection.send("Browser.getVersion"), GetVersionResponse.class);
+    public static GetVersionResponse getVersion(Connection connection) {
+        return Constant.OBJECTMAPPER.convertValue(connection.send("Browser.getVersion"), GetVersionResponse.class);
     }
 
+    public static void rewriteNavigationError(String message, int timeout, Exception error) {
+        if (error instanceof ProtocolException) {
+            String newMessage = error.getMessage() + "    at  " + message;
+            throw new ProtocolException(newMessage, error);
+        } else if (error instanceof TimeoutException) {
+            String newMessage = "Navigation timeout of " + timeout + " ms exceeded";
+            throw new TimeoutException(newMessage, error);
+        }
+        throwError(error);
+    }
+
+    public static String setSourceUrlComment(String pptrFunction) {
+        if (SOURCE_URL_REGEX.matcher(pptrFunction).find()) {
+            return pptrFunction;
+        } else {
+            return pptrFunction + "\n" + "//# sourceURL=" + INTERNAL_URL + "\n";
+        }
+    }
+
+    public static ObjectNode convertCookiesPartitionKeyFromPuppeteerToCdp(JsonNode partitionKey) {
+        if (Objects.isNull(partitionKey)) {
+            return null;
+        }
+        ObjectNode objectNode = OBJECTMAPPER.createObjectNode();
+        if (partitionKey.isTextual()) {
+
+            objectNode.put("topLevelSite", partitionKey.asText());
+            objectNode.put("hasCrossSiteAncestor", false);
+        } else {
+            objectNode.set("topLevelSite", partitionKey.get("sourceOrigin"));
+            objectNode.put("hasCrossSiteAncestor", !partitionKey.path("hasCrossSiteAncestor").isMissingNode() && partitionKey.path("hasCrossSiteAncestor").asBoolean());
+        }
+        return objectNode;
+    }
+
+    public static Cookie bidiToPuppeteerCookie(JsonNode bidiCookie) {
+        Cookie cookie = new Cookie();
+        cookie.setName(bidiCookie.path("name").asText());
+        cookie.setValue(bidiCookie.at("/value/value").asText());
+        cookie.setDomain(bidiCookie.get("domain").asText());
+        cookie.setPath(bidiCookie.get("path").asText());
+        cookie.setSize(bidiCookie.get("size").asInt());
+        cookie.setHttpOnly(bidiCookie.get("httpOnly").asBoolean());
+        cookie.setSecure(bidiCookie.get("secure").asBoolean());
+        cookie.setSameSite(convertCookiesSameSiteBiDiToCdp(bidiCookie.get("sameSite")));
+        JsonNode expires = bidiCookie.path("expires");
+        cookie.setExpires(expires.isMissingNode() ? -1 : expires.asInt());
+        cookie.setSession(expires.isMissingNode() || expires.asInt() <= 0);
+        JsonNode sameParty = bidiCookie.path(CDP_SPECIFIC_PREFIX + "sameParty");
+        if (!sameParty.isMissingNode()) {
+            cookie.setSameParty(sameParty.asBoolean());
+        }
+        JsonNode sourceScheme = bidiCookie.path(CDP_SPECIFIC_PREFIX + "sourceScheme");
+        if (!sourceScheme.isMissingNode()) {
+            cookie.setSourceScheme(CookieSourceScheme.valueOf(sourceScheme.asText()));
+        }
+        JsonNode partitionKeyOpaque = bidiCookie.path(CDP_SPECIFIC_PREFIX + "partitionKeyOpaque");
+        if (!partitionKeyOpaque.isMissingNode()) {
+            cookie.setPartitionKeyOpaque(partitionKeyOpaque.asBoolean());
+        }
+        JsonNode priority = bidiCookie.path(CDP_SPECIFIC_PREFIX + "priority");
+        if (!priority.isMissingNode()) {
+            cookie.setPriority(CookiePriority.valueOf(partitionKeyOpaque.asText()));
+        }
+        JsonNode partitionKey = bidiCookie.path(CDP_SPECIFIC_PREFIX + "partitionKey");
+        if (!partitionKey.isMissingNode()) {
+            if (partitionKey.isTextual()) {
+                cookie.setPartitionKey(partitionKey);
+            } else if (partitionKey.isObject()) {
+                ObjectNode partitionKeyNode = Constant.OBJECTMAPPER.createObjectNode();
+                partitionKeyNode.set("partitionKey", partitionKey.get("topLevelSite"));
+                cookie.setPartitionKey(partitionKeyNode);
+            }
+        }
+        return cookie;
+    }
+
+    public static CookieSameSite convertCookiesSameSiteBiDiToCdp(JsonNode sameSite) {
+        return Objects.equals("strict", sameSite.asText()) ? CookieSameSite.Strict : Objects.equals("lax", sameSite.asText()) ? CookieSameSite.Lax : CookieSameSite.None;
+    }
+
+    public static SameSite convertCookiesSameSiteCdpToBiDi(CookieSameSite sameSite) {
+        return Objects.equals(sameSite, CookieSameSite.Strict) ? SameSite.Strict : Objects.equals(sameSite, CookieSameSite.Lax) ? SameSite.Lax : SameSite.None;
+    }
+
+    public static String convertCookiesPartitionKeyFromPuppeteerToBiDi(JsonNode partitionKey) {
+        if (Objects.isNull(partitionKey)) {
+            return null;
+        }
+        if (partitionKey.isTextual()) {
+            return partitionKey.asText();
+        }
+        if (!partitionKey.path("hasCrossSiteAncestor").isMissingNode()) {
+            throw new UnsupportedOperationException("WebDriver BiDi does not support `hasCrossSiteAncestor` yet.");
+        }
+        return partitionKey.get("sourceOrigin").asText();
+    }
 }

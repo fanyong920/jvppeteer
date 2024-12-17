@@ -1,11 +1,11 @@
 package com.ruiyun.jvppeteer.common;
 
 public enum Product {
-    CHROMIUM("chromium"),
-    CHROME("chrome"),
-    CHROMEDRIVER("chromedriver"),
-    FIREFOX("firefox"),
-    CHROMEHEADLESSSHELL("chrome-headless-shell");
+    Chromium("chromium"),
+    Chrome("chrome"),
+    Chromedriver("chromedriver"),
+    Firefox("firefox"),
+    Chrome_headless_shell("chrome-headless-shell");
     private final String product;
 
     Product(String product) {

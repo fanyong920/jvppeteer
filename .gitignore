@@ -2,7 +2,7 @@
 *.class
 .settings/**
 .idea/**
-.local-browser/**
+.local-cdpBrowser/**
 *.png
 *.jpg
 target/**

@@ -8,20 +8,15 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
-        <jvppeteer.version>2.2.5</jvppeteer.version>
+        <jvppeteer.version>3.0.0</jvppeteer.version>
         <slf4j.version>2.0.16</slf4j.version>
+        <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.github.fanyong920</groupId>
@@ -36,7 +31,6 @@
             <version>${junit.version}</version>
         </dependency>
 
-
     </dependencies>
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
@@ -44,6 +38,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <source>8</source>
                     <target>8</target>

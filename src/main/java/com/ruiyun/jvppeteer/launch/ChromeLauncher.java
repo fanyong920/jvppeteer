@@ -1,19 +1,24 @@
 package com.ruiyun.jvppeteer.launch;
 
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.cdp.entities.BrowserLaunchArgumentOptions;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.entities.BrowserLaunchArgumentOptions;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+
+import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES;
 
 public class ChromeLauncher extends BrowserLauncher {
 
@@ -28,7 +33,14 @@ public class ChromeLauncher extends BrowserLauncher {
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
+        if (!Paths.get(this.executablePath).getFileName().toString().toLowerCase().contains(options.getProduct().getProduct())) {
+            throw new LaunchException("The ExecutablePath does not match the product, The executablePath is " + this.executablePath + ",but the product is " + options.getProduct());
+        }
+
+        //临时的 UserDataDir
         String temporaryUserDataDir = null;
+        //自定义的 UserDataDir
+        String customizedUserDataDir = null;
         List<String> defaultArgs = this.defaultArgs(options);
         List<String> chromeArguments = new ArrayList<>(defaultArgs);
         boolean isCustomUserDir = false;
@@ -39,6 +51,7 @@ public class ChromeLauncher extends BrowserLauncher {
             }
             if (arg.startsWith("--user-data-dir")) {
                 isCustomUserDir = true;
+                customizedUserDataDir = arg.replace("--user-data-dir=", "");
             }
         }
         if (!isCustomUserDir) {
@@ -56,12 +69,10 @@ public class ChromeLauncher extends BrowserLauncher {
         }
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
         LOGGER.trace("Calling {} {}", this.executablePath, String.join(" ", chromeArguments));
-        return run(options, chromeArguments, temporaryUserDataDir, usePipe, defaultArgs);
+        Browser browser = createBrowser(options, chromeArguments, temporaryUserDataDir, usePipe, defaultArgs, customizedUserDataDir);
+        LOGGER.info("Successfully launch the browser, the executablePath is {}, the protocol is {}", this.executablePath,options.getProtocol());
+        return browser;
     }
-
-
-
-
 
     /**
      * 返回默认的启动参数
@@ -75,7 +86,7 @@ public class ChromeLauncher extends BrowserLauncher {
         if (ValidateUtil.isNotEmpty(options.getArgs()) && !userDisabledFeatures.isEmpty()) {
             removeMatchingFlags(options, "--disable-features");
         }
-        boolean turnOnExperimentalFeaturesForTesting = "true".equals(env.getEnv("PUPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES"));
+        boolean turnOnExperimentalFeaturesForTesting = "true".equals(System.getProperty(JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES));
         List<String> disabledFeatures = new ArrayList<>();
         disabledFeatures.add("Translate");
         disabledFeatures.add("AcceptCHFrame");
@@ -121,7 +132,7 @@ public class ChromeLauncher extends BrowserLauncher {
             headless = false;
         }
         if (headless) {
-            if (Product.CHROMEHEADLESSSHELL.equals(options.getProduct()) || this.executablePath.contains(Product.CHROMEHEADLESSSHELL.getProduct())) {
+            if (Product.Chrome_headless_shell.equals(options.getProduct()) || this.executablePath.contains(Product.Chrome_headless_shell.getProduct())) {
                 chromeArguments.add("--headless");
             } else {
                 chromeArguments.add("--headless=new");
@@ -167,8 +178,6 @@ public class ChromeLauncher extends BrowserLauncher {
                 .filter(Objects::nonNull).filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }
-
-
 
 
 }

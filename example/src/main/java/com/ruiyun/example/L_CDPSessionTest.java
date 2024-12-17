@@ -1,10 +1,10 @@
 package com.ruiyun.example;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Target;
-import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
 
 public class L_CDPSessionTest extends A_LaunchTest {
@@ -17,10 +17,7 @@ public class L_CDPSessionTest extends A_LaunchTest {
 
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             Target target = browser.target();//browser对应的target
-            CDPSession session = target.session();//已经附属到target的session
-            if (session == null) {
-                session = target.createCDPSession();
-            }
+            CDPSession session = target.createCDPSession();
             System.out.println("session id:" + session.id());
             //这个命令是浏览器级别的session才能请求，所以要从browser的target创建session，如果是page级别的请求，就从page的target创建session
             //具体的protocol命令，请看https://chromedevtools.github.io/devtools-protocol/tot/SystemInfo/
@@ -43,17 +40,11 @@ public class L_CDPSessionTest extends A_LaunchTest {
 
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             Target target = browser.target();//browser对应的target
-            CDPSession session = target.session();//已经附属到target的session
-            if (session == null) {
-                session = target.createCDPSession();
-            }
+            CDPSession session = target.createCDPSession();
             JsonNode res = session.send("Browser.getVersion");
             System.out.println("version: " + res);
         }
     }
-
-
-
 
 
 }

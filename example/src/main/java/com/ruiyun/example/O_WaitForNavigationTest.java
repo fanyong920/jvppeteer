@@ -1,11 +1,11 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Response;
-import com.ruiyun.jvppeteer.entities.WaitForOptions;
-import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Response;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import org.junit.Test;
 
 public class O_WaitForNavigationTest extends A_LaunchTest {
@@ -18,16 +18,16 @@ public class O_WaitForNavigationTest extends A_LaunchTest {
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-        CDPSession cdpSession = page.target().createCDPSession();
+        CDPSession session = page.target().createCDPSession();
 
         //方式1：只是发送reload命令，不等待完成才可以用到waitForNavigation
-        cdpSession.send("Page.reload", null, null, false);
+        session.send("Page.reload", null, null, false);
         WaitForOptions options = new WaitForOptions();
         options.setIgnoreSameDocumentNavigation(true);
         Response response = page.waitForNavigation(options);
-        cdpSession.detach();
+        session.detach();
         //方式2：
-       // page.reload();
+        // page.reload();
 
         //方式1是方式2的具体实现
 

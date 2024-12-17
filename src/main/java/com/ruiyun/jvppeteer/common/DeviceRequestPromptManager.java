@@ -1,14 +1,14 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.events.DeviceRequestPromptedEvent;
-import com.ruiyun.jvppeteer.transport.CDPSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DeviceRequestPromptManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceRequestPromptManager.class);
@@ -19,8 +19,8 @@ public class DeviceRequestPromptManager {
     public DeviceRequestPromptManager(CDPSession client, TimeoutSettings timeoutSettings) {
         this.client = client;
         this.timeoutSettings = timeoutSettings;
-        this.client.on(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, (event) -> this.onDeviceRequestPrompted((DeviceRequestPromptedEvent) event));
-        this.client.on(CDPSession.CDPSessionEvent.Target_detachedFromTarget, (ignore) -> this.client = null);
+        this.client.on(ConnectionEvents.DeviceAccess_deviceRequestPrompted, (event) -> this.onDeviceRequestPrompted((DeviceRequestPromptedEvent) event));
+        this.client.on(ConnectionEvents.Target_detachedFromTarget, (ignore) -> this.client = null);
     }
 
     private void onDeviceRequestPrompted(DeviceRequestPromptedEvent event) {

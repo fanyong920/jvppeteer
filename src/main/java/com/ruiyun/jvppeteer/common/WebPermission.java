@@ -4,8 +4,6 @@ public enum WebPermission {
     GEOLOCATION("geolocation"),
     MIDI("midi"),
     NOTIFICATIONS("notifications"),
-    // 不再使用的权限注释掉
-    // PUSH("push"),
     CAMERA("camera"),
     MICROPHONE("microphone"),
     BACKGROUND_SYNC("background-sync"),

@@ -1,11 +1,11 @@
 package com.ruiyun.example;
 
+import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.common.ChromeReleaseChannel;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.entities.FetcherOptions;
-import com.ruiyun.jvppeteer.entities.RevisionInfo;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
+import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
 import org.junit.Test;
 
 public class V_DownloadApiTest extends A_LaunchTest {
@@ -22,7 +22,7 @@ public class V_DownloadApiTest extends A_LaunchTest {
 
         //下载指定版本的ChromeDriver
         FetcherOptions fetcherOptions = new FetcherOptions();
-        fetcherOptions.setProduct(Product.CHROMEDRIVER);
+        fetcherOptions.setProduct(Product.Chromedriver);
         fetcherOptions.setVersion("129.0.6668.100");
         RevisionInfo revisionInfo3 = Puppeteer.downloadBrowser(fetcherOptions);
         System.out.println("revisionInfo3: " + revisionInfo3);
@@ -30,47 +30,47 @@ public class V_DownloadApiTest extends A_LaunchTest {
 
         //下载指定版本的Chrome Headless Shell
         FetcherOptions fetcherOptions2 = new FetcherOptions();
-        fetcherOptions2.setProduct(Product.CHROMEHEADLESSSHELL);
+        fetcherOptions2.setProduct(Product.Chrome_headless_shell);
         fetcherOptions2.setVersion("129.0.6668.100");
         RevisionInfo revisionInfo4 = Puppeteer.downloadBrowser(fetcherOptions2);
         System.out.println("revisionInfo4: " + revisionInfo4);
 
         //下载指定版本的CHROMIUM
         FetcherOptions fetcherOptions3 = new FetcherOptions();
-        fetcherOptions3.setProduct(Product.CHROMIUM);
+        fetcherOptions3.setProduct(Product.Chromium);
         fetcherOptions3.setVersion("1366415");
         RevisionInfo revisionInfo5 = Puppeteer.downloadBrowser(fetcherOptions3);
         System.out.println("revisionInfo5: " + revisionInfo5);
 
-        launchOptions.setProduct(Product.CHROME);
-        Browser browser = Puppeteer.launch(launchOptions);
-        String version = browser.version();
+        launchOptions.setProduct(Product.Chrome);
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        String version = cdpBrowser.version();
         System.out.println("cdp协议获取到版本信息1：" + version);
-        browser.close();
+        cdpBrowser.close();
 
-        launchOptions.setProduct(Product.CHROMEHEADLESSSHELL);
+        launchOptions.setProduct(Product.Chrome_headless_shell);
         launchOptions.setHeadless(true);
-        Browser browser2 = Puppeteer.launch(launchOptions);
-        String version2 = browser2.version();
+        Browser cdpBrowser2 = Puppeteer.launch(launchOptions);
+        String version2 = cdpBrowser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
-        browser2.close();
+        cdpBrowser2.close();
 
 
         //启动CHROMIUM
-        launchOptions.setProduct(Product.CHROMIUM);
+        launchOptions.setProduct(Product.Chromium);
         launchOptions.setHeadless(true);
-        Browser browser3 = Puppeteer.launch(launchOptions);
-        String version3 = browser3.version();
+        Browser cdpBrowser3 = Puppeteer.launch(launchOptions);
+        String version3 = cdpBrowser3.version();
         System.out.println("cdp协议获取到版本信息3：" + version3);
-        browser3.close();
+        cdpBrowser3.close();
 
         //CHROMEDRIVER不适应程序的启动逻辑，这里只是验证是否能正确找到浏览器版本
-        launchOptions.setProduct(Product.CHROMEDRIVER);
+        launchOptions.setProduct(Product.Chromedriver);
         launchOptions.setHeadless(true);
-        Browser browser4 = Puppeteer.launch(launchOptions);
-        String version4 = browser4.version();
+        Browser cdpBrowser4 = Puppeteer.launch(launchOptions);
+        String version4 = cdpBrowser4.version();
         System.out.println("cdp协议获取到版本信息4：" + version4);
-        browser4.close();
+        cdpBrowser4.close();
 
     }
 
@@ -80,20 +80,20 @@ public class V_DownloadApiTest extends A_LaunchTest {
         //下载 CHROMIUM 的 CANARY 下的最新版本
         FetcherOptions fetcherOptions1 = new FetcherOptions();
         fetcherOptions1.setChannel(ChromeReleaseChannel.LATEST);//CHROMIUM 只支持 latest
-        fetcherOptions1.setProduct(Product.CHROMIUM);
+        fetcherOptions1.setProduct(Product.Chromium);
         RevisionInfo revisionInfo1 = Puppeteer.downloadBrowser(fetcherOptions1);
         System.out.println("revisionInfo1: " + revisionInfo1);
 
         //下载 CHROME 的 114.0.5708 milestone 下的最新版本
         FetcherOptions fetcherOptions2 = new FetcherOptions();
-        fetcherOptions2.setProduct(Product.CHROME);
+        fetcherOptions2.setProduct(Product.Chrome);
         fetcherOptions2.setMilestone("117");
         RevisionInfo revisionInfo2 = Puppeteer.downloadBrowser(fetcherOptions2);
         System.out.println("revisionInfo2: " + revisionInfo2);
 
         //下载 CHROMEDRIVER 的 117 build 下的最新版本
         FetcherOptions fetcherOptions3 = new FetcherOptions();
-        fetcherOptions3.setProduct(Product.CHROMEDRIVER);
+        fetcherOptions3.setProduct(Product.Chromedriver);
         fetcherOptions3.setBuild("132.0.6784");
         RevisionInfo revisionInfo3 = Puppeteer.downloadBrowser(fetcherOptions3);
         System.out.println("revisionInfo3: " + revisionInfo3);

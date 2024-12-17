@@ -63,7 +63,7 @@ public class Callback {
             }
             return waitingResponse.get();
         } else {
-            throw new JvppeteerException("Timeout < 0");
+            throw new JvppeteerException("Timeout must be greater than 0");
         }
     }
 

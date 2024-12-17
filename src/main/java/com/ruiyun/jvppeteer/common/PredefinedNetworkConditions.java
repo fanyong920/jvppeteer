@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.entities.NetworkConditions;
+import com.ruiyun.jvppeteer.cdp.entities.NetworkConditions;
 
 public enum PredefinedNetworkConditions {
     // ~500Kbps down ~500Kbps up 400ms RTT

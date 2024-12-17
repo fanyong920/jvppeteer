@@ -1,37 +1,53 @@
 package com.ruiyun.jvppeteer.launch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.bidi.core.BidiBrowser;
+import com.ruiyun.jvppeteer.bidi.core.BidiConnection;
+import com.ruiyun.jvppeteer.cdp.core.BrowserFetcher;
+import com.ruiyun.jvppeteer.cdp.core.BrowserRunner;
+import com.ruiyun.jvppeteer.cdp.core.CdpBrowser;
+import com.ruiyun.jvppeteer.cdp.entities.ConnectOptions;
+import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
+import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Protocol;
+import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
+import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.Environment;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.BrowserFetcher;
-import com.ruiyun.jvppeteer.core.BrowserRunner;
-import com.ruiyun.jvppeteer.entities.ConnectOptions;
-import com.ruiyun.jvppeteer.entities.FetcherOptions;
-import com.ruiyun.jvppeteer.entities.GetVersionResponse;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.RevisionInfo;
-import com.ruiyun.jvppeteer.entities.TargetType;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.LaunchException;
-import com.ruiyun.jvppeteer.transport.Connection;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
+import com.ruiyun.jvppeteer.transport.CdpConnection;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+import com.ruiyun.jvppeteer.transport.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +59,8 @@ public abstract class BrowserLauncher {
     protected Product product;
     protected String cacheDir;
     protected String executablePath;
+    private static final Pattern WS_ENDPOINT_PATTERN = Pattern.compile("^DevTools listening on (ws://.*)$");
+    private static final Pattern BiDi_ENDPOINT_PATTERN = Pattern.compile("^WebDriver BiDi listening on (ws://.*)$");
 
     public BrowserLauncher(String cacheDir, Product product) {
         super();
@@ -50,7 +68,6 @@ public abstract class BrowserLauncher {
         this.product = product;
     }
 
-    Environment env = System::getenv;
 
     public abstract Browser launch(LaunchOptions options) throws IOException;
 
@@ -77,7 +94,7 @@ public abstract class BrowserLauncher {
         }
         /*环境变量中配置了chromeExecutable，就使用环境变量中的路径*/
         for (int i = 0; i < Constant.EXECUTABLE_ENV.length; i++) {
-            preferredExecutablePath = env.getEnv(Constant.EXECUTABLE_ENV[i]);
+            preferredExecutablePath = System.getProperty(Constant.EXECUTABLE_ENV[i]);
             if (StringUtil.isNotEmpty(preferredExecutablePath)) {
                 boolean assertDir = FileUtil.assertExecutable(preferredExecutablePath);
                 if (!assertDir) {
@@ -88,14 +105,17 @@ public abstract class BrowserLauncher {
         }
         /*指定了首选版本*/
         if (StringUtil.isNotEmpty(preferredRevision)) {
-            RevisionInfo revisionInfo = browserFetcher.revisionInfo(preferredRevision);
+            RevisionInfo revisionInfo = browserFetcher.revisionInfo(preferredRevision.replace("stable_", ""));
             if (!revisionInfo.getLocal())
                 throw new LaunchException(MessageFormat.format("Could not find browser preferredRevision {0}. Please download a browser binary.", preferredRevision));
             return revisionInfo.getExecutablePath();
         }
 
         /*环境变量中配置了版本，就用环境变量中的版本*/
-        String revision = env.getEnv(Constant.JVPPETEER_PRODUCT_REVISION_ENV);
+        String revision = System.getProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV);
+        if (StringUtil.isNotEmpty(revision)) {
+            revision = revision.replace("stable_", "");
+        }
         if (StringUtil.isNotEmpty(revision)) {
             RevisionInfo revisionInfo = browserFetcher.revisionInfo(revision);
             if (!revisionInfo.getLocal()) {
@@ -129,26 +149,136 @@ public abstract class BrowserLauncher {
         throw new LaunchException("Could not find anyone browser executablePath");
     }
 
-    protected Browser run(LaunchOptions options, List<String> chromeArguments, String temporaryUserDataDir, boolean usePipe, List<String> defaultArgs) {
-        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir);
+    protected Browser createBrowser(LaunchOptions options, List<String> chromeArguments, String temporaryUserDataDir, boolean usePipe, List<String> defaultArgs, String customizedUserDataDir) {
+        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir, options.getProduct(), options.getProtocol(), customizedUserDataDir);
         try {
-            runner.start();
-            Connection connection = runner.setUpConnection(usePipe, options.getProtocolTimeout(), options.getSlowMo(), options.getDumpio());
-            Runnable closeCallback = runner::closeBrowser;
-            Browser browser = Browser.create(options.getProduct(), connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
-            browser.setExecutablePath(this.executablePath);
-            browser.setDefaultArgs(defaultArgs);
-            if (options.getWaitForInitialPage()) {
-                browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
+            Connection connection;
+            if (usePipe) {
+                throw new LaunchException("Not supported pipe connect to browser");
+            } else {
+                if (Objects.equals(options.getProduct(), Product.Firefox)) {
+                    runner.start();
+                    String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
+                    if (Protocol.WebDriverBiDi.equals(options.getProtocol())) {
+                        ConnectionTransport transport = WebSocketTransportFactory.create(endpoint + "/session");
+                        connection = new BidiConnection(endpoint + "/session", transport, options.getSlowMo(), options.getTimeout());
+                        runner.setConnection(connection);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Connect to browser by webDriverBidi url: {}", endpoint + "/session");
+                        }
+                        Runnable closeCallback = runner::closeBrowser;
+                        return createBiDiBrowser((BidiConnection) connection, closeCallback, runner.getProcess(), options);
+                    } else {
+                        ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
+                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getTimeout());
+                        runner.setConnection(connection);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
+                        }
+                        return createCdpBrowser(options, defaultArgs, runner, connection);
+                    }
+                } else {
+                    if (Objects.equals(options.getProtocol(), Protocol.CDP)) {
+                        runner.start();
+                        String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
+                        ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
+                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getTimeout());
+                        runner.setConnection(connection);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
+                        }
+                        return createCdpBrowser(options, defaultArgs, runner, connection);
+                    } else {
+                        throw new LaunchException("Chrome dose not support connect to browser by webdriver-bidi");
+                    }
+                }
             }
-            connection.setBrowser(browser);
-            runner.setPid(getBrowserPid(runner.getProcess()));
-            return browser;
-        } catch (IOException | InterruptedException e) {
+        } catch (Exception e) {
             runner.closeBrowser();
-            LOGGER.error("Failed to launch the browser process:{}", e.getMessage(), e);
-            return null;
+            throw new LaunchException("Failed to launch the browser process: " + e.getMessage(), e);
         }
+    }
+    /**
+     * waiting for browser ws url
+     *
+     * @param timeout 等待超时时间
+     * @param dumpio  是否用标准输出打印 chrome 进程的输出流
+     * @return 连接websocket的url
+     */
+    private String waitForWSEndpoint(int timeout, boolean dumpio, Protocol protocol, Process process) {
+        return new StreamReader(timeout, dumpio, process.getInputStream(), protocol).waitFor();
+    }
+
+    static class StreamReader {
+        private final StringBuilder chromeOutputBuilder = new StringBuilder();
+        private volatile String wsEndpoint = null;
+        private final int timeout;
+        private final boolean dumpio;
+        private final InputStream inputStream;
+        private final Protocol protocol;
+
+        public StreamReader(int timeout, boolean dumpio, InputStream inputStream, Protocol protocol) {
+            this.timeout = timeout;
+            this.dumpio = dumpio;
+            this.inputStream = inputStream;
+            this.protocol = protocol;
+        }
+
+        public String waitFor() {
+            try (InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                 BufferedReader reader = new BufferedReader(inputStreamReader)) {
+                long now = System.currentTimeMillis();
+                long base = 0;
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    long remaining = timeout - base;
+                    if (remaining <= 0) {
+                        throw new TimeoutException("Failed to launch the browser process!" + "Chrome output: " + chromeOutputBuilder);
+                    }
+                    if (dumpio) {
+                        System.out.println(line);
+                    }
+                    //只要是 Product.Firefox 就是 用 webdriver-bidi
+                    Matcher matcher = Objects.equals(Protocol.WebDriverBiDi, this.protocol) ? BiDi_ENDPOINT_PATTERN.matcher(line) : WS_ENDPOINT_PATTERN.matcher(line);
+                    if (matcher.find()) {
+                        wsEndpoint = matcher.group(1);
+                        return wsEndpoint;
+                    }
+                    chromeOutputBuilder.append(line).append(System.lineSeparator());
+                    base = System.currentTimeMillis() - now;
+                }
+                throw new LaunchException("Failed to launch the browser process! Chrome process Output: " + chromeOutputBuilder);
+            } catch (Exception e) {
+                throw new LaunchException("Failed to launch the browser process! " + e.getMessage() + "Chrome process Output: " + chromeOutputBuilder, e);
+            }
+        }
+    }
+
+    private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
+        Runnable closeCallback = runner::closeBrowser;
+        CdpBrowser cdpBrowser = CdpBrowser.create(options.getProduct(), connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
+        cdpBrowser.setExecutablePath(this.executablePath);
+        cdpBrowser.setDefaultArgs(defaultArgs);
+        if (options.getWaitForInitialPage()) {
+            cdpBrowser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
+        }
+        connection.setCloseRunner(() -> {
+            if (!cdpBrowser.autoClose) {
+                LOGGER.info("Websocket connection has been closed,now shutting down browser process");
+                cdpBrowser.disconnect();
+                try {
+                    cdpBrowser.close();
+                } catch (Exception e) {
+                    LOGGER.trace("jvppeteer error", e);
+                }
+            }
+        });
+        runner.setPid(getBrowserPid(runner.getProcess()));
+        return cdpBrowser;
+    }
+
+    private Browser createBiDiBrowser(BidiConnection connection, Runnable closeCallback, Process process, LaunchOptions options) throws IOException {
+        return BidiBrowser.create(process, closeCallback, connection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), null);
     }
 
     /**
@@ -168,30 +298,54 @@ public abstract class BrowserLauncher {
         return this.executablePath;
     }
 
-    public Browser connect(ConnectOptions options) throws IOException, InterruptedException {
-        final Connection connection;
+    public Browser connect(ConnectOptions options) throws Exception {
+        ConnectionTransport connectionTransport;
+        String endpointUrl;
         if (options.getTransport() != null) {
-            connection = new Connection("", options.getTransport(), options.getSlowMo(), options.getProtocolTimeout());
+            connectionTransport = options.getTransport();
+            endpointUrl = "";
         } else if (StringUtil.isNotEmpty(options.getBrowserWSEndpoint())) {
-            WebSocketTransport connectionTransport = WebSocketTransport.create(options.getBrowserWSEndpoint());
-            connection = new Connection(options.getBrowserWSEndpoint(), connectionTransport, options.getSlowMo(), options.getTimeout());
+            connectionTransport = WebSocketTransportFactory.create(options.getBrowserWSEndpoint(), options.getHeaders(), options.getProtocolTimeout());
+            endpointUrl = options.getBrowserWSEndpoint();
         } else if (StringUtil.isNotEmpty(options.getBrowserURL())) {
-            String connectionURL = getWSEndpoint(options.getBrowserURL());
-            WebSocketTransport connectionTransport = WebSocketTransport.create(connectionURL);
-            connection = new Connection(connectionURL, connectionTransport, options.getSlowMo(), options.getTimeout());
+            endpointUrl = getWSEndpoint(options.getBrowserURL());
+            connectionTransport = WebSocketTransport.create(endpointUrl);
         } else {
             throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
         }
+        if (Objects.equals(options.getProtocolType(), Protocol.WebDriverBiDi)) {
+            return connectToBiDiBrowse(connectionTransport, endpointUrl, options);
+        } else {
+            return connectToCdpBrowser(connectionTransport, endpointUrl, options);
+        }
+    }
+
+    private CdpBrowser connectToCdpBrowser(ConnectionTransport connectionTransport, String url, ConnectOptions options) throws IOException {
+        Connection connection = new CdpConnection(url, connectionTransport, options.getSlowMo(), options.getProtocolTimeout());
         JsonNode result = connection.send("Target.getBrowserContexts");
         JavaType javaType = Constant.OBJECTMAPPER.getTypeFactory().constructParametricType(ArrayList.class, String.class);
         List<String> browserContextIds;
-        Runnable closeFunction = () -> connection.send("Browser.close");
+        Runnable closeCallback = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
         GetVersionResponse version = getVersion(connection);
-        Product product = version.getProduct().toLowerCase().contains("firefox") ? Product.FIREFOX : Product.CHROME;
-        Browser browser = Browser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeFunction, options.getTargetFilter(), options.getIsPageTarget(), true);
-        connection.setBrowser(browser);
-        return browser;
+        Product product = version.getProduct().toLowerCase().contains("firefox") ? Product.Firefox : Product.Chrome;
+        return CdpBrowser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true);
+    }
+
+    private BidiBrowser connectToBiDiBrowse(ConnectionTransport connectionTransport, String url, ConnectOptions options) throws JsonProcessingException {
+        // Try pure BiDi first.
+        BidiConnection pureBidiConnection = new BidiConnection(url, connectionTransport, options.getSlowMo(), options.getProtocolTimeout());
+        try {
+            JsonNode result = pureBidiConnection.send("session.status", Collections.emptyMap());
+            if (result.has("type") && Objects.equals(result.get("type").asText(), "success")) {
+                return BidiBrowser.create(null, null, pureBidiConnection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), options.getCapabilities());
+            }
+        } catch (Exception e) {
+            if (!(e instanceof ProtocolException)) {
+                throw e;
+            }
+        }
+        throw new JvppeteerException("Fail to connect Browser by options " + options);
     }
 
     /**

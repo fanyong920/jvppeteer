@@ -1,14 +1,12 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.core.WaitTask;
+import com.ruiyun.jvppeteer.cdp.core.WaitTask;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.Set;
-
-//done
 public class TaskManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskManager.class);
     private final Set<WaitTask> tasks = new HashSet<>();
@@ -25,10 +23,8 @@ public class TaskManager {
         tasks.forEach(task -> {
                     try {
                         task.terminate(error);
-                    } catch (
-                            Exception e
-                    ) {
-                        LOGGER.error("", e);
+                    } catch (Exception e) {
+                        LOGGER.error("jvppeteer error", e);
                     }
                 }
         );
@@ -36,13 +32,22 @@ public class TaskManager {
     }
 
     public void rerunAll() {
-        this.tasks.forEach(task -> {
-            try {
-                task.rerun();
-            }catch (Exception e){
-                LOGGER.error("",e);
-            }
-        });
-        // 等待所有任务完成
+//        CompletionService<Void> completionService = new ExecutorCompletionService<>(WaitTask.waitTaskService);
+//        List<Future<Void>> futures = new java.util.ArrayList<>();
+//        this.tasks.forEach(task -> {
+//            Future<Void> future = completionService.submit(() -> {
+//                task.rerun();
+//                return null;
+//            });
+//            futures.add(future);
+//
+//        });
+//        for (Future<Void> future : futures) {
+//            try {
+//                future.get();
+//            } catch (Exception e) {
+//                LOGGER.error("jvppeteer error", e);
+//            }
+//        }
     }
 }

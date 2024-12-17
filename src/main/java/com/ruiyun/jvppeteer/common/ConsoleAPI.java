@@ -1,9 +1,8 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.core.JSHandle;
-import com.ruiyun.jvppeteer.entities.ConsoleMessageType;
-import com.ruiyun.jvppeteer.entities.StackTrace;
-
+import com.ruiyun.jvppeteer.api.core.JSHandle;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageType;
+import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import java.util.List;
 
 /**

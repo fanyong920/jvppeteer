@@ -1,26 +1,28 @@
 package com.ruiyun.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.ElementHandle;
-import com.ruiyun.jvppeteer.core.Frame;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.entities.AutofillData;
-import com.ruiyun.jvppeteer.entities.BoundingBox;
-import com.ruiyun.jvppeteer.entities.BoxModel;
-import com.ruiyun.jvppeteer.entities.ConsoleMessage;
-import com.ruiyun.jvppeteer.entities.CreditCard;
-import com.ruiyun.jvppeteer.entities.DragData;
-import com.ruiyun.jvppeteer.entities.Point;
-import com.ruiyun.jvppeteer.entities.Viewport;
-import org.junit.Test;
-
-import java.io.IOException;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.ElementHandle;
+import com.ruiyun.jvppeteer.api.core.Frame;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.AutofillData;
+import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
+import com.ruiyun.jvppeteer.cdp.entities.BoxModel;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
+import com.ruiyun.jvppeteer.cdp.entities.CreditCard;
+import com.ruiyun.jvppeteer.cdp.entities.DragData;
+import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Point;
+import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import org.junit.Test;
 
 public class R_ElementHandleApiTest extends A_LaunchTest {
     /**
@@ -29,29 +31,37 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
+        Page page = Browser.newPage();
 
         //方式1 waitForSelector
-        //page.goTo("https://www.bookstack.cn/read/HTTP-Status-codes/websocket.md",false);
-        // ElementHandle elementHandle = page.waitForSelector("#page-content");
-
-        //方式2 waitForSelector
-        new Thread(() -> {
-            try {
-                ElementHandle elementHandle = page.waitForSelector("#page-content");
-                BoxModel boxModel = elementHandle.boxModel();
-                elementHandle.dispose();//手动释放，防止内存泄露
-                double height = boxModel.getHeight();
-                double width = boxModel.getWidth();
-                System.out.println(height + ":" + width);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
         page.goTo("https://www.bookstack.cn/read/HTTP-Status-codes/websocket.md");
-        browser.close();
+        try {
+            ElementHandle elementHandle = page.waitForSelector("#page-content");
+            BoxModel boxModel = elementHandle.boxModel();
+            elementHandle.dispose();//手动释放，防止内存泄露
+            double height = boxModel.getHeight();
+            double width = boxModel.getWidth();
+            System.out.println(height + ":" + width);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        //方式2 waitForSelector
+//        new Thread(() -> {
+//            try {
+//                ElementHandle elementHandle = page.waitForSelector("#page-content");
+//                BoxModel boxModel = elementHandle.boxModel();
+//                elementHandle.dispose();//手动释放，防止内存泄露
+//                double height = boxModel.getHeight();
+//                double width = boxModel.getWidth();
+//                System.out.println(height + ":" + width);
+//            } catch (JsonProcessingException e) {
+//                throw new RuntimeException(e);
+//            }
+//        }).start();
+        page.goTo("https://www.bookstack.cn/read/HTTP-Status-codes/websocket.md");
+        Browser.close();
     }
 
     /**
@@ -60,14 +70,14 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
-        page.goTo("https://pptr.nodejs.cn/api/puppeteer.elementhandle.isvisible");
+        Page page = Browser.newPage();
+        page.goTo("https://www.baidu.com");
 
-        page.click("#__docusaurus > nav > div.navbar__inner > div.navbar__items.navbar__items--right > div.navbarSearchContainer_Bca1 > button");
         //等待输入框出现
-        ElementHandle elementHandle = page.waitForSelector("#docsearch-input");
+        //selector可能会变，报错及时更改
+        ElementHandle elementHandle = page.$("#kw");
         elementHandle.type("jvppeteer测试");
 
         boolean intersectingViewport = elementHandle.isIntersectingViewport();
@@ -78,15 +88,10 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         elementHandle.press("Escape");
         boolean isHidden = elementHandle.isHidden();
         System.out.println("isHidden: " + isHidden);
-        page.waitForSelector("#__docusaurus > nav > div.navbar__inner > div.navbar__items.navbar__items--right > div.navbarSearchContainer_Bca1 > button");
+        ElementHandle $ = page.$("#__docusaurus > nav > div.navbar__inner > div.navbar__items.navbar__items--right > div.navbarSearchContainer_Bca1 > button");
+        System.out.println($);
 
-        //esc按键释放后，该元素消失，那么isIntersectingViewport便会抛出错误
-        try {
-            elementHandle.isIntersectingViewport();
-        } catch (Exception e) {
-            System.out.println("intersectingViewport2: 出错了");
-        }
-        browser.close();
+        Browser.close();
     }
 
     /**
@@ -94,13 +99,24 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test5() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
+        Page page = Browser.newPage();
+        page.on(PageEvents.PageError, e -> {
+            System.out.println("page error:" + e);
+            //火狐浏览器在https://pptr.nodejs.cn/api/puppeteer.pageevent页面加载发生错误，刷新页面
+            page.reload();
+        });
+        page.on(PageEvents.Error, e -> {
+            System.out.println("error:" + e);
+            //火狐浏览器在https://pptr.nodejs.cn/api/puppeteer.pageevent页面加载发生错误，刷新页面
+            page.reload();
+        });
+        //火狐浏览器在这个页面发生错误
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.elementhandle.isvisible");
 
         //selector可能会变，报错及时更改
-        ElementHandle elementHandle = page.$("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > nav > a.pagination-nav__link.pagination-nav__link--prev");
+        ElementHandle elementHandle = page.$("#__docusaurus > nav > div.navbar__inner > div:nth-child(1) > a.navbar__brand > b");
         try {
             elementHandle.hover();
             //利用 point 和 boundingBox可以用来拖动验证条
@@ -112,7 +128,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         } finally {
             elementHandle.dispose();
         }
-        browser.close();
+        Browser.close();
     }
 
     /**
@@ -123,12 +139,12 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
         args.add("--no-sandbox");
         launchOptions.setArgs(args);
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
+        Page page = Browser.newPage();
         //打开这个。ElementHandle.drag才有返回值，不打开返回null, setDragInterception(true)已过时
         // page.setDragInterception(true);
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
         page.setContent("<script>\n" +
                 "  function dragstartHandler(ev) {\n" +
                 "    // Add the target element's id to the data transfer object\n" +
@@ -170,17 +186,17 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
             target.dispose();
         }
         Thread.sleep(5000);
-        browser.close();
+        Browser.close();
     }
 
     /**
      * 信用卡表单填写,目前版本的浏览器不可以用
-     * {@link com.ruiyun.jvppeteer.common.Constant#VERSION}
+     * {@link com.ruiyun.jvppeteer.common.BrowserRevision}
      */
     @Test
     public void test7() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"zh\">\n" +
                 "<head>\n" +
@@ -210,23 +226,26 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         elementHandle.autofill(new AutofillData(new CreditCard("12346", "张三", "2023", "01", "123")));
         elementHandle.dispose();
         Thread.sleep(5000);
-        browser.close();
+        Browser.close();
     }
 
 
     /**
      * hover和focus
-     *
      */
     @Test
     public void test8() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
-        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-        ElementHandle elementHandle = page.$("#hotsearch-content-wrapper > li:nth-child(1) > a > span.title-content-title");
+        GoToOptions goToOptions = new GoToOptions();
+        goToOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
+        page.goTo("https://www.baidu.com/?tn=68018901_16_pg",goToOptions);
+        ElementHandle elementHandle = page.$("li.hotsearch-item:nth-child(4) > a:nth-child(1) > span:nth-child(4)");
         Frame frame = elementHandle.contentFrame();
         System.out.println("frame:" + frame);
+        Object evaluate = elementHandle.evaluate("element => element.innerText");
+        System.out.println("evaluate:" + evaluate);
         Thread.sleep(3000);
         System.out.println("elementHandle1 focus");
         elementHandle.focus();
@@ -248,7 +267,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         elementHandle.dispose();
         elementHandle2.dispose();
         Thread.sleep(5000);
-        browser.close();
+        Browser.close();
     }
 
 
@@ -256,10 +275,10 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      * 测试$eval和$$eval
      */
     @Test
-    public void test11() throws InterruptedException, IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
+    public void test11() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         //设置html页面，有三个按钮，点击后打印出按钮的文本
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -328,7 +347,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         System.out.println("2: " + o2);
         Thread.sleep(5000);
         divElement.dispose();
-        browser.close();
+        Browser.close();
     }
 
 
@@ -336,9 +355,9 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      * 列表多选
      */
     @Test
-    public void test12() throws InterruptedException, IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+    public void test12() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -407,30 +426,30 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         System.out.println(String.join(",", select));
         selectElement.dispose();
         Thread.sleep(5000);
-        browser.close();
+        Browser.close();
     }
 
     /**
      * tap
      */
     @Test
-    public void test13() throws InterruptedException, IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+    public void test13() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.goTo("https://www.baidu.com/");
         page.setViewport(new Viewport(1200, 1200));
         page.$("#hotsearch-content-wrapper > li:nth-child(6) > a > span.title-content-title").tap();
         Thread.sleep(2000);
-        browser.close();
+        Browser.close();
     }
 
     /**
      * toElement测试
      */
     @Test
-    public void test15() throws InterruptedException, IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+    public void test15() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.setContent("<script>\n" +
                 "  function dragstartHandler(ev) {\n" +
                 "    // Add the target element's id to the data transfer object\n" +
@@ -466,14 +485,14 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         //这里会报错，因为页面重新导航了，原来的页面信息已经丢失，释放与否已经无所谓了
         elementHandle.dispose();
         Thread.sleep(10000);
-        browser.close();
+        Browser.close();
     }
 
     @Test
-    public void test16() throws InterruptedException, IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
+    public void test16() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "\n" +
@@ -539,6 +558,6 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         Thread.sleep(2000);
         elementHandle.touchEnd();
         Thread.sleep(10000);
-        browser.close();
+        Browser.close();
     }
 }

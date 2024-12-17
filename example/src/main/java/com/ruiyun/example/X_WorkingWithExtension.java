@@ -1,19 +1,18 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Target;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.entities.TargetType;
-import org.junit.Test;
-
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Test;
 
 public class X_WorkingWithExtension {
 
     @Test
-    public  void test2() throws Exception {
+    public void test2() throws Exception {
 
         ArrayList<String> additionalArgs = new ArrayList<>();
         additionalArgs.add("--no-sandbox");
@@ -23,13 +22,13 @@ public class X_WorkingWithExtension {
         additionalArgs.add("--disable-extensions-except=" + pathToExtension);
         additionalArgs.add("--load-extension=" + pathToExtension);
         //插件的加载在有头模式下才能生效
-        Browser browser = Puppeteer.launch(LaunchOptions.builder().args(additionalArgs).headless(false).build());
-        List<Target> targets = browser.targets();
+        Browser cdpBrowser = Puppeteer.launch(LaunchOptions.builder().args(additionalArgs).headless(false).build());
+        List<Target> targets = cdpBrowser.targets();
         for (Target target : targets) {
             if (TargetType.BACKGROUND_PAGE.equals(target.type())) {
-                System.out.println("目标名称=" + target.getTargetInfo().getTitle());
+                System.out.println("目标类型=" + target.type());
             }
         }
-        browser.close();
+        cdpBrowser.close();
     }
 }

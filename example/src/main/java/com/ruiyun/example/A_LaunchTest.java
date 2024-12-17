@@ -1,58 +1,61 @@
 package com.ruiyun.example;
 
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.cdp.entities.Protocol;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Target;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import java.io.IOException;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import org.junit.Test;
 
 public class A_LaunchTest {
-    public final LaunchOptions launchOptions = LaunchOptions.builder().executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-130.0.6723.58\\chrome-win32\\chrome.exe").headless(true).build();
+    public final LaunchOptions launchOptions = LaunchOptions.builder().
+            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
+//            executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe").
+            protocol(Protocol.CDP).
+            product(Product.Chrome).
+            headless(false).
+            //不设置窗口大小
+            defaultViewport(null).
+            build();
+
 
     /**
      * 手动配置路径来启动浏览器
      * 优先级： 1 高
      */
     @Test
-    public void test99() throws IOException {
-//        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win64-128.0.6613.137\\chrome-win64\\chrome.exe");
-//        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\chrome\\chrome");
-
-//        launchOptions.setArgs(getLaunchArguments());
-
+    public void test99() throws Exception {
+        ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
+        args.add("--no-sandbox");
+        launchOptions.setArgs(args);
+        launchOptions.setDumpio(true);
+        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\typescriptPri");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
+            System.out.println("浏览器版本：" + browser.version());
         }
-    }
-    private static ArrayList<String> getLaunchArguments() {
-        ArrayList<String> argList = new ArrayList<>();
-        argList.add("--no-sandbox");
-        argList.add("--disable-setuid-sandbox");
-        //argList.add("--disable-blink-features=AutomationControlled");
-        //argList.add("--auto-open-devtools-for-tabs");
-        argList.add("--disable-infobars");
-        //argList.add("--enable-webgl");
-        //argList.add("--use-gl=swiftshader");
-        argList.add("--disable-dev-shm-usage");
-        argList.add("--lang=zh-CN");
-        argList.add("--start-maximized");
-        //设置插件
-        return argList;
     }
 
     /**
@@ -61,19 +64,27 @@ public class A_LaunchTest {
      * {@link com.ruiyun.jvppeteer.common.Constant#EXECUTABLE_ENV}
      */
     @Test
-    public void test98() throws IOException {
-        System.setProperty("JVPPETEER_EXECUTABLE_PATH", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
-        //System.setProperty("java_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
-        //System.setProperty("java_package_config_jvppeteer_executable_path", "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
+    public void test98() throws Exception {
+//        System.setProperty(Constant.EXECUTABLE_ENV[0], "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe");
+        //System.setProperty(Constant.EXECUTABLE_ENV[0], "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
+        //System.setProperty(Constant.EXECUTABLE_ENV[1], "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
+        //System.setProperty(Constant.EXECUTABLE_ENV[2], "C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-127.0.6533.99\\chrome-win32\\chrome.exe");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
         }
     }
@@ -83,19 +94,27 @@ public class A_LaunchTest {
      * 优先级： 3
      */
     @Test
-    public void test10() throws IOException {
-        launchOptions.setProduct(Product.CHROME);
-        launchOptions.setPreferredRevision("128.0.6613.137");
-        Browser browser = Puppeteer.launch(launchOptions);
-        String version = browser.version();
-        System.out.println("cdp协议获取到版本信息1：" + version);
-        browser.close();
+    public void test10() throws Exception {
+        launchOptions.setProduct(Product.Firefox);
+        launchOptions.setPreferredRevision("stable_133.0");
+        Browser browser1 = Puppeteer.launch(launchOptions);
+        String version1 = browser1.version();
+        System.out.println("webdriver bidi 协议获取到版本信息：" + version1);
+        browser1.close();
 
-        launchOptions.setPreferredRevision("127.0.6533.99");
+
+        launchOptions.setProduct(Product.Chrome);
+        launchOptions.setPreferredRevision("128.0.6613.137");
         Browser browser2 = Puppeteer.launch(launchOptions);
         String version2 = browser2.version();
-        System.out.println("cdp协议获取到版本信息2：" + version2);
+        System.out.println("cdp协议获取到版本信息1：" + version2);
         browser2.close();
+
+        launchOptions.setPreferredRevision("127.0.6533.99");
+        Browser browser3 = Puppeteer.launch(launchOptions);
+        String version3 = browser3.version();
+        System.out.println("cdp协议获取到版本信息2：" + version3);
+        browser3.close();
     }
 
 
@@ -104,21 +123,29 @@ public class A_LaunchTest {
      * 优先级： 4
      */
     @Test
-    public void test11() throws InterruptedException, IOException {
-        launchOptions.setProduct(Product.CHROME);
+    public void test11() throws Exception {
+        launchOptions.setProduct(Product.Firefox);
         launchOptions.setHeadless(true);
-        System.setProperty("JVPPETEER_CHROMIUM_REVISION", "128.0.6613.137");
-        Browser browser = Puppeteer.launch(launchOptions);
-        String version = browser.version();
-        System.out.println("cdp协议获取到版本信息1：" + version);
-        browser.close();
+        System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "stable_133.0");
+        Browser browser1 = Puppeteer.launch(launchOptions);
+        String version1 = browser1.version();
+        System.out.println("webdriver bidi 协议获取到版本信息1：" + version1);
+        browser1.close();
 
-        launchOptions.setProduct(Product.CHROMEHEADLESSSHELL);
-        System.setProperty("JVPPETEER_CHROMIUM_REVISION", "129.0.6668.100");
+        launchOptions.setProduct(Product.Chrome);
+        launchOptions.setHeadless(true);
+        System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "128.0.6613.137");
         Browser browser2 = Puppeteer.launch(launchOptions);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
         browser2.close();
+
+        launchOptions.setProduct(Product.Chrome_headless_shell);
+        System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "129.0.6668.100");
+        Browser browser3 = Puppeteer.launch(launchOptions);
+        String version3 = browser3.version();
+        System.out.println("cdp协议获取到版本信息3：" + version3);
+        browser3.close();
     }
 
     /**
@@ -126,28 +153,25 @@ public class A_LaunchTest {
      * 优先级： 4 低
      */
     @Test
-    public void test12() throws InterruptedException, IOException {
+    public void test12() throws Exception {
+        launchOptions.setProduct(Product.Firefox);
+        Browser browser1 = Puppeteer.launch(launchOptions);
+        String version1 = browser1.version();
+        System.out.println("webdriver bidi 协议获取到版本信息1：" + version1);
+        browser1.close();
 
-        launchOptions.setProduct(Product.CHROME);
-        Browser browser = Puppeteer.launch(launchOptions);
-        String version = browser.version();
-        System.out.println("cdp协议获取到版本信息1：" + version);
-        browser.close();
-
-        launchOptions.setProduct(Product.CHROMEHEADLESSSHELL);
-        launchOptions.setHeadless(true);
+        launchOptions.setProduct(Product.Chrome);
         Browser browser2 = Puppeteer.launch(launchOptions);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
         browser2.close();
 
-        //CHROMEDRIVER不适应程序的启动逻辑，这里只是验证是否能正确找到浏览器版本
-//        launchOptions.setProduct(Product.CHROMEDRIVER);
-//        launchOptions.setHeadless(true);
-//        Browser browser3 = Puppeteer.launch(launchOptions);
-//        String version3 = browser3.version();
-//        System.out.println("cdp协议获取到版本信息3：" + version3);
-//        browser3.close();
+        launchOptions.setProduct(Product.Chrome_headless_shell);
+        launchOptions.setHeadless(true);
+        Browser browser3 = Puppeteer.launch(launchOptions);
+        String version3 = browser3.version();
+        System.out.println("cdp协议获取到版本信息3：" + version3);
+        browser3.close();
     }
 
     /**
@@ -156,71 +180,123 @@ public class A_LaunchTest {
      * {@link com.ruiyun.jvppeteer.common.Constant#PROBABLE_CHROME_EXECUTABLE_PATH}
      */
     @Test
-    public void test97() throws IOException {
+    public void test97() throws Exception {
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
         }
     }
 
     @Test
-    public void test1() throws IOException {
+    public void test1() throws Exception {
         //启动浏览器
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
         }
     }
 
     @Test
-    public void test0() throws IOException {
-        //添加启动命令行参数，这个参数使得浏览器最大化
+    public void test0() throws Exception {
+        //添加启动命令行参数，这个参数使得浏览器最大化，对 chrome 起作用
         launchOptions.setArgs(Collections.singletonList("--start-maximized"));
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
         }
     }
 
     @Test
-    public void test17() throws IOException {
+    public void test17() throws Exception {
         //指定chrome浏览器的缓存目录
-        launchOptions.setCacheDir("C:\\Users\\fanyong\\Desktop\\.local-browser");
+        launchOptions.setCacheDir("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
+            Target target1 = null;
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
             List<Target> targets = browser.targets();
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
             }
         }
     }
 
-    public Browser getBrowser() throws IOException {
+    @Test
+    public void test18() throws Exception {
+        launchOptions.setProduct(Product.Firefox);
+        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe");
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
+            }
+        }
+    }
+
+    public Browser getBrowser() throws Exception {
         return Puppeteer.launch(launchOptions);
     }
 }

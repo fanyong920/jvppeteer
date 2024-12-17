@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.core.Frame;
+import com.ruiyun.jvppeteer.api.core.Frame;
 
 @FunctionalInterface
 public interface FrameProvider {

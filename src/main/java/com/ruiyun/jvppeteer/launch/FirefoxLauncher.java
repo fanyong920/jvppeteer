@@ -1,9 +1,11 @@
 package com.ruiyun.jvppeteer.launch;
 
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -12,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class FirefoxLauncher extends BrowserLauncher {
+
+import static com.ruiyun.jvppeteer.common.Constant.BACKUP_SUFFIX;
+import static com.ruiyun.jvppeteer.common.Constant.PREFS_JS;
+import static com.ruiyun.jvppeteer.common.Constant.USER_JS;
+
+public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher {
 
     public FirefoxLauncher(String cacheDir, Product product) {
         super(cacheDir, product);
@@ -32,7 +40,13 @@ public class FirefoxLauncher extends BrowserLauncher {
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
+        if (!Paths.get(this.executablePath).getFileName().toString().toLowerCase().contains(options.getProduct().getProduct())) {
+            throw new LaunchException("The ExecutablePath does not match the product, The executablePath is " + this.executablePath + ",but the product is " + options.getProduct());
+        }
+        //临时的 UserDataDir
         String temporaryUserDataDir = null;
+        //自定义的 UserDataDir
+        String customizedUserDataDir = null;
         List<String> defaultArgs = this.defaultArgs(options);
         List<String> firefoxArguments = new ArrayList<>(defaultArgs);
         boolean isCustomUserDir = false;
@@ -40,10 +54,18 @@ public class FirefoxLauncher extends BrowserLauncher {
         for (String arg : firefoxArguments) {
             if (arg.startsWith("--remote-debugging-")) {
                 isCustomRemoteDebugger = true;
+                break;
             }
-            if (arg.equals("-profile") || arg.equals("--profile")) {
-                isCustomUserDir = true;
-            }
+        }
+        int profileIndex = firefoxArguments.indexOf("-profile");
+        int profileIndex2 = firefoxArguments.indexOf("--profile");
+        if (profileIndex != -1) {
+            isCustomUserDir = true;
+            customizedUserDataDir = firefoxArguments.get(profileIndex + 1);
+        }
+        if (profileIndex2 != -1) {
+            isCustomUserDir = true;
+            customizedUserDataDir = firefoxArguments.get(profileIndex2 + 1);
         }
         if (!isCustomUserDir) {
             temporaryUserDataDir = FileUtil.createProfileDir(Constant.FIREFOX_PROFILE_PREFIX);
@@ -59,10 +81,14 @@ public class FirefoxLauncher extends BrowserLauncher {
             }
 
         }
-        createProfile(temporaryUserDataDir, getPreferences(options));
+        createProfile(StringUtil.isNotEmpty(temporaryUserDataDir) ? temporaryUserDataDir : customizedUserDataDir, getPreferences(options));
         boolean usePipe = firefoxArguments.contains("--remote-debugging-pipe");
-        LOGGER.trace("Calling {} {}", this.executablePath, String.join(" ", firefoxArguments));
-        return run(options, firefoxArguments, temporaryUserDataDir, usePipe, defaultArgs);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Calling {} {}", this.executablePath, String.join(" ", firefoxArguments));
+        }
+        Browser browser = createBrowser(options, firefoxArguments, temporaryUserDataDir, usePipe, defaultArgs, customizedUserDataDir);
+        LOGGER.info("Successfully launch the browser, the executablePath is {}, the protocol is {}", this.executablePath,options.getProtocol());
+        return browser;
     }
 
     private Map<String, Object> getPreferences(LaunchOptions options) {
@@ -71,10 +97,25 @@ public class FirefoxLauncher extends BrowserLauncher {
             prefs.putAll(options.getExtraPrefsFirefox());
         }
         // Only enable the WebDriver BiDi protocol
-        prefs.put("browser.tabs.closeWindowWithLastTab", false);
-        prefs.put("network.cookie.cookieBehavior", 0);
-        prefs.put("fission.bfcacheInParent", false);
-        prefs.put("remote.active-protocols", 2);
+//        prefs.put("remote.active-protocols", 1);
+        if (Protocol.WebDriverBiDi.equals(options.getProtocol())) {
+            prefs.put("remote.active-protocols", 1);
+        } else {
+            // Do not close the window when the last tab gets closed
+            prefs.put("browser.tabs.closeWindowWithLastTab", false);
+            // Prevent various error message on the console
+            // jest-puppeteer asserts that no error message is emitted by the console
+            prefs.put("network.cookie.cookieBehavior", 0);
+            // Temporarily force disable BFCache in parent (https://bit.ly/bug-1732263)
+            prefs.put("fission.bfcacheInParent", false);
+            // Only enable the CDP protocol
+            prefs.put("remote.active-protocols", 2);
+        }
+        // Force all web content to use a single content process. TODO: remove
+        // this once Firefox supports mouse event dispatch from the main frame
+        // context. Once this happens, webContentIsolationStrategy should only
+        // be set for CDP. See
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=1773393
         prefs.put("fission.webContentIsolationStrategy", 0);
         return prefs;
     }
@@ -86,24 +127,23 @@ public class FirefoxLauncher extends BrowserLauncher {
         }
         Map<String, Object> defaultProfilePreferences = defaultProfilePreferences();
         defaultProfilePreferences.putAll(preferences);
-        String prefsPath = Helper.join(userDir, "prefs.js");
-        String userPath = Helper.join(userDir, "user.js");
+        String prefsPath = Helper.join(userDir, PREFS_JS);
+        String userPath = Helper.join(userDir, USER_JS);
         backupFile(userPath);
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Object> entry : defaultProfilePreferences.entrySet()) {
-            sb.append("user_pref(\"").append(entry.getKey()).append("\", ").append( Constant.OBJECTMAPPER.writeValueAsString(entry.getValue())).append(");\n");
-
+            sb.append("user_pref(\"").append(entry.getKey()).append("\", ").append(Constant.OBJECTMAPPER.writeValueAsString(entry.getValue())).append(");\n");
         }
-        Files.write(Paths.get(userPath),sb.toString().getBytes(),StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        Files.write(Paths.get(userPath), sb.toString().getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         backupFile(prefsPath);
     }
 
     private void backupFile(String input) throws IOException {
         Path source = Paths.get(input);
-        if(!Files.exists(source)){
+        if (!Files.exists(source)) {
             return;
         }
-        Files.copy(source,Paths.get(input+ ".bak"));
+        Files.copy(source, Paths.get(input + BACKUP_SUFFIX), StandardCopyOption.REPLACE_EXISTING);
     }
 
     private Map<String, Object> defaultProfilePreferences() {

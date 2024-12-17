@@ -1,9 +1,11 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.entities.*;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
+import com.ruiyun.jvppeteer.cdp.entities.ImageType;
+import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import org.junit.Test;
 
 public class Q_ScreenshotTest extends A_LaunchTest {
@@ -17,7 +19,8 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         screenshotOptions.setPath("baidu.png");
-        screenshotOptions.setOmitBackground(true);
+        //webdriver bidi 不支持该参数
+//        screenshotOptions.setOmitBackground(true);
         //全屏截图
         screenshotOptions.setFullPage(true);
         //截图的更多
@@ -33,7 +36,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
-        screenshotOptions.setPath("baidu.png");
+        screenshotOptions.setPath("baidu2.png");
         //指定图片类型，path指定的名称中的后缀便不起作用了
         screenshotOptions.setType(ImageType.JPEG);
         //jpg可以设置这个选项
@@ -47,12 +50,12 @@ public class Q_ScreenshotTest extends A_LaunchTest {
 
     @Test
     public void test5() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
-        screenshotOptions.setPath("baidu.jpeg");
+        screenshotOptions.setPath("baidu3.jpeg");
         //指定图片类型，path指定的名称中的后缀便不起作用了
         screenshotOptions.setType(ImageType.WEBP);
         //jpg可以设置这个选项
@@ -61,15 +64,15 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         screenshotOptions.setFullPage(true);
 
         page.screenshot(screenshotOptions);
-        browser.close();
+        cdpBrowser.close();
     }
     //某个元素截图
     @Test
     public void test6() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
         //打开一个页面
-        Page page = browser.newPage();
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         FrameAddStyleTagOptions options = new FrameAddStyleTagOptions();
         //修改一下百度一下按钮的颜色
@@ -79,7 +82,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         screenshotOptions.setPath("baidu.png");
         screenshotOptions.setFullPage(true);
         page.screenshot(screenshotOptions);
-        page.$("#su").screenshot("baidu2.png");
-        browser.close();
+        page.$("#su").screenshot("baidu4.png");
+        cdpBrowser.close();
     }
 }

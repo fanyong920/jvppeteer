@@ -1,53 +1,52 @@
 package com.ruiyun.example;
 
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.ElementHandle;
+import com.ruiyun.jvppeteer.api.core.Frame;
+import com.ruiyun.jvppeteer.api.core.JSHandle;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Request;
+import com.ruiyun.jvppeteer.api.core.Response;
+import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.cdp.core.FileChooser;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
+import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CoverageEntry;
+import com.ruiyun.jvppeteer.cdp.entities.Credentials;
+import com.ruiyun.jvppeteer.cdp.entities.FrameAddScriptTagOptions;
+import com.ruiyun.jvppeteer.cdp.entities.GeolocationOptions;
+import com.ruiyun.jvppeteer.cdp.entities.IdleOverridesState;
+import com.ruiyun.jvppeteer.cdp.entities.JSCoverageEntry;
+import com.ruiyun.jvppeteer.cdp.entities.JSCoverageOptions;
+import com.ruiyun.jvppeteer.cdp.entities.MediaFeature;
+import com.ruiyun.jvppeteer.cdp.entities.Metrics;
+import com.ruiyun.jvppeteer.cdp.entities.NewDocumentScriptEvaluation;
+import com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat;
+import com.ruiyun.jvppeteer.cdp.entities.ScreencastOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
+import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
+import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.WebPermission;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.ElementHandle;
-import com.ruiyun.jvppeteer.core.FileChooser;
-import com.ruiyun.jvppeteer.core.Frame;
-import com.ruiyun.jvppeteer.core.JSHandle;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Request;
-import com.ruiyun.jvppeteer.core.Response;
-import com.ruiyun.jvppeteer.core.Target;
-import com.ruiyun.jvppeteer.core.WebWorker;
-import com.ruiyun.jvppeteer.entities.BoundingBox;
-import com.ruiyun.jvppeteer.entities.ConsoleMessage;
-import com.ruiyun.jvppeteer.entities.Cookie;
-import com.ruiyun.jvppeteer.entities.CookieParam;
-import com.ruiyun.jvppeteer.entities.CoverageEntry;
-import com.ruiyun.jvppeteer.entities.Credentials;
-import com.ruiyun.jvppeteer.entities.FrameAddScriptTagOptions;
-import com.ruiyun.jvppeteer.entities.GeolocationOptions;
-import com.ruiyun.jvppeteer.entities.IdleOverridesState;
-import com.ruiyun.jvppeteer.entities.JSCoverageEntry;
-import com.ruiyun.jvppeteer.entities.JSCoverageOptions;
-import com.ruiyun.jvppeteer.entities.MediaFeature;
-import com.ruiyun.jvppeteer.entities.Metrics;
-import com.ruiyun.jvppeteer.entities.NewDocumentScriptEvaluation;
-import com.ruiyun.jvppeteer.entities.ScreenCastFormat;
-import com.ruiyun.jvppeteer.entities.ScreencastOptions;
-import com.ruiyun.jvppeteer.entities.Viewport;
-import com.ruiyun.jvppeteer.entities.VisionDeficiency;
-import com.ruiyun.jvppeteer.entities.WaitForSelectorOptions;
-import com.ruiyun.jvppeteer.exception.JvppeteerException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Objects;
-import org.junit.Test;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import org.junit.Test;
+
+
+import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
 
 public class S_PageApiTest extends A_LaunchTest {
     /**
@@ -63,8 +62,8 @@ public class S_PageApiTest extends A_LaunchTest {
         //2.超时时间和和响应的referrerPolicy referer也采用默认值
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.page._");
         //打开该页面的browser
-        Browser browser1 = page.browser();
-        System.out.println("browser对比结果：" + (browser1 == browser));
+        Browser Browser1 = page.browser();
+        System.out.println("browser对比结果：" + (Browser1 == browser));
         //获取页面标题
         String title = page.title();
         System.out.println("title：" + title);
@@ -96,7 +95,10 @@ public class S_PageApiTest extends A_LaunchTest {
         }
         Page page1 = browser.newPage();
         //不等待页面加载完成，就直接返回，单纯是发送访问url的请求
-        page1.goTo("https://pptr.nodejs.cn/api/puppeteer.page._", false);
+
+        page1.goTo("https://pptr.nodejs.cn/api/puppeteer.page._");
+
+
         //这样我们就可以等待某个元素出现了,元素可能更改，及时更新就行
         ElementHandle elementHandle = page1.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > nav > a.pagination-nav__link.pagination-nav__link--prev > div.pagination-nav__label");
 
@@ -128,7 +130,7 @@ public class S_PageApiTest extends A_LaunchTest {
         //打开一个页面
         Page page = browser.newPage();
         //监听浏览器控制台输出
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
                 "\n" +
@@ -216,7 +218,6 @@ public class S_PageApiTest extends A_LaunchTest {
         FrameAddScriptTagOptions options2 = new FrameAddScriptTagOptions();
         options2.setId("jquery");
         options2.setUrl("https://cdn.bootcss.com/jquery/3.4.1/jquery.js");
-
         ElementHandle elementHandle2 = page.addScriptTag(options2);
 
 
@@ -245,7 +246,7 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page = browser.newPage();
         //不授予任何权限，不然emulateIdleState()，会让页面触发 你的设备使用情况请求弹窗，导致页面停止
         browser.defaultBrowserContext().overridePermissions("https://www.baidu.com");
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println("ConsoleMessage: " + message.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("ConsoleMessage: " + message.text()));
         //模拟cpu慢速
         page.emulateCPUThrottling(2);
         //模拟3G网络条件
@@ -365,7 +366,7 @@ public class S_PageApiTest extends A_LaunchTest {
         Browser browser = Puppeteer.launch(launchOptions);
         //打开一个页面
         Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println("ConsoleMessage: " + message.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("ConsoleMessage: " + message.text()));
         NewDocumentScriptEvaluation newDocumentScriptEvaluation = page.evaluateOnNewDocument("Object.defineProperty(navigator, 'languages', {\n" +
                 "  get: function () {\n" +
                 "    return ['en-US', 'en', 'bn'];\n" +
@@ -431,7 +432,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
 
         //发送导航命令，不等待，这是方式1
-        page.goTo("https://www.baidu.com", false);
+        page.goTo("https://www.baidu.com");
         //在这里等待
         Response response = page.waitForNavigation();
         System.out.println("response: " + response.url());
@@ -456,8 +457,7 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test9() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-
-        page.goTo("https://www.baidu.com", false);
+        page.goTo("https://www.baidu.com");
         Request request = page.waitForRequest("https://www.baidu.com/img/flexible/logo/pc/result.png");
         System.out.println("url: " + request.url() + ", type: " + request.resourceType());
         browser.close();
@@ -467,10 +467,10 @@ public class S_PageApiTest extends A_LaunchTest {
      * 测试waitForResponse
      */
     @Test
-    public void test10() throws IOException {
+    public void test10() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://www.baidu.com", false);
+        page.goTo("https://www.baidu.com");
         Response res = page.waitForResponse(response -> response.url().contains("baidu") && response.status() == 200);
         System.out.println("url: " + res.url() + ", type: " + res.ok());
         browser.close();
@@ -480,15 +480,12 @@ public class S_PageApiTest extends A_LaunchTest {
      * waitForSelector
      */
     @Test
-    public void test11() throws IOException {
+    public void test11() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/", false);
+        page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/");
         WaitForSelectorOptions options = new WaitForSelectorOptions(true, false);
         ElementHandle elementHandle = page.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > article > div.theme-doc-markdown.markdown > header > h1", options);
-        if(Objects.isNull(elementHandle)) {
-            throw new JvppeteerException("No such element");
-        }
         elementHandle.dispose();
         System.out.println(elementHandle.id());
         browser.close();
@@ -498,28 +495,28 @@ public class S_PageApiTest extends A_LaunchTest {
      * waitForSelector
      */
     @Test
-    public void test12() throws IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
-        page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/", false);
-        ElementHandle elementHandle = page.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > article > div.theme-doc-markdown.markdown > header > h1");
+    public void test12() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
+        page.goTo("https://www.baidu.com");
+        ElementHandle elementHandle = page.waitForSelector("#su");
         elementHandle.dispose();
         System.out.println(elementHandle.id());
-        browser.close();
+        Browser.close();
     }
 
     @Test
-    public void test13() throws InterruptedException, IOException {
+    public void test13() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.setBypassCSP(true);
-        page.setBypassServiceWorker(true);
-        page.setCacheEnabled(true);
-        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-        List<WebWorker> workers = page.workers();
-        for (WebWorker worker : workers) {
-            System.out.println("worker: " + worker.url());
-        }
+//        page.setBypassCSP(true);
+//        page.setBypassServiceWorker(true);
+//        page.setCacheEnabled(true);
+//        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
+//        List<WebWorker> workers = page.workers();
+//        for (WebWorker worker : workers) {
+//            System.out.println("worker: " + worker.url());
+//        }
         page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36");
         Thread.sleep(2000);
         page.focus("#hotsearch-content-wrapper > li:nth-child(1) > a");
@@ -541,10 +538,11 @@ public class S_PageApiTest extends A_LaunchTest {
     }
 
     @Test
-    public void test14() throws InterruptedException, IOException {
+    public void test14() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://smallpdf.com/cn/pdf-to-word");
+        //webdriver bidi不支持
         AwaitableResult<FileChooser> result = page.fileChooserWaitFor();
         page.click("#app > div > div:nth-child(1) > header > div.rh8nkv-3.gcKsMX > div > div > label > form > label > div > div.sc-8s01yt-1.XegmY > div.l3tlg0-5.ekSdZR > button.l3tlg0-0.ggoliT");
         FileChooser fileChooser = result.waitingGetResult();
@@ -563,7 +561,7 @@ public class S_PageApiTest extends A_LaunchTest {
      * 列表多选
      */
     @Test
-    public void test15() throws InterruptedException, IOException {
+    public void test15() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
@@ -639,10 +637,10 @@ public class S_PageApiTest extends A_LaunchTest {
      * 测试$eval和$$eval
      */
     @Test
-    public void test16() throws InterruptedException, IOException {
+    public void test16() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         //设置html页面，有三个按钮，点击后打印出按钮的文本
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"en\">\n" +
@@ -709,9 +707,10 @@ public class S_PageApiTest extends A_LaunchTest {
      * 测试coverage
      */
     @Test
-    public void test17() throws IOException {
+    public void test17() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
+        //webdriver bidi 不支持
         page.coverage().startJSCoverage(new JSCoverageOptions(true, true, true, true));//会导致不能页面不能加载完成
         page.coverage().startCSSCoverage();
         page.goTo("https://www.baidu.com/");
@@ -727,10 +726,10 @@ public class S_PageApiTest extends A_LaunchTest {
      * 测试coverage
      */
     @Test
-    public void test18() throws IOException {
+    public void test18() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        //开启追踪
+        //开启追踪 webdriver bidi 不支持
         page.tracing().start("C:\\Users\\fanyong\\Desktop\\trace.json");
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         page.tracing().stop();
@@ -741,44 +740,49 @@ public class S_PageApiTest extends A_LaunchTest {
      * Page.waitForFunction() ：可用于观察视口大小的变化
      */
     @Test
-    public void test19() throws InterruptedException, IOException {
+    public void test19() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         new Thread(
                 () -> {
-                    JSHandle jsHandle = page.waitForFunction("window.innerWidth < 100");
+                    JSHandle jsHandle;
+                    try {
+                        jsHandle = page.waitForFunction("window.innerWidth < 100");
+                    } catch (ExecutionException | InterruptedException | TimeoutException e) {
+                        throw new RuntimeException(e);
+                    }
                     System.out.println(jsHandle);
                     jsHandle.dispose();
                 }
         ).start();
         page.setViewport(new Viewport(50, 50));
-//        browser.close();
-        Thread.sleep(10000);
+        Thread.sleep(3000);
+        browser.close();
     }
 
     /**
      * Page.waitForFunction():传递一个参数给pageFunction
      */
     @Test
-    public void test20() throws InterruptedException, IOException {
+    public void test20() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://www.baidu.com/", false);
+        page.goTo("https://www.baidu.com/");
         //selector => !!document.querySelector(selector) 返回的就是true或者false
         JSHandle jsHandle = page.waitForFunction("selector => !!document.querySelector(selector)", new WaitForSelectorOptions(), "#su");
         System.out.println(jsHandle);
 //        browser.close();
-        Thread.sleep(10000);
+        Thread.sleep(5000);
     }
 
     /**
      * Page.waitForFunction()
      */
     @Test
-    public void test21() throws IOException {
+    public void test21() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         String username = "GoogleChromeLabs";
         page.waitForFunction("async username => {\n" +
                 "  const githubResponse = await fetch(\n" +
@@ -802,10 +806,10 @@ public class S_PageApiTest extends A_LaunchTest {
      * Page.waitForFunction()
      */
     @Test
-    public void test22() throws IOException {
+    public void test22() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://example.com/", false);
+        page.goTo("https://example.com/");
         Frame frame = page.waitForFrame("https://example.com/");
         System.out.println("frame: " + frame.url());
         browser.close();
@@ -818,20 +822,22 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test23() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://example.com/", false);
+        page.goTo("https://example.com/");
         Frame frame = page.waitForFrame(frame1 -> frame1.url().contains("example.com"));
         System.out.println("frame: " + frame.url());
+        //webdriver bidi 不支持
         page.setOfflineMode(true);
-        page.goTo("https://baidu.com", false);
+        page.goTo("https://baidu.com");
         Thread.sleep(2000);
         browser.close();
     }
 
     /**
      * 录制屏幕 录制格式webm
+     * webdriver 不支持
      */
     @Test
-    public void test24() throws IOException {
+    public void test24() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
@@ -851,7 +857,7 @@ public class S_PageApiTest extends A_LaunchTest {
      * 录制屏幕某个区域 录制格式webm
      */
     @Test
-    public void test25() throws IOException {
+    public void test25() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
@@ -873,7 +879,7 @@ public class S_PageApiTest extends A_LaunchTest {
      * 录制屏幕 录制格式gif
      */
     @Test
-    public void test26() throws IOException {
+    public void test26() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
@@ -892,7 +898,7 @@ public class S_PageApiTest extends A_LaunchTest {
      * 录制屏幕某个区域 录制格式gif
      */
     @Test
-    public void test27() throws IOException {
+    public void test27() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
@@ -909,72 +915,21 @@ public class S_PageApiTest extends A_LaunchTest {
     }
 
     /**
-     * 录制屏幕 录制格式gif
+     * waitForNetworkIdle
+     *
+     * @throws Exception 异常
      */
     @Test
     public void test28() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
-        List<CookieParam> cookieParams = new ArrayList<>();
-        CookieParam cookieParam1 = new CookieParam();
-        cookieParam1.setPath("/");
-        cookieParam1.setName("ANON");
-        cookieParam1.setSecure(true);
-        cookieParam1.setSameSite("None");
-        //UTC time in seconds, counted from January 1, 1970.
-        cookieParam1.setExpires(System.currentTimeMillis() / 1000 - 500);
-        cookieParam1.setValue("hahaah");
-        //domain一定要设置正确
-        cookieParam1.setDomain("www.geetest.com");
-        cookieParams.add(cookieParam1);
+        page.waitForNetworkIdle(new WaitForNetworkIdleOptions(NETWORK_IDLE_TIME, 1, null));
+        System.out.println("完成拉");
 
-        CookieParam cookieParam2 = new CookieParam();
-        cookieParam2.setPath("/");
-        cookieParam2.setName("ANON2");
-        cookieParam2.setSecure(true);
-        cookieParam2.setSameSite("None");
-        //UTC time in seconds, counted from January 1, 1970.
-        cookieParam2.setExpires(System.currentTimeMillis() / 1000 + 500);
-        cookieParam2.setValue("hahaah2");
-        //domain一定要设置正确
-        cookieParam2.setDomain("www.geetest.com");
-        cookieParams.add(cookieParam2);
-        page.setCookie(cookieParams);
-        List<Cookie> cookies1 = page.cookies();
-        for (Cookie cookie : cookies1) {
-            System.out.println("cookies1：" + cookie);
-        }
-        System.out.println("完成了");
-        browser.close();
-    }
-
-    /**
-     * 录制屏幕 录制格式gif
-     */
-    @Test
-    public void test29() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
-        page.goTo("https://www.geetest.com/demo/slide-en.html");
-        List<CookieParam> cookieParams = new ArrayList<>();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date expires = format.parse("2025-05-30 21:23:57");
-        CookieParam cookieANON = new CookieParam();
-        cookieANON.setName("ANON");
-        cookieANON.setValue("A=3BA4B946A45109124C797104FFFFFFFF&E=1e78&W=1");
-        cookieANON.setDomain(".live.com");
-        cookieANON.setPath("/");
-        cookieANON.setHttpOnly(true);
-        cookieANON.setSecure(true);
-        cookieANON.setSameSite("None");
-        cookieANON.setExpires(expires.getTime());
-        cookieParams.add(cookieANON);
-        page.setCookie(cookieParams);
-        System.out.println("完成了");
-        browser.close();
+        page.goTo("https://www.baidu.com");
+        page.waitForNetworkIdle(new WaitForNetworkIdleOptions(NETWORK_IDLE_TIME, 2, null));
+        System.out.println("完成拉2");
     }
 
 }

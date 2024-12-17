@@ -1,14 +1,17 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Dialog;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.entities.ConsoleMessage;
-import com.ruiyun.jvppeteer.entities.PageMetrics;
-import org.junit.Test;
-
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Dialog;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
+import com.ruiyun.jvppeteer.cdp.entities.PageMetrics;
+import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import java.util.Arrays;
 import java.util.function.Consumer;
+import org.junit.Test;
 
 public class G_PageContentTest extends A_LaunchTest {
 
@@ -21,8 +24,13 @@ public class G_PageContentTest extends A_LaunchTest {
             //点击确认框的确定按钮
             // dialog.accept("确定");
             //解除对话框，就是关闭对话框
-            page.on(Page.PageEvent.Dialog, (Consumer<Dialog>) Dialog::dismiss);
-            page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("console=" + consoleMessage.text()));
+            page.on(PageEvents.Dialog, (Consumer<Dialog>) dialog -> {
+                System.out.println("接收到一个弹窗，现在将它关闭：");
+                dialog.dismiss();
+            });
+            page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("console=" + consoleMessage.text()));
+            WaitForOptions options = new WaitForOptions();
+            options.setWaitUntil(Arrays.asList(PuppeteerLifeCycle.domcontentloaded, PuppeteerLifeCycle.networkIdle));
             //手动设置页面内容
             page.setContent("<!DOCTYPE html>\n" +
                     "<html lang=\"en\">\n" +
@@ -46,7 +54,9 @@ public class G_PageContentTest extends A_LaunchTest {
                     "<body>\n" +
                     "    <h1>欢迎来到示例页面</h1>\n" +
                     "</body>\n" +
-                    "</html>\n");
+                    "</html>\n", options);
+            //这里睡眠几秒，可以确保接受到弹窗和console.log事件，因为是事件是通过其他线程响应的，立刻执行browser.close,不确定关闭之前能接收到，
+            Thread.sleep(5000);
         }
     }
 
@@ -56,7 +66,8 @@ public class G_PageContentTest extends A_LaunchTest {
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
             Page page = browser.newPage();
-            page.on(Page.PageEvent.Metrics, (Consumer<PageMetrics>) System.out::println);
+            //webdriver不支持 PageEvents.Metrics事件和方法
+            page.on(PageEvents.Metrics, (Consumer<PageMetrics>) System.out::println);
             //手动设置页面内容
             String content = "<!DOCTYPE html>\n" +
                     "<html lang=\"en\">\n" +

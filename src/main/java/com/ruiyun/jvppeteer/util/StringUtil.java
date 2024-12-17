@@ -1,7 +1,5 @@
 package com.ruiyun.jvppeteer.util;
 
-import java.time.LocalDateTime;
-
 public class StringUtil {
 
 	public static boolean isEmpty(String s) {

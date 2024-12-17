@@ -6,14 +6,14 @@ public class QuerySelector {
 
     private QueryHandler queryHandler;
 
-    public QuerySelector() {
-        super();
-    }
+    private String polling;
 
-    public QuerySelector(String updatedSelector, QueryHandler queryHandler) {
+
+    public QuerySelector(String updatedSelector, QueryHandler queryHandler, String polling) {
         super();
         this.updatedSelector = updatedSelector;
         this.queryHandler = queryHandler;
+        this.polling = polling;
     }
 
     public String getUpdatedSelector() {
@@ -30,5 +30,13 @@ public class QuerySelector {
 
     public void setQueryHandler(QueryHandler queryHandler) {
         this.queryHandler = queryHandler;
+    }
+
+    public String getPolling() {
+        return polling;
+    }
+
+    public void setPolling(String polling) {
+        this.polling = polling;
     }
 }

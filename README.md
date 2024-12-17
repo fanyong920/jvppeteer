@@ -4,21 +4,13 @@
 
 # Jvppeteer
 <p style="text-align:left">
-<a rel="nofollow" href="https://download-chromium.appspot.com/"><img src ="https://img.shields.io/badge/chromium%20download-latest-blue"  alt="下载最新版本的chromuim" style="max-width:100%;"></a> <a><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.fanyong920/jvppeteer"></a> <a href="https://github.com/fanyong920/jvppeteer/issues"><img alt="Issue resolution status" src="https://img.shields.io/github/issues/fanyong920/jvppeteer" style="max-width:100%;"></a>
+ <a><img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.github.fanyong920/jvppeteer"></a>
     <a href="https://sonarcloud.io/dashboard?id=fanyong920_jvppeteer"><img alt="Quality Gate Status" src="https://sonarcloud.io/api/project_badges/measure?project=fanyong920_jvppeteer&metric=alert_status" style="max-width:100%;"></a>
 </p>
+# **Java API For Chrome and Firefox**
 
 
-## 注意
->通过maven导入的jar包，1.1.5及之前的版本，都存在linux上杀不死chrome的bug，可以通过<a href="https://github.com/fanyong920/jvppeteer/blob/master/1.1.5%E7%89%88%E6%9C%AC%E4%B9%8B%E5%89%8D%E7%9A%84%E5%86%85%E5%AD%98%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88.md" alt="链接"> 1.1.5版本之前的内存问题解决方案</a> 自行解决，仓库的代码已经将解决方案代码加上了，拉取下来打jar也可以用。
-
-**本库的灵感来自 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer), API 也与其基本上保持一致，做这个库是为了方便使用 Java 操控 [用于测试的Chrome](https://googlechromelabs.github.io/chrome-for-testing/#stable) （即Chrome for Testing，下面简称 Chrome）或 Chromium**
-
-
-
-
-   >Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 控制 Chromium 或 Chrome。
-   >默认情况下，以 headless （无界面）模式运行，也可以通过配置运行'有界面'模式。
+Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)  and [WebDriver](https://pptr.nodejs.cn/webdriver-bidi) 控制 Chrome for Testing（下面简称 Chrome）或 Firefox。目前，Jvppeteer 仅支持通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 控制 Chrome、默认通过 [WebDriver](https://pptr.nodejs.cn/webdriver-bidi) 控制 Firefox。 默认情况下，以  headless （无 UI）模式运行，也可以通过配置运行'有UI'模式。
 
 
 你可以在浏览器中手动执行的绝大多数操作都可以使用 Jvppeteer 来完成！ 下面是一些示例：
@@ -63,7 +55,7 @@ compile "io.github.fanyong920:jvppeteer:2.2.5"
 
 该库使用 [SLF4J](https://www.slf4j.org/) 进行日志记录，并且不附带任何默认日志记录实现。
 
-调试程序将日志级别设置为 TRACE。
+调试程序将日志级别设置为 Debug。
 
 #### 独立 jar
 
@@ -112,7 +104,7 @@ compile "io.github.fanyong920:jvppeteer:2.2.5"
 
 Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种浏览器的下载功能。
 
-下载 Chromium、ChromeDriver、Chrome Headless Shell 必须明确下载版本，Chrome 有默认版本，存放在Constant#VERSION 中。
+下载 Chromium、ChromeDriver、Chrome Headless Shell 必须明确下载版本，Chrome 有默认版本，存放在BrowserRevision.class 中。
 
 关于下载浏览器的版本选择，可以浏览一下这两个网页：[Chrome for Testing availability](https://googlechromelabs.github.io/chrome-for-testing/#stable) 与  [JSON API endpoints](https://github.com/GoogleChromeLabs/chrome-for-testing)
 
@@ -124,8 +116,9 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 
 下表提供了 Jvppeteer 版本与绑定的浏览器版本之间的映射。如果没有列出完全匹配的 Jvppeteer 版本，则支持的浏览器版本是紧接在前的版本：
 
-| 2.2.0--2.2.5 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
+|    3.0.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 131.0.6778.87  & Firefox stable_133.0 |
 | :----------: | :----------------------------------------------------------: |
+| 2.2.0--2.2.5 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
 |    2.1.2     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 |    2.1.1     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 |    2.1.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
@@ -153,9 +146,9 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 使用浏览器后，必须关闭它，使用 Browser.close() 关闭。
 
 ```java
- 	Browser browser = Puppeteer.launch();	
- 	Page page = browser.newPage();
-	browser.close();
+ 	Browser cdpBrowser = Puppeteer.launch();	
+ 	Page page = cdpBrowser.newPage();
+	cdpBrowser.close();
 ```
 
 #### 4、浏览器上下文
@@ -163,9 +156,9 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
 如果你需要隔离自动化任务，请使用 BrowserContexts。Cookie 和本地存储不在浏览器上下文之间共享。
 
 ```java
-    Browser browser = Puppeteer.launch(launchOptions);
-    BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
-    Page page = defaultBrowserContext.newPage();
+    Browser cdpBrowser = Puppeteer.launch(launchOptions);
+    BrowserContext defaultCdpBrowserContext = cdpBrowser.defaultCdpBrowserContext();
+    Page page = defaultCdpBrowserContext.newPage();
     new Thread(() -> {
         try {
             page.evaluate("() => window.open('https://www.example.com/')");
@@ -173,48 +166,48 @@ Jvpeteer 提供 Chrome、Chromium、ChromeDriver、Chrome Headless Shell 四种�
             throw new RuntimeException(e);
         }
     }).start();
-    Target target1 = defaultBrowserContext.waitForTarget(target -> target.url().equals("https://www.example.com/"));
+    Target target1 = defaultCdpBrowserContext.waitForTarget(target -> target.url().equals("https://www.example.com/"));
     System.out.println("target1:" + target1.url());
-    List<Page> pages = defaultBrowserContext.pages();
+    List<Page> pages = defaultCdpBrowserContext.pages();
     System.out.println("size1:" + pages.size());
-    defaultBrowserContext.newPage();
-    System.out.println("size2:" + defaultBrowserContext.pages().size());
-    List<Target> targets = defaultBrowserContext.targets();
+    defaultCdpBrowserContext.newPage();
+    System.out.println("size2:" + defaultCdpBrowserContext.pages().size());
+    List<Target> targets = defaultCdpBrowserContext.targets();
     for (Target target : targets) {
         System.out.println("all target forEach:(" + target.type() + ":" + target.url() + ")");
     }
-    BrowserContext browserContext = browser.createBrowserContext();
-    Page page1 = browserContext.newPage();
-    Browser browser1 = browserContext.browser();
-    System.out.println("broswer equals:" + (browser1 == browser));
-    browserContext.overridePermissions("https://www.baidu.com", WebPermission.GEOLOCATION);
+    BrowserContext cdpBrowserContext = cdpBrowser.createBrowserContext();
+    Page page1 = cdpBrowserContext.newPage();
+    Browser cdpBrowser1 = cdpBrowserContext.cdpBrowser();
+    System.out.println("broswer equals:" + (cdpBrowser1 == cdpBrowser));
+    cdpBrowserContext.overridePermissions("https://www.baidu.com", WebPermission.GEOLOCATION);
     page1.goTo("https://www.baidu.com");
-    browserContext.close();
-    System.out.println("close: " + browserContext.closed());
+    cdpBrowserContext.close();
+    System.out.println("close: " + cdpBrowserContext.closed());
     //默认浏览器不能关闭
-    defaultBrowserContext.close();
+    defaultCdpBrowserContext.close();
     Thread.sleep(15000);
-    browser.close();
+    cdpBrowser.close();
 ```
 
 在浏览器上下文中，你可以打开一个新的页面，可以获得浏览器上下文的所有页面，可以通过关闭 浏览器上下文 来关闭 对应的所有页面，也可以给浏览器上下文授予独特的权限。**提醒 ：创建多个浏览器上下文比创建多个浏览器好 **
 
 #### 5、连接到远程的浏览器
 
-如果你在 Jvppeteer 之外打开了一个新的浏览器，你可以用 Puppeteer.connect() 方法连接，连接远程的浏览器需要 URL，该 URL 可以是 Websocket URL（格式是 ws://HOST:PORT/devtools/browser/<id>），也可以是 Browser URL （格式是 http://HOST:PORT ）。
+如果你在 Jvppeteer 之外打开了一个新的浏览器，你可以用 Puppeteer.connect() 方法连接，连接远程的浏览器需要 URL，该 URL 可以是 Websocket URL（格式是 ws://HOST:PORT/devtools/cdpBrowser/<id>），也可以是 Browser URL （格式是 http://HOST:PORT ）。
 
 在 Browser URL  中的 PORT 是 debuggingPort，在浏览器启动时候加上参数：-remote-debugging-port=xxxx，debuggingPort 即 xxxx。
 
 Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 可以获取到 WebSocket URL
 
 ```java
-    String wsEndpoint = browser.wsEndpoint();
-    browser.disconnect();
+    String wsEndpoint = cdpBrowser.wsEndpoint();
+    cdpBrowser.disconnect();
     //ws连接
-    Browser wsBrowser = Puppeteer.connect(wsEndpoint);
-    wsBrowser.disconnect();
+    Browser wsCdpBrowser = Puppeteer.connect(wsEndpoint);
+    wsCdpBrowser.disconnect();
     //url连接 http://host:port  因为启动时候配置DebuggingPort=9222  所以url = localhost:9222
-    Browser urlBrowser = Puppeteer.connect("http://localhost:9222");
+    Browser urlCdpBrowser = Puppeteer.connect("http://localhost:9222");
 ```
 
 #### 6、页面打印PDF
@@ -227,8 +220,8 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
     ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
     args.add("--no-sandbox");//pdf必须添加这个参数,不然无法打印，具体看这里https://github.com/puppeteer/puppeteer/issues/12470
     launchOptions.setArgs(args);
-    Browser browser = Puppeteer.launch(launchOptions);
-    Page page = browser.newPage();
+    Browser cdpBrowser = Puppeteer.launch(launchOptions);
+    Page page = cdpBrowser.newPage();
     GoToOptions goToOptions = new GoToOptions();
     goToOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.NETWORKIDLE));
     page.goTo("https://www.baidu.com/?tn=68018901_16_pg",goToOptions);
@@ -241,7 +234,7 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
     pdfOptions.setScale(1.1);//缩放比例1.1
     page.pdf(pdfOptions);
     //关闭浏览器
-    browser.close();
+    cdpBrowser.close();
 ```
 
 默认情况下，Page.pdf() 等待字体加载。
@@ -253,8 +246,8 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
 ```java
 	@Test
     public void test3() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         screenshotOptions.setPath("baidu.png");
@@ -264,13 +257,13 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
         //截图的更多
         screenshotOptions.setCaptureBeyondViewport(true);
         page.screenshot(screenshotOptions);
-        browser.close();
+        cdpBrowser.close();
     }
 
     @Test
     public void test4() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         screenshotOptions.setPath("baidu.png");
@@ -281,13 +274,13 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
         //全屏截图
         screenshotOptions.setFullPage(true);
         page.screenshot(screenshotOptions);
-        browser.close();
+        cdpBrowser.close();
     }
 
     @Test
     public void test5() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         ScreenshotOptions screenshotOptions = new ScreenshotOptions();
         screenshotOptions.setPath("baidu.jpeg");
@@ -298,7 +291,7 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
         //全屏截图
         screenshotOptions.setFullPage(true);
         page.screenshot(screenshotOptions);
-        browser.close();
+        cdpBrowser.close();
     }
 ```
 
@@ -312,8 +305,8 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
      */
     @Test
     public void test25() throws IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test2.webm");
@@ -326,7 +319,7 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
         page.type("#username", "123456789", 200);
         page.type("#password", "123456789", 200);
         screencast.stop();
-        browser.close();
+        cdpBrowser.close();
     }
 
 	/**
@@ -334,8 +327,8 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
      */
     @Test
     public void test26() throws IOException {
-        Browser browser = Puppeteer.launch(launchOptions);
-        Page page = browser.newPage();
+        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Page page = cdpBrowser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test.gif");
@@ -345,7 +338,7 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
         page.type("#username", "123456789", 200);
         page.type("#password", "123456789", 200);
         screencast.stop();
-        browser.close();
+        cdpBrowser.close();
     }
 ```
 
@@ -355,16 +348,13 @@ Browser URL 后加上 /json/version，格式是：http://HOST:PORT/json/version 
 
 如果你在 Linux 上安装 Chrome 并运行 遇到麻烦，或者在某个场景中遇到麻烦，可以 在 [Puppeteer(Node.js)](https://github.com/puppeteer/puppeteer) 库中的 [Troubleshooting](https://pptr.dev/troubleshooting) 寻找答案，也可以在其 issues 中寻找一些解决问题的思路，或者google baidu puppeteer的解决方案，再应用到你的问题上。
 
-### 四、JDK21 的尝试
-
-在 dev21分支 上使用了  jdk21 进行了部分代码修改，主要在 Connection 类上使用了虚拟线程处理消息，有兴趣可以自己打 JAR 包试试。
-
-### 五、资源
+### 四、资源
 
 1. [Puppeteer中文文档](https://pptr.nodejs.cn/) : 更加详细的 API 文档 ，多看看了解一下
 2. [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) ：CDP 协议
-3. [Chrome命令行启动参数](https://peter.sh/experiments/chromium-command-line-switches/)
+3. [本项目的WIKI]([Home · fanyong920/jvppeteer Wiki](https://github.com/fanyong920/jvppeteer/wiki)) 目前写有一些内容，后续有想到新的，会持续更新
+4. [命令行启动参数大全](https://github.com/GoogleChrome/chrome-launcher/blob/d6be1f3250ef7ff7648ae58c4e92e48509bdbe7c/src/flags.ts#L67)
 
-### 六、执照
+### 五、执照
 
 此仓库中找到的所有内容均已获得 Apache 许可。有关详细信息，请参见`LICENSE`文件

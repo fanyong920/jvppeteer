@@ -1,28 +1,55 @@
 param(
-    #ä¸‹è½½é“¾æ¥
+    #ÏÂÔØÁ´½Ó
     [string]$url,
-    #ä¸‹è½½çš„å‹ç¼©åŒ…çš„å­˜æ”¾è·¯å¾„ï¼Œä¸åŒ…æ‹¬å‹ç¼©åŒ…åç§°ï¼Œä¾‹å¦‚C:\Users\fanyong\Desktop
+
+    #ÏÂÔØµÄÑ¹Ëõ°üµÄ´æ·ÅÂ·¾¶£¬²»°üÀ¨Ñ¹Ëõ°üÃû³Æ£¬ÀıÈçC:\Users\fanyong\Desktop
     [string]$savePath,
-    #å‹ç¼©åŒ…åç§°ï¼Œä¾‹å¦‚\chrome-win64
+
+    #Ñ¹Ëõ°üÃû³Æ£¬ÀıÈçchrome-win64
     [string]$archive,
-    #æ‰§è¡Œåç§°ï¼Œä¾‹å¦‚chrome.exe chrome chromium
+
+    #Ö´ĞĞÃû³Æ£¬ÀıÈçchrome.exe chrome chromium
     [string]$executableName
   )
-  $ErrorActionPreference = 'Stop'
-Write-Host "Downloading Chrome Browser"
-$wc = New-Object net.webclient
-#ä¸‹è½½
-$wc.Downloadfile($url, "$savePath\$archive.zip")
-Write-Host "Unzipping Chrome Browser"
+$ErrorActionPreference = 'Stop'
+$array = @("firefox.exe")
+if ($array -contains $executableName) {
+    #ÊÇ»ğºüä¯ÀÀÆ÷
+    Write-Host "Downloading firefox browser"
+    $wc = New-Object net.webclient
+    #ÏÂÔØ
+    $wc.Downloadfile($url, "$savePath\$archive.exe")
+    Write-Host "install firefox browser"
+    #ÉèÖÃ»·¾³±äÁ¿
+    $env:__compat_layer = 'RunAsInvoker'
+    #°²×°exeÎÄ¼ş
+    $process = Start-Process -FilePath "$savePath\$archive.exe" -ArgumentList "/ExtractDir=$savePath" -NoNewWindow -Wait -PassThru
+    #É¾³ıÑ¹Ëõ°ü
+    Remove-Item "$savePath\$archive.exe"
+    if (Test-Path "$savePath\core\$executableName") {
+            (Get-Item "$savePath\core\$executableName").VersionInfo
+        }  else {
+            Write-Host "ERROR: failed to install firefox"br
+            exit 1
+        }
+}else{
+    Write-Host "Downloading chrome browser"
+    $wc = New-Object net.webclient
+    #ÏÂÔØ
+    $wc.Downloadfile($url, "$savePath\$archive.zip")
+    Write-Host "Unzipping Chrome Browser"
 
-#è§£å‹æ–‡ä»¶
-Expand-Archive -LiteralPath "$savePath\$archive.zip" -DestinationPath "$savePath"
-#åˆ é™¤å‹ç¼©åŒ…
-Remove-Item "$savePath\$archive.zip"
-
-if (Test-Path "$savePath\$archive\$executableName") {
-    (Get-Item "$savePath\$archive\$executableName").VersionInfo
-}  else {
-    Write-Host "ERROR: failed to install Google Chrome Beta"
-    exit 1
+    #½âÑ¹ÎÄ¼ş
+    Expand-Archive -LiteralPath "$savePath\$archive.zip" -DestinationPath "$savePath"
+    #É¾³ıÑ¹Ëõ°ü
+    Remove-Item "$savePath\$archive.zip"
+    #²âÊÔ
+    if (Test-Path "$savePath\$archive\$executableName") {
+        (Get-Item "$savePath\$archive\$executableName").VersionInfo
+    }  else {
+        Write-Host "ERROR: failed to install Google Chrome Beta"
+        exit 1
+    }
 }
+
+

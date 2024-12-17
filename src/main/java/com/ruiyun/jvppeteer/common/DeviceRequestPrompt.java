@@ -1,10 +1,10 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.entities.DeviceRequestPromptDevice;
-import com.ruiyun.jvppeteer.events.DeviceRequestPromptedEvent;
-import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.cdp.entities.DeviceRequestPromptDevice;
+import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,8 +31,8 @@ public class DeviceRequestPrompt {
         this.client = client;
         this.timeoutSettings = timeoutSettings;
         this.id = firstEvent.getId();
-        this.client.on(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
-        this.client.on(CDPSession.CDPSessionEvent.Target_detachedFromTarget, (ignore) -> this.client = null);
+        this.client.on(ConnectionEvents.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
+        this.client.on(ConnectionEvents.Target_detachedFromTarget, (ignore) -> this.client = null);
     }
 
     private void updateDevicesHandle(DeviceRequestPromptedEvent event) {
@@ -89,7 +89,7 @@ public class DeviceRequestPrompt {
         Objects.requireNonNull(this.client, "Cannot select device through detached session!");
         ValidateUtil.assertArg(this.devices.contains(device), "Cannot select unknown device!");
         ValidateUtil.assertArg(!this.handled, "Cannot select DeviceRequestPrompt which is already handled!");
-        this.client.off(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
+        this.client.off(ConnectionEvents.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
         this.handled = true;
         this.client.send("DeviceAccess.selectPrompt", new HashMap<String, Object>() {{
             put("id", DeviceRequestPrompt.this.id);
@@ -106,7 +106,7 @@ public class DeviceRequestPrompt {
     public void cancel() {
          Objects.requireNonNull(this.client, "Cannot cancel prompt through detached session!");
         ValidateUtil.assertArg(!this.handled, "Cannot cancel DeviceRequestPrompt which is already handled!");
-        this.client.off(CDPSession.CDPSessionEvent.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
+        this.client.off(ConnectionEvents.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
         this.handled = true;
         this.client.send("DeviceAccess.cancelPrompt", new HashMap<String, Object>() {{
             put("id", DeviceRequestPrompt.this.id);

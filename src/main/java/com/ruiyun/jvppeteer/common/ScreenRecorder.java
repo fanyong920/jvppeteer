@@ -1,19 +1,17 @@
 package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.entities.ScreenCastFormat;
-import com.ruiyun.jvppeteer.entities.ScreenRecorderOptions;
-import com.ruiyun.jvppeteer.entities.Viewport;
-import com.ruiyun.jvppeteer.events.ScreencastFrameEvent;
-import com.ruiyun.jvppeteer.transport.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat;
+import com.ruiyun.jvppeteer.cdp.entities.ScreenRecorderOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.cdp.events.ScreencastFrameEvent;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,11 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static com.ruiyun.jvppeteer.entities.ScreenCastFormat.GIF;
-import static com.ruiyun.jvppeteer.entities.ScreenCastFormat.WEBM;
+
+import static com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat.GIF;
+import static com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat.WEBM;
 
 public class ScreenRecorder {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScreenRecorder.class);
@@ -51,6 +53,7 @@ public class ScreenRecorder {
     AtomicLong imgIndex = new AtomicLong(0);
     private volatile boolean stoped = false;
 
+
     public ScreenRecorder(Page page, double width, double height, ScreenRecorderOptions options, Viewport defaultViewport, Viewport tempViewport) {
         this.page = page;
         this.options = options;
@@ -60,10 +63,16 @@ public class ScreenRecorder {
         this.tempViewport = tempViewport;
         createTempCacheDir();
 
-        Consumer<Object> closeListener = (o) -> ScreenRecorder.this.stop();
+        Consumer<Object> closeListener = (o) -> {
+            try {
+                ScreenRecorder.this.stop();
+            } catch (ExecutionException | InterruptedException e) {
+                throw new JvppeteerException(e);
+            }
+        };
         this.stoped = false;
-        page.mainFrame().client().once(CDPSession.CDPSessionEvent.disconnected, closeListener);
-        page.mainFrame().client().on(CDPSession.CDPSessionEvent.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) this::writeFrame);
+        page.mainFrame().client().once(ConnectionEvents.disconnected, closeListener);
+        page.mainFrame().client().on(ConnectionEvents.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) this::writeFrame);
     }
 
     private void createTempCacheDir() {
@@ -132,7 +141,7 @@ public class ScreenRecorder {
     /**
      * 停止屏幕录制
      */
-    public void stop() {
+    public void stop() throws ExecutionException, InterruptedException {
         //先暂停屏幕录制
         try {
             this.previousTimestamp = currentTimestamp();

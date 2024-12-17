@@ -1,34 +1,31 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Target;
-import com.ruiyun.jvppeteer.entities.LaunchOptions;
-import java.util.ArrayList;
+import com.ruiyun.jvppeteer.cdp.entities.Token;
+import com.ruiyun.jvppeteer.util.QueryHandlerUtil;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Test2 {
     public static void main(String[] args) throws Exception {
-
-        ArrayList<String> argList = new ArrayList<>();
-        argList.add("--headless");
-        argList.add("--no-sandbox");
-        argList.add("-–disable-gpu");
-        argList.add("--incognito");
-        LaunchOptions options = LaunchOptions.builder().args(argList).build();
-        try (Browser browser = Puppeteer.launch(options)) {
-            //打开一个页面
-            Page page = browser.newPage();
-            page.goTo("https://www.baidu.com");
-            Target target1 = page.target();
-            System.out.println("one type=" + target1.type() + ", url=" + target1.url() + ",id=" + target1.getTargetId());
-            List<Target> targets = browser.targets();
-            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-            for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url() + ",id=" + target.getTargetId());
-            }
-            Thread.sleep(20000);
-        }
+//        System.out.println(PrimitiveValue.class);
+//        try (Browser browser = Puppeteer.launch()) {
+//            //打开一个页面
+//            Page page = browser.newPage();
+//            Target target1 = page.target();
+//            System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+//            List<Target> targets = browser.targets();
+//            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+//            for (Target target : targets) {
+//                System.out.println("two type=" + target.type() + ", url=" + target.url());
+//            }
+//        }
+        List<Token> tokens = QueryHandlerUtil.tokenize("#vqfcts-501 > div > div:nth-child(1) > div > div.lc_expfact_default");
+        System.out.println(tokens.size());
+        System.out.println(Arrays.deepToString(tokens.toArray()));
+        final Pattern pseudo_class = Pattern.compile(":(?<name>[-\\w\\P{ASCII}]+)(?:\\((?<argument>¶*)\\))?", Pattern.UNICODE_CHARACTER_CLASS);
+        Matcher matcher = pseudo_class.matcher(":nth-child(1)");
+        System.out.println(matcher.matches());
     }
 }

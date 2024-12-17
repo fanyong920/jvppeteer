@@ -1,23 +1,23 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Request;
-import com.ruiyun.jvppeteer.core.Response;
-import com.ruiyun.jvppeteer.entities.ContinueRequestOverrides;
-import com.ruiyun.jvppeteer.entities.GoToOptions;
-import com.ruiyun.jvppeteer.entities.MouseWheelOptions;
-import com.ruiyun.jvppeteer.entities.PuppeteerLifeCycle;
-import com.ruiyun.jvppeteer.entities.ResourceType;
-import com.ruiyun.jvppeteer.entities.ResponseForRequest;
-import com.ruiyun.jvppeteer.util.StringUtil;
-import org.junit.Test;
-
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Request;
+import com.ruiyun.jvppeteer.api.core.Response;
+import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import com.ruiyun.jvppeteer.cdp.core.CdpRequest;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.ContinueRequestOverrides;
+import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
+import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
+import com.ruiyun.jvppeteer.cdp.entities.ResourceTiming;
+import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
+import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
+import org.junit.Test;
 
 public class J_RequestTest extends A_LaunchTest {
     @Test
@@ -26,32 +26,36 @@ public class J_RequestTest extends A_LaunchTest {
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
             Page page = browser.newPage();
-            page.on(Page.PageEvent.Request, (Consumer<Request>) request -> {
-                        boolean hasPostData = request.hasPostData();
-                        if (hasPostData) {
-                            String postData = request.postData();
-                            if (StringUtil.isEmpty(postData)) {
-                                postData = request.fetchPostData();
-                            }
-                            System.out.println("请求体：" + postData);
-                        }
+            String version = browser.version();
+            page.on(PageEvents.Request, (Consumer<Request>) request -> {
+                        System.out.println("header:"+request.headers());
                     }
             );
-            page.on(Page.PageEvent.Response, (Consumer<Response>) response -> {
-                List<Request> redirectChain = response.request().redirectChain();
-                if (!redirectChain.isEmpty()) {//不为空，说明response对应的request已经重定向,该集合记录的是重定向链
-                    for (Request request : redirectChain) {
-                        System.out.println("url: " + request.url() + ", id: " + request.id());
-                        try {
-                            Response response1 = request.response();
-                            System.out.println("response1: " + new String(response1.content()));
-                        } catch (Exception e) {
-                            System.out.println("request(id:" + request.id() + ")重定向,不能获取response.content()");
+            page.on(PageEvents.Response, (Consumer<Response>) response -> {
+
+                //cdp
+                if(!version.contains("firefox")){
+                    List<Request> redirectChain = response.request().redirectChain();
+                    if (!redirectChain.isEmpty()) {//不为空，说明response对应的request已经重定向,该集合记录的是重定向链
+                        for (Request request : redirectChain) {
+                            System.out.println("url: " + request.url() + ", id: " + request.id());
+                            try {
+                                Response response1 = request.response();
+                                System.out.println("response1: " + new String(response1.content()));
+                            } catch (Exception e) {
+                                System.out.println("request(id:" + request.id() + ")重定向,不能获取response.content()");
+                            }
                         }
+                    } else {
+                        System.out.println("response2: " + new String(response.content()));
                     }
                 }else {
-                    System.out.println("response2: " + new String(response.content()));
+                    ResourceTiming timing = response.timing();
+                    System.out.println("timing: " + timing);
                 }
+
+
+                //bidi
             });
             //这个页面有重定向请求，你可以按F12打开devtool开发者工具，自己刷新页面看网络请求
             page.goTo("https://cn.bing.com/search?q=%E5%9C%A8%E7%BA%BF%E8%A7%A3%E7%A0%81&qs=n&form=QBRE&sp=-1&lq=0&pq=%E5%9C%A8%E7%BA%BF%E8%A7%A3%E7%A0%81&sc=10-4&sk=&cvid=BD22167E4CA44C1482F65B007AE9B7CA&ghsh=0&ghacc=0&ghpl=");
@@ -70,33 +74,55 @@ public class J_RequestTest extends A_LaunchTest {
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
             Page page = browser.newPage();
+            String version = browser.version();
             //拦截请求开关
             page.setRequestInterception(true);
-            page.on(Page.PageEvent.Request, (Consumer<Request>) request -> {
-                if (request.resourceType().equals(ResourceType.Image)) {//拦截图片
-                    request.abort();
-                } else if (request.url().startsWith("https://www.baidu.com")) {
-                    //自定义请求的response
-                    ResponseForRequest responseForRequest = new ResponseForRequest();
-                    //responseForRequest.setBody("Not Found!");
-                    responseForRequest.setBody("百度一下，你就知道");
-                    responseForRequest.setStatus(404);
-                    responseForRequest.setContentType("text/plain; charset=utf-8");
-                    request.continueRequest();
-                } else {
-                    //修改请求头
-                    Map<String, String> headers = request.headers();
-                    headers.put("foo", "bar");
-                    ContinueRequestOverrides overrides = new ContinueRequestOverrides();
-                    overrides.setHeaders(headers);
-                    request.continueRequest(overrides);
+            page.on(PageEvents.Request, (Consumer<Request>) request -> {
+                if(version.contains("firefox")){
+                    if (request.url().startsWith("https://www.baidu.com")) {
+                        //自定义请求的response
+                        ResponseForRequest responseForRequest = new ResponseForRequest();
+                        //responseForRequest.setBody("Not Found!");
+                        responseForRequest.setBody("百度一下，你就知道");
+                        responseForRequest.setStatus(404);
+                        responseForRequest.setContentType("text/plain; charset=utf-8");
+                        request.respond(responseForRequest);
+                    } else {
+                        //修改请求头
+                        List<HeaderEntry> headers = request.headers();
+                        headers.add(new HeaderEntry("foo", "bar"));
+                        ContinueRequestOverrides overrides = new ContinueRequestOverrides();
+                        overrides.setHeaders(headers);
+                        request.continueRequest(overrides);
+                    }
+                }else {
+                    if (request.resourceType().equals(ResourceType.Image)) {//拦截图片
+                        request.abort();
+                    } else if (request.url().startsWith("https://www.baidu.com")) {
+                        //自定义请求的response
+                        ResponseForRequest responseForRequest = new ResponseForRequest();
+                        //responseForRequest.setBody("Not Found!");
+                        responseForRequest.setBody("百度一下，你就知道");
+                        responseForRequest.setStatus(404);
+                        responseForRequest.setContentType("text/plain; charset=utf-8");
+                        responseForRequest.setHeaders(request.headers());
+                        request.respond(responseForRequest);
+                    } else {
+                        //修改请求头
+                        List<HeaderEntry> headers = request.headers();
+                        headers.add(new HeaderEntry("foo", "bar"));
+                        ContinueRequestOverrides overrides = new ContinueRequestOverrides();
+                        overrides.setHeaders(headers);
+                        request.continueRequest(overrides);
+                    }
                 }
+
             });
             GoToOptions options = new GoToOptions();
             //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-            options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
+            options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.domcontentloaded));
             page.goTo("https://www.baidu.com/", options);
-            Thread.sleep(2000);
+            Thread.sleep(5000);
         }
     }
 
@@ -107,12 +133,12 @@ public class J_RequestTest extends A_LaunchTest {
     public void test5() throws Exception {
         //打开开发者工具
         launchOptions.setDevtools(true);
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
-            Page page = browser.newPage();
+            Page page = cdpBrowser.newPage();
             //拦截请求开关
             page.setRequestInterception(true);
-            page.on(Page.PageEvent.Request, (Consumer<Request>) request -> {
+            page.on(PageEvents.Request, (Consumer<CdpRequest>) request -> {
                 if (request.resourceType().equals(ResourceType.Image)) {//拦截图片
                     request.abort();
                 } else if (request.url().startsWith("https://www.baidu.com")) {
@@ -122,19 +148,19 @@ public class J_RequestTest extends A_LaunchTest {
                     responseForRequest.setBody("百度一下，你就知道");
                     responseForRequest.setStatus(404);
                     responseForRequest.setContentType("text/plain; charset=utf-8");
-                    request.respond(responseForRequest,1);
+                    request.respond(responseForRequest, 1);
                 } else {
                     //修改请求头
-                    Map<String, String> headers = request.headers();
-                    headers.put("foo", "bar");
+                    List<HeaderEntry> headers = request.headers();
+                    headers.add(new HeaderEntry("foo", "bar"));
                     ContinueRequestOverrides overrides = new ContinueRequestOverrides();
                     overrides.setHeaders(headers);
-                    request.continueRequest(overrides,2);
+                    request.continueRequest(overrides, 2);
                 }
             });
             GoToOptions options = new GoToOptions();
             //如果不设置 domcontentloaded 算页面导航完成的话，那么goTo方法会超时，因为图片请求被拦截了，页面不会达到loaded阶段
-            options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.DOMCONTENT_LOADED));
+            options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.domcontentloaded));
             page.goTo("https://www.baidu.com/", options);
             Thread.sleep(5000);
         }

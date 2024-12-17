@@ -1,17 +1,16 @@
 package com.ruiyun.example;
 
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.entities.FrameAddStyleTagOptions;
-import com.ruiyun.jvppeteer.entities.ScreenshotOptions;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
+import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import org.junit.Test;
 
 public class P_AddStyleTagTest extends A_LaunchTest {
 
     @Test
     public void test4() throws Exception {
-
         Browser browser = Puppeteer.launch(launchOptions);
         //打开一个页面
         Page page = browser.newPage();
@@ -25,6 +24,7 @@ public class P_AddStyleTagTest extends A_LaunchTest {
         screenshotOptions.setFullPage(true);
         page.screenshot(screenshotOptions);
         page.$("#su").screenshot("baidu2.png");
+        Thread.sleep(9000);
         browser.close();
     }
 

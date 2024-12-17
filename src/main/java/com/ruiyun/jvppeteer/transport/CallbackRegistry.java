@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,7 @@ public class CallbackRegistry {
     private final Map<Long, Callback> eventCallbacks = new ConcurrentHashMap<>();
 
     public JsonNode create(Callback callback, Consumer<Long> request, boolean isBlocking) {
-        put(callback, isBlocking);
+        put(callback);
         try {
             //send request
             request.accept(callback.id());
@@ -42,14 +41,12 @@ public class CallbackRegistry {
         }
     }
 
-    private void put(Callback callback, boolean isBlocking) {
-        if (isBlocking) {//只有等待结果的，才放进去
-            String name = Thread.currentThread().getName();
-            if (name.startsWith(JV_HANDLE_MESSAGE_THREAD)) {//说明是 JV_HANDLE_MESSAGE_THREAD 线程中发送的请求接受到的消息
-                eventCallbacks.put(callback.id(), callback);
-            } else {
-                callbacks.put(callback.id(), callback);
-            }
+    private void put(Callback callback) {
+        String name = Thread.currentThread().getName();
+        if (name.startsWith(JV_HANDLE_MESSAGE_THREAD)) {//说明是JV_EMIT_EVENT_THREAD线程中发送的请求接受到的消息
+            eventCallbacks.put(callback.id(), callback);
+        } else {
+            callbacks.put(callback.id(), callback);
         }
     }
 

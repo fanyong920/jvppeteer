@@ -1,11 +1,12 @@
 package com.ruiyun.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.core.Puppeteer;
-import com.ruiyun.jvppeteer.core.Browser;
-import com.ruiyun.jvppeteer.core.Page;
-import com.ruiyun.jvppeteer.entities.ConsoleMessage;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -22,19 +23,19 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
     public void test4() throws Exception {
         //打开开发者工具
         launchOptions.setDevtools(true);
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
-            Page page = browser.newPage();
-            page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+            Page page = cdpBrowser.newPage();
+            page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println(consoleMessage.text()));
             //exposeFunction有两个参数，第一个参数是在页面创建了一个函数名为md5的函数，函数实现逻辑为第二个参数。可以使用page.evaluate()调用md5函数进行测试
             page.exposeFunction("md5", (args) -> {
                 try {
-                    System.out.println("args: " + Constant.OBJECTMAPPER.writeValueAsString(args));
+                    System.out.println("接收到浏览器的参数args: " + Constant.OBJECTMAPPER.writeValueAsString(args)+"，并在 Jvppeteer 程序内计算 MD5");
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }
                 String md5 = getMD5((String) args.get(0));
-                System.out.println("自行打印md5:" + md5);
+                System.out.println(" Jvppeteer 程序内计算的md5:" + md5);
                 return md5;
             });
             //调用md5函数
@@ -42,7 +43,7 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
                     "    // use window.md5 to compute hashes\n" +
                     "    const myString = 'PUPPETEER';\n" +
                     "    const myHash = await window.md5(myString);\n" +
-                    "    console.log(`md5 of ${myString} is ${myHash}`);\n" +
+                    "    console.log(`浏览器接收到的md5 of ${myString} is ${myHash}`);\n" +
                     "  }");
             //删除md5函数
             page.removeExposedFunction("md5");
@@ -63,14 +64,15 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
         try (Browser browser = Puppeteer.launch(launchOptions)) {
             //打开一个页面
             Page page = browser.newPage();
-            page.on(Page.PageEvent.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("consoleMessage: " + consoleMessage.text()));
+            page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("浏览器接收到计算结果，并打印: " + consoleMessage.text()));
             page.exposeFunction("readfile", (filePath) -> {
                 try {
+                    System.out.println("接收到浏览器的参数："+Constant.OBJECTMAPPER.writeValueAsString(filePath)+"，并在 Jvppeteer 程序内进行计算。");
                     List<String> strings = Files.readAllLines(Paths.get((String) filePath.get(0)), StandardCharsets.UTF_8);
-                    System.out.println("自行打印readfile: " + String.join("\n", strings));
+                    System.out.println("程序内计算结果: " + String.join("\n", strings));
                     return String.join("\n", strings);
                 } catch (IOException e) {
-                    return "出错啦";
+                    return "Jvppeteer 出错啦";
                 }
             });
             //调用md5函数
