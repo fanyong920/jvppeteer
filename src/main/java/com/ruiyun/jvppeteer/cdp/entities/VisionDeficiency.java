@@ -9,23 +9,25 @@ public enum VisionDeficiency {
     /**
      * 用户无法感知任何颜色，这会将所有颜色减少为灰色阴影
      */
-    ACHROMATOPSIA("achromatopsia"),
+    Achromatopsia("achromatopsia"),
     /**
      * 	用户无法感知任何绿灯。
      */
-    DEUTERANOPIA("deuteranopia"),
+    Deuteranopia("deuteranopia"),
     /**
      * 用户无法感知任何红灯。
      */
-    PROTANOPIA("protanopia"),
+    Protanopia("protanopia"),
     /**
      * 用户无法感知任何蓝光。
      */
-    TRITANOPIA("tritanopia"),
+    Tritanopia("tritanopia"),
     /**
      * 用户难以专注于精细细节。
      */
-    BLURREDVISION("blurredVision"),
+    BlurredVision("blurredVision"),
+
+    reducedContrast("reducedContrast"),
     /**
      * 不应用任何颜色偏差
      */

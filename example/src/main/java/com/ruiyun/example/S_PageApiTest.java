@@ -252,7 +252,7 @@ public class S_PageApiTest extends A_LaunchTest {
         //模拟3G网络条件
         page.emulateNetworkConditions(PredefinedNetworkConditions.Slow_4G.getNetworkConditions());
         //设置视力缺陷，影响截图效果，截图就可以看到效果
-        page.emulateVisionDeficiency(VisionDeficiency.ACHROMATOPSIA);
+        page.emulateVisionDeficiency(VisionDeficiency.Achromatopsia);
         //设置空闲状态
         page.emulateIdleState(new IdleOverridesState.Overrides(true, false));
         //清除空闲状态
