@@ -53,7 +53,7 @@ public class Accessibility {
             Map<String, Object> params = new HashMap<>();
             params.put("objectId", options.getRoot().id());
             JsonNode node = this.realm.environment().client().send("DOM.describeNode", params);
-            backendNodeId = node.get("backendNodeId").asText();
+            backendNodeId = node.at("/node/backendNodeId").asText();
         }
         Iterator<JsonNode> elements = nodes.elements();
         List<com.ruiyun.jvppeteer.cdp.entities.AXNode> payloads = new ArrayList<>();
@@ -94,10 +94,14 @@ public class Accessibility {
             if (Objects.nonNull(defaultRoot.getPayload().getBackendDOMNodeId())) {
                 ElementHandle handle = this.realm.adoptBackendNode(defaultRoot.getPayload().getBackendDOMNodeId()).asElement();
                 if (Objects.nonNull(handle)) {
-                    Frame frame = handle.contentFrame();
-                    if (Objects.nonNull(frame)) {
-                        SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
-                        defaultRoot.setIframeSnapshot(iframeSnapshot);
+                    try {
+                        Frame frame = handle.contentFrame();
+                        if (Objects.nonNull(frame)) {
+                            SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
+                            defaultRoot.setIframeSnapshot(iframeSnapshot);
+                        }
+                    } finally {
+                        handle.dispose();
                     }
                 }
             }
