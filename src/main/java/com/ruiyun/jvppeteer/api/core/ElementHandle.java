@@ -1256,4 +1256,9 @@ public abstract class ElementHandle extends JSHandle {
     private JSHandle handle() {
         return this.handle;
     }
+    /**
+     * When connected using Chrome DevTools Protocol, it returns a
+     * DOM.BackendNodeId for the element.
+     */
+    public  abstract int backendNodeId();
 }

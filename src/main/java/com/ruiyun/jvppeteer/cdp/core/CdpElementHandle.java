@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.AutofillData;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 public class CdpElementHandle extends ElementHandle {
 
     private static final Set<String> NON_ELEMENT_NODE_ROLES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("StaticText", "InlineTextBox")));
-
+    private Integer backendNodeId;
     CdpElementHandle(IsolatedWorld world, RemoteObject remoteObject) {
         super(new CdpJSHandle(world, remoteObject));
     }
@@ -138,6 +139,22 @@ public class CdpElementHandle extends ElementHandle {
         params.put("frameId", frameId);
         params.put("card", data.getCreditCard());
         this.client().send("Autofill.trigger", params);
+    }
+
+    @Override
+    public int backendNodeId() {
+        if(Objects.nonNull(this.backendNodeId)){
+            return this.backendNodeId;
+        }
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("objectId", this.id());
+            JsonNode nodeInfo = this.client().send("DOM.describeNode", params);
+            this.backendNodeId = nodeInfo.at("/node/backendNodeId").asInt();
+        } catch (Exception e) {
+            LOGGER.error("jvppeteer error", e);
+        }
+        return this.backendNodeId;
     }
 
     @Override

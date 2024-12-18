@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.bidi.entities.RemoteValue;
+import com.ruiyun.jvppeteer.cdp.entities.AutofillData;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.cdp.entities.AutofillData;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +20,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class BidiElementHandle extends ElementHandle {
+    private Integer backendNodeId;
+
     public BidiElementHandle(RemoteValue value, BidiFrameRealm realm) {
         super(BidiJSHandle.from(value, realm));
     }
@@ -51,6 +53,21 @@ public class BidiElementHandle extends ElementHandle {
         params2.put("fieldId", fieldId.asText());
         params2.put("card", data.getCreditCard());
         client.send("Autofill.trigger", params2);
+    }
+
+    @Override
+    public int backendNodeId() {
+        if (!this.frame().page().browser().cdpSupported()) {
+            throw new UnsupportedOperationException();
+        }
+        if (Objects.nonNull(this.backendNodeId)) {
+            return this.backendNodeId;
+        }
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("objectId", this.id());
+        JsonNode nodeInfo = this.frame().client().send("DOM.describeNode", params);
+        this.backendNodeId = nodeInfo.at("/node/backendNodeId").asInt();
+        return this.backendNodeId;
     }
 
     @Override
