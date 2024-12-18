@@ -19,29 +19,29 @@ public class SerializedAXNode {
 
     private String valuetext;
 
-    private boolean disabled;
+    private Boolean disabled;
 
-    private boolean expanded;
+    private Boolean expanded;
 
-    private boolean focused;
+    private Boolean focused;
 
-    private boolean modal;
+    private Boolean modal;
 
-    private boolean multiline;
+    private Boolean multiline;
 
-    private boolean multiselectable;
+    private Boolean multiselectable;
 
-    private boolean readonly;
+    private Boolean readonly;
 
-    private boolean required;
+    private Boolean required;
 
-    private boolean selected;
+    private Boolean selected;
     /**
-     * boolean|'mixed'
+     * Boolean|'mixed'
      */
     private String checked;
     /**
-     * boolean|'mixed'
+     * Boolean|'mixed'
      */
     private String pressed;
 
@@ -119,75 +119,75 @@ public class SerializedAXNode {
         this.valuetext = valuetext;
     }
 
-    public boolean getDisabled() {
+    public Boolean getDisabled() {
         return disabled;
     }
 
-    public void setDisabled(boolean disabled) {
+    public void setDisabled(Boolean disabled) {
         this.disabled = disabled;
     }
 
-    public boolean getExpanded() {
+    public Boolean getExpanded() {
         return expanded;
     }
 
-    public void setExpanded(boolean expanded) {
+    public void setExpanded(Boolean expanded) {
         this.expanded = expanded;
     }
 
-    public boolean getFocused() {
+    public Boolean getFocused() {
         return focused;
     }
 
-    public void setFocused(boolean focused) {
+    public void setFocused(Boolean focused) {
         this.focused = focused;
     }
 
-    public boolean getModal() {
+    public Boolean getModal() {
         return modal;
     }
 
-    public void setModal(boolean modal) {
+    public void setModal(Boolean modal) {
         this.modal = modal;
     }
 
-    public boolean getMultiline() {
+    public Boolean getMultiline() {
         return multiline;
     }
 
-    public void setMultiline(boolean multiline) {
+    public void setMultiline(Boolean multiline) {
         this.multiline = multiline;
     }
 
-    public boolean getMultiselectable() {
+    public Boolean getMultiselectable() {
         return multiselectable;
     }
 
-    public void setMultiselectable(boolean multiselectable) {
+    public void setMultiselectable(Boolean multiselectable) {
         this.multiselectable = multiselectable;
     }
 
-    public boolean getReadonly() {
+    public Boolean getReadonly() {
         return readonly;
     }
 
-    public void setReadonly(boolean readonly) {
+    public void setReadonly(Boolean readonly) {
         this.readonly = readonly;
     }
 
-    public boolean getRequired() {
+    public Boolean getRequired() {
         return required;
     }
 
-    public void setRequired(boolean required) {
+    public void setRequired(Boolean required) {
         this.required = required;
     }
 
-    public boolean getSelected() {
+    public Boolean getSelected() {
         return selected;
     }
 
-    public void setSelected(boolean selected) {
+    public void setSelected(Boolean selected) {
         this.selected = selected;
     }
 

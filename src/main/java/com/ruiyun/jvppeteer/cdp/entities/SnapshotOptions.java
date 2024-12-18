@@ -1,6 +1,6 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 
-import com.ruiyun.jvppeteer.cdp.core.CdpElementHandle;
+import com.ruiyun.jvppeteer.api.core.ElementHandle;
 
 public class SnapshotOptions {
     /**
@@ -12,7 +12,22 @@ public class SnapshotOptions {
      * <p>
      * 整个页面的根节点
      */
-    private CdpElementHandle root;
+    private ElementHandle root;
+
+    /**
+     * If true, gets accessibility trees for each of the iframes in the frame
+     * subtree.
+     */
+    private boolean includeIframes;
+
+    public SnapshotOptions() {
+    }
+
+    public SnapshotOptions(boolean interestingOnly, ElementHandle root, boolean includeIframes) {
+        this.interestingOnly = interestingOnly;
+        this.root = root;
+        this.includeIframes = includeIframes;
+    }
 
     public boolean getInterestingOnly() {
         return interestingOnly;
@@ -22,11 +37,19 @@ public class SnapshotOptions {
         this.interestingOnly = interestingOnly;
     }
 
-    public CdpElementHandle getRoot() {
+    public ElementHandle getRoot() {
         return root;
     }
 
-    public void setRoot(CdpElementHandle root) {
+    public void setRoot(ElementHandle root) {
         this.root = root;
+    }
+
+    public boolean getIncludeIframes() {
+        return includeIframes;
+    }
+
+    public void setIncludeIframes(boolean includeIframes) {
+        this.includeIframes = includeIframes;
     }
 }

@@ -74,7 +74,7 @@ public class BidiFrame extends Frame {
         this.client = new BidiCdpSession(this, null);
         this.realms.put(DEFAULT, BidiFrameRealm.from(this.browsingContext.defaultRealm(), this));
         this.realms.put(INTERNAL, BidiFrameRealm.from(this.browsingContext.createWindowRealm("__puppeteer_internal_" + Math.ceil((Math.random() * 10000))), this));
-        this.accessibility = new Accessibility(this.realms.get(DEFAULT));
+        this.accessibility = new Accessibility(this.realms.get(DEFAULT), this.id);
     }
 
     public BidiFrame(BidiPage parent, BrowsingContext browsingContext) {
@@ -85,7 +85,7 @@ public class BidiFrame extends Frame {
         this.client = new BidiCdpSession(this, null);
         this.realms.put(DEFAULT, BidiFrameRealm.from(this.browsingContext.defaultRealm(), this));
         this.realms.put(INTERNAL, BidiFrameRealm.from(this.browsingContext.createWindowRealm("__puppeteer_internal_" + Math.ceil((Math.random() * 10000))), this));
-        this.accessibility = new Accessibility(this.realms.get(DEFAULT));
+        this.accessibility = new Accessibility(this.realms.get(DEFAULT), this.id);
     }
 
     public static BidiFrame from(BidiFrame parent, BrowsingContext browsingContext) {

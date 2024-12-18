@@ -6,12 +6,12 @@ import com.ruiyun.jvppeteer.cdp.entities.AXProperty;
 import com.ruiyun.jvppeteer.cdp.entities.SerializedAXNode;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -29,7 +29,7 @@ public class AXNode {
     private boolean ignored = false;
     private Boolean cachedHasFocusableChild;
     private Realm realm;
-
+    private SerializedAXNode iframeSnapshot;
     private static final String[] userStringProperties = new String[]{
             "name",
             "value",
@@ -83,10 +83,12 @@ public class AXNode {
                     this.richlyEditable = "richtext".equals(property.getValue().getValue());
                     this.editable = true;
                 }
-                if ("focusable".equals(property.getName()))
+                if ("focusable".equals(property.getName())) {
                     this.focusable = (Boolean) property.getValue().getValue();
-                if ("hidden".equals(property.getName()))
+                }
+                if ("hidden".equals(property.getName())) {
                     this.hidden = (Boolean) property.getValue().getValue();
+                }
             }
         }
 
@@ -129,9 +131,9 @@ public class AXNode {
     }
 
     public boolean isLeafNode() {
-        if (ValidateUtil.isNotEmpty(this.children))
+        if (ValidateUtil.isEmpty(this.children)) {
             return true;
-
+        }
         // These types of objects may have children that we use as internal
         // implementation details, but we want to expose them as leaves to platform
         // accessibility APIs because screen readers might be confused if they find
@@ -229,7 +231,7 @@ public class AXNode {
 
         SerializedAXNode node = new SerializedAXNode();
         node.setRole(this.role);
-        if(this.payload.getBackendDOMNodeId() == null){
+        if (this.payload.getBackendDOMNodeId() == null) {
             node.setElementHandle(null);
         }
         node.setElementHandle(this.realm.adoptBackendNode(this.payload.getBackendDOMNodeId()).asElement());
@@ -246,7 +248,7 @@ public class AXNode {
             // not whether focus is specifically on the root node.
             if ("focused".equals(booleanProperty) && "RootWebArea".equals(this.role))
                 continue;
-            Object value =  properties.get(booleanProperty);
+            Object value = properties.get(booleanProperty);
             if (value == null || Boolean.FALSE.equals(value))
                 continue;
             PropertyDescriptor propDesc = new PropertyDescriptor(booleanProperty, SerializedAXNode.class);
@@ -279,9 +281,10 @@ public class AXNode {
     }
 
     public static AXNode createTree(Realm realm, List<com.ruiyun.jvppeteer.cdp.entities.AXNode> payloads) {
-        Map<String, AXNode> nodeById = new HashMap<>();
-        for (com.ruiyun.jvppeteer.cdp.entities.AXNode payload : payloads)
+        Map<String, AXNode> nodeById = new LinkedHashMap<>();
+        for (com.ruiyun.jvppeteer.cdp.entities.AXNode payload : payloads) {
             nodeById.put(payload.getNodeId(), new AXNode(realm, payload));
+        }
         for (AXNode node : nodeById.values()) {
             List<String> childIds = node.getPayload().getChildIds();
             if (ValidateUtil.isNotEmpty(childIds)) {
@@ -294,7 +297,7 @@ public class AXNode {
             }
 
         }
-        return nodeById.values().iterator().next();
+        return nodeById.isEmpty() ? null : nodeById.get(payloads.get(0).getNodeId());
     }
 
     public com.ruiyun.jvppeteer.cdp.entities.AXNode getPayload() {
@@ -367,5 +370,13 @@ public class AXNode {
 
     public void setCachedHasFocusableChild(boolean cachedHasFocusableChild) {
         this.cachedHasFocusableChild = cachedHasFocusableChild;
+    }
+
+    public SerializedAXNode getIframeSnapshot() {
+        return iframeSnapshot;
+    }
+
+    public void setIframeSnapshot(SerializedAXNode iframeSnapshot) {
+        this.iframeSnapshot = iframeSnapshot;
     }
 }
