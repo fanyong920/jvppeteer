@@ -1,16 +1,21 @@
 package com.ruiyun.jvppeteer.cdp.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 表示对 JavaScript 对象的引用。可以使用 Page.evaluateHandle() 创建实例。
@@ -34,6 +39,21 @@ public class CdpJSHandle extends JSHandle {
     @Override
     public boolean disposed() {
         return disposed;
+    }
+
+    @Override
+    public Map<String, JSHandle> getProperties() throws JsonProcessingException {
+        JsonNode response = this.client().send("Runtime.getProperties", Constant.OBJECTMAPPER.createObjectNode().put("objectId", this.remoteObject.getObjectId()).put("ownProperties", true));
+        Map<String, JSHandle> result = new LinkedHashMap<>();
+        Iterator<JsonNode> iterator = response.get(Constant.RESULT).iterator();
+        while (iterator.hasNext()) {
+            JsonNode property = iterator.next();
+            if (!property.get("enumerable").asBoolean() || !property.hasNonNull("value")) {
+                continue;
+            }
+            result.put(property.get("name").asText(), this.world.createJSHandle(Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
+        }
+        return result;
     }
 
     @Override

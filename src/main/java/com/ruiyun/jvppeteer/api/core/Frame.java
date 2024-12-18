@@ -281,7 +281,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
         QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
         options.setPolling(querySelector.getPolling());
-        return querySelector.getQueryHandler().waitFor(this, selector, options);
+        return querySelector.getQueryHandler().waitFor(this, querySelector.getUpdatedSelector(), options);
     }
 
     /**

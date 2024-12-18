@@ -403,7 +403,7 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
             objectNode.put("unserializableValue", NaN);
             return objectNode;
         }
-        CdpJSHandle objectHandle = arg instanceof CdpJSHandle ? (CdpJSHandle) arg : null;
+        JSHandle objectHandle = arg instanceof JSHandle ? (JSHandle) arg : null;
         if (objectHandle != null) {
             if (objectHandle.realm() != context.world()) {
                 throw new JvppeteerException("JSHandles can be evaluated only in the context they were created!");

@@ -1,13 +1,14 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 
 import com.ruiyun.jvppeteer.api.core.JSHandle;
-import com.ruiyun.jvppeteer.common.BindingFunction;
-import com.ruiyun.jvppeteer.cdp.core.CdpJSHandle;
 import com.ruiyun.jvppeteer.cdp.core.ExecutionContext;
+import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,16 +44,16 @@ public class Binding {
                         "          }", params);
                 try {
                     Map<String, JSHandle> properties = handles.getProperties();
+                    AtomicInteger count = new AtomicInteger();
                     properties.forEach((key, handle) -> {
-                        if (args.contains(key)) {
-                            if (handle.remoteObject().getSubtype().equals("node")) {
-                                args.set(Integer.parseInt(key), handle);
+                        if (count.get() <= args.size()) {
+                            if (Objects.equals(handle.remoteObject().getSubtype(), "node")) {
+                                args.set(count.get(), handle);
                             } else {
                                 handle.dispose();
                             }
-                        } else {
-                            handle.dispose();
                         }
+                        count.getAndIncrement();
                     });
                 } finally {
                     if (handles != null) {
@@ -72,11 +73,12 @@ public class Binding {
                     "        }", params);
 
             for (Object arg : args) {
-                if (arg instanceof CdpJSHandle) {
-                    ((CdpJSHandle) arg).dispose();
+                if (arg instanceof JSHandle) {
+                    ((JSHandle) arg).dispose();
                 }
             }
         } catch (Exception e) {
+            LOGGER.error("jvppeteer error: ", e);
             if (e instanceof EvaluateException) {
                 try {
                     List<Object> params = new ArrayList<>();

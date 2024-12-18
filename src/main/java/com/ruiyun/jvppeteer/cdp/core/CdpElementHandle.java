@@ -40,6 +40,7 @@ public class CdpElementHandle extends ElementHandle {
 
     private static final Set<String> NON_ELEMENT_NODE_ROLES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList("StaticText", "InlineTextBox")));
     private Integer backendNodeId;
+
     CdpElementHandle(IsolatedWorld world, RemoteObject remoteObject) {
         super(new CdpJSHandle(world, remoteObject));
     }
@@ -143,7 +144,7 @@ public class CdpElementHandle extends ElementHandle {
 
     @Override
     public int backendNodeId() {
-        if(Objects.nonNull(this.backendNodeId)){
+        if (Objects.nonNull(this.backendNodeId)) {
             return this.backendNodeId;
         }
         try {
