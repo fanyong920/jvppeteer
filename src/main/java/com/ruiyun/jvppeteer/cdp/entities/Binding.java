@@ -46,7 +46,7 @@ public class Binding {
                     Map<String, JSHandle> properties = handles.getProperties();
                     AtomicInteger count = new AtomicInteger();
                     properties.forEach((key, handle) -> {
-                        if (count.get() <= args.size()) {
+                        if (count.get() < args.size()) {
                             if (Objects.equals(handle.remoteObject().getSubtype(), "node")) {
                                 args.set(count.get(), handle);
                             } else {
