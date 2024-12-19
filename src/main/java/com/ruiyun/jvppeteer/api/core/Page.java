@@ -49,6 +49,7 @@ import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -61,7 +62,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -725,11 +726,11 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param timeout   超时时间
      * @return 要等到的请求
      */
-    public Request waitForRequest(String url, Predicate<Request> predicate, int timeout) {
-        if (timeout < 0) {
+    public Request waitForRequest(String url, Predicate<Request> predicate, Integer timeout) {
+        if (Objects.isNull(timeout)) {
             timeout = this._timeoutSettings.timeout();
         }
-        AtomicReference<Request> result = new AtomicReference<>();
+        AwaitableResult<Request> result = AwaitableResult.create();
         Predicate<Request> requestPredicate = request -> {
             if (StringUtil.isNotEmpty(url)) {
                 return url.equals(request.url());
@@ -738,28 +739,31 @@ public abstract class Page extends EventEmitter<PageEvents> {
             }
             return false;
         };
-        AtomicReference<TargetCloseException> targetCloseException = new AtomicReference<>();
-        Consumer<Object> targetCloseListener = (ignore) -> targetCloseException.set(new TargetCloseException("Page closed!"));
+        AwaitableResult<TargetCloseException> targetCloseException = AwaitableResult.create();
+        Consumer<Object> targetCloseListener = (ignore) -> {
+            targetCloseException.complete(new TargetCloseException("Page closed!"));
+            result.complete();
+        };
         this.once(PageEvents.Close, targetCloseListener);
         Consumer<Request> requestListener = request -> {
             if (requestPredicate.test(request)) {
-                result.set(request);
+                result.complete(request);
             }
         };
         this.on(PageEvents.Request, requestListener);
-        Supplier<Boolean> conditionChecker = () -> {
-            if (targetCloseException.get() != null) {
+        boolean waiting = result.waiting(timeout, TimeUnit.MILLISECONDS);
+        if(!waiting){
+            throw new TimeoutException("WaitForRequest timeout of " + timeout + " ms exceeded");
+        }
+        try {
+            if(targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())){
                 throw targetCloseException.get();
             }
-            return result.get() == null ? null : true;
-        };
-        try {
-            Helper.waitForCondition(conditionChecker, timeout, "WaitForRequest timeout of " + timeout + " ms exceeded");
+            return result.get();
         } finally {
             this.off(PageEvents.Request, requestListener);
             this.off(PageEvents.Close, targetCloseListener);
         }
-        return result.get();
     }
 
     /**
@@ -802,12 +806,14 @@ public abstract class Page extends EventEmitter<PageEvents> {
      *
      * @param url       等待的请求
      * @param predicate 方法
-     * @param timeout   超时时间
+     * @param timeout   超时时间,0 代表无限等待
      * @return 要等到的请求
      */
-    public Response waitForResponse(String url, Predicate<Response> predicate, int timeout) {
-        if (timeout <= 0) timeout = this._timeoutSettings.timeout();
-        Predicate<Response> predi = response -> {
+    public Response waitForResponse(String url, Predicate<Response> predicate, Integer timeout) {
+        if (Objects.isNull(timeout)){
+            timeout = this._timeoutSettings.timeout();
+        }
+        Predicate<Response> waitForResponsePredicate = response -> {
             if (StringUtil.isNotEmpty(url)) {
                 return url.equals(response.url());
             } else if (predicate != null) {
@@ -815,27 +821,32 @@ public abstract class Page extends EventEmitter<PageEvents> {
             }
             return false;
         };
-        AtomicReference<Response> result = new AtomicReference<>();
+       AwaitableResult<Response> result = AwaitableResult.create();
         Consumer<Response> responseListener = response -> {
-            if (predi.test(response)) {
-                result.set(response);
+            if (waitForResponsePredicate.test(response)) {
+                result.complete(response);
             }
         };
         this.on(PageEvents.Response, responseListener);
-        AtomicReference<TargetCloseException> targetCloseException = new AtomicReference<>();
-        this.once(PageEvents.Close, (s) -> targetCloseException.set(new TargetCloseException("Page closed!")));
-        Supplier<Boolean> conditonChecker = () -> {
-            if (targetCloseException.get() != null) {
+        AwaitableResult<TargetCloseException> targetCloseException = AwaitableResult.create();
+        Consumer<Object> closeListener = (ignore) -> {
+            targetCloseException.complete(new TargetCloseException("Page closed!"));
+            result.complete();
+        };
+        this.once(PageEvents.Close, closeListener);
+        try {
+            boolean waiting = result.waiting(timeout, TimeUnit.MILLISECONDS);
+            if(!waiting){
+                throw new com.ruiyun.jvppeteer.exception.TimeoutException("WaitForResponse timeout of " + timeout + " ms exceeded");
+            }
+            if(targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())){
                 throw targetCloseException.get();
             }
-            return result.get() == null ? null : true;
-        };
-        try {
-            Helper.waitForCondition(conditonChecker, timeout, "WaitForResponse timeout of " + timeout + " ms exceeded");
-        } finally {
+            return result.get();
+        }  finally {
             this.off(PageEvents.Response, responseListener);
+            this.off(PageEvents.Close, closeListener);
         }
-        return result.get();
     }
 
     public void waitForNetworkIdle(WaitForNetworkIdleOptions options) {
@@ -1505,7 +1516,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param pptrFunction 将在浏览器上下文中评估函数，直到返回真值。
      * @return JSHandle 指定的页面元素 对象
      */
-    public JSHandle waitForFunction(String pptrFunction) throws ExecutionException, InterruptedException, TimeoutException {
+    public JSHandle waitForFunction(String pptrFunction) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
         return this.waitForFunction(pptrFunction, new WaitForSelectorOptions());
     }
 
@@ -1518,7 +1529,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param args         传递给函数的参数，可以是任意类型
      * @return JSHandle 返回函数执行结果的JSHandle对象
      */
-    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
+    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
         return this.waitForFunction(pptrFunction, options, Helper.isFunction(pptrFunction) ? EvaluateType.FUNCTION : EvaluateType.STRING, args == null ? null : Arrays.asList(args));
     }
 
@@ -1531,7 +1542,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param type 有时候需要指定 pptrFunction 为 EvaluateType#String 才能正确执行，大多数情况不需要指定
      * @return JSHandle 返回函数执行结果的JSHandle对象
      */
-    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
+    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
         return this.mainFrame().waitForFunction(pptrFunction, options, type, args);
     }
 

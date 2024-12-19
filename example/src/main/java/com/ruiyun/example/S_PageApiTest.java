@@ -457,7 +457,16 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test9() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-        page.goTo("https://www.baidu.com");
+          new Thread(() -> {
+              try {
+                  Thread.sleep(2000);
+                  page.goTo("https://www.baidu.com");
+              } catch (InterruptedException | ExecutionException e) {
+                  throw new RuntimeException(e);
+              }
+
+          }).start();
+
         Request request = page.waitForRequest("https://www.baidu.com/img/flexible/logo/pc/result.png");
         System.out.println("url: " + request.url() + ", type: " + request.resourceType());
         browser.close();
@@ -485,7 +494,8 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page = browser.newPage();
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/");
         WaitForSelectorOptions options = new WaitForSelectorOptions(true, false);
-        ElementHandle elementHandle = page.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > article > div.theme-doc-markdown.markdown > header > h1", options);
+        //selector 可能改变，及时更换
+        ElementHandle elementHandle = page.waitForSelector("#signature", options);
         elementHandle.dispose();
         System.out.println(elementHandle.id());
         browser.close();
