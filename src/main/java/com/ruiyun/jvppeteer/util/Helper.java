@@ -477,7 +477,7 @@ public class Helper {
         long base = 0;
         while (true) {
             long remaining = timeout - base;
-            if (remaining <= 0) {
+            if (timeout != 0 && remaining <= 0) {
                 throw new TimeoutException(errorMessage);
             }
             T result = conditionChecker.get();

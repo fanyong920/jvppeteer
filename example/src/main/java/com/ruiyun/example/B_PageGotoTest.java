@@ -52,4 +52,20 @@ public class B_PageGotoTest extends A_LaunchTest {
             page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         }
     }
+
+    //测试超时时间，0代表无限等待
+    @Test
+    public void test4() throws Exception {
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            List<Target> targets = browser.targets();
+            Target target = targets.stream().filter(t -> t.type().equals(TargetType.PAGE)).findFirst().orElse(null);
+            if (target == null) {
+                return;
+            }
+            Page page = target.page();
+            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map");
+            //不添加waitUntil参数，默认是load
+            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
+        }
+    }
 }

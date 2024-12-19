@@ -296,6 +296,33 @@ public class A_LaunchTest {
         }
     }
 
+    /**
+     * 测试timeout,0 代表无限等待
+     * @throws Exception
+     */
+    @Test
+    public void test19() throws Exception {
+        launchOptions.setProtocolTimeout(0);
+        try (Browser browser = getBrowser()) {
+            //打开一个页面
+            Page page = browser.newPage();
+            Target target1 = page.target();
+            try {
+                target1 = page.target();
+            } catch (UnsupportedOperationException e) {
+                System.out.println("webdriver bidi 不支持 page.target() 方法");
+            }
+            if (Objects.nonNull(target1)) {
+                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+            }
+            List<Target> targets = browser.targets();
+            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+            for (Target target : targets) {
+                System.out.println("two type=" + target.type() + ", url=" + target.url());
+            }
+        }
+    }
+
     public Browser getBrowser() throws Exception {
         return Puppeteer.launch(launchOptions);
     }
