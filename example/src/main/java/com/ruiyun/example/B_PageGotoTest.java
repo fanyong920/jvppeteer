@@ -63,6 +63,42 @@ public class B_PageGotoTest extends A_LaunchTest {
                 return;
             }
             Page page = target.page();
+            page.setDefaultNavigationTimeout(0);
+            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map");
+            //不添加waitUntil参数，默认是load
+            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
+        }
+    }
+    //测试超时时间，使用options的超时时间，而不是默认的
+    @Test
+    public void test5() throws Exception {
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            List<Target> targets = browser.targets();
+            Target target = targets.stream().filter(t -> t.type().equals(TargetType.PAGE)).findFirst().orElse(null);
+            if (target == null) {
+                return;
+            }
+            Page page = target.page();
+            page.setDefaultNavigationTimeout(0);
+            GoToOptions options = new GoToOptions();
+            options.setTimeout(1);
+            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map",options);
+            //不添加waitUntil参数，默认是load
+            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
+        }
+    }
+
+    //测试超时时间，使用page设置的超时时间
+    @Test
+    public void test6() throws Exception {
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            List<Target> targets = browser.targets();
+            Target target = targets.stream().filter(t -> t.type().equals(TargetType.PAGE)).findFirst().orElse(null);
+            if (target == null) {
+                return;
+            }
+            Page page = target.page();
+            page.setDefaultNavigationTimeout(2);
             page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map");
             //不添加waitUntil参数，默认是load
             page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
