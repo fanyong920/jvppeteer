@@ -161,7 +161,7 @@ public abstract class BrowserLauncher {
                     String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
                     if (Protocol.WebDriverBiDi.equals(options.getProtocol())) {
                         ConnectionTransport transport = WebSocketTransportFactory.create(endpoint + "/session");
-                        connection = new BidiConnection(endpoint + "/session", transport, options.getSlowMo(), options.getTimeout());
+                        connection = new BidiConnection(endpoint + "/session", transport, options.getSlowMo(), options.getProtocolTimeout());
                         runner.setConnection(connection);
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Connect to browser by webDriverBidi url: {}", endpoint + "/session");
@@ -170,7 +170,7 @@ public abstract class BrowserLauncher {
                         return createBiDiBrowser((BidiConnection) connection, closeCallback, runner.getProcess(), options);
                     } else {
                         ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
-                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getTimeout());
+                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getProtocolTimeout());
                         runner.setConnection(connection);
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
@@ -182,7 +182,7 @@ public abstract class BrowserLauncher {
                         runner.start();
                         String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
                         ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
-                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getTimeout());
+                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getProtocolTimeout());
                         runner.setConnection(connection);
                         if (LOGGER.isDebugEnabled()) {
                             LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
