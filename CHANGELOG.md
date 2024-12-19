@@ -187,3 +187,8 @@
 
 - [fix: correctly resolve OOPIF response bodies](https://github.com/fanyong920/jvppeteer/commit/ca19d06697567b9984f610b20a26a4a1c1cc1c79)
 - [增强 Browser 关闭逻辑](https://github.com/fanyong920/jvppeteer/commit/d13eb41b11901da5986cbc8b8d1e288d802d8d5f)
+
+### Version Release 3.0.0(2024/12/17)
+
+- 添加对 firefox 浏览器的支持
+- 添加 Webdriver-bidi 协议支持
