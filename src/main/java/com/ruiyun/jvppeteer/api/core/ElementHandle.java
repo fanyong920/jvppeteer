@@ -1242,7 +1242,7 @@ public abstract class ElementHandle extends JSHandle {
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
         options.setPolling(querySelector.getPolling());
-        return querySelector.getQueryHandler().waitFor(this.adoptIsolatedHandle(), selector, options);
+        return querySelector.getQueryHandler().waitFor(this.adoptIsolatedHandle(), querySelector.getUpdatedSelector(), options);
     }
 
     private BoundingBox nonEmptyVisibleBoundingBox() throws JsonProcessingException, EvaluateException {
