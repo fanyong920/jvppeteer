@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.common;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -33,18 +34,29 @@ public class DeviceRequestPromptManager {
         this.deviceRequestPromps.clear();
     }
 
-    public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
+    public DeviceRequestPrompt waitForDevicePrompt() {
+        return this.waitForDevicePrompt(null);
+    }
+
+    public DeviceRequestPrompt waitForDevicePrompt(Integer timeout) {
         Objects.requireNonNull(this.client, "Cannot wait for device prompt through detached session!");
         boolean needsEnable = this.deviceRequestPromps.isEmpty();
-        AwaitableResult<DeviceRequestPrompt> enableSubject = AwaitableResult.create();
+        if (Objects.isNull(timeout)) {
+            timeout = this.timeoutSettings.timeout();
+        }
+        AwaitableResult<DeviceRequestPrompt> promptAwaitableResult = AwaitableResult.create();
         try {
-            this.deviceRequestPromps.add(enableSubject);
+            this.deviceRequestPromps.add(promptAwaitableResult);
             if (needsEnable) {
                 this.client.send("DeviceAccess.enable");
             }
-            return enableSubject.waitingGetResult(timeout, TimeUnit.MILLISECONDS);
+            boolean waiting = promptAwaitableResult.waiting(timeout, TimeUnit.MILLISECONDS);
+            if (!waiting) {
+                throw new TimeoutException("Waiting for `DeviceRequestPrompt` failed: " + timeout + "ms exceeded");
+            }
+            return promptAwaitableResult.get();
         } finally {
-            this.deviceRequestPromps.remove(enableSubject);
+            this.deviceRequestPromps.remove(promptAwaitableResult);
         }
     }
 }

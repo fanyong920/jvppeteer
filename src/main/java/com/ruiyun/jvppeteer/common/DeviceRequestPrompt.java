@@ -4,6 +4,7 @@ import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.cdp.entities.DeviceRequestPromptDevice;
 import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
+import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,10 +23,11 @@ public class DeviceRequestPrompt {
     private CDPSession client;
     private final TimeoutSettings timeoutSettings;
     private final String id;
-    private boolean handled;
-    final Set<WaitForDevicePromise> waitForDevicePromises = new HashSet<>();
-    final List<DeviceRequestPromptDevice> devices = new ArrayList<>();
-    private final Consumer<DeviceRequestPromptedEvent> updateDevicesHandle = this::updateDevicesHandle;
+    private volatile boolean handled;
+    private final Set<WaitForDevicePromise> waitForDevicePromises = new HashSet<>();
+
+    private final List<DeviceRequestPromptDevice> devices = new ArrayList<>();
+    private final Consumer<DeviceRequestPromptedEvent> updateDevicesHandle = this::updateDevices;
 
     public DeviceRequestPrompt(CDPSession client, TimeoutSettings timeoutSettings, DeviceRequestPromptedEvent firstEvent) {
         this.client = client;
@@ -33,9 +35,11 @@ public class DeviceRequestPrompt {
         this.id = firstEvent.getId();
         this.client.on(ConnectionEvents.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
         this.client.on(ConnectionEvents.Target_detachedFromTarget, (ignore) -> this.client = null);
+        this.updateDevices(firstEvent);
     }
 
-    private void updateDevicesHandle(DeviceRequestPromptedEvent event) {
+
+    private void updateDevices(DeviceRequestPromptedEvent event) {
         if (!this.id.equals(event.getId())) {
             return;
         }
@@ -51,6 +55,17 @@ public class DeviceRequestPrompt {
                 }
             }
         }
+    }
+
+    /**
+     * 等待设备请求提示设备
+     * 该方法用于在一组设备中查找符合特定条件的设备如果在指定的超时时间内没有找到符合条件的设备，则返回null
+     *
+     * @param filter 用于筛选设备的函数，需要返回true以表示找到的设备符合条件
+     * @return 返回找到的符合条件的设备，如果没有找到则返回
+     */
+    public DeviceRequestPromptDevice waitForDevice(Function<DeviceRequestPromptDevice, Boolean> filter) {
+        return this.waitForDevice(filter, null);
     }
 
     /**
@@ -74,7 +89,11 @@ public class DeviceRequestPrompt {
         WaitForDevicePromise handle = new WaitForDevicePromise(filter, waitableResult);
         this.waitForDevicePromises.add(handle);
         try {
-            return waitableResult.waitingGetResult(timeout, TimeUnit.MILLISECONDS);
+            boolean waiting = waitableResult.waiting(timeout, TimeUnit.MILLISECONDS);
+            if (!waiting) {
+                throw new TimeoutException("Waiting for `DeviceRequestPromptDevice` failed: " + timeout + "ms exceeded");
+            }
+            return waitableResult.get();
         } finally {
             this.waitForDevicePromises.remove(handle);
         }
@@ -104,7 +123,7 @@ public class DeviceRequestPrompt {
      * 通过调用此方法，会向CDP会话发送取消请求，并更新当前请求的状态
      */
     public void cancel() {
-         Objects.requireNonNull(this.client, "Cannot cancel prompt through detached session!");
+        Objects.requireNonNull(this.client, "Cannot cancel prompt through detached session!");
         ValidateUtil.assertArg(!this.handled, "Cannot cancel DeviceRequestPrompt which is already handled!");
         this.client.off(ConnectionEvents.DeviceAccess_deviceRequestPrompted, this.updateDevicesHandle);
         this.handled = true;
@@ -112,6 +131,11 @@ public class DeviceRequestPrompt {
             put("id", DeviceRequestPrompt.this.id);
         }});
     }
+
+    public List<DeviceRequestPromptDevice> getDevices() {
+        return devices;
+    }
+
 
     public static class WaitForDevicePromise {
         private Function<DeviceRequestPromptDevice, Boolean> filter;
@@ -142,4 +166,6 @@ public class DeviceRequestPrompt {
         }
 
     }
+
+
 }
