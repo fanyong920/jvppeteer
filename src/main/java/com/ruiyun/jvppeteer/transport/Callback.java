@@ -46,7 +46,6 @@ public class Callback {
 
     public JsonNode waitForResponse() throws InterruptedException {
         boolean waiting = this.waitingResponse.waiting(this.timeout, TimeUnit.MILLISECONDS);
-        System.out.println("this timout: " + this.timeout);
         if (!waiting) {
             throw new TimeoutException("Timeout waiting for response for " + this.label);
         }
