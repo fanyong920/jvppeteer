@@ -2,11 +2,9 @@ package com.ruiyun.jvppeteer.transport;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
-import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.StringUtil;
-
 import java.util.concurrent.TimeUnit;
 
 public class Callback {
@@ -47,24 +45,15 @@ public class Callback {
     }
 
     public JsonNode waitForResponse() throws InterruptedException {
-        if (this.timeout > 0) {
-            boolean waiting = waitingResponse.waiting(this.timeout, TimeUnit.MILLISECONDS);
-            if (!waiting) {
-                throw new TimeoutException("Timeout waiting for response for " + this.label);
-            }
-            if (StringUtil.isNotEmpty(errorMsg)) {
-                throw new ProtocolException(errorMsg, code);
-            }
-            return waitingResponse.get();
-        } else if (this.timeout == 0) {
-            waitingResponse.wait();
-            if (StringUtil.isNotEmpty(errorMsg)) {
-                throw new ProtocolException(errorMsg, code);
-            }
-            return waitingResponse.get();
-        } else {
-            throw new JvppeteerException("Timeout must be greater than 0");
+        boolean waiting = this.waitingResponse.waiting(this.timeout, TimeUnit.MILLISECONDS);
+        System.out.println("this timout: " + this.timeout);
+        if (!waiting) {
+            throw new TimeoutException("Timeout waiting for response for " + this.label);
         }
+        if (StringUtil.isNotEmpty(errorMsg)) {
+            throw new ProtocolException(errorMsg, code);
+        }
+        return this.waitingResponse.get();
     }
 
     public String errorMsg() {
