@@ -1,10 +1,12 @@
 package com.ruiyun.jvppeteer.common;
 
+import java.util.Objects;
+
 public class TimeoutSettings implements Constant {
 
-    private int defaultNavigationTimeout;
+    private Integer defaultNavigationTimeout;
 
-    private int defaultTimeout;
+    private Integer defaultTimeout;
 
     public TimeoutSettings() {
         this.defaultTimeout = 0;
@@ -12,15 +14,15 @@ public class TimeoutSettings implements Constant {
     }
 
     public int navigationTimeout() {
-        if (this.defaultNavigationTimeout != 0)
+        if (Objects.nonNull(this.defaultNavigationTimeout))
             return this.defaultNavigationTimeout;
-        if (this.defaultTimeout != 0)
+        if (Objects.nonNull(this.defaultTimeout))
             return this.defaultTimeout;
         return DEFAULT_TIMEOUT;
     }
 
     public int timeout() {
-        if (this.defaultTimeout != 0)
+        if (Objects.nonNull(this.defaultTimeout))
             return this.defaultTimeout;
         return DEFAULT_TIMEOUT;
     }
