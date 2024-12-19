@@ -4,6 +4,8 @@ import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 
 public class Z_FrameApiTest extends A_LaunchTest {
@@ -27,5 +29,17 @@ public class Z_FrameApiTest extends A_LaunchTest {
                 "          return el.tagName.toLocaleLowerCase();\n" +
                 "        }");
         System.out.println("iframe".equals(evaluate));
+    }
+
+    @Test
+    public void test1() throws Exception {
+        Browser browser = getBrowser();
+        Page page = browser.newPage();
+        Frame frame = page.mainFrame();
+        Object evaluate = frame.evaluate("arr => {\n" +
+                "        return arr;\n" +
+                "      }", Collections.singletonList(Arrays.asList("1", "2", "3")));
+        System.out.println(evaluate);
+        browser.close();
     }
 }
