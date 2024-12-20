@@ -135,7 +135,11 @@ public class WaitTask {
     }
 
     public JSHandle result() throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
-        return this.rerunFuture.get(this.timeout, TimeUnit.MILLISECONDS);
+        if (this.timeout == 0) {
+            return this.rerunFuture.get();
+        } else {
+            return this.rerunFuture.get(this.timeout, TimeUnit.MILLISECONDS);
+        }
     }
 
     private Throwable getBadError(Throwable error) {
@@ -165,7 +169,7 @@ public class WaitTask {
             }
             return error;
         }
-        return new JvppeteerException("WaitTask failed with an error: " + error.getMessage(),error);
+        return new JvppeteerException("WaitTask failed with an error: " + error.getMessage(), error);
     }
 
 }
