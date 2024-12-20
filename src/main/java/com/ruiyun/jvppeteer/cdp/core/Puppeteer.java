@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.cdp.core;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.common.BrowserRevision;
 import com.ruiyun.jvppeteer.common.Environment;
 import com.ruiyun.jvppeteer.common.Product;
@@ -15,6 +16,7 @@ import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.io.IOException;
+import java.util.Objects;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.PRODUCT_ENV;
@@ -78,6 +80,14 @@ public class Puppeteer {
         }
         if (StringUtil.isNotBlank(options.getCacheDir())) {
             puppeteer.setCacheDir(options.getCacheDir());
+        }
+        //默认协议，chrome -> CDP ,firefox -> WebDriverBiDi
+        if (Objects.isNull(options.getProtocol())) {
+            if (Objects.equals(options.getProduct(), Product.Firefox)) {
+                options.setProtocol(Protocol.WebDriverBiDi);
+            } else {
+                options.setProtocol(Protocol.CDP);
+            }
         }
         adoptLauncher(puppeteer);
         return puppeteer.getLauncher().launch(options);

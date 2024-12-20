@@ -156,10 +156,20 @@ public abstract class BrowserLauncher {
             if (usePipe) {
                 throw new LaunchException("Not supported pipe connect to browser");
             } else {
-                if (Objects.equals(options.getProduct(), Product.Firefox)) {
+                if (Protocol.CDP.equals(options.getProtocol())) {
                     runner.start();
                     String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
-                    if (Protocol.WebDriverBiDi.equals(options.getProtocol())) {
+                    ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
+                    connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getProtocolTimeout());
+                    runner.setConnection(connection);
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
+                    }
+                    return createCdpBrowser(options, defaultArgs, runner, connection);
+                } else {
+                    if (Objects.equals(options.getProduct(), Product.Firefox)) {
+                        runner.start();
+                        String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
                         ConnectionTransport transport = WebSocketTransportFactory.create(endpoint + "/session");
                         connection = new BidiConnection(endpoint + "/session", transport, options.getSlowMo(), options.getProtocolTimeout());
                         runner.setConnection(connection);
@@ -169,27 +179,7 @@ public abstract class BrowserLauncher {
                         Runnable closeCallback = runner::closeBrowser;
                         return createBiDiBrowser((BidiConnection) connection, closeCallback, runner.getProcess(), options);
                     } else {
-                        ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
-                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getProtocolTimeout());
-                        runner.setConnection(connection);
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
-                        }
-                        return createCdpBrowser(options, defaultArgs, runner, connection);
-                    }
-                } else {
-                    if (Objects.equals(options.getProtocol(), Protocol.CDP)) {
-                        runner.start();
-                        String endpoint = this.waitForWSEndpoint(options.getTimeout(), options.getDumpio(), options.getProtocol(), runner.getProcess());
-                        ConnectionTransport transport = WebSocketTransportFactory.create(endpoint);
-                        connection = new CdpConnection(endpoint, transport, options.getSlowMo(), options.getProtocolTimeout());
-                        runner.setConnection(connection);
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Connect to browser by websocket url: {}", endpoint);
-                        }
-                        return createCdpBrowser(options, defaultArgs, runner, connection);
-                    } else {
-                        throw new LaunchException("Chrome dose not support connect to browser by webdriver-bidi");
+                        throw new LaunchException("Chrome dont not support protocol: " + options.getProtocol() + " yet");
                     }
                 }
             }
@@ -198,6 +188,7 @@ public abstract class BrowserLauncher {
             throw new LaunchException("Failed to launch the browser process: " + e.getMessage(), e);
         }
     }
+
     /**
      * waiting for browser ws url
      *
