@@ -196,12 +196,32 @@
 ### Version Release 3.1.0(2024/12/19)
 
 - [fix:Page.waitForRequest 和 Page.waitForResponse 的等待逻辑修改](https://github.com/fanyong920/jvppeteer/commit/c75830dd711c8dc826672988103d575be6fb1fac)
+
 - [fix:ElementHandle 的 waitForSelector中 selector 升级为 updatedSelector](https://github.com/fanyong920/jvppeteer/commit/43e2e7a87eaac5765d5bc290567e05c1e28ae677)
+
 - [test:增加 DeviceRequestPrompt 测试](https://github.com/fanyong920/jvppeteer/commit/fd967063cc9ab75a05c9038ad3148a359de4d0c9)
+
 - [test:增加Frame api的测试](https://github.com/fanyong920/jvppeteer/commit/7997f8dbfa612f2fb89cd7e5272721c17b024a96)
+
 - [fix: Binding.run](https://github.com/fanyong920/jvppeteer/commit/f4dd1b5d68a805d73fc81376368e46b39c2ae012)
+
 - [fix: Page.waitForSelector 查询 aria selector 的逻辑](https://github.com/fanyong920/jvppeteer/commit/4ace9f0bcca3fdd7a5213ae3fe8081067954afb8)
+
 - [fix: Accessibility.snapshot 参数传入 root](https://github.com/fanyong920/jvppeteer/commit/ed315c3e0bb6272c9bb6e2e9b478c2b17ba51ae6)
+
 - [Accessibility.snapshot 方法支持包括 iframe 在内](https://github.com/fanyong920/jvppeteer/commit/2c992d6df9d175fa9a419ade3a4a3c1e1b9cd811)
+
 - [在 ElementHandle 添加 backendNodeId 方法](https://github.com/fanyong920/jvppeteer/commit/29d6d6c3cca8f5901a26160600a097f49f74afcc)
+
 - [支持 reducedContrast 在 Page.emulateVisionDeficiency](https://github.com/fanyong920/jvppeteer/commit/0e9d7dcb0d681757006153dcf3398f37dee30d48)
+
+- ### Version Release 3.1.1(2024/12/20)
+
+  - [fix: firefox 默认协议是 Webdriver-bidi,chrome 默认协议是 CDP](https://github.com/fanyong920/jvppeteer/commit/444589d411d5169a295396c8f5a650802b0fa52b)
+  - [fix: WaitTask 支持传 0 代表无限等待](https://github.com/fanyong920/jvppeteer/commit/00e023781dd729497b6fd4a19767012a89bf616d)
+  - [fix: TimeoutSettings 构造方法初始化属性为 null](https://github.com/fanyong920/jvppeteer/commit/e13d15a826118ddb3b1ddf7fc1d0c0a03e555b0d)
+  - [fix:TaskManager 中 task 属性改用 CopyOnWriteArraySet](https://github.com/fanyong920/jvppeteer/commit/025eed67768dee5ff328a9697f804bd28c6b69a3)
+  - [TimeoutSettings 类的超时逻辑该写，支持 0 代表无限等待](https://github.com/fanyong920/jvppeteer/commit/0d36fa56d92eba7a7008f71eb4a537f4a29b61a1)
+  - [Connection 等待时间改为 ProtocolTimeout](https://github.com/fanyong920/jvppeteer/commit/c6396b1f8af8994efc9131350c5d4e8292f626ec)
+  - [简化 Callback 等待响应的逻辑](https://github.com/fanyong920/jvppeteer/commit/58018699e9c57cab25c69914093b13765fbbece6)
+
