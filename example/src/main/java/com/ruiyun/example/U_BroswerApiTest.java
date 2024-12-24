@@ -10,18 +10,29 @@ import com.ruiyun.jvppeteer.api.events.BrowserEvents;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
-import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
+import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadState;
 import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.events.DownloadProgressEvent;
 import com.ruiyun.jvppeteer.cdp.events.DownloadWillBeginEvent;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.exception.LaunchException;
+import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.transport.WebSocketTransport;
+import com.ruiyun.jvppeteer.util.Helper;
+import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.drafts.Draft_6455;
 import org.junit.Test;
 
 public class U_BroswerApiTest extends A_LaunchTest {
@@ -63,7 +74,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
         DebugInfo debugInfo = browser.debugInfo();
         System.out.println(debugInfo);
         String wsEndpoint = browser.wsEndpoint();
-        System.out.println("wsEndpoint: "+wsEndpoint);
+        System.out.println("wsEndpoint: " + wsEndpoint);
         boolean connected = browser.connected();
         System.out.println("connected1: " + connected);
         browser.disconnect();
@@ -73,7 +84,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
         ConnectOptions connectOptions = new ConnectOptions();
         connectOptions.setBrowserWSEndpoint(wsEndpoint);
         //用chrome浏览器测试就改成Protocol.CDP
-        connectOptions.setProtocolType(Protocol.CDP);
+        connectOptions.setProtocol(Protocol.CDP);
         Browser wsBrowser = Puppeteer.connect(connectOptions);
         int size = wsBrowser.pages().size();
         System.out.println("size1: " + size);
@@ -89,21 +100,21 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test5() throws Exception {
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
-            BrowserContext cdpBrowserContext = cdpBrowser.createBrowserContext();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            BrowserContext cdpBrowserContext = browser.createBrowserContext();
             AtomicBoolean complete = new AtomicBoolean(false);
-            cdpBrowser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
+            browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
                 System.out.println("downloadProgressEvent: " + downloadProgressEvent);
                 if (downloadProgressEvent.getState().equals(DownloadState.Completed)) {
                     complete.set(true);
                 }
             });
-            cdpBrowser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
+            browser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
                 System.out.println("downloadWillBeginEvent: " + downloadWillBeginEvent);
             });
             Page page = cdpBrowserContext.newPage();
             //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
-            cdpBrowser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
+            browser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
             page.goTo("https://mirrors.huaweicloud.com/openjdk/22.0.2/");
             //点击，进行下载
             page.click("body > pre:nth-child(4) > a:nth-child(6)");
@@ -116,7 +127,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
             //下载第二次
             //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
 
-            cdpBrowser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\2", true));
+            browser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\2", true));
             //点击，进行下载
             page.click("body > pre:nth-child(4) > a:nth-child(5)");
             complete.set(false);
@@ -136,22 +147,22 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test6() throws Exception {
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
-            BrowserContext browserContext = cdpBrowser.createBrowserContext();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            BrowserContext browserContext = browser.createBrowserContext();
             Map<String, AtomicBoolean> atomicBooleanMap = new ConcurrentHashMap<>();
-            cdpBrowser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
+            browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
                 System.out.println("downloadProgressEvent: " + downloadProgressEvent);
                 if (downloadProgressEvent.getState().equals(DownloadState.Completed)) {
                     atomicBooleanMap.get(downloadProgressEvent.getGuid()).set(true);
                 }
             });
-            cdpBrowser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
+            browser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
                 System.out.println("downloadWillBeginEvent: " + downloadWillBeginEvent);
                 atomicBooleanMap.put(downloadWillBeginEvent.getGuid(), new AtomicBoolean(false));
             });
             Page page = browserContext.newPage();
             //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
-            cdpBrowser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, browserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
+            browser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, browserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
             page.goTo("https://mirrors.huaweicloud.com/openjdk/22.0.2/");
             //点击，进行下载
             page.click("body > pre:nth-child(4) > a:nth-child(6)");
@@ -181,21 +192,21 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test8() throws Exception {
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
-            BrowserContext browserContext = cdpBrowser.createBrowserContext();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            BrowserContext browserContext = browser.createBrowserContext();
             AtomicBoolean complete = new AtomicBoolean(false);
-            cdpBrowser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
+            browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
                 System.out.println("下载进度: " + downloadProgressEvent);
                 if (downloadProgressEvent.getState().equals(DownloadState.Completed)) {
                     complete.set(true);
                 }
             });
-            cdpBrowser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
+            browser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
                 System.out.println("将要开始下载: " + downloadWillBeginEvent);
             });
             Page page = browserContext.newPage();
             //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
-            cdpBrowser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, browserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
+            browser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, browserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
             page.goTo("https://archive.mozilla.org/pub/firefox/releases/91.6.0esr/jsshell/");
             //点击，进行下载
             ElementHandle elementHandle = page.$("body > table > tbody > tr:nth-child(7) > td:nth-child(2) > a");
@@ -219,22 +230,22 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test7() throws Exception {
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
-            BrowserContext cdpBrowserContext = cdpBrowser.createBrowserContext();
+        try (Browser browser = Puppeteer.launch(launchOptions)) {
+            BrowserContext cdpBrowserContext = browser.createBrowserContext();
             Map<String, AtomicBoolean> atomicBooleanMap = new ConcurrentHashMap<>();
-            cdpBrowser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
+            browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
                 System.out.println("downloadProgressEvent: " + downloadProgressEvent);
                 if (downloadProgressEvent.getState().equals(DownloadState.Completed)) {
                     atomicBooleanMap.get(downloadProgressEvent.getGuid()).set(true);
                 }
             });
-            cdpBrowser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
+            browser.on(BrowserEvents.DownloadWillBegin, (Consumer<DownloadWillBeginEvent>) downloadWillBeginEvent -> {
                 System.out.println("downloadWillBeginEvent: " + downloadWillBeginEvent);
                 atomicBooleanMap.put(downloadWillBeginEvent.getGuid(), new AtomicBoolean(false));
             });
             Page page = cdpBrowserContext.newPage();
             //配置下载行为，下载的BrowserContextId（不配置就是使用默认的浏览器上下文），下载路径，下载事件是否接受
-            cdpBrowser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
+            browser.setDownloadBehavior(new DownloadOptions(DownloadPolicy.Allow, cdpBrowserContext.id(), "C:\\Users\\fanyong\\Desktop\\typescriptPri\\127.0.6533.99", true));
             page.goTo("https://mirrors.huaweicloud.com/openjdk/22.0.2/");
             //点击，进行下载
             page.click("body > pre:nth-child(4) > a:nth-child(6)");
@@ -244,8 +255,63 @@ public class U_BroswerApiTest extends A_LaunchTest {
             Thread.sleep(3000);
             //取消下载
             for (Map.Entry<String, AtomicBoolean> entry : atomicBooleanMap.entrySet()) {
-                cdpBrowser.cancelDownload(entry.getKey(), cdpBrowserContext.id());
+                browser.cancelDownload(entry.getKey(), cdpBrowserContext.id());
             }
+        }
+    }
+
+    /**
+     * connect 重连浏览器
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test9() throws Exception {
+        Browser browser = Puppeteer.launch(launchOptions);
+        String endpoint = browser.wsEndpoint();
+        Process process = browser.process();
+        long pid = Helper.getPidForLinuxOrMac(process);
+        browser.disconnect();
+        ConnectOptions connectOptions = new ConnectOptions();
+        connectOptions.setProtocol(Protocol.CDP);
+        ConnectionTransport connectionTransport = createConnectionTransport(endpoint);
+        connectOptions.setTransport(connectionTransport);
+        Browser connectBrowser = Puppeteer.connect(connectOptions);
+        Page page = connectBrowser.newPage();
+        page.goTo("http://example.com");
+        connectBrowser.close();
+        // kill browser by pid linux通常有需要kill by pid
+    }
+
+    private ConnectionTransport createConnectionTransport(String endpoint) throws InterruptedException {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Puppeteer "  + Constant.JVPPETEER_VERSION);
+        // 默认是60s的心跳机制
+        MyWebSocketTransport client = new MyWebSocketTransport(URI.create(endpoint), new Draft_6455(), headers, Constant.DEFAULT_TIMEOUT);
+        //30s 连接的超时时间
+        boolean connected = client.connectBlocking(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
+        if (!connected) {
+            throw new LaunchException("Websocket connection was not successful, please check if the URL(" + endpoint + ") is effective.");
+        }
+        return client;
+    }
+
+    class MyWebSocketTransport extends WebSocketTransport {
+
+        public MyWebSocketTransport(URI serverUri, Draft protocolDraft, Map<String, String> httpHeaders, int timeout) {
+            super(serverUri, protocolDraft, httpHeaders, timeout);
+        }
+
+        @Override
+        public void onMessage(String message) {
+            super.onMessage(message);
+            System.out.println("onMessage: " + message);
+        }
+
+        @Override
+        public void send(String text) {
+            super.send(text);
+            System.out.println("send: " + text);
         }
     }
 
