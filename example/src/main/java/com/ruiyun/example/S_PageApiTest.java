@@ -14,6 +14,7 @@ import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
 import com.ruiyun.jvppeteer.cdp.entities.CoverageEntry;
 import com.ruiyun.jvppeteer.cdp.entities.Credentials;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddScriptTagOptions;
@@ -120,6 +121,31 @@ public class S_PageApiTest extends A_LaunchTest {
         page.bringToFront();
         page.close();
         System.out.println("isClose: " + page.isClosed());
+        browser.close();
+    }
+
+    /**
+     * cookies测试
+     */
+    @Test
+    public void test3X() throws Exception {
+        Browser browser = Puppeteer.launch(launchOptions);
+        //打开一个页面
+        Page page = browser.newPage();
+
+        page.goTo("https://example.com");
+        CookieParam cookieParam = new CookieParam();
+        cookieParam.setName("accessToken");
+        cookieParam.setValue("kkkkkk");
+        cookieParam.setDomain(".example.com");
+        cookieParam.setPath("/");
+        cookieParam.setExpires(System.currentTimeMillis() / 1000 + 100);
+        page.setCookie(cookieParam);
+        List<Cookie> cookies = page.cookies();
+        for (Cookie cookie : cookies) {
+            System.out.println("cookie: " + cookie);
+        }
+        Thread.sleep(5000);
         browser.close();
     }
 
@@ -457,15 +483,15 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test9() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
-          new Thread(() -> {
-              try {
-                  Thread.sleep(2000);
-                  page.goTo("https://www.baidu.com");
-              } catch (InterruptedException | ExecutionException e) {
-                  throw new RuntimeException(e);
-              }
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000);
+                page.goTo("https://www.baidu.com");
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
 
-          }).start();
+        }).start();
 
         Request request = page.waitForRequest("https://www.baidu.com/img/flexible/logo/pc/result.png");
         System.out.println("url: " + request.url() + ", type: " + request.resourceType());
