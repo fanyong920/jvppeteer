@@ -32,7 +32,7 @@ public class WebSocketTransportFactory implements Constant {
      */
     public static ConnectionTransport create(String url, Map<String, String> httpHeaders, int timeout) throws Exception {
         Map<String, String> headers = new HashMap<>();
-        headers.put("User-Agent", "Puppeteer 2.2.3");
+        headers.put("User-Agent", "Puppeteer " + Constant.JVPPETEER_VERSION);
         if (Objects.nonNull(httpHeaders)) {
             headers.putAll(httpHeaders);
         }
