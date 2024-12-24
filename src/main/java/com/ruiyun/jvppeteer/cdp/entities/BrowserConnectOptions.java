@@ -36,11 +36,13 @@ public class BrowserConnectOptions extends BrowserLaunchArgumentOptions {
      */
     private int protocolTimeout = Constant.DEFAULT_TIMEOUT;
     /**
-     * 连接协议
-     * firefox -- webdriver bidi
-     * chrome -- cdp
+     * 使用的通讯协议，CHROME 默认是 CDP，也仅支持 CDP
+     * <p>
+     * firefox 默认使用 WebDriverBiDi，也仅支持 WebDriverBiDi
+     * <p>
+     * 目前该字段作为保留字段，方便以后支持更多协议
      */
-    private Protocol protocolType;
+    private Protocol protocol;
 
     public BrowserConnectOptions() {
         super();
@@ -94,12 +96,12 @@ public class BrowserConnectOptions extends BrowserLaunchArgumentOptions {
         this.protocolTimeout = protocolTimeout;
     }
 
-    public Protocol getProtocolType() {
-        return protocolType;
+    public Protocol getProtocol() {
+        return protocol;
     }
 
-    public void setProtocolType(Protocol protocolType) {
-        this.protocolType = protocolType;
+    public void setProtocol(Protocol protocol) {
+        this.protocol = protocol;
     }
 
     @Override
@@ -111,7 +113,7 @@ public class BrowserConnectOptions extends BrowserLaunchArgumentOptions {
                 ", targetFilter=" + targetFilter +
                 ", isPageTarget=" + isPageTarget +
                 ", protocolTimeout=" + protocolTimeout +
-                ", protocolType=" + protocolType +
+                ", protocolType=" + protocol +
                 '}';
     }
 }

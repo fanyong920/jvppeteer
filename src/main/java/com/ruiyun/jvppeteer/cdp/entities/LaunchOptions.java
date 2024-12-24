@@ -26,7 +26,6 @@ public class LaunchOptions extends BrowserConnectOptions {
         this.preferredRevision = builder.preferredRevision;
         this.cacheDir = builder.cacheDir;
         this.extraPrefsFirefox = builder.extraPrefsFirefox;
-        this.protocol = builder.protocol;
         this.setAcceptInsecureCerts(builder.acceptInsecureCerts);
         this.setDefaultViewport(builder.defaultViewport);
         this.setSlowMo(builder.slowMo);
@@ -39,6 +38,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         this.setDevtools(builder.devtools);
         this.setDebuggingPort(builder.debuggingPort);
         this.setTimeout(builder.timeout);
+        this.setProtocol(builder.protocol);
     }
 
     /**
@@ -108,14 +108,6 @@ public class LaunchOptions extends BrowserConnectOptions {
      * {@link <a href="https://searchfox.org/mozilla-release/source/modules/libpref/init/all.js">| Additional preferences</a>} that can be passed when launching with Firefox.
      */
     private Map<String, Object> extraPrefsFirefox;
-    /**
-     * 使用的通讯协议，CHROME 默认是 CDP，也仅支持 CDP
-     * <p>
-     * firefox 默认使用 WebDriverBiDi，也仅支持 WebDriverBiDi
-     * <p>
-     * 目前该字段作为保留字段，方便以后支持更多协议
-     */
-    private Protocol protocol;
 
 
     public static Builder builder() {
@@ -363,13 +355,5 @@ public class LaunchOptions extends BrowserConnectOptions {
 
     public void setExtraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
         this.extraPrefsFirefox = extraPrefsFirefox;
-    }
-
-    public Protocol getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(Protocol protocol) {
-        this.protocol = protocol;
     }
 }

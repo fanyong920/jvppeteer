@@ -304,7 +304,7 @@ public abstract class BrowserLauncher {
         } else {
             throw new IllegalArgumentException("Exactly one of browserWSEndpoint, browserURL or transport must be passed to puppeteer.connect");
         }
-        if (Objects.equals(options.getProtocolType(), Protocol.WebDriverBiDi)) {
+        if (Objects.equals(options.getProtocol(), Protocol.WebDriverBiDi)) {
             return connectToBiDiBrowse(connectionTransport, endpointUrl, options);
         } else {
             return connectToCdpBrowser(connectionTransport, endpointUrl, options);
