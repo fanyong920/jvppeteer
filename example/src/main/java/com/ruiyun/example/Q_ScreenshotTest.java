@@ -1,11 +1,16 @@
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.ElementScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
+import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.ImageType;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import java.util.Collections;
 import org.junit.Test;
 
 public class Q_ScreenshotTest extends A_LaunchTest {
@@ -84,5 +89,53 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         page.screenshot(screenshotOptions);
         page.$("#su").screenshot("baidu4.png");
         cdpBrowser.close();
+    }
+
+
+    //测试 captureBeyondViewport
+    @Test
+    public void test7() throws Exception {
+
+        Browser browser = Puppeteer.launch(launchOptions);
+        //打开一个页面
+        Page page = browser.newPage();
+        page.setContent("<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "    <body>\n" +
+                "        <div\n" +
+                "            class=\"beyond-viewport-element\"\n" +
+                "            style=\"height: 110vh; background-color: blue; border: 10px solid red\"></div>\n" +
+                "        <div\n" +
+                "            class=\"next-element\"\n" +
+                "            style=\"height: 100px; background-color: green; border: 10px solid yellow\"></div>\n" +
+                "    </body>\n" +
+                "</html>");
+        ElementScreenshotOptions screenshotOptions = new ElementScreenshotOptions();
+        screenshotOptions.setPath("false.png");
+        screenshotOptions.setCaptureBeyondViewport(false);
+        ElementHandle $ = page.$(".beyond-viewport-element");
+        $.screenshot(screenshotOptions);
+        screenshotOptions.setPath("true.png");
+        screenshotOptions.setCaptureBeyondViewport(true);
+        $.screenshot(screenshotOptions);
+        browser.close();
+    }
+
+    //测试 长截图
+    @Test
+    public void test8() throws Exception {
+
+        Browser browser = Puppeteer.launch(launchOptions);
+        //打开一个页面
+        Page page = browser.newPage();
+        GoToOptions options = new GoToOptions();
+        options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
+        page.goTo("https://www.baidu.com/s?wd=jvppeteer&rsv_spt=1&rsv_iqid=0x864033a90040d9e7&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=68018901_16_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=9&rsv_sug1=7&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=1778&rsv_sug4=1778",options);
+        ElementScreenshotOptions screenshotOptions = new ElementScreenshotOptions();
+        screenshotOptions.setFromSurface(true);
+        screenshotOptions.setPath("long.png");
+        screenshotOptions.setFullPage(true);
+        page.screenshot(screenshotOptions);
+        browser.close();
     }
 }
