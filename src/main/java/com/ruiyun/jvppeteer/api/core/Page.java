@@ -1530,7 +1530,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @return JSHandle 返回函数执行结果的JSHandle对象
      */
     public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
-        return this.waitForFunction(pptrFunction, options, Helper.isFunction(pptrFunction) ? EvaluateType.FUNCTION : EvaluateType.STRING, args == null ? null : Arrays.asList(args));
+        return this.waitForFunction(pptrFunction, options, Helper.isFunction(pptrFunction) ? EvaluateType.FUNCTION : EvaluateType.STRING, args);
     }
 
     /**
