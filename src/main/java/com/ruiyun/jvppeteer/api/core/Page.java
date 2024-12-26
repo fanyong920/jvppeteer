@@ -1520,7 +1520,16 @@ public abstract class Page extends EventEmitter<PageEvents> {
         return this.waitForFunction(pptrFunction, new WaitForSelectorOptions());
     }
 
-
+    /**
+     * 等待提供的函数 pptrFunction 在页面上下文中计算时返回真值。
+     *
+     * @param pptrFunction 将在浏览器上下文中评估函数，直到返回真值。
+     * @param args         传递给函数的参数，可以是任意类型
+     * @return JSHandle 返回函数执行结果的JSHandle对象
+     */
+    public JSHandle waitForFunction(String pptrFunction, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
+        return this.waitForFunction(pptrFunction, new WaitForSelectorOptions(), args);
+    }
     /**
      * 等待提供的函数 pptrFunction 在页面上下文中计算时返回真值。
      *
