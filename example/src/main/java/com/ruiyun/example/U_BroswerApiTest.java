@@ -270,12 +270,16 @@ public class U_BroswerApiTest extends A_LaunchTest {
         Browser browser = Puppeteer.launch(launchOptions);
         String endpoint = browser.wsEndpoint();
         Process process = browser.process();
+        // 获取进程的pid
         long pid = Helper.getPidForLinuxOrMac(process);
         browser.disconnect();
         ConnectOptions connectOptions = new ConnectOptions();
+        //重连必须指定一个协议
         connectOptions.setProtocol(Protocol.CDP);
+        //构建自己的 Transport
         ConnectionTransport connectionTransport = createConnectionTransport(endpoint);
         connectOptions.setTransport(connectionTransport);
+        //重连
         Browser connectBrowser = Puppeteer.connect(connectOptions);
         Page page = connectBrowser.newPage();
         page.goTo("http://example.com");
