@@ -835,10 +835,12 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test21() throws Exception {
+        launchOptions.setDevtools(true);
         Browser browser = Puppeteer.launch(launchOptions);
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         String username = "GoogleChromeLabs";
+        //可能浏览器后台打印403错误，导致超时
         page.waitForFunction("async username => {\n" +
                 "  const githubResponse = await fetch(\n" +
                 "    `https://api.github.com/users/${username}`\n" +
