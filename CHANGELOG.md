@@ -225,3 +225,8 @@
   - [Connection 等待时间改为 ProtocolTimeout](https://github.com/fanyong920/jvppeteer/commit/c6396b1f8af8994efc9131350c5d4e8292f626ec)
   - [简化 Callback 等待响应的逻辑](https://github.com/fanyong920/jvppeteer/commit/58018699e9c57cab25c69914093b13765fbbece6)
 
+### Version Release 3.1.2(2024/12/26)
+
+- [fix: Page.waitForFunction参数args传递修正](https://github.com/fanyong920/jvppeteer/commit/8aab6efda94839fa035a739e9035f311d9fac10b)
+- [fix: 将 BrowserConnectOptions 的 protocolType 属性改为 protocol ,同时移除 LaunchOptions 的 protocol 属性](https://github.com/fanyong920/jvppeteer/commit/2f3dd31d23c0dde79b5961b20edfc1351a92b638)
+- [fix: WebSocketTransportFactory 的 User-Agent 中的版本号 由 Constant.JVPPETEER_VERSION 代替](https://github.com/fanyong920/jvppeteer/commit/c44a177c0af201abfadb6d61af80f1ba7b9b9991)
