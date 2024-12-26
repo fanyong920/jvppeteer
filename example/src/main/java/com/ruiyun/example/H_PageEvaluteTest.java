@@ -47,7 +47,7 @@ public class H_PageEvaluteTest extends A_LaunchTest {
                     "  console.log(arg3 == -0.0)\n" +
                     "  console.log(arg4 == Infinity)\n" +
                     "  console.log(arg5 == -Infinity)\n" +
-                    "}", PrimitiveValue.Null, PrimitiveValue.Undefined,Constant.Navigate_Zero,Constant.Infinity,Constant.Navigate_Infinity);
+                    "}", null, null,Constant.Navigate_Zero,Constant.Infinity,Constant.Navigate_Infinity);
             //等待5s看看效果
             Thread.sleep(5000);
         }
