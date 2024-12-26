@@ -173,7 +173,7 @@ compile "io.github.fanyong920:jvppeteer:3.1.2"
 
 
 
-#### **更多的例子请看项目内的example文件夹** 点击[这里](https://github.com/fanyong920/jvppeteer/tree/master/example/src/main/java/com/ruiyun/example)，是入门级别的例子，对如何使用 Jvppeteer 有很大帮助。或者看看本项目的WIKI](https://github.com/fanyong920/jvppeteer/wiki)。
+#### **更多的例子请看项目内的example文件夹** 点击[这里](https://github.com/fanyong920/jvppeteer/tree/master/example/src/main/java/com/ruiyun/example)，是入门级别的例子，对如何使用 Jvppeteer 有很大帮助。或者看看[本项目的WIKI](https://github.com/fanyong920/jvppeteer/wiki)。
 
 ### 三、遇到问题怎么办
 
