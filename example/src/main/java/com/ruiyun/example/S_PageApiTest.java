@@ -129,7 +129,9 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test3X() throws Exception {
+        launchOptions.setDebuggingPort(9222);
         Browser browser = Puppeteer.launch(launchOptions);
+        System.out.println("browser: " + browser.version());
         //打开一个页面
         Page page = browser.newPage();
 
@@ -145,7 +147,7 @@ public class S_PageApiTest extends A_LaunchTest {
         for (Cookie cookie : cookies) {
             System.out.println("cookie: " + cookie);
         }
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         browser.close();
     }
 
@@ -524,6 +526,23 @@ public class S_PageApiTest extends A_LaunchTest {
         ElementHandle elementHandle = page.waitForSelector("#signature", options);
         elementHandle.dispose();
         System.out.println(elementHandle.id());
+        browser.close();
+    }
+
+    /**
+     * waitForSelector xpath
+     */
+    @Test
+    public void test29() throws Exception {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.baidu.com");
+        //selector 可能改变，及时更换
+        ElementHandle elementHandle = page.waitForSelector("xpath=//*[@id=\"su\"]");
+        elementHandle.click();
+        elementHandle.dispose();
+        System.out.println(elementHandle.id());
+        Thread.sleep(2000);
         browser.close();
     }
 
