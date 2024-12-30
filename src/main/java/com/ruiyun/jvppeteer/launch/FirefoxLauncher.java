@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.cdp.core.BrowserFetcher;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.common.Constant;
@@ -40,7 +41,7 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
-        if (!Paths.get(this.executablePath).getFileName().toString().toLowerCase().contains(options.getProduct().getProduct())) {
+        if (!Paths.get(this.executablePath).getFileName().toString().toLowerCase().contains(BrowserFetcher.fileName(options.getProduct()))) {
             throw new LaunchException("The ExecutablePath does not match the product, The executablePath is " + this.executablePath + ",but the product is " + options.getProduct());
         }
         //临时的 UserDataDir

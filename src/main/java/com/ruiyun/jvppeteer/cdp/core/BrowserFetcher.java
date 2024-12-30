@@ -698,6 +698,68 @@ public class BrowserFetcher {
     }
 
     /**
+     * 获取浏览器的文件名
+     * @param product 产品
+     * @return 文件名
+     */
+    public static String fileName(Product product){
+        String platform = detectBrowserPlatform();
+        if (Product.Chrome.equals(product)) {
+            if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
+                return  "Google Chrome for Testing";
+            } else if (LINUX.equals(platform)) {
+               return  "chrome";
+            } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
+                return  "chrome.exe";
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
+            }
+        } else if (Product.Chromium.equals(product)) {
+            if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
+                return  "Chromium";
+            } else if (LINUX.equals(platform)) {
+               return  "chrome";
+            } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
+               return  "chrome.exe";
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
+            }
+        } else if (Product.Chromedriver.equals(product)) {
+            if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
+               return  "chromedriver";
+            } else if (LINUX.equals(platform)) {
+               return  "chromedriver";
+            } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
+              return  "chromedriver.exe";
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
+            }
+        } else if (Product.Chrome_headless_shell.equals(product)) {
+            if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
+               return  "chrome-headless-shell";
+            } else if (LINUX.equals(platform)) {
+                return  "chrome-headless-shell";
+            } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
+               return  "chrome-headless-shell.exe";
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
+            }
+        } else if (Product.Firefox.equals(product)) {
+            if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
+                return  "firefox";
+            } else if (LINUX.equals(platform)) {
+               return  "firefox";
+            } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
+                return  "firefox.exe";
+            } else {
+                throw new IllegalArgumentException("Unsupported platform: " + platform);
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported product: " + product);
+        }
+    }
+
+    /**
      * 检测给定的路径是否存在
      *
      * @param filePath 文件路径
