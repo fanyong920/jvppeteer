@@ -5,7 +5,7 @@
     <groupId>io.github.fanyong920</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>jar</packaging>
-    <version>3.1.2</version>
+    <version>3.1.3</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <url>https://github.com/fanyong920/jvppeteer</url>
