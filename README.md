@@ -31,7 +31,7 @@ Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>3.1.2<version>
+  <version>3.1.2</version>
 </dependency>
 ```
 
