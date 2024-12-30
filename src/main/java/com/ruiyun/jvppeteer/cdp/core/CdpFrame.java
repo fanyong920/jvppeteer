@@ -43,7 +43,7 @@ import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 import static com.ruiyun.jvppeteer.common.Constant.PUPPETEER_WORLD;
 
 public class CdpFrame extends Frame {
-    private String url;
+    private volatile String url;
     private boolean detached;
     private CDPSession client;
     private final FrameManager frameManager;

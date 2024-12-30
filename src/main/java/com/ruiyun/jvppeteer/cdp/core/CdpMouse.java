@@ -28,7 +28,7 @@ import static com.ruiyun.jvppeteer.util.Helper.justWait;
 
 public class CdpMouse extends Mouse {
 
-    private CDPSession client;
+    private volatile CDPSession client;
     private final CdpKeyboard keyboard;
     private MouseState state = new MouseState();
     private final List<MouseState> transactions = new ArrayList<>();
@@ -272,7 +272,7 @@ public class CdpMouse extends Mouse {
     }
 
 
-    public void updateClient(CdpCDPSession newSession) {
+    public void updateClient(CDPSession newSession) {
         this.client = newSession;
     }
 

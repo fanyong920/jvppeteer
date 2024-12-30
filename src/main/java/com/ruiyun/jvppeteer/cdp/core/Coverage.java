@@ -31,7 +31,7 @@ public class Coverage {
         this.jsCoverage = new JSCoverage(client);
     }
 
-    public void updateClient(CdpCDPSession client) {
+    public void updateClient(CDPSession client) {
         this.cssCoverage.updateClient(client);
         this.jsCoverage.updateClient(client);
     }

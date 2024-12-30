@@ -37,11 +37,11 @@ import static com.ruiyun.jvppeteer.common.Constant.DEFAULT_BATCH_SIZE;
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
 
 public abstract class Frame extends EventEmitter<FrameEvents> {
-    protected String id;
-    protected String parentId;
+    protected volatile String id;
+    protected volatile String parentId;
     protected Accessibility accessibility;
     protected volatile boolean hasStartedLoading;
-    protected String name;
+    protected volatile String name;
     protected ElementHandle document;
 
     public Frame() {
@@ -125,7 +125,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
                 "      return document.querySelectorAll('iframe,frame');\n" +
                 "    }", null);
         ElementHandle result = null;
-        List<JSHandle> lists = this.transposeIterableHandle(list);
+        List<JSHandle> lists = transposeIterableHandle(list);
         try {
             Iterator<JSHandle> iterator = lists.iterator();
             while (iterator.hasNext()) {

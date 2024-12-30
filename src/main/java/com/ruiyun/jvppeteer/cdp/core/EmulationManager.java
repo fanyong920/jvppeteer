@@ -40,8 +40,8 @@ import java.util.regex.Pattern;
 public class EmulationManager implements ClientProvider  {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmulationManager.class);
     final List<EmulatedState<?>> states = new ArrayList<>();
-    final Set<CdpCDPSession> secondaryClients = new HashSet<>();
-    private CDPSession client;
+    final Set<CDPSession> secondaryClients = new HashSet<>();
+    private volatile CDPSession client;
     private boolean emulatingMobile = false;
     private boolean hasTouch = false;
     private final EmulatedState<ViewportState> viewportState = new EmulatedState<>(new ViewportState(false, null), this, applyViewport);
@@ -59,7 +59,7 @@ public class EmulationManager implements ClientProvider  {
         this.client = client;
     }
 
-    public void updateClient(CdpCDPSession client) {
+    public void updateClient(CDPSession client) {
         this.client = client;
         this.secondaryClients.remove(client);
     }

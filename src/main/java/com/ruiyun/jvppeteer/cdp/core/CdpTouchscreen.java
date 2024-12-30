@@ -7,7 +7,7 @@ import com.ruiyun.jvppeteer.api.core.Touchscreen;
 import com.ruiyun.jvppeteer.cdp.entities.TouchPoint;
 
 public class CdpTouchscreen extends Touchscreen {
-    private CDPSession client;
+    private volatile CDPSession client;
     private final CdpKeyboard keyboard;
 
     public CdpTouchscreen(CDPSession client, CdpKeyboard keyboard) {

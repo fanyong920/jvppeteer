@@ -104,7 +104,7 @@ public class CdpPage extends Page {
 
     private volatile boolean closed = false;
     private final TargetManager targetManager;
-    private CDPSession primaryTargetClient;
+    private volatile CDPSession primaryTargetClient;
     private CdpTarget primaryTarget;
     private final CDPSession tabTargetClient;
     private final CdpTarget tabTarget;
@@ -200,7 +200,7 @@ public class CdpPage extends Page {
         }
     }
 
-    private void onActivation(CdpCDPSession newSession) {
+    private void onActivation(CDPSession newSession) {
         this.primaryTargetClient = newSession;
         this.primaryTarget = ((CdpCDPSession) this.primaryTargetClient).getTarget();
         Objects.requireNonNull(this.primaryTarget, "Missing target on swap");

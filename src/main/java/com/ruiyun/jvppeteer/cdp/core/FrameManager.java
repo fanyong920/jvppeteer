@@ -60,7 +60,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
     private final NetworkManager networkManager;
     private final TimeoutSettings timeoutSettings;
     private final Set<String> isolatedWorlds = new HashSet<>();
-    private CDPSession client;
+    private volatile CDPSession client;
     private final Map<String, PreloadScript> scriptsToEvaluateOnNewDocument = new HashMap<>();
     private final Set<Binding> bindings = new HashSet<>();
     private final FrameTree<CdpFrame> frameTree = new FrameTree<>();

@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 public class CSSCoverage {
 
-    private CDPSession client;
+    private volatile CDPSession client;
     private boolean enabled;
     private final HashMap<String, String> stylesheetURLs = new HashMap<>();
     private final HashMap<String, String> stylesheetSources = new HashMap<>();
@@ -33,7 +33,7 @@ public class CSSCoverage {
         this.client = client;
     }
 
-    public void updateClient(CdpCDPSession client) {
+    public void updateClient(CDPSession client) {
         this.client = client;
     }
 

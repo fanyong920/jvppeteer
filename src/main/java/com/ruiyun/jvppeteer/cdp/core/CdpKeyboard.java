@@ -20,7 +20,7 @@ import static com.ruiyun.jvppeteer.util.Helper.justWait;
 
 public class CdpKeyboard extends Keyboard {
 
-    private CDPSession client;
+    private volatile CDPSession client;
 
     private int modifiers;
 
@@ -213,7 +213,7 @@ public class CdpKeyboard extends Keyboard {
         return modifiers;
     }
 
-    void updateClient(CdpCDPSession client) {
+    void updateClient(CDPSession client) {
         this.client = client;
     }
 }

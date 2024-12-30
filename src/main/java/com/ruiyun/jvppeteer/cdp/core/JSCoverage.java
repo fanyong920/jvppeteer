@@ -30,7 +30,7 @@ import static com.ruiyun.jvppeteer.util.Helper.isPuppeteerURL;
 
 public class JSCoverage {
     private static final Logger LOGGER = LoggerFactory.getLogger(JSCoverage.class);
-    private CDPSession client;
+    private volatile CDPSession client;
     private volatile boolean enabled;
     private final Map<String, String> scriptSources = new HashMap<>();
     private final Map<String, String> scriptURLs = new HashMap<>();
@@ -131,7 +131,7 @@ public class JSCoverage {
         return coverage;
     }
 
-    public void updateClient(CdpCDPSession client) {
+    public void updateClient(CDPSession client) {
         this.client = client;
     }
 }
