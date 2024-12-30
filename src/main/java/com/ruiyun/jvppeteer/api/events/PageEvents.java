@@ -55,7 +55,7 @@ public enum PageEvents {
     Load,
     /**
      * 当 JavaScript 代码调用 `console.timeStamp` 时触发此事件。
-     * metrics列表 见 {@link CdpPage#metrics}.
+     * metrics列表 见 {@link com.ruiyun.jvppeteer.api.core.Page#metrics}.
      * <p>
      * {@link  PageMetrics} 代表一个dialog事件的相关信息
      * <p>
@@ -85,7 +85,7 @@ public enum PageEvents {
     RequestServedFromCache,
     /**
      * 当请求失败时触发，例如超时。
-     * {@link CdpRequest}.代表一个requestfailed事件的相关信息
+     * {@link com.ruiyun.jvppeteer.api.core.Request}.代表一个requestfailed事件的相关信息
      * <p>
      * 包含 Request。
      * <p>
@@ -95,7 +95,7 @@ public enum PageEvents {
     /**
      * 当请求成功完成时触发。包含 Request。
      * <p>
-     * {@link CdpRequest}.代表一个requestfinished事件的相关信息
+     * {@link com.ruiyun.jvppeteer.api.core.Request}.代表一个requestfinished事件的相关信息
      */
     RequestFinished,
     /**
