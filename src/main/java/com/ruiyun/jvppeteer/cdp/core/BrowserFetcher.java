@@ -185,6 +185,10 @@ public class BrowserFetcher {
                 return parseRevision(BrowserRevision.getVersion(this.product));
             }
         } else {
+            if (StringUtil.isNotBlank(options.getVersion())) {
+                //指定了版本，直接使用指定版本
+                return options.getVersion();
+            }
             //指定了渠道，返回该渠道下的最新版本
             if (Objects.nonNull(options.getChannel())) {
                 return getLastKnownGoodReleaseForChannel(options.getChannel());
