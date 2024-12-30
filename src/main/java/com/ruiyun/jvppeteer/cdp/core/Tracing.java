@@ -28,7 +28,7 @@ public class Tracing implements Constant {
     /**
      * 当前要trace的 chrome devtools protocol session
      */
-    private CDPSession client;
+    private volatile CDPSession client;
 
     /**
      * 判断是否已经在追踪中
@@ -96,7 +96,7 @@ public class Tracing implements Constant {
         waitableResult.waiting();
     }
 
-    void updateClient(CdpCDPSession newSession) {
+    void updateClient(CDPSession newSession) {
         this.client = newSession;
     }
 }
