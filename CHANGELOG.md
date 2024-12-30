@@ -230,3 +230,10 @@
 - [fix: Page.waitForFunction参数args传递修正](https://github.com/fanyong920/jvppeteer/commit/8aab6efda94839fa035a739e9035f311d9fac10b)
 - [fix: 将 BrowserConnectOptions 的 protocolType 属性改为 protocol ,同时移除 LaunchOptions 的 protocol 属性](https://github.com/fanyong920/jvppeteer/commit/2f3dd31d23c0dde79b5961b20edfc1351a92b638)
 - [fix: WebSocketTransportFactory 的 User-Agent 中的版本号 由 Constant.JVPPETEER_VERSION 代替](https://github.com/fanyong920/jvppeteer/commit/c44a177c0af201abfadb6d61af80f1ba7b9b9991)
+
+### Version Release 3.1.3(2024/12/30)
+
+- [fix: 启动浏览器判断文件名与产品是否符合](https://github.com/fanyong920/jvppeteer/commit/b4b5d995c743fa0c6e762f5c4c2fbc6ba1a00e5c)
+- [fix: 将多线程下的变量加上 volatile](https://github.com/fanyong920/jvppeteer/commit/aca6fdfcaf99279b3d315fb636045b61f48f0688)
+- [fix: 下载浏览器版本出错](https://github.com/fanyong920/jvppeteer/commit/a015b4e4fd5348efa581b969ab6f5a207c859252)
+- [update: readme中jvppeteer版本加上斜杆](https://github.com/fanyong920/jvppeteer/commit/c5e56f48eecebd6bb289932c7e5f1c7a1c837d77)
