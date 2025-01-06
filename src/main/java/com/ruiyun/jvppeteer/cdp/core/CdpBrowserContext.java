@@ -110,22 +110,23 @@ public class CdpBrowserContext extends BrowserContext {
     @Override
     public List<Cookie> cookies() {
         Map<String, Object> params = ParamsFactory.create();
-        params.put("browserContextId", this.id);
+        if(StringUtil.isNotEmpty(this.id)){
+            params.put("browserContextId", this.id);
+        }
         JsonNode cookies = this.connection.send("Storage.getCookies", params).get("cookies");
         Iterator<JsonNode> elements = cookies.elements();
         List<Cookie> cookieList = new ArrayList<>();
         while (elements.hasNext()) {
             JsonNode cookie = elements.next();
+            Cookie convertCookie = Constant.OBJECTMAPPER.convertValue(cookie, Cookie.class);
             JsonNode partitionKey = cookie.path("partitionKey");
             if (!partitionKey.isMissingNode()) {
                 ObjectNode objectNode = Constant.OBJECTMAPPER.createObjectNode();
                 objectNode.put("sourceOrigin", partitionKey.get("topLevelSite").asText());
                 objectNode.put("hasCrossSiteAncestor", partitionKey.get("hasCrossSiteAncestor").asBoolean());
-                Cookie convertCookie = Constant.OBJECTMAPPER.convertValue(cookie, Cookie.class);
                 convertCookie.setPartitionKey(objectNode);
-                cookieList.add(convertCookie);
-
             }
+            cookieList.add(convertCookie);
         }
         return cookieList;
     }
@@ -135,13 +136,14 @@ public class CdpBrowserContext extends BrowserContext {
         if (Objects.isNull(cookies)) {
             return;
         }
-        List<Cookie> cookieList = new ArrayList<>();
         for (CookieParam cookie : cookies) {
             cookie.setPartitionKey(Helper.convertCookiesPartitionKeyFromPuppeteerToCdp(cookie.getPartitionKey()));
         }
         Map<String, Object> params = ParamsFactory.create();
-        params.put("cookies", cookieList);
-        params.put("browserContextId", this.id);
+        params.put("cookies", cookies);
+        if(StringUtil.isNotEmpty(this.id)){
+            params.put("browserContextId", this.id);
+        }
         this.connection.send("Storage.setCookies", params);
     }
 
