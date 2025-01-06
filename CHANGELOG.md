@@ -237,3 +237,7 @@
 - [fix: 将多线程下的变量加上 volatile](https://github.com/fanyong920/jvppeteer/commit/aca6fdfcaf99279b3d315fb636045b61f48f0688)
 - [fix: 下载浏览器版本出错](https://github.com/fanyong920/jvppeteer/commit/a015b4e4fd5348efa581b969ab6f5a207c859252)
 - [update: readme中jvppeteer版本加上斜杆](https://github.com/fanyong920/jvppeteer/commit/c5e56f48eecebd6bb289932c7e5f1c7a1c837d77)
+
+### Version Release 3.1.4(2025/1/6)
+
+- [fix: BrowserContext的cookies() 方法报错](https://github.com/fanyong920/jvppeteer/commit/63c268e3abdd400b1ae2826587f3624fbe56c39a)
