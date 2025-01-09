@@ -25,21 +25,18 @@ import java.util.Objects;
 
 public class CdpRequest extends Request {
 
-    private volatile String id;
+    private final String id;
+    private final String urlFragment;
     private CDPSession client;
     private volatile boolean isNavigationRequest;
-    private volatile String url;
-    private volatile ResourceType resourceType;
-    private volatile String method;
-    private volatile boolean hasPostData;
-    private volatile String postData;
+    private final String url;
+    private final ResourceType resourceType;
+    private final String method;
+    private final boolean hasPostData;
+    private final String postData;
     private volatile List<HeaderEntry> headers = new ArrayList<>();
-    private Frame frame;
-    private volatile Initiator initiator;
-
-    public CdpRequest() {
-        super();
-    }
+    private final Frame frame;
+    private final Initiator initiator;
 
     public CdpRequest(CDPSession client, Frame frame, String interceptionId, boolean allowInterception, RequestWillBeSentEvent event, List<Request> redirectChain) {
         super();
@@ -54,6 +51,7 @@ public class CdpRequest extends Request {
         }
         this.interceptionId = interceptionId;
         this.url = event.getRequest().getUrl();
+        this.urlFragment = event.getRequest().getUrlFragment();
         this.resourceType = StringUtil.isEmpty(event.getType()) ? ResourceType.Other : ResourceType.valueOf(event.getType());
         this.method = event.getRequest().getMethod();
         this.postData = event.getRequest().getPostData();
@@ -72,7 +70,11 @@ public class CdpRequest extends Request {
     }
 
     public String url() {
-        return this.url;
+        return this.url(false);
+    }
+
+    public String url(boolean withFragment) {
+        return withFragment ? this.url + this.urlFragment : this.url;
     }
 
     public ResourceType resourceType() {

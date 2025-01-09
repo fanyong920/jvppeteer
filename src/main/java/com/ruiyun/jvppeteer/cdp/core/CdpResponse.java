@@ -138,7 +138,11 @@ public class CdpResponse extends Response {
     }
 
     public String url() {
-        return this.url;
+        return this.url(false);
+    }
+
+    public String url(boolean withFragment) {
+        return this.request.url(withFragment);
     }
 
     public int status() {
