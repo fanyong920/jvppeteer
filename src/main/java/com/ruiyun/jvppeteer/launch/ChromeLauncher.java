@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.cdp.core.BrowserFetcher;
-import com.ruiyun.jvppeteer.cdp.entities.BrowserLaunchArgumentOptions;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
@@ -156,7 +155,7 @@ public class ChromeLauncher extends BrowserLauncher {
         return chromeArguments;
     }
 
-    private void removeMatchingFlags(BrowserLaunchArgumentOptions options, String flag) {
+    private void removeMatchingFlags(LaunchOptions options, String flag) {
         Pattern regex = Pattern.compile("^" + flag + "=.*");
         options.setArgs(options.getArgs().stream().filter(s -> !regex.matcher(s).find()).collect(Collectors.toList()));
     }

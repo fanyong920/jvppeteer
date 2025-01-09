@@ -3,14 +3,13 @@ package com.ruiyun.jvppeteer.cdp.entities;
 
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.Environment;
 import com.ruiyun.jvppeteer.common.Product;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class LaunchOptions extends BrowserConnectOptions {
+public class LaunchOptions extends ConnectOptions {
 
     // 私有构造方法，只能通过构建器创建对象
     private LaunchOptions(Builder builder) {
@@ -41,6 +40,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         this.setProtocol(builder.protocol);
     }
 
+
     /**
      * 设置chrome浏览器的路径
      * <br/>
@@ -59,7 +59,13 @@ public class LaunchOptions extends BrowserConnectOptions {
      * 忽略指定的默认启动参数
      */
     private List<String> ignoreDefaultArgs;
-
+    /**
+     * 最大导航时间是30000ms,0表示无限等待
+     * <br/>
+     * Maximum navigation time in milliseconds, pass 0 to disable timeout.
+     * 默认是 30000
+     */
+    private int timeout = Constant.DEFAULT_TIMEOUT;
 
     /**
      * 将cheome的标准输出流输入流转换到java程序的标准输入输出
@@ -71,12 +77,9 @@ public class LaunchOptions extends BrowserConnectOptions {
     private boolean dumpio;
 
     /**
-     * ָSystem.getEnv()
-     * <br/>
      * Specify environment variables that will be visible to Chromium.
-     * 默认是 `process.env`.
      */
-    private Environment env;
+    private Map<String,String> env;
 
     /**
      * ͨfalse代表使用websocket通讯，true代表使用websocket通讯
@@ -90,10 +93,43 @@ public class LaunchOptions extends BrowserConnectOptions {
      */
     private Product product;
     /**
+     * {@link <a href="https://searchfox.org/mozilla-release/source/modules/libpref/init/all.js">| Additional preferences</a>} that can be passed when launching with Firefox.
+     */
+    private Map<String, Object> extraPrefsFirefox;
+    /**
      * Whether to wait for the initial page to be ready.
      * Useful when a user explicitly disables that (e.g. `--no-startup-window` for Chrome).
      */
     private boolean waitForInitialPage;
+
+    /**
+     * 是否是无厘头
+     * <br/>
+     * 默认是 true
+     */
+    private boolean headless = true;
+
+    /**
+     * 用户数据存储的目录
+     * <br/>
+     * Path to a User Data Directory.
+     */
+    private String userDataDir;
+    /**
+     * 是否打开devtool,也就是F12打开的开发者工具
+     * <br/>
+     */
+    private boolean devtools;
+    /**
+     * Specify the debugging port number to use
+     */
+    private int debuggingPort;
+    /**
+     * 其他参数，点击
+     * <a href="https://peter.sh/experiments/chromium-command-line-switches/">这里 </a>可以看到参数
+     * <br/>
+     */
+    private List<String> args = new ArrayList<>();
     /**
      * 启动的首选版本
      */
@@ -104,14 +140,59 @@ public class LaunchOptions extends BrowserConnectOptions {
      * 如果不配置启动路径，那么会扫面存放目录下是否有chrome浏览器
      */
     private String cacheDir;
-    /**
-     * {@link <a href="https://searchfox.org/mozilla-release/source/modules/libpref/init/all.js">| Additional preferences</a>} that can be passed when launching with Firefox.
-     */
-    private Map<String, Object> extraPrefsFirefox;
 
+
+    public boolean getHeadless() {
+        return headless;
+    }
+
+    public void setHeadless(boolean headless) {
+        this.headless = headless;
+    }
+
+    public List<String> getArgs() {
+        return args;
+    }
+
+    public void setArgs(List<String> args) {
+        this.args = args;
+    }
+
+    public String getUserDataDir() {
+        return userDataDir;
+    }
+
+    public void setUserDataDir(String userDataDir) {
+        this.userDataDir = userDataDir;
+    }
+
+    public boolean getDevtools() {
+        return devtools;
+    }
+
+    public void setDevtools(boolean devtools) {
+        this.devtools = devtools;
+    }
+
+    public int getDebuggingPort() {
+        return debuggingPort;
+    }
+
+    public void setDebuggingPort(int debuggingPort) {
+        this.debuggingPort = debuggingPort;
+    }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 
     // 内部静态构建器类
@@ -132,7 +213,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         private boolean ignoreAllDefaultArgs;
         private List<String> ignoreDefaultArgs;
         private boolean dumpio = false;
-        private Environment env;
+        private Map<String,String> env;
         private boolean pipe;
         private Product product;
         private boolean waitForInitialPage = true;
@@ -164,7 +245,7 @@ public class LaunchOptions extends BrowserConnectOptions {
             return this;
         }
 
-        public Builder env(Environment env) {
+        public Builder env(Map<String,String> env) {
             this.env = env;
             return this;
         }
@@ -285,7 +366,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         return dumpio;
     }
 
-    public Environment getEnv() {
+    public Map<String, String> getEnv() {
         return env;
     }
 
@@ -333,7 +414,7 @@ public class LaunchOptions extends BrowserConnectOptions {
         this.pipe = pipe;
     }
 
-    public void setEnv(Environment env) {
+    public void setEnv(Map<String, String> env) {
         this.env = env;
     }
 
@@ -356,4 +437,5 @@ public class LaunchOptions extends BrowserConnectOptions {
     public void setExtraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
         this.extraPrefsFirefox = extraPrefsFirefox;
     }
+
 }
