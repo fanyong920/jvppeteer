@@ -110,25 +110,23 @@ public class BrowserRunner {
                 this.destroyProcess(this.process);
                 return;
             }
-            Process exec = null;
-            String command = "";
-            this.destroyProcess(this.process);
+            Process exec;
+            String command;
             if (Helper.isLinux() || Helper.isMac()) {
                 command = "kill -9 " + pid;
                 exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
             } else {
-                if (this.process.isAlive()) {
-                    command = "cmd.exe /c taskkill /PID " + pid + " /F /T ";
+                    command = "cmd.exe /c taskkill /pid " + pid + " /F /T ";
                     exec = Runtime.getRuntime().exec(command);
-                }
             }
             try {
-                if (exec != null) {
+                if (Objects.nonNull(exec)) {
                     if(LOGGER.isDebugEnabled()){
                         LOGGER.debug("kill chrome process by pid,command:  {}", command);
                     }
                     exec.waitFor(Constant.DEFAULT_TIMEOUT, TimeUnit.MILLISECONDS);
                 }
+                this.destroyProcess(this.process);
             } finally {
                 this.destroyProcess(exec);
             }
@@ -149,8 +147,11 @@ public class BrowserRunner {
             return;
         }
         process.destroy();
-        if (process.isAlive()) {
-            process.destroyForcibly();
+        try {
+            process.waitFor(30L, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.error("operation interrupt", e);
         }
     }
 
