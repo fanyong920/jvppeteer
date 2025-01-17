@@ -215,7 +215,7 @@ public class LaunchOptions extends ConnectOptions {
         private boolean dumpio = false;
         private Map<String,String> env;
         private boolean pipe;
-        private Product product;
+        private Product product = Product.Chrome;
         private boolean waitForInitialPage = true;
         private String preferredRevision;
         private String cacheDir;
