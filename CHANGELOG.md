@@ -241,3 +241,8 @@
 ### Version Release 3.1.4(2025/1/6)
 
 - [fix: BrowserContext的cookies() 方法报错](https://github.com/fanyong920/jvppeteer/commit/63c268e3abdd400b1ae2826587f3624fbe56c39a)
+
+### Version Release 3.1.5(2025/1/17)
+
+- [fix:closeBrowser方法使用 process.waitFor](https://github.com/fanyong920/jvppeteer/commit/63a191cb118afc09e206e609dabe45b1fcd3462b)
+- [fix:LaunchOptions 默认参数Product = CHROME](https://github.com/fanyong920/jvppeteer/commit/8c991d342089178a3bbab7642864870c34702c78)
