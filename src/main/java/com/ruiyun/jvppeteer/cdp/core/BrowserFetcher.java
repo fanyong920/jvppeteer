@@ -1,11 +1,11 @@
 package com.ruiyun.jvppeteer.cdp.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
+import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.common.BrowserRevision;
 import com.ruiyun.jvppeteer.common.ChromeReleaseChannel;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
-import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -352,7 +352,7 @@ public class BrowserFetcher {
             mkdir(folderPath);
         }
         //用shell下载，不用java代码下载了
-        executeShell(url, folderPath, archive(this.product, this.platform, revision), executableName());
+        executeShell(url, folderPath, archive(this.product, this.platform, revision), fileName(this.product,this.platform));
         RevisionInfo revisionInfo = this.revisionInfo(revision);
         if (revisionInfo != null) {
             File executableFile = new File(revisionInfo.getExecutablePath());
@@ -421,7 +421,7 @@ public class BrowserFetcher {
         }
 
         String executablePath = this.relativeExecutablePath(revision, revisionsPath.toAbsolutePath().toString());
-        if(!Files.exists(Paths.get(executablePath))){
+        if (!Files.exists(Paths.get(executablePath))) {
             return null;
         }
         RevisionEntry entry = new RevisionEntry();
@@ -525,56 +525,6 @@ public class BrowserFetcher {
         }
     }
 
-    /**
-     * 获取浏览器的执行文件名 chrome.exe 或者 firefox。exe
-     *
-     * @return 执行路径
-     */
-    public String executableName() {
-        if (Product.Chrome.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                return "Google Chrome for Testing";
-            } else if (LINUX.equals(this.platform)) {
-                return "chrome";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                return "chrome.exe";
-            }
-        } else if (Product.Chromium.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                return "Chromium";
-            } else if (LINUX.equals(this.platform)) {
-                return "chrome";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                return "chrome.exe";
-            }
-        } else if (Product.Chromedriver.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                return "chromedriver";
-            } else if (LINUX.equals(this.platform)) {
-                return "chromedriver";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                return "chromedriver.exe";
-            }
-        } else if (Product.Chrome_headless_shell.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                return "chrome-headless-shell";
-            } else if (LINUX.equals(this.platform)) {
-                return "chrome-headless-shell";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                return "chrome-headless-shell.exe";
-            }
-        } else if (Product.Firefox.equals(this.product)) {
-            if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                return "firefox";
-            } else if (LINUX.equals(this.platform)) {
-                return "firefox";
-            } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                return "firefox.exe";
-            }
-        }
-        throw new IllegalArgumentException("Unsupported product: " + this.product);
-    }
-
     private Path copyShellFile(String path) throws IOException {
         Path tempDirectory = Paths.get(FileUtil.createProfileDir(SHELLS_PREFIX));
         Path shellPath = tempDirectory.resolve(path);
@@ -635,7 +585,8 @@ public class BrowserFetcher {
 
     /**
      * 下载后的浏览器的启动路径
-     * @param revision 版本 例如火狐 133.0
+     *
+     * @param revision    版本 例如火狐 133.0
      * @param versionPath 版本文件夹的路径 例如火狐浏览器 ：C:\Users\fanyong\Desktop\jvppeteer\example\.local-browser\win32-133.0
      * @return 浏览器的启动路径
      */
@@ -683,11 +634,11 @@ public class BrowserFetcher {
             }
         } else if (Product.Firefox.equals(this.product)) {
             if (MAC_ARM64.equals(this.platform) || MAC_X64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath,  "Firefox.app", "Contents", "MacOS", "firefox");
+                executablePath = Helper.join(versionPath, "Firefox.app", "Contents", "MacOS", "firefox");
             } else if (LINUX.equals(this.platform)) {
-                executablePath = Helper.join(versionPath,  "firefox", "firefox");
+                executablePath = Helper.join(versionPath, "firefox", "firefox");
             } else if (WIN32.equals(this.platform) || WIN64.equals(this.platform)) {
-                executablePath = Helper.join(versionPath,  "core", "firefox.exe");
+                executablePath = Helper.join(versionPath, "core", "firefox.exe");
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + this.platform);
             }
@@ -699,58 +650,59 @@ public class BrowserFetcher {
 
     /**
      * 获取浏览器的文件名
+     *
      * @param product 产品
      * @return 文件名
      */
-    public static String fileName(Product product){
-        String platform = detectBrowserPlatform();
+    public static String fileName(Product product, String platform) {
+        platform = StringUtil.isEmpty(platform) ? detectBrowserPlatform() : platform;
         if (Product.Chrome.equals(product)) {
             if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
-                return  "Google Chrome for Testing";
+                return "Google Chrome for Testing";
             } else if (LINUX.equals(platform)) {
-               return  "chrome";
+                return "chrome";
             } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
-                return  "chrome.exe";
+                return "chrome.exe";
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + platform);
             }
         } else if (Product.Chromium.equals(product)) {
             if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
-                return  "Chromium";
+                return "Chromium";
             } else if (LINUX.equals(platform)) {
-               return  "chrome";
+                return "chrome";
             } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
-               return  "chrome.exe";
+                return "chrome.exe";
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + platform);
             }
         } else if (Product.Chromedriver.equals(product)) {
             if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
-               return  "chromedriver";
+                return "chromedriver";
             } else if (LINUX.equals(platform)) {
-               return  "chromedriver";
+                return "chromedriver";
             } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
-              return  "chromedriver.exe";
+                return "chromedriver.exe";
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + platform);
             }
         } else if (Product.Chrome_headless_shell.equals(product)) {
             if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
-               return  "chrome-headless-shell";
+                return "chrome-headless-shell";
             } else if (LINUX.equals(platform)) {
-                return  "chrome-headless-shell";
+                return "chrome-headless-shell";
             } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
-               return  "chrome-headless-shell.exe";
+                return "chrome-headless-shell.exe";
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + platform);
             }
         } else if (Product.Firefox.equals(product)) {
             if (MAC_ARM64.equals(platform) || MAC_X64.equals(platform)) {
-                return  "firefox";
+                return "firefox";
             } else if (LINUX.equals(platform)) {
-               return  "firefox";
+                return "firefox";
             } else if (WIN32.equals(platform) || WIN64.equals(platform)) {
-                return  "firefox.exe";
+                return "firefox.exe";
             } else {
                 throw new IllegalArgumentException("Unsupported platform: " + platform);
             }
