@@ -87,7 +87,7 @@ public abstract class BidiRealmCore extends EventEmitter<BidiRealmCore.RealmCore
         if (Objects.isNull(this.executionContextId)) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("realm", this.id);
-            JsonNode response = this.session().connection().send("cdp.resolveRealm", params);
+            JsonNode response = this.session().connection().send("goog:cdp.resolveRealm", params);
             this.executionContextId = response.at("/result/executionContextId").asDouble();
         }
         return this.executionContextId;

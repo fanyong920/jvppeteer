@@ -232,6 +232,6 @@ public class BidiConnection extends Connection {
     }
 
     private boolean isCdpEvent(JsonNode event) {
-        return event.get(METHOD).asText().startsWith("cdp.");
+        return event.get(METHOD).asText().startsWith("goog:cdp.");
     }
 }

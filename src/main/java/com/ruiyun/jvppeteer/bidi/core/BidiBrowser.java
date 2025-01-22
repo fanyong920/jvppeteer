@@ -52,13 +52,13 @@ public class BidiBrowser extends Browser {
         subscribeModules.add("network");
         subscribeModules.add("log");
         subscribeModules.add("script");
-        subscribeCdpEvents.add("cdp.Debugger.scriptParsed");
-        subscribeCdpEvents.add("cdp.CSS.styleSheetAdded");
-        subscribeCdpEvents.add("cdp.Runtime.executionContextsCleared");
-        subscribeCdpEvents.add("cdp.Tracing.tracingComplete");
-        subscribeCdpEvents.add("cdp.Network.requestWillBeSent");
-        subscribeCdpEvents.add("cdp.Debugger.scriptParsed");
-        subscribeCdpEvents.add("cdp.Page.screencastFrame");
+        subscribeCdpEvents.add("goog:cdp.Debugger.scriptParsed");
+        subscribeCdpEvents.add("goog:cdp.CSS.styleSheetAdded");
+        subscribeCdpEvents.add("goog:cdp.Runtime.executionContextsCleared");
+        subscribeCdpEvents.add("goog:cdp.Tracing.tracingComplete");
+        subscribeCdpEvents.add("goog:cdp.Network.requestWillBeSent");
+        subscribeCdpEvents.add("goog:cdp.Debugger.scriptParsed");
+        subscribeCdpEvents.add("goog:cdp.Page.screencastFrame");
     }
 
     public static BidiBrowser create(Process process, Runnable closeCallback, BidiConnection connection, CdpConnection cdpConnection, Viewport defaultViewport, boolean acceptInsecureCerts, SupportedWebDriverCapabilities capabilities) throws JsonProcessingException {

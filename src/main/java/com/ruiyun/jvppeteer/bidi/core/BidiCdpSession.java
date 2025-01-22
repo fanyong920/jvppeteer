@@ -41,7 +41,7 @@ public class BidiCdpSession extends CDPSession {
             try {
                 Map<String, Object> params = new HashMap<>();
                 params.put("context", frame.id());
-                JsonNode res = connection.send("cdp.getSession", params);
+                JsonNode res = connection.send("goog:cdp.getSession", params);
                 String session_id = res.get(RESULT).get(SESSION).asText();
                 this.sessionIdResult.complete(session_id);
                 BidiCdpSession.sessions.put(session_id, this);
@@ -97,7 +97,7 @@ public class BidiCdpSession extends CDPSession {
         paramsMap.put(Constant.METHOD, method);
         paramsMap.put(Constant.PARAMS, params);
         paramsMap.put(SESSION, session_id);
-        return this.connection.send("cdp.sendCommand", paramsMap, timeout, true);
+        return this.connection.send("goog:cdp.sendCommand", paramsMap, timeout, true);
     }
 
 }
