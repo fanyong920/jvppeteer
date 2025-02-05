@@ -8,7 +8,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>4.13.1</junit.version>
-        <jvppeteer.version>3.1.5</jvppeteer.version>
+        <jvppeteer.version>3.1.6</jvppeteer.version>
         <slf4j.version>2.0.16</slf4j.version>
         <maven.compiler.plugin.version>3.7.0</maven.compiler.plugin.version>
     </properties>
