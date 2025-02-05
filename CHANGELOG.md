@@ -246,3 +246,13 @@
 
 - [fix:closeBrowser方法使用 process.waitFor](https://github.com/fanyong920/jvppeteer/commit/63a191cb118afc09e206e609dabe45b1fcd3462b)
 - [fix:LaunchOptions 默认参数Product = CHROME](https://github.com/fanyong920/jvppeteer/commit/8c991d342089178a3bbab7642864870c34702c78)
+
+### Version Release 3.1.6(2025/2/5)
+
+- [update: PaperFormats添加以厘米为计算单位的注释](https://github.com/fanyong920/jvppeteer/commit/e00d414fbaf93e46e76899ea8a7c868f1af96127)
+- [fix:launch()方法中校验逻辑全用小写](https://github.com/fanyong920/jvppeteer/commit/ff2524d356ebce1718c2c362d560a808a2f27a42)
+- [chrome: use `goog:` prefix for BiDi+ commands](https://github.com/fanyong920/jvppeteer/commit/99d3a24873361ab4e751136015536e67395b1ed5)
+
+### Version Release 3.1.7(2025/2/5)
+
+- [fix: 删除 ExecutablePath 与 product一致的验证](https://github.com/fanyong920/jvppeteer/commit/5d792c2f0833820b1041199013497a9f2db1d2d7)
