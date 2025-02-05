@@ -33,9 +33,6 @@ public class ChromeLauncher extends BrowserLauncher {
             options.setArgs(new ArrayList<>());
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
-        if (!Paths.get(this.executablePath).getFileName().toString().toLowerCase().contains(BrowserFetcher.fileName(options.getProduct(),null).toLowerCase())) {
-            throw new LaunchException("The ExecutablePath does not match the product, The executablePath is " + this.executablePath + ",but the product is " + options.getProduct());
-        }
 
         //临时的 UserDataDir
         String temporaryUserDataDir = null;
