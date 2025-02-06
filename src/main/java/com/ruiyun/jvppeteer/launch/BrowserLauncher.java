@@ -44,6 +44,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -264,7 +265,7 @@ public abstract class BrowserLauncher {
                 }
             }
         });
-        runner.setPid(getBrowserPid(runner.getProcess()));
+        runner.setPid(getBrowserPid(connection,runner.getProcess()));
         return cdpBrowser;
     }
 
@@ -275,12 +276,27 @@ public abstract class BrowserLauncher {
     /**
      * 通过cdp的SystemInfo.getProcessInfo获取浏览器pid，如果通过cdp没获取pid，并且是mac或者linux平台，那么尝试通过反射获取pid
      */
-    private String getBrowserPid(Process process) {
+    private String getBrowserPid(Connection connection,Process process) {
         long pid = -1;
         try {
-            pid = Helper.getPidForLinuxOrMac(process);
+            JsonNode response = connection.send("SystemInfo.getProcessInfo");
+            Iterator<JsonNode> processInfos = response.get("processInfo").elements();
+            while (processInfos.hasNext()) {
+                JsonNode processInfo = processInfos.next();
+                if (processInfo.get(Constant.TYPE).asText().equals("browser")) {
+                    pid = processInfo.get(Constant.ID).asLong();
+                    break;
+                }
+            }
         } catch (Exception e) {
-            LOGGER.error("get browser pid error: ", e);
+            LOGGER.error("get browser pid error by cdp: ", e);
+        }
+        try {
+            if (pid == -1) {
+                pid = Helper.getPidForLinuxOrMac(process);
+            }
+        } catch (Exception e) {
+            LOGGER.error("get browser pid error by reflection: ", e);
         }
         return String.valueOf(pid);
     }
