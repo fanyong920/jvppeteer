@@ -256,3 +256,7 @@
 ### Version Release 3.1.7(2025/2/5)
 
 - [fix: 删除 ExecutablePath 与 product一致的验证](https://github.com/fanyong920/jvppeteer/commit/5d792c2f0833820b1041199013497a9f2db1d2d7)
+
+### Version Release 3.1.8(2025/2/6)
+
+- fix:BrowserLauncher.getBrowserPid()方法添加cdp协议获取pid
