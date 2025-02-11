@@ -47,7 +47,7 @@ public class CdpFrame extends Frame {
     private boolean detached;
     private CDPSession client;
     private final FrameManager frameManager;
-    private String loaderId;
+    private volatile String loaderId;
 
     private final Set<String> lifecycleEvents = new HashSet<>();
 
