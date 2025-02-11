@@ -40,7 +40,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
     protected volatile String id;
     protected volatile String parentId;
     protected Accessibility accessibility;
-    protected volatile boolean hasStartedLoading;
+    public volatile boolean hasStartedLoading;
     protected volatile String name;
     protected ElementHandle document;
 
