@@ -1,12 +1,10 @@
 package com.ruiyun.jvppeteer.cdp.core;
 
-import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.events.FrameEvents;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +27,7 @@ public class LifecycleWatcher {
     private final AwaitableResult<Boolean> newDocumentNavigationResult = AwaitableResult.create();
     public final AwaitableResult<Exception> terminationResult = AwaitableResult.create();
     public AwaitableResult<Boolean> navigationResponseReceived;
-    private boolean swapped = false;
+    private volatile boolean swapped = false;
     private final NetworkManager networkManager;
 
     public LifecycleWatcher(NetworkManager networkManager, CdpFrame frame, List<PuppeteerLifeCycle> waitUntil) {
@@ -62,7 +60,7 @@ public class LifecycleWatcher {
         this.frameListeners.put(FrameEvents.FrameSwappedByActivation, frameSwappedByActivationListener);
 
 
-        Consumer<CdpFrame> frameDetachedListener = this::frameDetached;
+        Consumer<CdpFrame> frameDetachedListener = this::onFrameDetached;
         this.frame.on(FrameEvents.FrameDetached, frameDetachedListener);
         this.frameListeners.put(FrameEvents.FrameDetached, frameDetachedListener);
 
@@ -102,7 +100,7 @@ public class LifecycleWatcher {
         }
     }
 
-    private void frameDetached(CdpFrame frame) {
+    private void onFrameDetached(CdpFrame frame) {
         if (this.frame.equals(frame)) {
             terminationResult.onSuccess(new JvppeteerException("Navigating frame was detached'"));
             return;
@@ -135,7 +133,7 @@ public class LifecycleWatcher {
     }
 
     private void onRequest(CdpRequest request) {
-        if (!Objects.equals(request.frame(),this.frame) || !request.isNavigationRequest()) {
+        if (!Objects.equals(request.frame(), this.frame) || !request.isNavigationRequest()) {
             return;
         }
         this.navigationRequest = request;
@@ -172,15 +170,19 @@ public class LifecycleWatcher {
      * @param expectedLifecycle 生命周期集合
      * @return boolean 结果
      */
-    private boolean checkLifecycle(Frame frame, List<String> expectedLifecycle) {
+    private boolean checkLifecycle(CdpFrame frame, List<String> expectedLifecycle) {
         if (ValidateUtil.isNotEmpty(expectedLifecycle)) {
             for (String event : expectedLifecycle) {
-                if (!((CdpFrame)frame).lifecycleEvents().contains(event)) return false;
+                if (!frame.lifecycleEvents().contains(event)) {
+                    return false;
+                }
             }
         }
         if (ValidateUtil.isNotEmpty(frame.childFrames())) {
-            for (Frame child : frame.childFrames()) {
-                if (!checkLifecycle(child, expectedLifecycle)) return false;
+            for (CdpFrame child : frame.childFrames()) {
+                if (child.hasStartedLoading && !checkLifecycle(child, expectedLifecycle)) {
+                    return false;
+                }
             }
         }
         return true;
