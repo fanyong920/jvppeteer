@@ -260,3 +260,11 @@
 ### Version Release 3.1.8(2025/2/6)
 
 - fix:BrowserLauncher.getBrowserPid()方法添加cdp协议获取pid
+
+### Version Release 3.2.0(2025/2/11)
+
+- [fix:Frame的 hasStartedLoading 变量改成 public](https://github.com/fanyong920/jvppeteer/commit/5eeef4163bfeb90499083136c43c89f67a4f7603)
+- [fix:FrameManager frameTreeHandled 变量添加 volatile 修饰符；格式化代码；createIsolatedWorld()函数中，key添加：分割以及this.client改成参数中的session，以及不等待返回结果](https://github.com/fanyong920/jvppeteer/commit/1c170d14508ee8b9d52a32ae368f91b6b2bbdb1e)
+- [fix:CdpFrame的 loaderId 变量添加 volatile 修饰符](https://github.com/fanyong920/jvppeteer/commit/54351d89dd41b75c04a4d31b61e9a3c6c6a39700)
+- [fix:LifecycleWatcher.checkLifecycle()参数Frame改为CdpFrame，以及格式化代码，frameDetached（）函数名改成onFrameDetached（）](https://github.com/fanyong920/jvppeteer/commit/e8ae3e762218d6d38c56bf0e92b89fbe411c5f86)
+
