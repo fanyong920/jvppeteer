@@ -6,12 +6,6 @@ import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.api.events.FrameEvents;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
-import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.DeviceRequestPromptManager;
-import com.ruiyun.jvppeteer.common.FrameProvider;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.cdp.entities.Binding;
 import com.ruiyun.jvppeteer.cdp.entities.ExecutionContextDescription;
 import com.ruiyun.jvppeteer.cdp.entities.FramePayload;
@@ -25,6 +19,12 @@ import com.ruiyun.jvppeteer.cdp.events.FrameStartedLoadingEvent;
 import com.ruiyun.jvppeteer.cdp.events.FrameStoppedLoadingEvent;
 import com.ruiyun.jvppeteer.cdp.events.LifecycleEvent;
 import com.ruiyun.jvppeteer.cdp.events.NavigatedWithinDocumentEvent;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.DeviceRequestPromptManager;
+import com.ruiyun.jvppeteer.common.FrameProvider;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
@@ -66,7 +66,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
     private final FrameTree<CdpFrame> frameTree = new FrameTree<>();
     private final Set<String> frameNavigatedReceived = new HashSet<>();
     private final Map<CDPSession, DeviceRequestPromptManager> deviceRequestPromptManagerMap = new WeakHashMap<>();
-    private AwaitableResult<Boolean> frameTreeHandled;
+    private volatile AwaitableResult<Boolean> frameTreeHandled;
 
 
     public FrameManager(CDPSession client, CdpPage page, TimeoutSettings timeoutSettings) {
@@ -109,9 +109,9 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         this.client = client;
         CdpFrame frame = this.frameTree.getMainFrame();
         if (frame != null) {
-            this.frameNavigatedReceived.add(((CdpCDPSession)this.client).getTarget().getTargetId());
+            this.frameNavigatedReceived.add(((CdpCDPSession) this.client).getTarget().getTargetId());
             this.frameTree.removeFrame(frame);
-            frame.updateId(((CdpCDPSession)this.client).getTarget().getTargetId());
+            frame.updateId(((CdpCDPSession) this.client).getTarget().getTargetId());
             this.frameTree.addFrame(frame);
             frame.updateClient(client);
         }
@@ -191,7 +191,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
             this.networkManager.addClient(client);
             client.send("Page.enable", null, null, false);
             /* @type Protocol.Page.getFrameTreeReturnValue*/
-            JsonNode result = client.send("Page.getFrameTree", null, null, true);
+            JsonNode result = client.send("Page.getFrameTree");
             FrameTreeEvent frameTree = Constant.OBJECTMAPPER.treeToValue(result.get("frameTree"), FrameTreeEvent.class);
             this.handleFrameTree(client, frameTree);
             Optional.ofNullable(this.frameTreeHandled).ifPresent(handle -> handle.onSuccess(true));
@@ -391,14 +391,14 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
     }
 
     private void createIsolatedWorld(CDPSession session, String name) {
-        String key = session.id() + name;
+        String key = session.id() + ":" + name;
         if (this.isolatedWorlds.contains(key))
             return;
         this.isolatedWorlds.add(name);
         Map<String, Object> params = ParamsFactory.create();
         params.put("source", "//# sourceURL=" + INTERNAL_URL);
         params.put("worldName", name);
-        this.client.send("Page.addScriptToEvaluateOnNewDocument", params);
+        session.send("Page.addScriptToEvaluateOnNewDocument", params);
         this.frames().stream().filter(frame -> frame.client() == session).forEach(frame -> {
             // Frames might be removed before we send this, so we don't want to
             // throw an error.
@@ -407,7 +407,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
                 param.put("frameId", frame.id());
                 param.put("grantUniveralAccess", true);
                 param.put("worldName", name);
-                this.client.send("Page.createIsolatedWorld", param);
+                session.send("Page.createIsolatedWorld", param, null, false);
             } catch (Exception e) {
                 LOGGER.error("Page.createIsolatedWorld error: ", e);
             }
@@ -429,7 +429,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
     private void onFrameDetached(String frameId, String reason) {
         CdpFrame frame = this.frame(frameId);
         if (Objects.isNull(frame)) return;
-        if(StringUtil.isEmpty(reason)){
+        if (StringUtil.isEmpty(reason)) {
             return;
         }
         switch (reason) {
