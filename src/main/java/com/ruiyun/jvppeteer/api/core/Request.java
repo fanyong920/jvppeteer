@@ -372,12 +372,19 @@ public abstract class Request {
     }
 
     protected void handleError(Exception e) {
+        // Firefox throws an invalid argument error with a message starting with
+        // 'Expected "header" [...]'.
         if (e instanceof ProtocolException) {
-            boolean flag = e.getMessage().contains("Invalid header") || e.getMessage().contains("Expected \"header\"") || e.getMessage().contains("invalid argument");
+            boolean flag = e.getMessage().contains("Invalid header") || e.getMessage().contains("Unsafe header") || e.getMessage().contains("Expected \"header\"")
+                    // WebDriver BiDi error for invalid values, for example, headers.
+                    || e.getMessage().contains("invalid argument");
             if (flag) {
                 throw (ProtocolException) e;
             }
         }
+        // In certain cases, protocol will return error if the request was
+        // already canceled or the page was closed. We should tolerate these
+        // errors.
         LOGGER.error("request error:", e);
     }
 
