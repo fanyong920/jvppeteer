@@ -194,7 +194,7 @@ public class CdpConnection extends Connection {
      * @return Connection
      */
     public static Connection fromSession(CdpCDPSession client) {
-        return client.getConnection();
+        return client.connection();
     }
 
     /**

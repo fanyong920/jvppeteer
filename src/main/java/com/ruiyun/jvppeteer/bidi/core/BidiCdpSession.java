@@ -52,7 +52,7 @@ public class BidiCdpSession extends CDPSession {
     }
 
     @Override
-    public CdpConnection getConnection() {
+    public CdpConnection connection() {
         return null;
     }
 

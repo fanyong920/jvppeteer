@@ -55,7 +55,7 @@ public class CdpWebWorker extends WebWorker {
         switch (this.targetType) {
             case SERVICE_WORKER:
             case SHARED_WORKER: {
-                Connection connection = this.client.getConnection();
+                Connection connection = this.client.connection();
                 if (Objects.nonNull(connection)) {
                     Map<String, Object> params = ParamsFactory.create();
                     params.put(Constant.TARGET_ID, this.id);

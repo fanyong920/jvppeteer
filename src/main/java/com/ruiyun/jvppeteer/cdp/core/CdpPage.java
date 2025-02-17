@@ -953,13 +953,13 @@ public class CdpPage extends Page {
 
     public void close(boolean runBeforeUnload) {
         synchronized (this.browserContext()) {
-            ValidateUtil.assertArg(this.primaryTargetClient.getConnection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
+            ValidateUtil.assertArg(this.primaryTargetClient.connection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
             if (runBeforeUnload) {
                 this.primaryTargetClient.send("Page.close");
             } else {
                 Map<String, Object> params = new HashMap<>();
                 params.put("targetId", this.primaryTarget.getTargetId());
-                this.primaryTargetClient.getConnection().send("Target.closeTarget", params);
+                this.primaryTargetClient.connection().send("Target.closeTarget", params);
                 this.tabTarget.waitForTargetClose();
             }
         }

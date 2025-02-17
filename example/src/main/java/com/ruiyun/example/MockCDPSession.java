@@ -481,7 +481,7 @@ public class MockCDPSession extends CDPSession {
     }
 
     @Override
-    public Connection getConnection() {
+    public Connection connection() {
         return null;
     }
 

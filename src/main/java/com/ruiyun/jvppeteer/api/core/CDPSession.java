@@ -5,7 +5,7 @@ import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 
 public abstract class CDPSession extends EventEmitter<ConnectionEvents> {
 
-    public abstract Connection getConnection();
+    public abstract Connection connection();
 
     public CDPSession parentSession() {
         return null;

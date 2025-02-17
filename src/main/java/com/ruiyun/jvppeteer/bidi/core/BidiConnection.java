@@ -41,7 +41,7 @@ public class BidiConnection extends Connection {
     }
 
     public static Connection fromSession(CDPSession session) {
-        return session.getConnection();
+        return session.connection();
     }
 
     @Override

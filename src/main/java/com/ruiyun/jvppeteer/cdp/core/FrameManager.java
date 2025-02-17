@@ -94,6 +94,11 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         if (mainFrame == null) {
             return;
         }
+        if(Objects.nonNull(this.client.connection()) && this.client.connection().closed() ){
+            // On connection disconnected remove all frames
+            this.removeFramesRecursively(mainFrame);
+            return;
+        }
         mainFrame.childFrames().forEach(this::removeFramesRecursively);
         AwaitableResult<Boolean> swappedSubject = AwaitableResult.create();
         Consumer<Object> onSwapped = (ignored) -> swappedSubject.onSuccess(true);

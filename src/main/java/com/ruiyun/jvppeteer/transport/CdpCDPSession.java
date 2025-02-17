@@ -38,9 +38,10 @@ public class CdpCDPSession extends CDPSession {
     private static final Logger LOGGER = LoggerFactory.getLogger(CdpCDPSession.class);
     private final String targetType;
     private final String sessionId;
-    private CdpConnection connection;
+    private final CdpConnection connection;
     private final String parentSessionId;
     private CdpTarget target;
+    private volatile boolean detached;
 
     public CdpCDPSession(CdpConnection connection, String targetType, String sessionId, String parentSessionId) {
         super();
@@ -55,7 +56,7 @@ public class CdpCDPSession extends CDPSession {
             // To make it work in Firefox that does not have parent (tab) sessions.
             return this;
         }
-        if (this.connection != null) {
+        if (Objects.nonNull(this.connection)) {
             return this.connection.session(this.parentSessionId);
         } else {
             return null;
@@ -66,9 +67,8 @@ public class CdpCDPSession extends CDPSession {
         this.target = target;
     }
 
-
     public void onClosed() {
-        this.connection = null;
+        this.detached = true;
         this.emit(ConnectionEvents.CDPSession_Disconnected, true);
     }
 
@@ -81,22 +81,26 @@ public class CdpCDPSession extends CDPSession {
     }
 
     public JsonNode send(String method, Object params, Integer timeout, boolean isBlocking) {
-        if (this.connection == null || this.connection.closed()) {
+        if (this.closed()) {
             throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
         return this.connection.rawSend(method, params, this.sessionId, timeout, isBlocking);
     }
 
+    private boolean closed(){
+        return  this.connection.closed() || this.detached;
+    }
     /**
      * 页面分离浏览器
      */
     public void detach() {
-        if (this.connection == null) {
+        if (this.closed()) {
             throw new JvppeteerException("Session already detached. Most likely the " + this.targetType + "has been closed.");
         }
         Map<String, Object> params = ParamsFactory.create();
         params.put(SESSION_ID, this.sessionId);
         this.connection.send("Target.detachFromTarget", params);
+        this.detached = true;
     }
 
     /**
@@ -123,7 +127,7 @@ public class CdpCDPSession extends CDPSession {
                 handleCdpCallback(callbacks, response, id, false);
             } else {//发射数据，执行事件的监听方法
                 ValidateUtil.assertArg(!response.hasNonNull(ID), "Should not contain id, " + response);
-                if (Objects.isNull(connection)) {
+                if (Objects.isNull(this.connection)) {
                     return;
                 }
                 String method = methodNode.asText();
@@ -137,8 +141,8 @@ public class CdpCDPSession extends CDPSession {
         }
     }
 
-    public Connection getConnection() {
-        return connection;
+    public Connection connection() {
+        return this.connection;
     }
 
     public String id() {
