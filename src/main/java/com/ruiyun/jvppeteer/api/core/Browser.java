@@ -2,10 +2,12 @@ package com.ruiyun.jvppeteer.api.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
+import com.ruiyun.jvppeteer.common.Constant;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -171,6 +173,29 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * 断开 Jvppeteer 与该 browser 的连接，但保持进程运行。
      */
     public abstract void disconnect();
+
+    /**
+     * 获取当前默认浏览器上下文中的所有Cookie
+     * <p>
+     * 此方法用于收集默认浏览器上下文中所有的Cookie信息，以便于后续处理或分析
+     * 它调用了defaultBrowserContext()方法获取默认浏览器上下文，然后调用该上下文的cookies()方法来获取Cookie列表
+     *
+     * @return List<Cookie> 返回一个Cookie对象列表，包含了当前默认浏览器上下文中的所有Cookie
+     */
+    public List<Cookie> cookies() {
+        return this.defaultBrowserContext().cookies();
+    }
+
+    /**
+     * 设置Cookie信息
+     * 此方法允许将一个或多个CookieData对象设置到默认浏览器上下文中
+     * 利用可变参数的功能，允许调用者以灵活的方式传递任意数量的CookieData对象
+     *
+     * @param cookies 一个或多个CookieData对象，代表要设置的Cookie信息
+     */
+    public void setCookie(CookieData... cookies) {
+        this.defaultBrowserContext().setCookie(cookies);
+    }
 
     /**
      * Jvppeteer 是否连接到此 browser。

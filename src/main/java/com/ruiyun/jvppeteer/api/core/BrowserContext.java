@@ -1,10 +1,10 @@
 package com.ruiyun.jvppeteer.api.core;
 
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
+import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.WebPermission;
-import com.ruiyun.jvppeteer.cdp.entities.Cookie;
-import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -100,7 +100,7 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
     /**
      * 在当前浏览器上下文的设置cookie
      */
-    public abstract void setCookie(CookieParam... cookies);
+    public abstract void setCookie(CookieData... cookies);
 
     /**
      * 在当前浏览器上下文删除指定cookie
@@ -113,7 +113,7 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
         }
         for (Cookie cookie : cookies) {
             cookie.setExpires(1);
-            this.setCookie(Constant.OBJECTMAPPER.convertValue(cookie, CookieParam.class));
+            this.setCookie(Constant.OBJECTMAPPER.convertValue(cookie, CookieData.class));
         }
 
     }

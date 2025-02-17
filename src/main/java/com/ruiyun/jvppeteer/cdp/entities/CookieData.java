@@ -1,12 +1,9 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 
-/**
- * Cookie object
- */
-public class Cookie extends CookieData {
+public class CookieData {
+
     /**
      * Cookie name.
      */
@@ -24,31 +21,22 @@ public class Cookie extends CookieData {
      */
     private String path;
     /**
-     * Cookie expiration date as the number of seconds since the UNIX epoch. Set to `-1` for
-     * session cookies
+     * True if cookie is secure.
      */
-    private long expires;
-    /**
-     * Cookie size.
-     */
-    private int size;
+    private boolean secure;
     /**
      * True if cookie is http-only.
      */
     private boolean httpOnly;
     /**
-     * True if cookie is secure.
-     */
-    private boolean secure;
-    /**
-     * True in case of session cookie.
-     */
-    private boolean session;
-    /**
      * Cookie SameSite type.
      * "Strict"|"Lax"|"None";
      */
     private CookieSameSite sameSite;
+    /**
+     * Cookie expiration date as the number of seconds since the UNIX epoch.
+     */
+    private long expires;
     /**
      * Cookie Priority
      * "Low"|"Medium"|"High";
@@ -111,14 +99,6 @@ public class Cookie extends CookieData {
         this.expires = expires;
     }
 
-    public int getSize() {
-        return size;
-    }
-
-    public void setSize(int size) {
-        this.size = size;
-    }
-
     public boolean getHttpOnly() {
         return httpOnly;
     }
@@ -133,14 +113,6 @@ public class Cookie extends CookieData {
 
     public void setSecure(boolean secure) {
         this.secure = secure;
-    }
-
-    public boolean getSession() {
-        return session;
-    }
-
-    public void setSession(boolean session) {
-        this.session = session;
     }
 
     public CookieSameSite getSameSite() {
@@ -190,26 +162,5 @@ public class Cookie extends CookieData {
 
     public void setPartitionKeyOpaque(boolean partitionKeyOpaque) {
         this.partitionKeyOpaque = partitionKeyOpaque;
-    }
-
-    @Override
-    public String toString() {
-        return "Cookie{" +
-                "name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                ", domain='" + domain + '\'' +
-                ", path='" + path + '\'' +
-                ", expires=" + expires +
-                ", size=" + size +
-                ", httpOnly=" + httpOnly +
-                ", secure=" + secure +
-                ", session=" + session +
-                ", sameSite='" + sameSite + '\'' +
-                ", priority='" + priority + '\'' +
-                ", sameParty=" + sameParty +
-                ", sourceScheme='" + sourceScheme + '\'' +
-                ", partitionKey=" + partitionKey +
-                ", partitionKeyOpaque=" + partitionKeyOpaque +
-                '}';
     }
 }
