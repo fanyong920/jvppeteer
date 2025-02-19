@@ -470,24 +470,26 @@ public interface Constant {
 
     Map<WebPermission, String> WEB_PERMISSION_TO_PROTOCOL_PERMISSION = new HashMap<WebPermission, String>(32) {
         {
-            put(WebPermission.GEOLOCATION, "geolocation");
-            put(WebPermission.MIDI, "midi");
-            put(WebPermission.NOTIFICATIONS, "notifications");
-            put(WebPermission.CAMERA, "videoCapture");
-            put(WebPermission.MICROPHONE, "audioCapture");
-            put(WebPermission.BACKGROUND_SYNC, "backgroundSync");
-            put(WebPermission.AMBIENT_LIGHT_SENSOR, "sensors");
-            put(WebPermission.ACCELEROMETER, "sensors");
-            put(WebPermission.GYROSCOPE, "sensors");
-            put(WebPermission.MAGNETOMETER, "sensors");
-            put(WebPermission.ACCESSIBILITY_EVENTS, "accessibilityEvents");
-            put(WebPermission.CLIPBOARD_READ, "clipboardReadWrite");
-            put(WebPermission.CLIPBOARD_WRITE, "clipboardReadWrite");
-            put(WebPermission.CLIPBOARD_SANITIZED_WRITE, "clipboardSanitizedWrite");
-            put(WebPermission.PAYMENT_HANDLER, "paymentHandler");
-            put(WebPermission.PERSISTENT_STORAGE, "durableStorage");
-            put(WebPermission.IDLE_DETECTION, "idleDetection");
-            put(WebPermission.MIDI_SYSEX, "midiSysex");
+            put(WebPermission.Accelerometer, "sensors");
+            put(WebPermission.Ambient_light_sensor, "sensors");
+            put(WebPermission.Background_sync, "backgroundSync");
+            put(WebPermission.Camera, "videoCapture");
+            put(WebPermission.Clipboard_read, "clipboardReadWrite");
+            put(WebPermission.Clipboard_sanitized_write, "clipboardSanitizedWrite");
+            put(WebPermission.Clipboard_write, "clipboardReadWrite");
+            put(WebPermission.Geolocation, "geolocation");
+            put(WebPermission.Gyroscope, "sensors");
+            put(WebPermission.Idle_detection, "idleDetection");
+            put(WebPermission.Keyboard_lock, "keyboardLock");
+            put(WebPermission.Magnetometer, "sensors");
+            put(WebPermission.Microphone, "audioCapture");
+            put(WebPermission.Midi, "midi");
+            put(WebPermission.Notifications, "notifications");
+            put(WebPermission.Payment_handler, "paymentHandler");
+            put(WebPermission.Persistent_storage, "durableStorage");
+            put(WebPermission.Pointer_lock,"pointerLock");
+            // chrome-specific permissions we have.
+            put(WebPermission.Midi_sysex, "midiSysex");
         }
     };
 
