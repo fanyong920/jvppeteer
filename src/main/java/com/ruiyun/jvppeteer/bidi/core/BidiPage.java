@@ -191,6 +191,7 @@ public class BidiPage extends Page {
                 NewDocumentScriptEvaluation evaluateToken = this.evaluateOnNewDocument("(userAgent) => {\n" +
                         "  Object.defineProperty(navigator, 'userAgent', {\n" +
                         "    value: userAgent,\n" +
+                        "    configurable: true,\n" +
                         "  });\n" +
                         "}", EvaluateType.STRING, userAgent);
                 this.userAgentPreloadScript = evaluateToken.getIdentifier();
