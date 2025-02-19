@@ -135,6 +135,9 @@ public class IsolatedWorld extends Realm {
 
     public JSHandle evaluateHandle(String pptrFunction, List<Object> args) throws JsonProcessingException {
         pptrFunction = withSourcePuppeteerURLIfNone("evaluateHandle", pptrFunction);
+        // This code needs to schedule evaluateHandle call synchronously (at
+        // least when the context is there) so we cannot unconditionally
+        // await.
         ExecutionContext context = this.executionContext();
         if (context == null) {
             context = this.waitForExecutionContext();
@@ -144,6 +147,9 @@ public class IsolatedWorld extends Realm {
 
     public Object evaluate(String pptrFunction, EvaluateType type, List<Object> args) throws JsonProcessingException {
         pptrFunction = withSourcePuppeteerURLIfNone("evaluate", pptrFunction);
+        // This code needs to schedule evaluate call synchronously (at
+        // least when the context is there) so we cannot unconditionally
+        // await.
         ExecutionContext context = this.executionContext();
         if (context == null) {
             context = this.waitForExecutionContext();
