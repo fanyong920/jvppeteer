@@ -10,9 +10,6 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
@@ -21,6 +18,9 @@ import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -75,11 +75,7 @@ public class CdpBrowser extends Browser {
             targetFilterCallback = (ignore) -> true;
         }
         this.setIsPageTargetCallback(isPageTargetCallback);
-        if (Product.Firefox.equals(product)) {
-            this.targetManager = new FirefoxTargetManager(connection, this.createTarget(), targetFilterCallback);
-        } else {
-            this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
-        }
+        this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
         this.defaultContext = new CdpBrowserContext(connection, this, "");
         if (ValidateUtil.isNotEmpty(contextIds)) {
             for (String contextId : contextIds) {

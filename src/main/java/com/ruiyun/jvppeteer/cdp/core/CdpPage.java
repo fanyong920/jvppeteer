@@ -14,11 +14,6 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
-import com.ruiyun.jvppeteer.common.BindingFunction;
-import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.MediaType;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.Binding;
 import com.ruiyun.jvppeteer.cdp.entities.BindingPayload;
 import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
@@ -62,6 +57,11 @@ import com.ruiyun.jvppeteer.cdp.events.ExceptionThrownEvent;
 import com.ruiyun.jvppeteer.cdp.events.FileChooserOpenedEvent;
 import com.ruiyun.jvppeteer.cdp.events.JavascriptDialogOpeningEvent;
 import com.ruiyun.jvppeteer.cdp.events.MetricsEvent;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.BindingFunction;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.MediaType;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -828,11 +828,9 @@ public class CdpPage extends Page {
     }
 
     protected String _screenshot(ScreenshotOptions options) {
-        CdpTarget target = (CdpTarget) this.target();
-        boolean isFirefox = target.targetManager() instanceof FirefoxTargetManager;
         Map<String, Object> params = ParamsFactory.create();
         try {
-            if (!isFirefox && options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
+            if (options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
                 this.emulationManager.setTransparentBackgroundColor();
             }
             ScreenshotClip clip = options.getClip();

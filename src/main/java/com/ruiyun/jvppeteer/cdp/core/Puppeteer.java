@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.cdp.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
+import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.launch.BrowserLauncher;
 import com.ruiyun.jvppeteer.launch.ChromeLauncher;
 import com.ruiyun.jvppeteer.launch.FirefoxLauncher;
@@ -88,6 +89,9 @@ public class Puppeteer {
             } else {
                 options.setProtocol(Protocol.CDP);
             }
+        }
+        if(Objects.equals(options.getProtocol(), Protocol.CDP) && Objects.equals(options.getProduct(), Product.Firefox)){
+            throw new LaunchException("Connecting to Firefox using CDP is no longer supported");
         }
         adoptLauncher(puppeteer);
         return puppeteer.getLauncher().launch(options);

@@ -1,12 +1,9 @@
 package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
-import com.ruiyun.jvppeteer.cdp.core.BrowserFetcher;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
-import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -86,7 +83,7 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
             LOGGER.debug("Calling {} {}", this.executablePath, String.join(" ", firefoxArguments));
         }
         Browser browser = createBrowser(options, firefoxArguments, temporaryUserDataDir, usePipe, defaultArgs, customizedUserDataDir);
-        LOGGER.info("Successfully launch the browser, the executablePath is {}, the protocol is {}", this.executablePath,options.getProtocol());
+        LOGGER.info("Successfully launch the browser, the executablePath is {}, the protocol is {}", this.executablePath, options.getProtocol());
         return browser;
     }
 
@@ -96,20 +93,7 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
             prefs.putAll(options.getExtraPrefsFirefox());
         }
         // Only enable the WebDriver BiDi protocol
-//        prefs.put("remote.active-protocols", 1);
-        if (Protocol.WebDriverBiDi.equals(options.getProtocol())) {
-            prefs.put("remote.active-protocols", 1);
-        } else {
-            // Do not close the window when the last tab gets closed
-            prefs.put("browser.tabs.closeWindowWithLastTab", false);
-            // Prevent various error message on the console
-            // jest-puppeteer asserts that no error message is emitted by the console
-            prefs.put("network.cookie.cookieBehavior", 0);
-            // Temporarily force disable BFCache in parent (https://bit.ly/bug-1732263)
-            prefs.put("fission.bfcacheInParent", false);
-            // Only enable the CDP protocol
-            prefs.put("remote.active-protocols", 2);
-        }
+        prefs.put("remote.active-protocols", 1);
         // Force all web content to use a single content process. TODO: remove
         // this once Firefox supports mouse event dispatch from the main frame
         // context. Once this happens, webContentIsolationStrategy should only

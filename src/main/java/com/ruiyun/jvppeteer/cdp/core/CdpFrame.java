@@ -369,11 +369,6 @@ public class CdpFrame extends Frame {
     }
 
     public ElementHandle frameElement() throws JsonProcessingException, EvaluateException {
-        CdpTarget target = (CdpTarget) this.page().target();
-        boolean isFirefox = target.targetManager() instanceof FirefoxTargetManager;
-        if (isFirefox) {
-            return super.frameElement();
-        }
         Frame parentFrame = this.parentFrame();
         if (parentFrame == null) {
             return null;
