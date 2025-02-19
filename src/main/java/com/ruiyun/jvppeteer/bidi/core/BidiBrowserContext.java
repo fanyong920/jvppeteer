@@ -15,6 +15,7 @@ import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PartialCookie;
 import com.ruiyun.jvppeteer.bidi.entities.PermissionOverride;
 import com.ruiyun.jvppeteer.bidi.entities.PermissionState;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
@@ -241,11 +242,11 @@ public class BidiBrowserContext extends BrowserContext {
     }
 
     @Override
-    public void setCookie(CookieParam... cookies) {
+    public void setCookie(CookieData... cookies) {
         if (Objects.isNull(cookies)) {
             return;
         }
-        for (CookieParam cookie : cookies) {
+        for (CookieData cookie : cookies) {
             PartialCookie bidiCookie = new PartialCookie();
             bidiCookie.setDomain(cookie.getDomain());
             bidiCookie.setName(cookie.getName());
@@ -260,7 +261,6 @@ public class BidiBrowserContext extends BrowserContext {
             bidiCookie.setSameParty(cookie.getSameParty());
             bidiCookie.setSourceScheme(cookie.getSourceScheme());
             bidiCookie.setPriority(cookie.getPriority());
-            bidiCookie.setUrl(cookie.getUrl());
             this.userContext.setCookie(bidiCookie, convertCookiesPartitionKeyFromPuppeteerToBiDi(cookie.getPartitionKey()));
         }
     }

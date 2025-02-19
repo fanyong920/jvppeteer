@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.Connection;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.WebPermission;
@@ -132,11 +133,11 @@ public class CdpBrowserContext extends BrowserContext {
     }
 
     @Override
-    public void setCookie(CookieParam... cookies) {
+    public void setCookie(CookieData... cookies) {
         if (Objects.isNull(cookies)) {
             return;
         }
-        for (CookieParam cookie : cookies) {
+        for (CookieData cookie : cookies) {
             cookie.setPartitionKey(Helper.convertCookiesPartitionKeyFromPuppeteerToCdp(cookie.getPartitionKey()));
         }
         Map<String, Object> params = ParamsFactory.create();
