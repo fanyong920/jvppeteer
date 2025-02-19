@@ -160,6 +160,9 @@ public class IsolatedWorld extends Realm {
 
 
     public JSHandle adoptBackendNode(int backendNodeId) throws JsonProcessingException {
+        // This code needs to schedule resolveNode call synchronously (at
+        // least when the context is there) so we cannot unconditionally
+        // await.
         ExecutionContext executionContext = this.executionContext();
         if (executionContext == null) {
             executionContext = this.waitForExecutionContext();

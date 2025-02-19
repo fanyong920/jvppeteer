@@ -286,6 +286,9 @@ public abstract class ElementHandle extends JSHandle {
     @Override
     public void dispose() {
         this.handle.dispose();
+        if(Objects.nonNull(this.isolatedHandle)){
+            this.isolatedHandle.dispose();
+        }
     }
 
     /**

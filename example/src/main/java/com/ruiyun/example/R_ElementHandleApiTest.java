@@ -350,6 +350,74 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         Browser.close();
     }
 
+    /**
+     * 测试$eval和$$eval
+     */
+    @Test
+    public void test110() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
+        //设置html页面，有三个按钮，点击后打印出按钮的文本
+        page.setContent("<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Button Example</title>\n" +
+                "    <style>\n" +
+                "        .button-class {\n" +
+                "            /* 你可以在这里添加CSS样式 */\n" +
+                "            background-color: #4CAF50;\n" +
+                "            /* Green */\n" +
+                "            border: none;\n" +
+                "            color: white;\n" +
+                "            padding: 15px 32px;\n" +
+                "            text-align: center;\n" +
+                "            text-decoration: none;\n" +
+                "            display: inline-block;\n" +
+                "            font-size: 16px;\n" +
+                "            margin: 4px 2px;\n" +
+                "            cursor: pointer;\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "\n" +
+                "<body>\n" +
+                "    <div class=\"button\">\n" +
+                "        <!-- 使用相同的类名 -->\n" +
+                "        <button class=\"button-class\">按钮1</button>\n" +
+                "        <button class=\"button-class\">按钮2</button>\n" +
+                "        <button class=\"button-class3\">按钮3</button>\n" +
+                "    </div>\n" +
+                "    <script>\n" +
+                "        // 通过类名选择所有按钮并添加点击事件监听器\n" +
+                "        document.querySelectorAll('.button-class').forEach(function (button) {\n" +
+                "            button.addEventListener('click', function () {\n" +
+                "                console.log(\"按钮1 或 按钮2被点击了\")\n" +
+                "            });\n" +
+                "        });\n" +
+                "        // 通过类名选择所有按钮并添加点击事件监听器\n" +
+                "        document.querySelectorAll('.button-class3').forEach(function (button) {\n" +
+                "            button.addEventListener('click', function () {\n" +
+                "                console.log(\"按钮3被点击了\")\n" +
+                "            });\n" +
+                "        });\n" +
+                "    </script>\n" +
+                "</body>\n" +
+                "\n" +
+                "</html>");
+
+        //查询所有class =button-class的元素，当前的html页面有2个
+        List<ElementHandle> button1and2 = page.$$(".button-class");
+        for (ElementHandle elementHandle : button1and2) {
+            Object evaluate = elementHandle.evaluate("element  => element.innerText");
+            System.out.println(evaluate);
+        }
+        Browser.close();
+    }
+
 
     /**
      * 列表多选
@@ -560,4 +628,21 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
         Thread.sleep(10000);
         Browser.close();
     }
+
+    /**
+     * ElementHandle.dispose
+     * @throws Exception 异常
+     */
+    @Test
+    public void test17() throws Exception {
+        Browser Browser = Puppeteer.launch(launchOptions);
+        Page page = Browser.newPage();
+        page.setContent("<button>Click me!</button>");
+        ElementHandle button = page.waitForSelector("button");
+        button.click();
+        button.dispose();
+        Browser.close();
+    }
+
+
 }

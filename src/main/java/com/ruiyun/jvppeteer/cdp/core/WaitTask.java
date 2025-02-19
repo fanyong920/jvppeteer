@@ -117,7 +117,7 @@ public class WaitTask {
         this.world.taskManager.delete(this);
         if (Objects.nonNull(this.poller)) {
             try {
-                this.poller.evaluateHandle("async poller => {\n" +
+                this.poller.evaluate("async poller => {\n" +
                         "          await poller.stop();\n" +
                         "        }");
                 if (Objects.nonNull(this.poller)) {
