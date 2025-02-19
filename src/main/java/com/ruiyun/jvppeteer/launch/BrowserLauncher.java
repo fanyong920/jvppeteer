@@ -12,7 +12,6 @@ import com.ruiyun.jvppeteer.cdp.core.BrowserRunner;
 import com.ruiyun.jvppeteer.cdp.core.CdpBrowser;
 import com.ruiyun.jvppeteer.cdp.entities.ConnectOptions;
 import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
-import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
@@ -51,9 +50,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import static com.ruiyun.jvppeteer.util.Helper.getVersion;
 
 public abstract class BrowserLauncher {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BrowserLauncher.class);
@@ -248,7 +244,7 @@ public abstract class BrowserLauncher {
 
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
         Runnable closeCallback = runner::closeBrowser;
-        CdpBrowser cdpBrowser = CdpBrowser.create(options.getProduct(), connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
+        CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);
         if (options.getWaitForInitialPage()) {
@@ -265,7 +261,7 @@ public abstract class BrowserLauncher {
                 }
             }
         });
-        runner.setPid(getBrowserPid(connection,runner.getProcess()));
+        runner.setPid(getBrowserPid(connection, runner.getProcess()));
         return cdpBrowser;
     }
 
@@ -276,7 +272,7 @@ public abstract class BrowserLauncher {
     /**
      * 通过cdp的SystemInfo.getProcessInfo获取浏览器pid，如果通过cdp没获取pid，并且是mac或者linux平台，那么尝试通过反射获取pid
      */
-    private String getBrowserPid(Connection connection,Process process) {
+    private String getBrowserPid(Connection connection, Process process) {
         long pid = -1;
         try {
             JsonNode response = connection.send("SystemInfo.getProcessInfo");
@@ -334,9 +330,7 @@ public abstract class BrowserLauncher {
         List<String> browserContextIds;
         Runnable closeCallback = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
-        GetVersionResponse version = getVersion(connection);
-        Product product = version.getProduct().toLowerCase().contains("firefox") ? Product.Firefox : Product.Chrome;
-        return CdpBrowser.create(product, connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true);
+        return CdpBrowser.create(connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true);
     }
 
     private BidiBrowser connectToBiDiBrowse(ConnectionTransport connectionTransport, String url, ConnectOptions options) throws JsonProcessingException {

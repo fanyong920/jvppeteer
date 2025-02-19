@@ -53,7 +53,8 @@ public class CdpCDPSession extends CDPSession {
 
     public CDPSession parentSession() {
         if (StringUtil.isEmpty(this.parentSessionId)) {
-            // To make it work in Firefox that does not have parent (tab) sessions.
+            // In some cases, e.g., DevTools pages there is no parent session. In this
+            // case, we treat the current session as the parent session.
             return this;
         }
         if (Objects.nonNull(this.connection)) {

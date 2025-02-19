@@ -51,7 +51,6 @@ public class CdpBrowser extends Browser {
     private final Process process;
     private final Connection connection;
     private final Runnable closeCallback;
-    private final Product product;
     private Function<Target, Boolean> isPageTargetCallback;
     private final CdpBrowserContext defaultContext;
     private final Map<String, CdpBrowserContext> contexts = new HashMap<>();
@@ -60,9 +59,8 @@ public class CdpBrowser extends Browser {
     private List<String> defaultArgs;
 
 
-    protected CdpBrowser(Product product, Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
         super();
-        this.product = product;
         this.defaultViewport = viewport;
         this.process = process;
         this.connection = connection;
@@ -75,7 +73,7 @@ public class CdpBrowser extends Browser {
             targetFilterCallback = (ignore) -> true;
         }
         this.setIsPageTargetCallback(isPageTargetCallback);
-        this.targetManager = new ChromeTargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
+        this.targetManager = new TargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
         this.defaultContext = new CdpBrowserContext(connection, this, "");
         if (ValidateUtil.isNotEmpty(contextIds)) {
             for (String contextId : contextIds) {
@@ -306,8 +304,8 @@ public class CdpBrowser extends Browser {
     }
 
 
-    public static CdpBrowser create(Product product, Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
-        CdpBrowser cdpBrowser = new CdpBrowser(product, connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets);
+    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("ignore", true);
@@ -332,10 +330,6 @@ public class CdpBrowser extends Browser {
 
     public void setDefaultArgs(List<String> defaultArgs) {
         this.defaultArgs = defaultArgs;
-    }
-
-    public Product product() {
-        return product;
     }
 
     /**
