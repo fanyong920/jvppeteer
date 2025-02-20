@@ -1,3 +1,2 @@
 Manifest-Version: 1.0
-Main-Class: com.ruiyun.example.Test
-
+Main-Class: com.ruiyun.example.Test2

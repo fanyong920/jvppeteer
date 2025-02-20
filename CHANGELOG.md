@@ -268,3 +268,26 @@
 - [fix:CdpFrame的 loaderId 变量添加 volatile 修饰符](https://github.com/fanyong920/jvppeteer/commit/54351d89dd41b75c04a4d31b61e9a3c6c6a39700)
 - [fix:LifecycleWatcher.checkLifecycle()参数Frame改为CdpFrame，以及格式化代码，frameDetached（）函数名改成onFrameDetached（）](https://github.com/fanyong920/jvppeteer/commit/e8ae3e762218d6d38c56bf0e92b89fbe411c5f86)
 
+### Version Release 3.3.0(2025/2/20)
+
+- [refactor: remove browser-specific code in cdp](https://github.com/fanyong920/jvppeteer/commit/2dfc67b792b97ebc29005545d4faa9cde04a8922)
+
+- [refactor: remove support for Firefox over CDP](https://github.com/fanyong920/jvppeteer/commit/ec72c9f7a71d9cf97a92e2c9561d4724864f1b1c)
+
+- [fix: dispose the isolate handle](https://github.com/fanyong920/jvppeteer/commit/36c02730222da75035d609963c80c9b784808661)
+
+- [fix: BrowserContext的setCookies()的实现，参数改成CookieData](https://github.com/fanyong920/jvppeteer/commit/a2239caf3f0a2052594dca6be0ed121ff8b88928)
+
+- [fix(webdriver): make sure user agent can be set twice](https://github.com/fanyong920/jvppeteer/commit/bc3cce6971826bf502fee47ce727530a5c469360)
+
+- [feat: add keyboard-lock and pointer-lock permissions](https://github.com/fanyong920/jvppeteer/commit/96b3d3764c193d9673d9b59c36c64f670cbd55ee)
+
+- [fix: IsolatedWorld的evaluateHandle() 和 evaluate() 添加方法内的注释](https://github.com/fanyong920/jvppeteer/commit/993a1593ecf7f470513b9c305cc7a534fc36c2eb)
+
+- [feat: Browser类添加cookies()和setCookies()方法](https://github.com/fanyong920/jvppeteer/commit/85b25c9ee9cd8d40beb76ead1060ad9b8e3c8ed1)
+
+- [fix: don't wait for activation if the connection is disconnected](https://github.com/fanyong920/jvppeteer/commit/29188aca9c27331cbabb048eb84de0ded09b7b81)
+
+- [fix(network):propagate CDP error in interception](https://github.com/fanyong920/jvppeteer/commit/598729b9607356125ca57b9cea61859977689bd8)
+
+  

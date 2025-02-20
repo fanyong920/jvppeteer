@@ -8,7 +8,7 @@
 
 Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)  and [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 控制 Chrome for Testing（下面简称 Chrome）或 Firefox。 默认情况下，以  headless （无 UI）模式运行，也可以通过配置运行'有UI'模式。
 
-目前，Jvppeteer 控制 Chrome 仅支持通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 、控制 Firefox 支持 [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi)  和 [DevTools](https://chromedevtools.github.io/devtools-protocol/)，但 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 对于 firefox 来说不是最佳选择。[WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 并不支持所有功能，不支持的功能 会抛出 UnsupportedOperationException,  [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 支持的功能查看： [WebDriver BiDi 支持](https://pptr.nodejs.cn/webdriver-bidi)
+目前，Jvppeteer 控制 Chrome 仅支持通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/) 、控制 Firefox 仅支持 [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi)  。[WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 并不支持所有函数，不支持的功能 会抛出 UnsupportedOperationException,  [WebDriver-bidi](https://pptr.nodejs.cn/webdriver-bidi) 支持的函数查看： [WebDriver BiDi 支持](https://pptr.nodejs.cn/webdriver-bidi)
 
 
 你可以在浏览器中手动执行的绝大多数操作都可以使用 Jvppeteer 来完成！ 下面是一些示例：
@@ -31,7 +31,7 @@ Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>3.2.0</version>
+  <version>3.3.0</version>
 </dependency>
 ```
 
@@ -46,7 +46,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:3.2.0"
+compile "io.github.fanyong920:jvppeteer:3.3.0"
 ```
 
 #### Logging
@@ -73,8 +73,9 @@ compile "io.github.fanyong920:jvppeteer:3.2.0"
 
 下表提供了 Jvppeteer 版本与绑定的浏览器版本之间的映射。如果没有列出完全匹配的 Jvppeteer 版本，则支持的浏览器版本是紧接在前的版本：
 
+|    3.3.0     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 133.0.6943.98  & Firefox stable_135.0 |
+| :----------: | :----------------------------------------------------------: |
 | 3.0.0--3.2.0 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 131.0.6778.87  & Firefox stable_133.0 |
-|:------------:| :----------------------------------------------------------: |
 | 2.2.0--2.2.5 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |
 |    2.1.2     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
 |    2.1.1     | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 128.0.6613.137 |
