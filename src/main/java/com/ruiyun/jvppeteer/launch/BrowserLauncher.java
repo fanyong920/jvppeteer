@@ -235,7 +235,7 @@ public abstract class BrowserLauncher {
                     chromeOutputBuilder.append(line).append(System.lineSeparator());
                     base = System.currentTimeMillis() - now;
                 }
-                throw new LaunchException("Failed to launch the browser process! Chrome process Output: " + chromeOutputBuilder);
+                throw new LaunchException("Failed to launch the browser process! Browser process Output: " + chromeOutputBuilder);
             } catch (Exception e) {
                 throw new LaunchException("Failed to launch the browser process! " + e.getMessage() + "Chrome process Output: " + chromeOutputBuilder, e);
             }
