@@ -486,6 +486,11 @@ public class MockCDPSession extends CDPSession {
     }
 
     @Override
+    public boolean detached() {
+        return false;
+    }
+
+    @Override
     public String id() {
         return "";
     }

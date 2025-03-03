@@ -23,7 +23,7 @@ public class BidiCdpSession extends CDPSession {
     static Map<String, BidiCdpSession> sessions = new ConcurrentHashMap<>();
     final BidiFrame frame;
     private Connection connection;
-    private boolean detached;
+    private volatile boolean detached;
     AwaitableResult<String> sessionIdResult = new AwaitableResult<>();
 
     public BidiCdpSession(BidiFrame frame, String sessionId) {
@@ -54,6 +54,11 @@ public class BidiCdpSession extends CDPSession {
     @Override
     public CdpConnection connection() {
         return null;
+    }
+
+    @Override
+    public boolean detached() {
+        return this.detached;
     }
 
     @Override

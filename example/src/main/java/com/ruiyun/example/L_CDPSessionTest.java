@@ -3,6 +3,8 @@ package com.ruiyun.example;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
@@ -44,6 +46,24 @@ public class L_CDPSessionTest extends A_LaunchTest {
             JsonNode res = session.send("Browser.getVersion");
             System.out.println("version: " + res);
         }
+    }
+
+    @Test
+    public void test4() throws Exception {
+
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        CDPSession cdpSession = page.createCDPSession();
+        Connection connection = cdpSession.connection();
+        cdpSession.detached();
+        System.out.println(connection == cdpSession.connection());//true
+
+
+        CDPSession cdpSession1 = page.createCDPSession();
+
+        System.out.println(cdpSession1.detached());
+        cdpSession1.detach();
+        System.out.println(cdpSession1.detached());
     }
 
 

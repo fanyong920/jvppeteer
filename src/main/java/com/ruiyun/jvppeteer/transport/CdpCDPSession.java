@@ -82,20 +82,17 @@ public class CdpCDPSession extends CDPSession {
     }
 
     public JsonNode send(String method, Object params, Integer timeout, boolean isBlocking) {
-        if (this.closed()) {
+        if (this.detached()) {
             throw new JvppeteerException("Protocol error (" + method + "): Session closed. Most likely the" + this.targetType + "has been closed.");
         }
         return this.connection.rawSend(method, params, this.sessionId, timeout, isBlocking);
     }
 
-    private boolean closed(){
-        return  this.connection.closed() || this.detached;
-    }
     /**
      * 页面分离浏览器
      */
     public void detach() {
-        if (this.closed()) {
+        if (this.detached()) {
             throw new JvppeteerException("Session already detached. Most likely the " + this.targetType + "has been closed.");
         }
         Map<String, Object> params = ParamsFactory.create();
@@ -144,6 +141,11 @@ public class CdpCDPSession extends CDPSession {
 
     public Connection connection() {
         return this.connection;
+    }
+
+    @Override
+    public boolean detached() {
+        return  this.connection.closed() || this.detached;
     }
 
     public String id() {
