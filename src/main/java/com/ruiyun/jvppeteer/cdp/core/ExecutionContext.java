@@ -364,7 +364,10 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
                         String selector = (String) args.get(1);
                         ARIAQueryHandler ariaQueryHandler = new ARIAQueryHandler();
                         try {
-                            return ariaQueryHandler.queryAll(element, selector);
+                            List<ElementHandle> results = ariaQueryHandler.queryAll(element, selector);
+                           return element.realm().evaluateHandle("(...elements) => {\n" +
+                                    "        return elements;\n" +
+                                    "      }",new ArrayList<>(results));
                         } catch (JsonProcessingException e) {
                             return null;
                         }
