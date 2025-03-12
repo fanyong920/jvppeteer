@@ -104,7 +104,7 @@ public class GetQueryHandler {
         String url = "https://parsel.verou.me/dist/nomodule/parsel.js";
         String id = "parsel-js";
         boolean hasParselJsScript = (boolean) page.evaluate("() => {\n" +
-                "  let querySelector = document.querySelector('" + id + "');\n" +
+                "  let querySelector = document.querySelector('#" + id + "');\n" +
                 "  return !!(querySelector && querySelector.scr === '" + url + "');\n" +
                 "}");
         try {
