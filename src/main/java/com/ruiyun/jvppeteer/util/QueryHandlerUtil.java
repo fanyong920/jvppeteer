@@ -70,7 +70,7 @@ public class QueryHandlerUtil {
         customQueryHandlers.clear();
     }
 
-    public static QuerySelector getQueryHandlerAndSelector(String selector, Frame frame) {
+    public static QuerySelector getQueryHandlerAndSelector(String selector, Frame frame) throws JsonProcessingException {
         for (Map.Entry<String, QueryHandler> entry : customQueryHandlers.entrySet()) {
             String name = entry.getKey();
             QueryHandler queryHandler = entry.getValue();
@@ -83,15 +83,12 @@ public class QueryHandlerUtil {
                 }
             }
         }
-        try {
-            SelectorParseResult selectorParseResult = parsePSelectors(selector, frame);
-            if (selectorParseResult.getIsPureCSS()) {
-                return new QuerySelector(selector, customQueryHandlers.get("css"), selectorParseResult.getHasPseudoClasses() ? "raf" : "mutation");
-            }
-            return new QuerySelector(OBJECTMAPPER.writeValueAsString(selectorParseResult.getSelectors()), customQueryHandlers.get("p"), selectorParseResult.getHasAria() ? "raf" : "mutation");
-        } catch (Exception e) {
-            return new QuerySelector(selector, customQueryHandlers.get("css"), "mutation");
+        SelectorParseResult selectorParseResult = parsePSelectors(selector, frame);
+        if (selectorParseResult.getIsPureCSS()) {
+            return new QuerySelector(selector, customQueryHandlers.get("css"), selectorParseResult.getHasPseudoClasses() ? "raf" : "mutation");
         }
+        return new QuerySelector(OBJECTMAPPER.writeValueAsString(selectorParseResult.getSelectors()), customQueryHandlers.get("p"), selectorParseResult.getHasAria() ? "raf" : "mutation");
+
     }
 
     public static SelectorParseResult parsePSelectors(String selector, Frame frame) throws JsonProcessingException {
@@ -104,16 +101,17 @@ public class QueryHandlerUtil {
         List<Object> selectors = new ArrayList<>();
         selectors.add(complexSelector);
         Page page = frame.page();
+        String url = "https://parsel.verou.me/dist/nomodule/parsel.js";
         String id = "parsel-js";
-        boolean hasParselJsScript = (boolean) page.evaluate(" () => {\n" +
-                "  return !!document.querySelector(\"#" + id + "\")\n" +
+        boolean hasParselJsScript = (boolean) page.evaluate("() => {\n" +
+                "  let querySelector = document.querySelector('" + id + "');\n" +
+                "  return !!(querySelector && querySelector.scr === '" + url + "');\n" +
                 "}");
-
         try {
             if (!hasParselJsScript) {
                 FrameAddScriptTagOptions scriptTagOptions = new FrameAddScriptTagOptions();
                 scriptTagOptions.setId(id);
-                scriptTagOptions.setUrl("https://parsel.verou.me/dist/nomodule/parsel.js");
+                scriptTagOptions.setUrl(url);
                 page.addScriptTag(scriptTagOptions);
             }
             Object results = page.evaluate("() => {\n" +

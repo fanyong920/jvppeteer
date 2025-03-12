@@ -278,7 +278,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
      * @param options  包含等待条件的选项，如元素可见或隐藏.
      * @return 返回匹配选择器的目标元素的句柄.
      */
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this);
         options.setPolling(querySelector.getPolling());
         return querySelector.getQueryHandler().waitFor(this, querySelector.getUpdatedSelector(), options);

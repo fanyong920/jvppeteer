@@ -1494,7 +1494,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param selector 要等待的元素选择器
      * @return ElementHandle
      */
-    public ElementHandle waitForSelector(String selector) {
+    public ElementHandle waitForSelector(String selector) throws JsonProcessingException {
         return this.waitForSelector(selector, new WaitForSelectorOptions());
     }
 
@@ -1505,7 +1505,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param options  可选参数
      * @return ElementHandle 返回的handle
      */
-    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
+    public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
         return this.mainFrame().waitForSelector(selector, options);
     }
 
