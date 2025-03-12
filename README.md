@@ -31,7 +31,7 @@ Jvppeteer 通过 [DevTools](https://chromedevtools.github.io/devtools-protocol/)
 <dependency>
   <groupId>io.github.fanyong920</groupId>
   <artifactId>jvppeteer</artifactId>
-  <version>3.3.1</version>
+  <version>3.3.2</version>
 </dependency>
 ```
 
@@ -46,7 +46,7 @@ mavenCentral（）
 然后，您可以将最新版本添加到您的构建中。
 
 ```xml
-compile "io.github.fanyong920:jvppeteer:3.3.1"
+compile "io.github.fanyong920:jvppeteer:3.3.2"
 ```
 
 #### Logging
@@ -73,7 +73,7 @@ compile "io.github.fanyong920:jvppeteer:3.3.1"
 
 下表提供了 Jvppeteer 版本与绑定的浏览器版本之间的映射。如果没有列出完全匹配的 Jvppeteer 版本，则支持的浏览器版本是紧接在前的版本：
 
-| 3.3.0--3.3.1 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 133.0.6943.98  & Firefox stable_135.0 |
+| 3.3.0--3.3.2 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 133.0.6943.98  & Firefox stable_135.0 |
 |:------------:| :----------------------------------------------------------: |
 | 3.0.0--3.2.0 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 131.0.6778.87  & Firefox stable_133.0 |
 | 2.2.0--2.2.5 | [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable) 130.0.6723.58 |

@@ -289,3 +289,7 @@
 - [fix: 添加更多的选择器支持以及测试样例](https://github.com/fanyong920/jvppeteer/commit/e0184d366499a01771c56f1068c50da95f70ab3b)
 - [feat: expose CDPSession.detached()](https://github.com/fanyong920/jvppeteer/commit/730c3730feabe09383973270b13a6069e30797dc)
 - [fix: 启动失败时候的错误日志中 chrome 改成 browser](https://github.com/fanyong920/jvppeteer/commit/a412ebb91d5033f4d2a5c3feb3005ec3eeb03ca8)
+
+### Version Release 3.3.2(2025/3/12)
+
+- [fix: parsel-js前加上#标识符](https://github.com/fanyong920/jvppeteer/commit/37c45ad6874b9fb00805001a9038622ee7e1d87a)
