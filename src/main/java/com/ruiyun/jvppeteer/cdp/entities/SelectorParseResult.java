@@ -4,24 +4,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 
 public class SelectorParseResult {
-    private List<JsonNode> selectors;
+    private List<Object> selectors;
     private boolean isPureCSS;
     private boolean hasPseudoClasses;
     private boolean hasAria;
 
-    public List<JsonNode> getSelectors() {
+    public List<Object> getSelectors() {
         return selectors;
     }
 
-    public void setSelectors(List<JsonNode> selectors) {
+    public void setSelectors(List<Object> selectors) {
         this.selectors = selectors;
     }
 
-    public boolean getPureCSS() {
+    public boolean getIsPureCSS() {
         return isPureCSS;
     }
 
-    public void setPureCSS(boolean pureCSS) {
+    public void setIsPureCSS(boolean pureCSS) {
         isPureCSS = pureCSS;
     }
 

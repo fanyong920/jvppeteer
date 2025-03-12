@@ -1,5 +1,6 @@
 package com.ruiyun.example;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
@@ -27,6 +28,7 @@ import com.ruiyun.jvppeteer.cdp.entities.Metrics;
 import com.ruiyun.jvppeteer.cdp.entities.NewDocumentScriptEvaluation;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat;
 import com.ruiyun.jvppeteer.cdp.entities.ScreencastOptions;
+import com.ruiyun.jvppeteer.cdp.entities.Token;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
@@ -39,7 +41,9 @@ import com.ruiyun.jvppeteer.common.WebPermission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -48,6 +52,7 @@ import org.junit.Test;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 
 public class S_PageApiTest extends A_LaunchTest {
     /**
@@ -234,7 +239,6 @@ public class S_PageApiTest extends A_LaunchTest {
                 "            });\n" +
                 "        });");
         //注入js
-
         ElementHandle elementHandle = page.addScriptTag(options);
         //注入后，再点击看看
         System.out.println("第二次点击...");
@@ -245,7 +249,7 @@ public class S_PageApiTest extends A_LaunchTest {
         //注入jquery.js
         FrameAddScriptTagOptions options2 = new FrameAddScriptTagOptions();
         options2.setId("jquery");
-        options2.setUrl("https://cdn.bootcss.com/jquery/3.4.1/jquery.js");
+        options2.setUrl("https://code.jquery.com/jquery-3.7.1.min.js");
         ElementHandle elementHandle2 = page.addScriptTag(options2);
 
 
@@ -262,7 +266,33 @@ public class S_PageApiTest extends A_LaunchTest {
         button1.dispose();
         button2.dispose();
         button3.dispose();
-        Thread.sleep(5000);
+
+
+        //测试注入parsel-js
+        FrameAddScriptTagOptions options4 = new FrameAddScriptTagOptions();
+        options4.setId("parsel-js");
+
+        options4.setUrl("https://parsel.verou.me/dist/nomodule/parsel.js");
+
+        //注入js
+        ElementHandle elementHandle4 = page.addScriptTag(options4);
+        page.addScriptTag(options4);
+        List<Token> storage = new ArrayList<>();
+        Token token = new Token();
+        token.setContent("#foo");
+        token.setType("id");
+        token.setName("foo");
+        storage.add(token);
+        Object tokens = page.evaluate("(storage) => {\n" +
+                "  return  parsel.stringify(storage);\n" +
+                "}",storage);
+        System.out.println("string "+ token);
+        boolean hasParselJsScript = (boolean) page.evaluate(" () => {\n" +
+                "  return !!document.querySelectorAll(\"#parsel-js\")\n" +
+                "}");
+        System.out.println("hasParselJsScript "+hasParselJsScript);
+        elementHandle4.dispose();
+        Thread.sleep(15000);
         browser.close();
     }
 
@@ -423,7 +453,7 @@ public class S_PageApiTest extends A_LaunchTest {
     public void test7() throws Exception {
         Browser browser = Puppeteer.launch(launchOptions);
         //授予百度页面的定位权限
-        browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.GEOLOCATION);
+        browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.Geolocation);
         //打开一个页面
         Page page = browser.newPage();
 
@@ -453,7 +483,7 @@ public class S_PageApiTest extends A_LaunchTest {
         launchOptions.setDevtools(true);
         Browser browser = Puppeteer.launch(launchOptions);
         //授予百度页面的定位权限
-        browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.GEOLOCATION);
+        browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.Geolocation);
         //打开一个页面
         Page page = browser.newPage();
         page.setExtraHTTPHeaders(Collections.singletonMap("foo1", "bar"));
@@ -788,7 +818,9 @@ public class S_PageApiTest extends A_LaunchTest {
         page.tracing().start("C:\\Users\\fanyong\\Desktop\\trace.json");
         page.goTo("https://www.baidu.com/?tn=98012088_10_dg&ch=3");
         page.tracing().stop();
+        Thread.sleep(800000);
         browser.close();
+
     }
 
     /**
@@ -824,7 +856,7 @@ public class S_PageApiTest extends A_LaunchTest {
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/");
         //selector => !!document.querySelector(selector) 返回的就是true或者false
-        JSHandle jsHandle = page.waitForFunction("selector => !!document.querySelector(selector)", new WaitForSelectorOptions(), "#su");
+        JSHandle jsHandle = page.waitForFunction("selector => !!document.querySelector(selector)", "#su");
         System.out.println(jsHandle);
 //        browser.close();
         Thread.sleep(5000);

@@ -1,25 +1,36 @@
 package com.ruiyun.jvppeteer.util;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.ruiyun.jvppeteer.api.core.Frame;
+import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.cdp.entities.CompoundPSelector;
+import com.ruiyun.jvppeteer.cdp.entities.FrameAddScriptTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.SelectorParseResult;
 import com.ruiyun.jvppeteer.cdp.entities.Token;
 import com.ruiyun.jvppeteer.common.ARIAQueryHandler;
 import com.ruiyun.jvppeteer.common.CSSQueryHandler;
+import com.ruiyun.jvppeteer.common.PQueryHandler;
 import com.ruiyun.jvppeteer.common.PierceQueryHandler;
 import com.ruiyun.jvppeteer.common.QueryHandler;
 import com.ruiyun.jvppeteer.common.QuerySelector;
 import com.ruiyun.jvppeteer.common.TextQueryHandler;
 import com.ruiyun.jvppeteer.common.XPathQueryHandler;
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
+import static java.util.regex.Pattern.MULTILINE;
 
 public class QueryHandlerUtil {
 
@@ -27,45 +38,23 @@ public class QueryHandlerUtil {
 
     private static final List<String> QUERY_SEPARATORS = Arrays.asList("=", "/");
 
-    private static final Pattern attribute = Pattern.compile("\\[\\s*(?:(?<namespace>\\*|[-\\w\\P{ASCII}]*)\\|)?(?<name>[-\\w\\P{ASCII}]+)\\s*(?:(?<operator>\\W?=)\\s*(?<value>.+?)\\s*(\\s(?<caseSensitive>[iIsS]))?\\s*)?\\]", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern clazz = Pattern.compile("\\.(?<name>[-\\w\\P{ASCII}]+)", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern combinator = Pattern.compile("\\s*(>>>>?|[\\s>+~])\\s*", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern comma = Pattern.compile("\\s*,\\s*");// /g
-    private static final Pattern id = Pattern.compile("#(?<name>[-\\w\\P{ASCII}]+)", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern nesting = Pattern.compile("&");// /g
-    private static final Pattern pseudo_class = Pattern.compile(":(?<name>[-\\w\\P{ASCII}]+)(?:\\((?<argument>¶*)\\))?", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern pseudo_element = Pattern.compile("::(?<name>[-\\w\\P{ASCII}]+)(?:\\((?<argument>¶*)\\))?", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern type = Pattern.compile("(?:(?<namespace>\\*|[-\\w\\P{ASCII}]*)\\|)?(?<name>[-\\w\\P{ASCII}]+)", Pattern.UNICODE_CASE);// /gu
-    private static final Pattern universal = Pattern.compile("(?:(?<namespace>\\*|[-\\w\\P{ASCII}]*)\\|)?\\*", Pattern.UNICODE_CASE);// /gu
-    private static final Map<String, Pattern> patterns = new HashMap<>();
-
     static {
-        patterns.put("attribute", attribute);
-        patterns.put("class", clazz);
-        patterns.put("combinator", combinator);
-        patterns.put("comma", comma);
-        patterns.put("id", id);
-        patterns.put("nesting", nesting);
-        patterns.put("pseudo-class", pseudo_class);
-        patterns.put("pseudo-element", pseudo_element);
-        patterns.put("type", type);
-        patterns.put("universal", universal);
         customQueryHandlers.put("aria", new ARIAQueryHandler());
         customQueryHandlers.put("pierce", new PierceQueryHandler());
         customQueryHandlers.put("xpath", new XPathQueryHandler());
         customQueryHandlers.put("text", new TextQueryHandler());
         customQueryHandlers.put("css", new CSSQueryHandler());
+        customQueryHandlers.put("p", new PQueryHandler());
 
     }
 
     public static void registerCustomQueryHandler(String name, QueryHandler handler) {
         if (customQueryHandlers.containsKey(name))
-            throw new RuntimeException("A custom query handler named " + name + " already exists");
+            throw new JvppeteerException("A custom query handler named " + name + " already exists");
         Pattern pattern = Pattern.compile("^[a-zA-Z]+$");
         Matcher isValidName = pattern.matcher(name);
         if (!isValidName.matches())
             throw new IllegalArgumentException("Custom query handler names may only contain [a-zA-Z]");
-
         customQueryHandlers.put(name, handler);
     }
 
@@ -81,7 +70,7 @@ public class QueryHandlerUtil {
         customQueryHandlers.clear();
     }
 
-    public static QuerySelector getQueryHandlerAndSelector(String selector) {
+    public static QuerySelector getQueryHandlerAndSelector(String selector, Frame frame) {
         for (Map.Entry<String, QueryHandler> entry : customQueryHandlers.entrySet()) {
             String name = entry.getKey();
             QueryHandler queryHandler = entry.getValue();
@@ -94,155 +83,147 @@ public class QueryHandlerUtil {
                 }
             }
         }
-        boolean hasPseudoClasses;
-        Pattern pattern = Pattern.compile(":(?<name>[-\\w\\P{ASCII}]+)(?:\\((?<argument>¶*)\\))?", Pattern.UNICODE_CASE);
-        Matcher matcher = pattern.matcher(selector);
-        hasPseudoClasses = matcher.find();
-        if (hasPseudoClasses) {
-            return new QuerySelector(selector, customQueryHandlers.get("css"), "raf");
-        } else {
+        try {
+            SelectorParseResult selectorParseResult = parsePSelectors(selector, frame);
+            if (selectorParseResult.getIsPureCSS()) {
+                return new QuerySelector(selector, customQueryHandlers.get("css"), selectorParseResult.getHasPseudoClasses() ? "raf" : "mutation");
+            }
+            return new QuerySelector(OBJECTMAPPER.writeValueAsString(selectorParseResult.getSelectors()), customQueryHandlers.get("p"), selectorParseResult.getHasAria() ? "raf" : "mutation");
+        } catch (Exception e) {
             return new QuerySelector(selector, customQueryHandlers.get("css"), "mutation");
         }
     }
 
-    //todo
-    public static SelectorParseResult parsePSelectors(String selector) {
-        SelectorParseResult result = new SelectorParseResult();
+    public static SelectorParseResult parsePSelectors(String selector, Frame frame) throws JsonProcessingException {
+        SelectorParseResult selectorParseResult = new SelectorParseResult();
+        selectorParseResult.setIsPureCSS(true);
+        List<Token> storage = new ArrayList<>();
+        List<Object> compoundSelector = new ArrayList<>();
+        List<Object> complexSelector = new ArrayList<>();
+        complexSelector.add(compoundSelector);
+        List<Object> selectors = new ArrayList<>();
+        selectors.add(complexSelector);
+        Page page = frame.page();
+        String id = "parsel-js";
+        boolean hasParselJsScript = (boolean) page.evaluate(" () => {\n" +
+                "  return !!document.querySelector(\"#" + id + "\")\n" +
+                "}");
 
-        List<Token> tokens = tokenize(selector);
-        return result;
+        try {
+            if (!hasParselJsScript) {
+                FrameAddScriptTagOptions scriptTagOptions = new FrameAddScriptTagOptions();
+                scriptTagOptions.setId(id);
+                scriptTagOptions.setUrl("https://parsel.verou.me/dist/nomodule/parsel.js");
+                page.addScriptTag(scriptTagOptions);
+            }
+            Object results = page.evaluate("() => {\n" +
+                    "parsel.TOKENS.nesting = /&/g;\n" +
+                    "parsel.TOKENS.combinator = /\\s*(>>>>?|[\\s>+~])\\s*/g;" +
+                    "  return parsel.tokenize('" + selector + "');\n" +
+                    "}");
+            if (Objects.nonNull(results)) {
+                ArrayList<Token> tokens = OBJECTMAPPER.convertValue(results, new TypeReference<ArrayList<Token>>() {
+                });
+                for (Token token : tokens) {
+                    switch (token.getType()) {
+                        case "combinator":
+                            switch (token.getContent()) {
+                                case ">>>":
+                                    selectorParseResult.setIsPureCSS(false);
+                                    if (!storage.isEmpty()) {
+                                        compoundSelector.add(page.evaluate("(storage) => {\n" +
+                                                "  return  parsel.stringify(storage);\n" +
+                                                "}", storage));
+                                        storage.clear();
+                                    }
+                                    compoundSelector = new ArrayList<>();
+                                    complexSelector.add(">>>");
+                                    complexSelector.add(compoundSelector);
+                                    continue;
+                                case ">>>>":
+                                    selectorParseResult.setIsPureCSS(false);
+                                    if (!storage.isEmpty()) {
+                                        compoundSelector.add(page.evaluate("(storage) => {\n" +
+                                                "  return  parsel.stringify(storage);\n" +
+                                                "}", storage));
+                                        storage.clear();
+                                    }
+                                    compoundSelector = new ArrayList<>();
+                                    complexSelector.add(">>>>");
+                                    complexSelector.add(compoundSelector);
+                                    continue;
+                            }
+                            break;
+                        case "pseudo-element":
+                            if (!token.getName().startsWith("-p-")) {
+                                break;
+                            }
+                            selectorParseResult.setIsPureCSS(false);
+                            if (!storage.isEmpty()) {
+                                compoundSelector.add(page.evaluate("(storage) => {\n" +
+                                        "  return  parsel.stringify(storage);\n" +
+                                        "}", storage));
+                                storage.clear();
+                            }
+                            String name = token.getName().substring(3);
+                            if ("aria".equals(name)) {
+                                selectorParseResult.setHasAria(true);
+                            }
+                            compoundSelector.add(new CompoundPSelector(name, unquote(token.getArgument())));
+                            continue;
+                        case "pseudo-class":
+                            selectorParseResult.setHasPseudoClasses(true);
+                            break;
+                        case "comma":
+                            if (!storage.isEmpty()) {
+                                compoundSelector.add(page.evaluate("(storage) => {\n" +
+                                        "  return  parsel.stringify(storage);\n" +
+                                        "}", storage));
+                                storage.clear();
+                            }
+                            compoundSelector = new ArrayList<>();
+                            complexSelector = new ArrayList<>();
+                            selectors.add(complexSelector);
+                            continue;
+                    }
+                    storage.add(token);
+                }
+                if (!storage.isEmpty()) {
+                    compoundSelector.add(page.evaluate("(storage) => {\n" +
+                            "  return  parsel.stringify(storage);\n" +
+                            "}", storage));
+                }
+            }
+        } catch (IOException e) {
+            throw new JvppeteerException(e);
+        }
+        selectorParseResult.setSelectors(selectors);
+        return selectorParseResult;
     }
 
-    public static List<Token> tokenize(String selector) {
-        Map<Integer, Token> tokens = new TreeMap<>();
-        StringTokenizer st = new StringTokenizer(selector);
-        int i = 0;
-        while (st.hasMoreElements()) {
-            String nextSelector = st.nextToken();
-            i++;
-            for (Map.Entry<String, Pattern> entry : patterns.entrySet()) {
-                String type = entry.getKey();
-                Pattern pattern = entry.getValue();
-                if (Objects.equals("attribute", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        String content = matcher.group();
-                        token.setContent(content);
-                        token.setType(type);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("class", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setName(content.substring(1));
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("combinator", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("comma", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("id", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        token.setName(content.substring(1));
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("nesting", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("pseudo-class", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("pseudo-element", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        token.setName(content.replace("::", ""));
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("type", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        token.setName(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                } else if (Objects.equals("universal", type)) {
-                    Matcher matcher = pattern.matcher(nextSelector);
-                    boolean matches = matcher.matches();
-                    if (matches) {
-                        Token token = new Token();
-                        token.setType(type);
-                        String content = matcher.group();
-                        token.setContent(content);
-                        tokens.put(i, token);
-                        System.out.println("第" + i + "个： " + nextSelector + " " + token);
-                    }
-                }
+    private static final Pattern ESCAPE_PATTERN = Pattern.compile("\\\\[\\s\\S]", MULTILINE);
 
-            }
+    private static String unquote(String text) {
+        if (Objects.isNull(text)) {
+            text = "";
         }
+        if (text.length() <= 1) {
+            return text;
+        }
+        if ((text.startsWith("'") || text.startsWith("\"") && text.endsWith(text.substring(0, 1)))) {
+            text = text.substring(1, text.length() - 1);
+        }
+        return unescape(text);
+    }
 
-        return new ArrayList<>(tokens.values());
+    private static String unescape(String text) {
+        Matcher matcher = ESCAPE_PATTERN.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(sb, matcher.group(1));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 
 }

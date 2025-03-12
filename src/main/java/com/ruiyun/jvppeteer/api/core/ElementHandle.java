@@ -318,7 +318,7 @@ public abstract class ElementHandle extends JSHandle {
      * @throws EvaluateException       JS函数执行异常
      */
     public ElementHandle $(String selector) throws JsonProcessingException, EvaluateException {
-        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this.frame());
         JSHandle handle = this.adoptIsolatedHandle().evaluateHandle(queryHandlerAndSelector.getQueryHandler().querySelector(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector(), new LazyArg()));
         ElementHandle element = handle.asElement();
         if (Objects.nonNull(element)) {
@@ -336,7 +336,7 @@ public abstract class ElementHandle extends JSHandle {
      * @throws EvaluateException       JS函数执行异常
      */
     public List<ElementHandle> $$(String selector) throws JsonProcessingException, EvaluateException {
-        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
+        QuerySelector queryHandlerAndSelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this.frame());
         JSHandle arrayHandle = this.adoptIsolatedHandle().evaluateHandle(queryHandlerAndSelector.getQueryHandler().querySelectorAll(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector(), new LazyArg()));
         Map<String, JSHandle> properties = this.adoptResult(arrayHandle.getProperties());
         arrayHandle.dispose();
@@ -1243,7 +1243,7 @@ public abstract class ElementHandle extends JSHandle {
      * @return 返回匹配选择器的目标元素的句柄.
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
-        QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
+        QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this.frame());
         options.setPolling(querySelector.getPolling());
         return querySelector.getQueryHandler().waitFor(this.adoptIsolatedHandle(), querySelector.getUpdatedSelector(), options);
     }

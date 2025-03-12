@@ -279,7 +279,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
      * @return 返回匹配选择器的目标元素的句柄.
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) {
-        QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector);
+        QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this);
         options.setPolling(querySelector.getPolling());
         return querySelector.getQueryHandler().waitFor(this, querySelector.getUpdatedSelector(), options);
     }
