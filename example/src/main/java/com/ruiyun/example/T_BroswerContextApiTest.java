@@ -8,7 +8,7 @@ import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
-import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.CookiePriority;
 import com.ruiyun.jvppeteer.cdp.entities.CookieSameSite;
 import com.ruiyun.jvppeteer.cdp.entities.CookieSourceScheme;
@@ -48,7 +48,7 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
         Browser cdpBrowser1 = browserContext.browser();
         System.out.println("broswer equals:" + (cdpBrowser1 == browser));
         //overridePermissions方法在webdriver下会报错
-        browserContext.overridePermissions("https://www.baidu.com", WebPermission.PERSISTENT_STORAGE);
+        browserContext.overridePermissions("https://www.baidu.com", WebPermission.Persistent_storage);
         browserContext.clearPermissionOverrides();
         page1.goTo("https://www.baidu.com");
         browserContext.close();
@@ -86,17 +86,17 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
         Browser browser = Puppeteer.launch(launchOptions);
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
-        page.goTo("https://www.baidu.com");
+        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         List<Cookie> cookies = defaultBrowserContext.cookies();
         for (Cookie cookie : cookies) {
             System.out.println("context cookie: " + cookie);
         }
 
-        defaultBrowserContext.deleteCookie(cookies.get(0));
-
+        defaultBrowserContext.deleteCookie(cookies.get(0), cookies.get(1));
+        System.out.println("------------------分割线----------------");
         List<Cookie> cookies2 = defaultBrowserContext.cookies();
         for (Cookie cookie : cookies2) {
-            System.out.println("context cookie: " + cookie);
+            System.out.println("context2 cookie: " + cookie);
         }
     }
 
@@ -111,14 +111,13 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
         page.goTo("https://www.baidu.com");
-        CookieParam cookieParam = new CookieParam();
+        CookieData cookieParam = new CookieData();
         cookieParam.setName("customCookie");
         cookieParam.setValue("coo");
         cookieParam.setDomain(".baidu.com");
         cookieParam.setPath("/");
         //10S后过期
         cookieParam.setExpires(System.currentTimeMillis() / 1000 + 10);
-        cookieParam.setUrl("https://www.baidu.com");
         cookieParam.setPriority(CookiePriority.High);
         cookieParam.setSameSite(CookieSameSite.Strict);
         cookieParam.setSecure(true);
