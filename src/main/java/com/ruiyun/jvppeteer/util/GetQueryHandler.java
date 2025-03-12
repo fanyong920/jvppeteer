@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static java.util.regex.Pattern.MULTILINE;
 
-public class QueryHandlerUtil {
+public class GetQueryHandler {
 
     private static final Map<String, QueryHandler> customQueryHandlers = new HashMap<>();
 

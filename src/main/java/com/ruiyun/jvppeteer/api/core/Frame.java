@@ -14,7 +14,7 @@ import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.QuerySelector;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
-import com.ruiyun.jvppeteer.util.QueryHandlerUtil;
+import com.ruiyun.jvppeteer.util.GetQueryHandler;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.io.IOException;
@@ -279,7 +279,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
      * @return 返回匹配选择器的目标元素的句柄.
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
-        QuerySelector querySelector = QueryHandlerUtil.getQueryHandlerAndSelector(selector,this);
+        QuerySelector querySelector = GetQueryHandler.getQueryHandlerAndSelector(selector,this);
         options.setPolling(querySelector.getPolling());
         return querySelector.getQueryHandler().waitFor(this, querySelector.getUpdatedSelector(), options);
     }
