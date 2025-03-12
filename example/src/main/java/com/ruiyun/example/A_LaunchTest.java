@@ -3,11 +3,11 @@ package com.ruiyun.example;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
+import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
+import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Protocol;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
-import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,13 +16,14 @@ import org.junit.Test;
 
 public class A_LaunchTest {
     public final LaunchOptions launchOptions = LaunchOptions.builder().
-            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
-//            executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe").
-            protocol(Protocol.CDP).
-            product(Product.Chrome).
+//            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").
+//            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
+//        executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe").
+//        product(Product.Firefox).
             headless(false).
+//            protocol(Protocol.CDP).
             //不设置窗口大小
-            defaultViewport(null).
+                    defaultViewport(null).
             build();
 
 
@@ -36,7 +37,7 @@ public class A_LaunchTest {
         args.add("--no-sandbox");
         launchOptions.setArgs(args);
         launchOptions.setDumpio(true);
-        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\typescriptPri");
+//        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\typescriptPri");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -161,6 +162,7 @@ public class A_LaunchTest {
         browser1.close();
 
         launchOptions.setProduct(Product.Chrome);
+        launchOptions.setProtocol(Protocol.CDP);
         Browser browser2 = Puppeteer.launch(launchOptions);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
@@ -181,24 +183,24 @@ public class A_LaunchTest {
      */
     @Test
     public void test97() throws Exception {
-        try (Browser browser = getBrowser()) {
-            //打开一个页面
-            Page page = browser.newPage();
-            Target target1 = null;
-            try {
-                target1 = page.target();
-            } catch (UnsupportedOperationException e) {
-                System.out.println("webdriver bidi 不支持 page.target() 方法");
-            }
-            if (Objects.nonNull(target1)) {
-                System.out.println("one type=" + target1.type() + ", url=" + target1.url());
-            }
-            List<Target> targets = browser.targets();
-            //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
-            for (Target target : targets) {
-                System.out.println("two type=" + target.type() + ", url=" + target.url());
-            }
+        Browser browser = getBrowser();
+        //打开一个页面
+        Page page = browser.newPage();
+        Target target1 = null;
+        try {
+            target1 = page.target();
+        } catch (UnsupportedOperationException e) {
+            System.out.println("webdriver bidi 不支持 page.target() 方法");
         }
+        if (Objects.nonNull(target1)) {
+            System.out.println("one type=" + target1.type() + ", url=" + target1.url());
+        }
+        List<Target> targets = browser.targets();
+        //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
+        for (Target target : targets) {
+            System.out.println("two type=" + target.type() + ", url=" + target.url());
+        }
+        browser.close();
     }
 
     @Test
@@ -275,7 +277,7 @@ public class A_LaunchTest {
     @Test
     public void test18() throws Exception {
         launchOptions.setProduct(Product.Firefox);
-        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe");
+//        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -298,6 +300,7 @@ public class A_LaunchTest {
 
     /**
      * 测试timeout,0 代表无限等待
+     *
      * @throws Exception
      */
     @Test
@@ -324,6 +327,11 @@ public class A_LaunchTest {
     }
 
     public Browser getBrowser() throws Exception {
+        ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
+        args.add("--no-sandbox");
+        launchOptions.setProtocolTimeout(180_000);
+        launchOptions.setTimeout(180_000);
+        launchOptions.setArgs(args);
         return Puppeteer.launch(launchOptions);
     }
 }

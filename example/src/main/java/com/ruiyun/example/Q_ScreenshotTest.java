@@ -2,6 +2,7 @@ package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
+import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
@@ -14,7 +15,6 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
-import com.ruiyun.jvppeteer.util.Helper;
 import java.util.Collections;
 import java.util.function.Consumer;
 import org.junit.Test;
@@ -137,7 +137,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         Page page = browser.newPage();
         GoToOptions options = new GoToOptions();
         options.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
-        page.goTo("https://www.baidu.com/s?wd=jvppeteer&rsv_spt=1&rsv_iqid=0x864033a90040d9e7&issp=1&f=8&rsv_bp=1&rsv_idx=2&ie=utf-8&tn=68018901_16_pg&rsv_enter=1&rsv_dl=tb&rsv_sug3=9&rsv_sug1=7&rsv_sug7=100&rsv_sug2=0&rsv_btype=i&inputT=1778&rsv_sug4=1778", options);
+        page.goTo("https://www.ruanyifeng.com/blog/2025/01/weekly-issue-332.html", options);
         ElementScreenshotOptions screenshotOptions = new ElementScreenshotOptions();
         screenshotOptions.setFromSurface(true);
         screenshotOptions.setPath("long.png");
@@ -154,7 +154,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
         Browser browser = Puppeteer.launch(launchOptions);
         //打开一个页面
         Page page = browser.newPage();
-        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("console: "+message.text()));
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("console: " + message.text()));
         WaitForOptions waitForOptions = new WaitForOptions();
         waitForOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
 
@@ -172,16 +172,52 @@ public class Q_ScreenshotTest extends A_LaunchTest {
                 "</html>", waitForOptions);
         WaitForSelectorOptions options = new WaitForSelectorOptions();
         options.setVisible(true);
-        ElementHandle elementHandle = page.waitForSelector("#icon-home",options);
-        while (true){
+        ElementHandle elementHandle = page.waitForSelector("#icon-home", options);
+        while (true) {
             Object complete = elementHandle.evaluate("(element) => {\n" +
                     "    return element.complete\n" +
                     "}");
-            if((boolean)complete){
+            if ((boolean) complete) {
                 break;
             }
         }
 
+        ElementScreenshotOptions screenshotOptions = new ElementScreenshotOptions();
+        screenshotOptions.setFromSurface(true);
+        screenshotOptions.setPath("图片.png");
+        screenshotOptions.setFullPage(true);
+        page.screenshot(screenshotOptions);
+        browser.close();
+    }
+
+    //等待图片加载完毕
+    @Test
+    public void test10() throws Exception {
+        launchOptions.setDevtools(true);
+        Browser browser = Puppeteer.launch(launchOptions);
+        //打开一个页面
+        Page page = browser.newPage();
+        page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("console: " + message.text()));
+
+        page.setContent(" <!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Icon Home Example</title>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "    <h1>Home Icon Example</h1>\n" +
+                "    <img id=\"icon-home\" src='https://cdn-icons-png.flaticon.com/512/3222/3222434.png'></img>\n" +
+                "</body>\n" +
+                "</html>");
+        WaitForSelectorOptions options = new WaitForSelectorOptions();
+        options.setVisible(true);
+        ElementHandle elementHandle = page.waitForSelector("#icon-home", options);
+        JSHandle jsHandle = page.waitForFunction("(element) => {\n" +
+                "    return element.complete;\n" +
+                "}", elementHandle);
+        System.out.println("图片加载完毕" + jsHandle);
         ElementScreenshotOptions screenshotOptions = new ElementScreenshotOptions();
         screenshotOptions.setFromSurface(true);
         screenshotOptions.setPath("图片.png");

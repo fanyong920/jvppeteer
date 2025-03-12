@@ -29,6 +29,9 @@ public class J_RequestTest extends A_LaunchTest {
             String version = browser.version();
             page.on(PageEvents.Request, (Consumer<Request>) request -> {
                         System.out.println("header:"+request.headers());
+                        request.redirectChain().forEach(request1 -> {
+                            System.out.println("url: " + request1.url() + ", id: " + request1.id());
+                        });
                     }
             );
             page.on(PageEvents.Response, (Consumer<Response>) response -> {

@@ -115,7 +115,7 @@ public class E_PageEventsTest extends A_LaunchTest {
 
         page.goTo("https://www.baidu.com/");
         WaitForSelectorOptions waitForSelectorOptions = new WaitForSelectorOptions();
-        waitForSelectorOptions.setTimeout(5000);
+        waitForSelectorOptions.setTimeout(0);
         ElementHandle elementHandle = page.waitForSelector("#su", waitForSelectorOptions);
         if (Objects.nonNull(elementHandle)) {
             System.out.println("wait for selector: " + elementHandle);
