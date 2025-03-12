@@ -271,23 +271,21 @@
 ### Version Release 3.3.0(2025/2/20)
 
 - [refactor: remove browser-specific code in cdp](https://github.com/fanyong920/jvppeteer/commit/2dfc67b792b97ebc29005545d4faa9cde04a8922)
-
 - [refactor: remove support for Firefox over CDP](https://github.com/fanyong920/jvppeteer/commit/ec72c9f7a71d9cf97a92e2c9561d4724864f1b1c)
-
 - [fix: dispose the isolate handle](https://github.com/fanyong920/jvppeteer/commit/36c02730222da75035d609963c80c9b784808661)
-
 - [fix: BrowserContext的setCookies()的实现，参数改成CookieData](https://github.com/fanyong920/jvppeteer/commit/a2239caf3f0a2052594dca6be0ed121ff8b88928)
-
 - [fix(webdriver): make sure user agent can be set twice](https://github.com/fanyong920/jvppeteer/commit/bc3cce6971826bf502fee47ce727530a5c469360)
-
 - [feat: add keyboard-lock and pointer-lock permissions](https://github.com/fanyong920/jvppeteer/commit/96b3d3764c193d9673d9b59c36c64f670cbd55ee)
-
 - [fix: IsolatedWorld的evaluateHandle() 和 evaluate() 添加方法内的注释](https://github.com/fanyong920/jvppeteer/commit/993a1593ecf7f470513b9c305cc7a534fc36c2eb)
-
 - [feat: Browser类添加cookies()和setCookies()方法](https://github.com/fanyong920/jvppeteer/commit/85b25c9ee9cd8d40beb76ead1060ad9b8e3c8ed1)
-
 - [fix: don't wait for activation if the connection is disconnected](https://github.com/fanyong920/jvppeteer/commit/29188aca9c27331cbabb048eb84de0ded09b7b81)
-
 - [fix(network):propagate CDP error in interception](https://github.com/fanyong920/jvppeteer/commit/598729b9607356125ca57b9cea61859977689bd8)
 
-  
+### Version Release 3.3.1(2025/3/12)
+
+- [fix: QueryHandlerUtil rename to GetQueryHandler](https://github.com/fanyong920/jvppeteer/commit/e31927c03e9b4950f87a97511ad2783395fbf6a2)
+- [fix: 添加src属性来判断页面是否存在parsel-js](https://github.com/fanyong920/jvppeteer/commit/14529019eced0cdb0df0a33476617755d49309cf)
+- [fix: ExecutionContext.initPuppeteerUtil()中返回值使用evaluateHandle()方法转化](https://github.com/fanyong920/jvppeteer/commit/be46916d8bf3387e86eb2105fb0cb308ba07052d)
+- [fix: 添加更多的选择器支持以及测试样例](https://github.com/fanyong920/jvppeteer/commit/e0184d366499a01771c56f1068c50da95f70ab3b)
+- [feat: expose CDPSession.detached()](https://github.com/fanyong920/jvppeteer/commit/730c3730feabe09383973270b13a6069e30797dc)
+- [fix: 启动失败时候的错误日志中 chrome 改成 browser](https://github.com/fanyong920/jvppeteer/commit/a412ebb91d5033f4d2a5c3feb3005ec3eeb03ca8)
