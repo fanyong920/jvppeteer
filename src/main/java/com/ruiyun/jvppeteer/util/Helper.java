@@ -473,18 +473,23 @@ public class Helper {
     }
 
     public static <T> T waitForCondition(Supplier<T> conditionChecker, long timeout, String errorMessage) {
-        long now = System.currentTimeMillis();
-        long base = 0;
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+        long checkInterval = 100; // Start with 100ms
+        long maxInterval = 2000; // Maximum interval of 2000ms
         while (true) {
-            long remaining = timeout - base;
-            if (timeout != 0 && remaining <= 0) {
-                throw new TimeoutException(errorMessage);
-            }
             T result = conditionChecker.get();
             if (result != null) {
                 return result;
             }
-            base = System.currentTimeMillis() - now;
+            elapsedTime = System.currentTimeMillis() - startTime;
+            long remaining = timeout - elapsedTime;
+            if (timeout > 0 && remaining <= 0) {
+                throw new TimeoutException(errorMessage);
+            }
+            justWait(Math.min(checkInterval, remaining));
+            // Increase checkInterval gradually, up to maxInterval (exponential backoff)
+            checkInterval = Math.min(checkInterval * 2, maxInterval);
         }
     }
 
