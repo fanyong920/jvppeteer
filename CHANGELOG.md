@@ -293,3 +293,7 @@
 ### Version Release 3.3.2(2025/3/12)
 
 - [fix: parsel-js前加上#标识符](https://github.com/fanyong920/jvppeteer/commit/37c45ad6874b9fb00805001a9038622ee7e1d87a)
+
+### Version Release 3.3.3(2025/3/24)
+
+- [fix:Optimize waitForCondition to Reduce CPU Usage](https://github.com/fanyong920/jvppeteer/commit/9fa4165e40b4e1548f281c429fa766f3d5a6279c)
