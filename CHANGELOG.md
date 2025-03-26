@@ -297,3 +297,7 @@
 ### Version Release 3.3.3(2025/3/24)
 
 - [fix:Optimize waitForCondition to Reduce CPU Usage](https://github.com/fanyong920/jvppeteer/commit/9fa4165e40b4e1548f281c429fa766f3d5a6279c)
+
+### Version Release 3.3.4(2025/3/26)
+
+- [fix:parsel-js由src引入改为本地js代码](https://github.com/fanyong920/jvppeteer/commit/60d7b9daacb5d4d5ebca44cfc6de8bdbd62ee126)
