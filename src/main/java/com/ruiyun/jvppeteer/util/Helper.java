@@ -376,7 +376,9 @@ public class Helper {
         Map<String, Object> params = ParamsFactory.create();
         params.put("objectId", remoteObject.getObjectId());
         try {
-            client.send("Runtime.releaseObject", params);
+            //不关心释放结果，即使释放不成功，那么只是占了页面的一点资源。
+            // 页面在跳转或者关闭的时候，也会自动释放的。
+            client.send("Runtime.releaseObject", params, null, false);
         } catch (Exception e) {
             // Exceptions might happen in case of a page been navigated or closed.
             //重新导航到某个网页 或者页面已经关闭
