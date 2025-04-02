@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.cdp.entities.BoxModel;
 import com.ruiyun.jvppeteer.cdp.entities.ClickOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DragData;
 import com.ruiyun.jvppeteer.cdp.entities.ElementScreenshotOptions;
+import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
 import com.ruiyun.jvppeteer.cdp.entities.KeyPressOptions;
 import com.ruiyun.jvppeteer.cdp.entities.KeyboardTypeOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Offset;
@@ -337,16 +338,7 @@ public abstract class ElementHandle extends JSHandle {
      */
     public List<ElementHandle> $$(String selector) throws JsonProcessingException, EvaluateException {
         QuerySelector queryHandlerAndSelector = GetQueryHandler.getQueryHandlerAndSelector(selector,this.frame());
-        JSHandle arrayHandle = this.adoptIsolatedHandle().evaluateHandle(queryHandlerAndSelector.getQueryHandler().querySelectorAll(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector(), new LazyArg()));
-        Map<String, JSHandle> properties = this.adoptResult(arrayHandle.getProperties());
-        arrayHandle.dispose();
-        List<ElementHandle> result = new ArrayList<>();
-        for (JSHandle property : properties.values()) {
-            ElementHandle elementHandle = property.asElement();
-            if (elementHandle != null)
-                result.add(elementHandle);
-        }
-        return result;
+       return this.adoptResult(queryHandlerAndSelector.getQueryHandler().queryAll(this.adoptIsolatedHandle(), queryHandlerAndSelector.getUpdatedSelector()));
     }
 
 
@@ -415,12 +407,12 @@ public abstract class ElementHandle extends JSHandle {
     public Object $$eval(String selector, String pptrFunction, List<Object> args) throws JsonProcessingException, EvaluateException {
         pptrFunction = withSourcePuppeteerURLIfNone("$$eval", pptrFunction);
         List<ElementHandle> results = this.$$(selector);
-        JSHandle arrayHandle = this.evaluateHandle("(_, ...elements) => {\n" +
+        JSHandle elements = this.evaluateHandle("(_, ...elements) => {\n" +
                 "        return elements;\n" +
                 "      }", new ArrayList<>(results));
-        Object result = arrayHandle.evaluate(pptrFunction, args);
+        Object result = elements.evaluate(pptrFunction,args);
         results.forEach(ElementHandle::dispose);
-        arrayHandle.dispose();
+        elements.dispose();
         return result;
     }
 
