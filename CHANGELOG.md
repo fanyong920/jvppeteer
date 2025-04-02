@@ -302,6 +302,10 @@
 
 - [fix:parsel-js由src引入改为本地js代码](https://github.com/fanyong920/jvppeteer/commit/60d7b9daacb5d4d5ebca44cfc6de8bdbd62ee126)
 
-### Version Release 3.3.5(2025/3/26)
+### Version Release 3.3.5(2025/4/2)
 
-- [fix:parsel-js由src引入改为本地js代码](https://github.com/fanyong920/jvppeteer/commit/60d7b9daacb5d4d5ebca44cfc6de8bdbd62ee126)
+- [fix: releaseObject改为不等待结果的方式](https://github.com/fanyong920/jvppeteer/commit/672905d35e277cc19193a1062f00c6dbf78952cd)
+- [fix: ElementHandle.$$() 方法](https://github.com/fanyong920/jvppeteer/commit/9157c12ae298dff242747f817b0cc1ea70f0cfb2)
+- [fix: parlse-js的注入方式改为用 page.evaluate()方法](https://github.com/fanyong920/jvppeteer/commit/92c50ba80b4f3254080e2960cb4ae1825cb8714d)
+- [fix: ElementHandle.$()修复](https://github.com/fanyong920/jvppeteer/commit/a1037953931faf9c3d0562d9556894c8f1b97666)
+- [fix: WaitTask在完成之后删除任务](https://github.com/fanyong920/jvppeteer/commit/7a7740d6381bd282f35ad1f9bc9fd8677a05bc96)
