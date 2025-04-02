@@ -47,10 +47,8 @@ public class WaitTask {
         } else {
             this.fn = pptrFunction;
         }
-
         Optional.ofNullable(args).ifPresent(args1 -> this.args.addAll(Arrays.asList(args1)));
         this.world.taskManager.add(this);
-
         this.rerunFuture = CompletableFuture.supplyAsync(this::rerun, waitTaskService);
     }
 
@@ -100,9 +98,11 @@ public class WaitTask {
                     "  void poller.start();\n" +
                     "}");
 
-            return this.poller.evaluateHandle("poller => {\n" +
+            JSHandle result = this.poller.evaluateHandle("poller => {\n" +
                     "        return poller.result();\n" +
                     "      }");
+            this.terminate(null);
+            return result;
         } catch (Exception error) {
             Throwable badError = this.getBadError(error);
             if (Objects.nonNull(badError)) {
