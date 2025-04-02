@@ -3,6 +3,7 @@ package com.ruiyun.example;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
+import java.util.List;
 import org.junit.Test;
 
 public class Z_SelectorTest extends A_LaunchTest {
@@ -30,6 +31,7 @@ public class Z_SelectorTest extends A_LaunchTest {
         System.out.println(h2Handle.evaluate("node => node.textContent"));
         browser.close();
     }
+
 
     //文本选择器
     @Test
@@ -86,6 +88,21 @@ public class Z_SelectorTest extends A_LaunchTest {
         if (pierceHandle != null) {
             System.out.println(pierceHandle.evaluate("node => node.textContent"));
         }
+        browser.close();
+    }
+
+    /**
+     * xpath选择器
+     */
+    @Test
+    public void test5() throws Exception {
+        Browser browser = getBrowser();
+        Page page = browser.newPage();
+        page.goTo("http://www.baidu.com");
+        List<ElementHandle> $$ = page.$$("xpath=//span[text()='换一换']");
+        System.out.println($$.get(0).evaluate("node => node.textContent"));
+        Thread.sleep(3000);
+        $$.get(0).click();
         browser.close();
     }
 }
