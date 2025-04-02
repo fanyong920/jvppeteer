@@ -320,8 +320,7 @@ public abstract class ElementHandle extends JSHandle {
      */
     public ElementHandle $(String selector) throws JsonProcessingException, EvaluateException {
         QuerySelector queryHandlerAndSelector = GetQueryHandler.getQueryHandlerAndSelector(selector,this.frame());
-        JSHandle handle = this.adoptIsolatedHandle().evaluateHandle(queryHandlerAndSelector.getQueryHandler().querySelector(), Arrays.asList(queryHandlerAndSelector.getUpdatedSelector(), new LazyArg()));
-        ElementHandle element = handle.asElement();
+        ElementHandle element = queryHandlerAndSelector.getQueryHandler().queryOne(this.adoptIsolatedHandle(), queryHandlerAndSelector.getUpdatedSelector());
         if (Objects.nonNull(element)) {
             return this.adoptResult(element);
         }
