@@ -301,3 +301,7 @@
 ### Version Release 3.3.4(2025/3/26)
 
 - [fix:parsel-js由src引入改为本地js代码](https://github.com/fanyong920/jvppeteer/commit/60d7b9daacb5d4d5ebca44cfc6de8bdbd62ee126)
+
+### Version Release 3.3.5(2025/3/26)
+
+- [fix:parsel-js由src引入改为本地js代码](https://github.com/fanyong920/jvppeteer/commit/60d7b9daacb5d4d5ebca44cfc6de8bdbd62ee126)
