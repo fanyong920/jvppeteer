@@ -105,4 +105,17 @@ public class Z_SelectorTest extends A_LaunchTest {
         $$.get(0).click();
         browser.close();
     }
+
+    /**
+     * 深度组合器
+     */
+    @Test
+    public void test6() throws Exception {
+        Browser browser = getBrowser();
+        Page page = browser.newPage();
+        page.goTo("https://www.bilibili.com/video/BV18FZbYUE3r/?spm_id_from=333.1007.tianma.3-2-8.click&vd_source=e01673c7341a338bf0bbf8bb26a8fe2e");
+        ElementHandle handle = page.waitForSelector("#commentapp > bili-comments >>> div > #feed > bili-comment-thread-renderer:nth-child(1) >>> #comment >>> #content > bili-rich-text >>> #contents > span:nth-child(4)");
+        System.out.println(handle.evaluate("node => node.textContent"));
+        browser.close();
+    }
 }
