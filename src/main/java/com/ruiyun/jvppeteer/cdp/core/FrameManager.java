@@ -94,8 +94,9 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         if (mainFrame == null) {
             return;
         }
-        if(Objects.nonNull(this.client.connection()) && this.client.connection().closed() ){
-            // On connection disconnected remove all frames
+        if(!this.page().browser().connected()){
+            // If the browser is not connected we know
+            // that activation will not happen
             this.removeFramesRecursively(mainFrame);
             return;
         }
