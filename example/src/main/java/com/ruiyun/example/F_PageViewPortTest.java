@@ -9,12 +9,15 @@ import com.ruiyun.jvppeteer.cdp.entities.Device;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import org.junit.Test;
 
-public class F_PageViewPortTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class F_PageViewPortTest {
 
     @Test
     public void test2() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             page.goTo("https://www.baidu.com");
@@ -30,7 +33,7 @@ public class F_PageViewPortTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
 
@@ -47,7 +50,7 @@ public class F_PageViewPortTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
         //启动浏览器
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com");

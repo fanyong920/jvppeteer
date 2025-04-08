@@ -24,14 +24,17 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class R_ElementHandleApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class R_ElementHandleApiTest {
     /**
      * 获取元素信息
      */
     @Test
     public void test3() throws Exception {
 
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = Browser.newPage();
 
@@ -70,7 +73,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
 
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = Browser.newPage();
         page.goTo("https://www.baidu.com");
@@ -99,7 +102,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test5() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = Browser.newPage();
         page.on(PageEvents.PageError, e -> {
@@ -138,8 +141,8 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
     public void test6() throws Exception {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
         args.add("--no-sandbox");
-        launchOptions.setArgs(args);
-        Browser Browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setArgs(args);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = Browser.newPage();
         //打开这个。ElementHandle.drag才有返回值，不打开返回null, setDragInterception(true)已过时
@@ -195,7 +198,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test7() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.setContent("<!DOCTYPE html>\n" +
                 "<html lang=\"zh\">\n" +
@@ -235,7 +238,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test8() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
         GoToOptions goToOptions = new GoToOptions();
@@ -276,7 +279,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test11() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         //设置html页面，有三个按钮，点击后打印出按钮的文本
@@ -355,7 +358,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test110() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         //设置html页面，有三个按钮，点击后打印出按钮的文本
@@ -424,7 +427,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test12() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
         page.setContent("<!DOCTYPE html>\n" +
@@ -502,7 +505,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test13() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.goTo("https://www.baidu.com/");
         page.setViewport(new Viewport(1200, 1200));
@@ -516,7 +519,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test15() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.setContent("<script>\n" +
                 "  function dragstartHandler(ev) {\n" +
@@ -558,7 +561,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
 
     @Test
     public void test16() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         page.setContent("<!DOCTYPE html>\n" +
@@ -635,7 +638,7 @@ public class R_ElementHandleApiTest extends A_LaunchTest {
      */
     @Test
     public void test17() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.setContent("<button>Click me!</button>");
         ElementHandle button = page.waitForSelector("button");

@@ -51,16 +51,17 @@ import java.util.function.Consumer;
 import org.junit.Test;
 
 
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 
-public class S_PageApiTest extends A_LaunchTest {
+public class S_PageApiTest {
     /**
      * goto的几种方式
      */
     @Test
     public void test3() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         //使用默认的参数访问url
@@ -134,8 +135,8 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test3X() throws Exception {
-        launchOptions.setDebuggingPort(9222);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDebuggingPort(9222);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         System.out.println("browser: " + browser.version());
         //打开一个页面
         Page page = browser.newPage();
@@ -159,7 +160,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test4() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         //监听浏览器控制台输出
@@ -298,8 +299,8 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test5() throws Exception {
-//        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+//        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         //不授予任何权限，不然emulateIdleState()，会让页面触发 你的设备使用情况请求弹窗，导致页面停止
@@ -420,8 +421,8 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test6() throws Exception {
-//        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+//        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("ConsoleMessage: " + message.text()));
@@ -451,7 +452,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test7() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //授予百度页面的定位权限
         browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.Geolocation);
         //打开一个页面
@@ -480,8 +481,8 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test8() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //授予百度页面的定位权限
         browser.defaultBrowserContext().overridePermissions("https://www.baidu.com", WebPermission.Geolocation);
         //打开一个页面
@@ -513,7 +514,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test9() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         new Thread(() -> {
             try {
@@ -535,7 +536,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test10() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com");
         Response res = page.waitForResponse(response -> response.url().contains("baidu") && response.status() == 200);
@@ -548,7 +549,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test11() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://pptr.nodejs.cn/api/puppeteer.waitforselectoroptions/");
         WaitForSelectorOptions options = new WaitForSelectorOptions(true, false);
@@ -564,7 +565,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test29() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com");
         //selector 可能改变，及时更换
@@ -581,7 +582,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test12() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.goTo("https://www.baidu.com");
         ElementHandle elementHandle = page.waitForSelector("#su");
@@ -592,7 +593,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test13() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
 //        page.setBypassCSP(true);
 //        page.setBypassServiceWorker(true);
@@ -624,7 +625,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
     @Test
     public void test14() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://smallpdf.com/cn/pdf-to-word");
         //webdriver bidi不支持
@@ -647,7 +648,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test15() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.setViewport(new Viewport(1200, 1200));
         page.setContent("<!DOCTYPE html>\n" +
@@ -723,7 +724,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test16() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         //设置html页面，有三个按钮，点击后打印出按钮的文本
@@ -793,7 +794,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test17() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         //webdriver bidi 不支持
         page.coverage().startJSCoverage(new JSCoverageOptions(true, true, true, true));//会导致不能页面不能加载完成
@@ -812,7 +813,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test18() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         //开启追踪 webdriver bidi 不支持
         page.tracing().start("C:\\Users\\fanyong\\Desktop\\trace.json");
@@ -828,7 +829,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test19() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         new Thread(
                 () -> {
@@ -852,7 +853,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test20() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/");
         //selector => !!document.querySelector(selector) 返回的就是true或者false
@@ -867,8 +868,8 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test21() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println(message.text()));
         String username = "GoogleChromeLabs";
@@ -896,7 +897,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test22() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://example.com/");
         Frame frame = page.waitForFrame("https://example.com/");
@@ -909,7 +910,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test23() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://example.com/");
         Frame frame = page.waitForFrame(frame1 -> frame1.url().contains("example.com"));
@@ -927,7 +928,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test24() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -950,7 +951,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test25() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -975,7 +976,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test26() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -998,7 +999,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test27() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -1022,7 +1023,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test30() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -1044,7 +1045,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test31() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         ScreencastOptions screencastOptions = new ScreencastOptions();
@@ -1069,7 +1070,7 @@ public class S_PageApiTest extends A_LaunchTest {
      */
     @Test
     public void test28() throws Exception {
-        Browser Browser = Puppeteer.launch(launchOptions);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = Browser.newPage();
         page.goTo("https://www.geetest.com/demo/slide-en.html");
         page.waitForNetworkIdle(new WaitForNetworkIdleOptions(NETWORK_IDLE_TIME, 1, null));

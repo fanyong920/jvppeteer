@@ -12,7 +12,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import org.junit.Test;
 
-public class K_PDFTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class K_PDFTest {
     /**
      * 要打印成什么样子的pdf，自己手动在浏览器按Ctrl+p，弹出的窗口就是pdf样式，，再把各个选项点一下，看一下预览效果
      * 然后再回来写代码
@@ -20,7 +23,7 @@ public class K_PDFTest extends A_LaunchTest {
     @Test
     public void test2() throws Exception {
         setPdfOptions();
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS)) {
             Page page = cdpBrowser.newPage();
             GoToOptions goToOptions = new GoToOptions();
             goToOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
@@ -38,16 +41,16 @@ public class K_PDFTest extends A_LaunchTest {
 
     private void setPdfOptions() {
         //pdf必须配置headless = true
-        launchOptions.setHeadless(true);
+        LAUNCHOPTIONS.setHeadless(true);
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
         args.add("--no-sandbox");//pdf必须添加这个参数,不然无法打印，具体看这里https://github.com/puppeteer/puppeteer/issues/12470
-        launchOptions.setArgs(args);
+        LAUNCHOPTIONS.setArgs(args);
     }
 
     @Test
     public void test3() throws Exception {
         setPdfOptions();
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             Page page = browser.newPage();
             GoToOptions goToOptions = new GoToOptions();
             //这个网页要设置页面加载到NETWORKIDLE状态才能打印，不然打印空白
@@ -72,7 +75,7 @@ public class K_PDFTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
         setPdfOptions();
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS)) {
             Page page = cdpBrowser.newPage();
             GoToOptions goToOptions = new GoToOptions();
             //这个网页要设置页面加载到NETWORKIDLE状态才能打印，不然打印空白

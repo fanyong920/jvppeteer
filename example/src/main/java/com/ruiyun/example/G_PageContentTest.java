@@ -4,21 +4,24 @@ import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.Dialog;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
-import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.cdp.entities.PageMetrics;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class G_PageContentTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class G_PageContentTest {
 
     @Test
     public void test2() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //点击确认框的确定按钮
@@ -63,7 +66,7 @@ public class G_PageContentTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //webdriver不支持 PageEvents.Metrics事件和方法

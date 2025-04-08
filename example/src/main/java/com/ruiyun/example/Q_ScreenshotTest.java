@@ -19,12 +19,15 @@ import java.util.Collections;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class Q_ScreenshotTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class Q_ScreenshotTest {
 
     @Test
     public void test3() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -42,7 +45,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
 
     @Test
     public void test4() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -61,7 +64,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
 
     @Test
     public void test5() throws Exception {
-        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -82,7 +85,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
     @Test
     public void test6() throws Exception {
 
-        Browser cdpBrowser = Puppeteer.launch(launchOptions);
+        Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = cdpBrowser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -103,7 +106,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
     @Test
     public void test7() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.setContent("<!DOCTYPE html>\n" +
@@ -132,7 +135,7 @@ public class Q_ScreenshotTest extends A_LaunchTest {
     @Test
     public void test8() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         GoToOptions options = new GoToOptions();
@@ -150,8 +153,8 @@ public class Q_ScreenshotTest extends A_LaunchTest {
     //等待图片加载完毕
     @Test
     public void test9() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("console: " + message.text()));
@@ -193,8 +196,8 @@ public class Q_ScreenshotTest extends A_LaunchTest {
     //等待图片加载完毕
     @Test
     public void test10() throws Exception {
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.on(PageEvents.Console, (Consumer<ConsoleMessage>) message -> System.out.println("console: " + message.text()));

@@ -9,7 +9,7 @@ import com.ruiyun.jvppeteer.cdp.entities.FetcherOptions;
 import com.ruiyun.jvppeteer.cdp.entities.RevisionInfo;
 import org.junit.Test;
 
-public class V_DownloadApiTest extends A_LaunchTest {
+public class V_DownloadApiTest{
 
     @Test
     public void test3() throws Exception {

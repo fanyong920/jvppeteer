@@ -6,7 +6,10 @@ import com.ruiyun.jvppeteer.api.core.Page;
 import java.util.List;
 import org.junit.Test;
 
-public class Z_SelectorTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.getBrowser;
+
+public class Z_SelectorTest {
     /**
      * xpath选择器
      */

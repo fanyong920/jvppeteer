@@ -15,7 +15,7 @@ import java.util.Objects;
 import org.junit.Test;
 
 public class A_LaunchTest {
-    public final LaunchOptions launchOptions = LaunchOptions.builder().
+    public static final LaunchOptions LAUNCHOPTIONS = LaunchOptions.builder().
 //            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").
 //            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
 //        executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe").
@@ -35,9 +35,9 @@ public class A_LaunchTest {
     public void test99() throws Exception {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
         args.add("--no-sandbox");
-        launchOptions.setArgs(args);
-        launchOptions.setDumpio(true);
-//        launchOptions.setUserDataDir("C:\\Users\\fanyong\\Desktop\\typescriptPri");
+        LAUNCHOPTIONS.setArgs(args);
+        LAUNCHOPTIONS.setDumpio(true);
+//        LAUNCHOPTIONS.setUserDataDir("C:\\Users\\fanyong\\Desktop\\typescriptPri");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -96,23 +96,23 @@ public class A_LaunchTest {
      */
     @Test
     public void test10() throws Exception {
-        launchOptions.setProduct(Product.Firefox);
-        launchOptions.setPreferredRevision("stable_133.0");
-        Browser browser1 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProduct(Product.Firefox);
+        LAUNCHOPTIONS.setPreferredRevision("stable_133.0");
+        Browser browser1 = Puppeteer.launch(LAUNCHOPTIONS);
         String version1 = browser1.version();
         System.out.println("webdriver bidi 协议获取到版本信息：" + version1);
         browser1.close();
 
 
-        launchOptions.setProduct(Product.Chrome);
-        launchOptions.setPreferredRevision("128.0.6613.137");
-        Browser browser2 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProduct(Product.Chrome);
+        LAUNCHOPTIONS.setPreferredRevision("128.0.6613.137");
+        Browser browser2 = Puppeteer.launch(LAUNCHOPTIONS);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息1：" + version2);
         browser2.close();
 
-        launchOptions.setPreferredRevision("127.0.6533.99");
-        Browser browser3 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setPreferredRevision("127.0.6533.99");
+        Browser browser3 = Puppeteer.launch(LAUNCHOPTIONS);
         String version3 = browser3.version();
         System.out.println("cdp协议获取到版本信息2：" + version3);
         browser3.close();
@@ -125,25 +125,25 @@ public class A_LaunchTest {
      */
     @Test
     public void test11() throws Exception {
-        launchOptions.setProduct(Product.Firefox);
-        launchOptions.setHeadless(true);
+        LAUNCHOPTIONS.setProduct(Product.Firefox);
+        LAUNCHOPTIONS.setHeadless(true);
         System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "stable_133.0");
-        Browser browser1 = Puppeteer.launch(launchOptions);
+        Browser browser1 = Puppeteer.launch(LAUNCHOPTIONS);
         String version1 = browser1.version();
         System.out.println("webdriver bidi 协议获取到版本信息1：" + version1);
         browser1.close();
 
-        launchOptions.setProduct(Product.Chrome);
-        launchOptions.setHeadless(true);
+        LAUNCHOPTIONS.setProduct(Product.Chrome);
+        LAUNCHOPTIONS.setHeadless(true);
         System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "128.0.6613.137");
-        Browser browser2 = Puppeteer.launch(launchOptions);
+        Browser browser2 = Puppeteer.launch(LAUNCHOPTIONS);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
         browser2.close();
 
-        launchOptions.setProduct(Product.Chrome_headless_shell);
+        LAUNCHOPTIONS.setProduct(Product.Chrome_headless_shell);
         System.setProperty(Constant.JVPPETEER_PRODUCT_REVISION_ENV, "129.0.6668.100");
-        Browser browser3 = Puppeteer.launch(launchOptions);
+        Browser browser3 = Puppeteer.launch(LAUNCHOPTIONS);
         String version3 = browser3.version();
         System.out.println("cdp协议获取到版本信息3：" + version3);
         browser3.close();
@@ -155,22 +155,22 @@ public class A_LaunchTest {
      */
     @Test
     public void test12() throws Exception {
-        launchOptions.setProduct(Product.Firefox);
-        Browser browser1 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProduct(Product.Firefox);
+        Browser browser1 = Puppeteer.launch(LAUNCHOPTIONS);
         String version1 = browser1.version();
         System.out.println("webdriver bidi 协议获取到版本信息1：" + version1);
         browser1.close();
 
-        launchOptions.setProduct(Product.Chrome);
-        launchOptions.setProtocol(Protocol.CDP);
-        Browser browser2 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProduct(Product.Chrome);
+        LAUNCHOPTIONS.setProtocol(Protocol.CDP);
+        Browser browser2 = Puppeteer.launch(LAUNCHOPTIONS);
         String version2 = browser2.version();
         System.out.println("cdp协议获取到版本信息2：" + version2);
         browser2.close();
 
-        launchOptions.setProduct(Product.Chrome_headless_shell);
-        launchOptions.setHeadless(true);
-        Browser browser3 = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProduct(Product.Chrome_headless_shell);
+        LAUNCHOPTIONS.setHeadless(true);
+        Browser browser3 = Puppeteer.launch(LAUNCHOPTIONS);
         String version3 = browser3.version();
         System.out.println("cdp协议获取到版本信息3：" + version3);
         browser3.close();
@@ -229,7 +229,7 @@ public class A_LaunchTest {
     @Test
     public void test0() throws Exception {
         //添加启动命令行参数，这个参数使得浏览器最大化，对 chrome 起作用
-        launchOptions.setArgs(Collections.singletonList("--start-maximized"));
+        LAUNCHOPTIONS.setArgs(Collections.singletonList("--start-maximized"));
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -253,7 +253,7 @@ public class A_LaunchTest {
     @Test
     public void test17() throws Exception {
         //指定chrome浏览器的缓存目录
-        launchOptions.setCacheDir("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser");
+        LAUNCHOPTIONS.setCacheDir("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -276,8 +276,8 @@ public class A_LaunchTest {
 
     @Test
     public void test18() throws Exception {
-        launchOptions.setProduct(Product.Firefox);
-//        launchOptions.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe");
+        LAUNCHOPTIONS.setProduct(Product.Firefox);
+//        LAUNCHOPTIONS.setExecutablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-131.0.3\\firefox-130.0a1.en-US.win32\\firefox\\firefox.exe");
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -305,7 +305,7 @@ public class A_LaunchTest {
      */
     @Test
     public void test19() throws Exception {
-        launchOptions.setProtocolTimeout(0);
+        LAUNCHOPTIONS.setProtocolTimeout(0);
         try (Browser browser = getBrowser()) {
             //打开一个页面
             Page page = browser.newPage();
@@ -326,12 +326,12 @@ public class A_LaunchTest {
         }
     }
 
-    public Browser getBrowser() throws Exception {
+    public static Browser getBrowser() throws Exception {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
         args.add("--no-sandbox");
-        launchOptions.setProtocolTimeout(180_000);
-        launchOptions.setTimeout(180_000);
-        launchOptions.setArgs(args);
-        return Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProtocolTimeout(180_000);
+        LAUNCHOPTIONS.setTimeout(180_000);
+        LAUNCHOPTIONS.setArgs(args);
+        return Puppeteer.launch(LAUNCHOPTIONS);
     }
 }

@@ -9,11 +9,14 @@ import com.ruiyun.jvppeteer.cdp.entities.SnapshotOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import org.junit.Test;
 
-public class W_AccessibilityApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class W_AccessibilityApiTest {
 
     @Test
     public void test3() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.setContent("<!DOCTYPE html>\n" +
                 "      <html lang=\"en\">\n" +

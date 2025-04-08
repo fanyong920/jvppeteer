@@ -8,13 +8,16 @@ import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import org.junit.Test;
 
-public class O_WaitForNavigationTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class O_WaitForNavigationTest {
 
     @Test
     public void test4() throws Exception {
         //打开开发者工具
-        launchOptions.setDevtools(true);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDevtools(true);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");

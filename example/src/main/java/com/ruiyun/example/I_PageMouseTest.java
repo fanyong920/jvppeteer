@@ -9,12 +9,15 @@ import com.ruiyun.jvppeteer.util.Helper;
 import java.util.Collections;
 import org.junit.Test;
 
-public class I_PageMouseTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class I_PageMouseTest {
     @Test
     public void test2() throws Exception {
         //隐身模式启动浏览器
-        launchOptions.setArgs(Collections.singletonList("-private"));
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        LAUNCHOPTIONS.setArgs(Collections.singletonList("-private"));
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
 
             Page page = browser.newPage();
@@ -41,7 +44,7 @@ public class I_PageMouseTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             page.on(PageEvents.PageError, e -> {

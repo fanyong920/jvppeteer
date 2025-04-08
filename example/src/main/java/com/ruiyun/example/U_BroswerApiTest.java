@@ -35,12 +35,15 @@ import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_6455;
 import org.junit.Test;
 
-public class U_BroswerApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class U_BroswerApiTest {
 
     @Test
     public void test3() throws Exception {
-        launchOptions.setDebuggingPort(9222);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setDebuggingPort(9222);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         browser.on(BrowserEvents.TargetCreated, (Consumer<Target>) target -> System.out.println("targetCreate: " + target.url()));
         browser.on(BrowserEvents.TargetChanged, (Consumer<Target>) target -> System.out.println("targetChanged: " + target.url()));
         browser.on(BrowserEvents.TargetDiscovered, (Consumer<TargetInfo>) targetInfo -> System.out.println("TargetDiscovered: " + targetInfo.getUrl()));
@@ -100,7 +103,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test5() throws Exception {
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             BrowserContext cdpBrowserContext = browser.createBrowserContext();
             AtomicBoolean complete = new AtomicBoolean(false);
             browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
@@ -147,7 +150,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test6() throws Exception {
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             BrowserContext browserContext = browser.createBrowserContext();
             Map<String, AtomicBoolean> atomicBooleanMap = new ConcurrentHashMap<>();
             browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
@@ -192,7 +195,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test8() throws Exception {
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             BrowserContext browserContext = browser.createBrowserContext();
             AtomicBoolean complete = new AtomicBoolean(false);
             browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
@@ -230,7 +233,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test7() throws Exception {
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             BrowserContext cdpBrowserContext = browser.createBrowserContext();
             Map<String, AtomicBoolean> atomicBooleanMap = new ConcurrentHashMap<>();
             browser.on(BrowserEvents.DownloadProgress, (Consumer<DownloadProgressEvent>) downloadProgressEvent -> {
@@ -267,7 +270,7 @@ public class U_BroswerApiTest extends A_LaunchTest {
      */
     @Test
     public void test9() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         String endpoint = browser.wsEndpoint();
         Process process = browser.process();
         // 获取进程的pid

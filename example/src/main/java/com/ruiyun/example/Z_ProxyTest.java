@@ -6,7 +6,10 @@ import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import java.util.ArrayList;
 import org.junit.Test;
 
-public class Z_ProxyTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class Z_ProxyTest {
     @Test
     public void test1() throws Exception {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数
@@ -16,10 +19,10 @@ public class Z_ProxyTest extends A_LaunchTest {
         args.add("--proxy-server=127.0.0.1:9876");
         // Use proxy for localhost URLs
         args.add("--proxy-bypass-list=<-loopback>");
-        launchOptions.setProtocolTimeout(180_000);
-        launchOptions.setTimeout(180_000);
-        launchOptions.setArgs(args);
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setProtocolTimeout(180_000);
+        LAUNCHOPTIONS.setTimeout(180_000);
+        LAUNCHOPTIONS.setArgs(args);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com");
         browser.close();

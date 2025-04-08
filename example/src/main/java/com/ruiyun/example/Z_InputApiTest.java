@@ -10,13 +10,16 @@ import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class Z_InputApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class Z_InputApiTest {
     /**
      * 双击按钮测试
      */
     @Test
     public void test11() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         //设置html页面，有三个按钮，点击后打印出按钮的文本
         page.setContent("<!DOCTYPE html>\n" +

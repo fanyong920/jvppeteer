@@ -18,11 +18,14 @@ import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
-public class T_BroswerContextApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class T_BroswerContextApiTest {
 
     @Test
     public void test3() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         BrowserContext defaultCdpBrowserContext = browser.defaultBrowserContext();
         Page page = defaultCdpBrowserContext.newPage();
         new Thread(() -> {
@@ -66,7 +69,7 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
      */
     @Test
     public void test4() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
         page.goTo("https://www.baidu.com");
@@ -83,7 +86,7 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
      */
     @Test
     public void test5() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -107,7 +110,7 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
      */
     @Test
     public void test6() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
         page.goTo("https://www.baidu.com");
@@ -140,8 +143,8 @@ public class T_BroswerContextApiTest extends A_LaunchTest {
     @Test
     public void test7() throws Exception {
         //开启无痕模式
-        launchOptions.setArgs(Collections.singletonList("--incognito"));
-        Browser browser = Puppeteer.launch(launchOptions);
+        LAUNCHOPTIONS.setArgs(Collections.singletonList("--incognito"));
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         BrowserContext defaultBrowserContext = browser.defaultBrowserContext();
         Page page = defaultBrowserContext.newPage();
         page.goTo("https://www.baidu.com");

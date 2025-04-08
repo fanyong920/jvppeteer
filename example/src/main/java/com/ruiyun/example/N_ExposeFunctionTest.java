@@ -17,13 +17,16 @@ import java.security.MessageDigest;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class N_ExposeFunctionTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class N_ExposeFunctionTest {
 
     @Test
     public void test4() throws Exception {
         //打开开发者工具
-        launchOptions.setDevtools(true);
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
+        LAUNCHOPTIONS.setDevtools(true);
+        try (Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = cdpBrowser.newPage();
             page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println(consoleMessage.text()));
@@ -60,8 +63,8 @@ public class N_ExposeFunctionTest extends A_LaunchTest {
     @Test
     public void test5() throws Exception {
         //打开开发者工具
-        launchOptions.setDevtools(true);
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        LAUNCHOPTIONS.setDevtools(true);
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("浏览器接收到计算结果，并打印: " + consoleMessage.text()));

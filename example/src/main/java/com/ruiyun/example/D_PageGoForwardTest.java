@@ -6,12 +6,15 @@ import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
 
-public class D_PageGoForwardTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class D_PageGoForwardTest {
 
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = cdpBrowser.newPage();
             //不添加waitUntil参数，默认是load

@@ -17,13 +17,16 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class E_PageEventsTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class E_PageEventsTest {
 
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        launchOptions.setDevtools(true);
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        LAUNCHOPTIONS.setDevtools(true);
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             String version = browser.version();
             System.out.println("version=" + version);
             //打开一个页面
@@ -105,7 +108,7 @@ public class E_PageEventsTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
         //启动浏览器
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         System.out.println(browser.version());

@@ -7,11 +7,14 @@ import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import org.junit.Test;
 
-public class P_AddStyleTagTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class P_AddStyleTagTest {
 
     @Test
     public void test4() throws Exception {
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
@@ -31,7 +34,7 @@ public class P_AddStyleTagTest extends A_LaunchTest {
     @Test
     public void test5() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         //打开一个页面
         Page page = browser.newPage();
         page.goTo("https://www.baidu.com/?tn=68018901_16_pg");

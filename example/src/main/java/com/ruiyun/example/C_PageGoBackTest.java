@@ -11,7 +11,7 @@ public class C_PageGoBackTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        try (Browser cdpBrowser = Puppeteer.launch(launchOptions)) {
+        try (Browser cdpBrowser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = cdpBrowser.newPage();
             //不添加waitUntil参数，默认是load

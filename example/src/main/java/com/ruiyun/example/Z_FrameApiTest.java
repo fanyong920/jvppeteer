@@ -8,7 +8,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
 
-public class Z_FrameApiTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.getBrowser;
+
+public class Z_FrameApiTest {
 
     @Test
     public void test() throws Exception {

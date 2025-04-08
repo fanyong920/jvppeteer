@@ -9,7 +9,10 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
 
-public class L_CDPSessionTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class L_CDPSessionTest{
     /**
      * 要打印成什么样子的pdf，自己手动在浏览器按Ctrl+p，弹出的窗口就是pdf样式，，再把各个选项点一下，看一下预览效果
      * 然后再回来写代码
@@ -17,7 +20,7 @@ public class L_CDPSessionTest extends A_LaunchTest {
     @Test
     public void test2() throws Exception {
 
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             Target target = browser.target();//browser对应的target
             CDPSession session = target.createCDPSession();
             System.out.println("session id:" + session.id());
@@ -40,7 +43,7 @@ public class L_CDPSessionTest extends A_LaunchTest {
     @Test
     public void test3() throws Exception {
 
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             Target target = browser.target();//browser对应的target
             CDPSession session = target.createCDPSession();
             JsonNode res = session.send("Browser.getVersion");
@@ -51,7 +54,7 @@ public class L_CDPSessionTest extends A_LaunchTest {
     @Test
     public void test4() throws Exception {
 
-        Browser browser = Puppeteer.launch(launchOptions);
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
         CDPSession cdpSession = page.createCDPSession();
         Connection connection = cdpSession.connection();

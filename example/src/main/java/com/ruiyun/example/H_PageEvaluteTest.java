@@ -6,15 +6,17 @@ import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.PrimitiveValue;
 import java.util.function.Consumer;
 import org.junit.Test;
 
-public class H_PageEvaluteTest extends A_LaunchTest {
+
+import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+
+public class H_PageEvaluteTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //监听devtool控制台输出
@@ -28,12 +30,13 @@ public class H_PageEvaluteTest extends A_LaunchTest {
 
     /**
      * 传递特属值
+     *
      * @throws Exception
      */
     @Test
     public void test3() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //监听devtool控制台输出
@@ -47,7 +50,7 @@ public class H_PageEvaluteTest extends A_LaunchTest {
                     "  console.log(arg3 == -0.0)\n" +
                     "  console.log(arg4 == Infinity)\n" +
                     "  console.log(arg5 == -Infinity)\n" +
-                    "}", null, null,Constant.Navigate_Zero,Constant.Infinity,Constant.Navigate_Infinity);
+                    "}", null, null, Constant.Navigate_Zero, Constant.Infinity, Constant.Navigate_Infinity);
             //等待5s看看效果
             Thread.sleep(5000);
         }
@@ -55,12 +58,13 @@ public class H_PageEvaluteTest extends A_LaunchTest {
 
     /**
      * 超时设置
+     *
      * @throws Exception 异常
      */
     @Test
     public void test4() throws Exception {
         //启动浏览器
-        try (Browser browser = Puppeteer.launch(launchOptions)) {
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //监听devtool控制台输出
