@@ -1145,7 +1145,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
     private volatile boolean startScreencasted = false;
 
     /**
-     * 捕获此 page 的截屏视频。可录制为webm和gif
+     * 捕获此 page 的截屏视频。可录制为webm和gif，录制帧率默认是30
      *
      * @param options 配置截屏行为
      * @return ScreenRecorder 屏幕录制实例，用于停止录制
@@ -1200,7 +1200,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
         if (options.getScale() <= 0) {
             throw new JvppeteerException("scale must be greater than 0.");
         }
-        ScreenRecorder recorder = new ScreenRecorder(this, width, height, new ScreenRecorderOptions(options.getSpeed(), crop, options.getPath(), options.getFormat(), options.getScale(), options.getFfmpegPath()), defaultViewport, tempViewport);
+        ScreenRecorder recorder = new ScreenRecorder(this, width, height, new ScreenRecorderOptions(options.getSpeed(), crop, options.getPath(), options.getFormat(), options.getScale(), options.getFfmpegPath(), options.getFps(), options.getLoop(), options.getDelay(), options.getQuality(), options.getColors()), defaultViewport, tempViewport);
         try {
             this.startScreencast();
         } catch (Exception e) {

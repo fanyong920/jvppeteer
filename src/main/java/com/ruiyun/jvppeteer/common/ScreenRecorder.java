@@ -34,12 +34,11 @@ import org.slf4j.LoggerFactory;
 
 
 import static com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat.GIF;
-import static com.ruiyun.jvppeteer.cdp.entities.ScreenCastFormat.WEBM;
 
 public class ScreenRecorder {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScreenRecorder.class);
-    private static final int DEFAULT_FPS = 30;
-    private static final int CRF_VALUE = 30;
+
+
     private static final String SCREENCAST_TEMP_CAAHE_DIR = "jvppeteer-screencast-temp-cache-";
     private final Page page;
     private final double width;
@@ -51,7 +50,7 @@ public class ScreenRecorder {
     private volatile BigDecimal previousTimestamp;
     private volatile byte[] previousBuffer;
     AtomicLong imgIndex = new AtomicLong(0);
-    private volatile boolean stoped = false;
+    private volatile boolean stopped = false;
 
 
     public ScreenRecorder(Page page, double width, double height, ScreenRecorderOptions options, Viewport defaultViewport, Viewport tempViewport) {
@@ -70,7 +69,7 @@ public class ScreenRecorder {
                 throw new JvppeteerException(e);
             }
         };
-        this.stoped = false;
+        this.stopped = false;
         page.mainFrame().client().once(ConnectionEvents.disconnected, closeListener);
         page.mainFrame().client().on(ConnectionEvents.Page_screencastFrame, (Consumer<ScreencastFrameEvent>) this::writeFrame);
     }
@@ -91,9 +90,9 @@ public class ScreenRecorder {
                 this.previousBuffer = buffer;
                 return;
             }
-            long count = ((new BigDecimal(DEFAULT_FPS).multiply(timestamp.subtract(this.previousTimestamp))).max(BigDecimal.ZERO)).setScale(0, RoundingMode.HALF_UP).longValue();
+            long count = ((new BigDecimal(this.options.getFps()).multiply(timestamp.subtract(this.previousTimestamp))).max(BigDecimal.ZERO)).setScale(0, RoundingMode.HALF_UP).longValue();
             toFile(count);
-            if (this.stoped) {
+            if (this.stopped) {
                 this.previousTimestamp = currentTimestamp();
             } else {
                 this.previousTimestamp = timestamp;
@@ -115,24 +114,51 @@ public class ScreenRecorder {
         }
     }
 
-    private List<String> getFormatArgs(ScreenCastFormat format) {
+    private List<String> getFormatArgs(ScreenCastFormat format, Integer quality, Integer loop, Long delay) {
+        List<String> libvpx = new ArrayList<>();
+        // 设置要使用的编解码器
+        libvpx.add("-c:v");
+        libvpx.add("vp9");
+        // 设置质量，数值越低质量越高
+        libvpx.add("-crf");
+        libvpx.add(String.valueOf(quality));
+        // 设置质量和压缩效率
+
+        int cpuCount = Math.min(Runtime.getRuntime().availableProcessors() / 2, 8);
+        libvpx.add("-deadline");
+        libvpx.add("realtime");
+        libvpx.add("-cpu-used");
+        libvpx.add(String.valueOf(cpuCount));
         List<String> args = new ArrayList<>();
         switch (format) {
             case WEBM:
-                args.add("-c:v");
-                args.add("vp9");
+                args.addAll(libvpx);
                 args.add("-f");
                 args.add("webm");
-                args.add("-crf");
-                args.add(String.valueOf(CRF_VALUE));
-                args.add("-deadline");
-                args.add("realtime");
-                args.add("-cpu-used");
-                args.add("8");
                 return args;
             case GIF:
+                if (loop == Integer.MAX_VALUE) {
+                    loop = 0;
+                }
+                if (delay != -1) {
+                    delay = delay / 10;
+                }
+                args.add("-loop");
+                args.add(String.valueOf(loop));
+                args.add("-final_delay");
+                args.add(String.valueOf(delay));
                 args.add("-f");
                 args.add("gif");
+                return args;
+            case MP4:
+                args.addAll(libvpx);
+
+                // Fragment file during stream to avoid errors.
+                args.add("-movflags");
+                args.add("hybrid_fragmented");
+
+                args.add("-f");
+                args.add("mp4");
                 return args;
         }
         return args;
@@ -146,8 +172,8 @@ public class ScreenRecorder {
         try {
             this.previousTimestamp = currentTimestamp();
             this.page.stopScreencast();
-            this.stoped = true;
-            long count = (new BigDecimal(DEFAULT_FPS).multiply(currentTimestamp().subtract(this.previousTimestamp))).divide(new BigDecimal(1000), 6, RoundingMode.HALF_UP).setScale(0, RoundingMode.HALF_UP).max(new BigDecimal(1)).longValue();
+            this.stopped = true;
+            long count = (new BigDecimal(this.options.getFps()).multiply(currentTimestamp().subtract(this.previousTimestamp))).divide(new BigDecimal(1000), 6, RoundingMode.HALF_UP).setScale(0, RoundingMode.HALF_UP).max(new BigDecimal(1)).longValue();
             toFile(count);
             convert();
         } catch (Exception e) {
@@ -181,6 +207,19 @@ public class ScreenRecorder {
         // 设置 I/O 为直接模式。这通常意味着数据会直接从磁盘读取到内存，而不经过操作系统缓存。这可以减少内存使用，但在某些情况下可能会影响性能。
         commands.add("-avioflags");
         commands.add("direct");
+
+        commands.add("-fpsprobesize");
+        commands.add("0");
+
+        commands.add("-probesize");
+        commands.add("32");
+
+        commands.add("-analyzeduration");
+        commands.add("0");
+
+        commands.add("-fflags");
+        commands.add("nobuffer");
+
         // 强制覆盖输出文件和禁用音频流。
         commands.add("-y");
         commands.add("-an");
@@ -190,28 +229,36 @@ public class ScreenRecorder {
         commands.add("1");
         // 设置帧率是30
         commands.add("-framerate");
-        commands.add(Integer.toString(DEFAULT_FPS));
+        commands.add(Integer.toString(this.options.getFps()));
         //读取图片
         commands.add("-i");
         commands.add(Helper.join(this.tempCacheDir, "%d.png"));
-        // 设置视频比特率为动态调整和裁剪视频
-        commands.addAll(getFormatArgs(Objects.isNull(options.getFormat()) ? WEBM : options.getFormat()));
+
+        //设置格式参数
+        commands.addAll(getFormatArgs(options.getFormat(), options.getQuality(), this.options.getLoop(), this.options.getDelay()));
         commands.add("-b:v");
         commands.add("0");
+        //滤镜
         commands.add("-vf");
         StringBuilder builder = new StringBuilder();
+        builder.append("crop='min(").append(width).append(",iw):min(").append(height).append(",ih):0:0',pad=").append(width).append(":").append(height).append(":0:0");
         if (options.getSpeed() != null) {
-            builder.append("setpts=").append(1 / options.getSpeed()).append("*PTS");
+            builder.append(",setpts=").append(1 / options.getSpeed()).append("*PTS");
         }
         if (options.getCrop() != null) {
-            builder.append(",crop='min(").append(width).append(",iw):min(").append(height).append(",ih):0:0',pad=").append(width).append(":").append(height).append(":0:0");
             builder.append(",crop=").append(options.getCrop().getWidth()).append(":").append(options.getCrop().getHeight()).append(":").append(options.getCrop().getX()).append(":").append(options.getCrop().getY());
         }
         if (options.getScale() != null) {
-            builder.append(",scale=iw*").append(options.getScale()).append(":").append("-1");
+            builder.append(",scale=iw*").append(options.getScale()).append(":-1:flags=lanczos");
         }
         if (GIF.equals(options.getFormat())) {
-            builder.append(",fps=5,split[s0][s1];[s0]palettegen=stats_mode=diff[pal];[s1][pal]paletteuse");
+            Integer fps = this.options.getFps();
+            if (fps == 20) {
+                builder.append(",fps=source_fps,split[s0][s1];[s0]palettegen=stats_mode=diff:max_colors=").append(this.options.getColors()).append("[pal];[s1][pal]paletteuse=dither=bayer");
+            } else {
+                builder.append(",fps=").append(fps).append(",split[s0][s1];[s0]palettegen=stats_mode=diff:max_colors=").append(this.options.getColors().intValue()).append("[pal];[s1][pal]paletteuse=dither=bayer");
+            }
+
         }
         commands.add(builder.toString());
         //输出文件

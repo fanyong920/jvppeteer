@@ -106,7 +106,7 @@ public class S_PageApiTest extends A_LaunchTest {
 
 
         //这样我们就可以等待某个元素出现了,元素可能更改，及时更新就行
-        ElementHandle elementHandle = page1.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_VOVn > div > nav > a.pagination-nav__link.pagination-nav__link--prev > div.pagination-nav__label");
+        ElementHandle elementHandle = page1.waitForSelector("#__docusaurus_skipToContent_fallback > div > div > main > div > div > div.col.docItemCol_nDJs > div > article > div.theme-doc-markdown.markdown > table > tbody > tr > td:nth-child(3) > p > a:nth-child(1)");
 
         //这个元素是可以点击的，我们点击它
         elementHandle.click();
@@ -118,7 +118,7 @@ public class S_PageApiTest extends A_LaunchTest {
         // 查询所有Map实例并将它们放入数组中
         JSHandle mapInstances = page.queryObjects(mapPrototype);
         // 计算堆中Map对象的数量
-        Object count = page.evaluate("maps => maps.length", Collections.singletonList(mapInstances));
+        Object count = page.evaluate("maps => maps.length", mapInstances);
         System.out.println("count: " + count);
         mapPrototype.dispose();
         mapInstances.dispose();
@@ -933,6 +933,9 @@ public class S_PageApiTest extends A_LaunchTest {
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test1.webm");
         screencastOptions.setFormat(ScreenCastFormat.WEBM);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(2);
         //指定ffmpeg路径，如果配置了系统的环境变量，那么可以不指定
         screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
         ScreenRecorder screencast = page.screencast(screencastOptions);
@@ -953,6 +956,9 @@ public class S_PageApiTest extends A_LaunchTest {
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test2.webm");
         screencastOptions.setFormat(ScreenCastFormat.WEBM);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(2);
         //指定ffmpeg路径，如果配置了系统的环境变量，那么可以不指定
         BoundingBox boundingBox = page.$("#username").boundingBox();
         screencastOptions.setCrop(boundingBox);
@@ -975,6 +981,10 @@ public class S_PageApiTest extends A_LaunchTest {
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test.gif");
         screencastOptions.setFormat(ScreenCastFormat.GIF);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(128);
+        screencastOptions.setLoop(1);
         screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
         ScreenRecorder screencast = page.screencast(screencastOptions);
         page.type("#username", "123456789", 200);
@@ -994,6 +1004,55 @@ public class S_PageApiTest extends A_LaunchTest {
         ScreencastOptions screencastOptions = new ScreencastOptions();
         screencastOptions.setPath("D:\\test\\test2.gif");
         screencastOptions.setFormat(ScreenCastFormat.GIF);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(128);
+        screencastOptions.setLoop(2);
+        screencastOptions.setCrop(page.$("#password").boundingBox());
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕 录制格式gif
+     */
+    @Test
+    public void test30() throws Exception {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test.mp4");
+        screencastOptions.setFormat(ScreenCastFormat.MP4);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(128);
+        screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
+        ScreenRecorder screencast = page.screencast(screencastOptions);
+        page.type("#username", "123456789", 200);
+        page.type("#password", "123456789", 200);
+        screencast.stop();
+        browser.close();
+    }
+
+    /**
+     * 录制屏幕某个区域 录制格式gif
+     */
+    @Test
+    public void test31() throws Exception {
+        Browser browser = Puppeteer.launch(launchOptions);
+        Page page = browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        ScreencastOptions screencastOptions = new ScreencastOptions();
+        screencastOptions.setPath("D:\\test\\test2.mp4");
+        screencastOptions.setFormat(ScreenCastFormat.MP4);
+        screencastOptions.setQuality(5);
+        screencastOptions.setFps(25);
+        screencastOptions.setColors(128);
         screencastOptions.setCrop(page.$("#password").boundingBox());
         screencastOptions.setFfmpegPath("D:\\windowsUtil\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\ffmpeg-2024-10-10-git-0f5592cfc7-full_build\\bin\\ffmpeg.exe");
         ScreenRecorder screencast = page.screencast(screencastOptions);

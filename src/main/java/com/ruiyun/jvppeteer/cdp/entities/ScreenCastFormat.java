@@ -2,7 +2,8 @@ package com.ruiyun.jvppeteer.cdp.entities;
 
 public enum ScreenCastFormat {
     WEBM("webm"),
-    GIF("gif");
+    GIF("gif"),
+    MP4("mp4");
     private final String format;
 
     ScreenCastFormat(String format) {
