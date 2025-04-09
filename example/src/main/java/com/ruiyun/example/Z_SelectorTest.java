@@ -3,6 +3,9 @@ package com.ruiyun.example;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.common.QueryHandler;
+import com.ruiyun.jvppeteer.util.GetQueryHandler;
 import java.util.List;
 import org.junit.Test;
 
@@ -118,6 +121,41 @@ public class Z_SelectorTest {
         Page page = browser.newPage();
         page.goTo("https://www.bilibili.com/video/BV18FZbYUE3r/?spm_id_from=333.1007.tianma.3-2-8.click&vd_source=e01673c7341a338bf0bbf8bb26a8fe2e");
         ElementHandle handle = page.waitForSelector("#commentapp > bili-comments >>> div > #feed > bili-comment-thread-renderer:nth-child(1) >>> #comment >>> #content > bili-rich-text >>> #contents > span:nth-child(4)");
+        System.out.println(handle.evaluate("node => node.textContent"));
+        browser.close();
+    }
+
+    /**
+     * 自定义选择器
+     */
+    @Test
+    public void test7() throws Exception {
+        GetQueryHandler.registerCustomQueryHandler("reactComponent", new QueryHandler() {
+            @Override
+            public String querySelector() {
+                return "(elementOrDocument, selector) => {\n" +
+                        "    // Dummy example just delegates to querySelector but you can find your\n" +
+                        "    // React component because this callback runs in the page context.\n" +
+                        "    return elementOrDocument.querySelector(`[id=\"${CSS.escape(selector)}\"]`);\n" +
+                        "  }";
+            }
+
+            @Override
+            public String querySelectorAll() {
+                return "(elementOrDocument, selector) => {\n" +
+                        "    // Dummy example just delegates to querySelector but you can find your\n" +
+                        "    // React component because this callback runs in the page context.\n" +
+                        "    return elementOrDocument.querySelectorAll(`[id=\"${CSS.escape(selector)}\"]`);\n" +
+                        "  }";
+            }
+        });
+        Browser browser = getBrowser();
+        Page page = browser.newPage();
+        page.goTo("https://www.bilibili.com/video/BV18FZbYUE3r/?spm_id_from=333.1007.tianma.3-2-8.click&vd_source=e01673c7341a338bf0bbf8bb26a8fe2e");
+        WaitForSelectorOptions options = new WaitForSelectorOptions();
+        options.setTimeout(3000);
+        //页面没有这个seletoc,这里会报错，仅测试registerCustomQueryHandler是否可用
+        ElementHandle handle = page.waitForSelector("::-p-reactComponent(MyComponent)",options);
         System.out.println(handle.evaluate("node => node.textContent"));
         browser.close();
     }
