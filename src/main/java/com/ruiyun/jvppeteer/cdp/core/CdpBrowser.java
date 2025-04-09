@@ -202,13 +202,13 @@ public class CdpBrowser extends Browser {
     }
 
     private final Consumer<CdpTarget> onAttachedToTarget = (target) -> {
-        if (target.isTargetExposed() && target.initializedResult.waitingGetResult().equals(CdpTarget.InitializationStatus.SUCCESS)) {
+        if (target.isTargetExposed() && Objects.equals(target.initializedResult.waitingGetResult(), CdpTarget.InitializationStatus.SUCCESS)) {
             this.emit(BrowserEvents.TargetCreated, target);
             target.browserContext().emit(BrowserContextEvents.TargetCreated, target);
         }
     };
     private final Consumer<CdpTarget> onDetachedFromTarget = (target) -> {
-        boolean initializedSuccess = target.initializedResult.waitingGetResult().equals(CdpTarget.InitializationStatus.SUCCESS);
+        boolean initializedSuccess = Objects.equals(target.initializedResult.waitingGetResult(), CdpTarget.InitializationStatus.SUCCESS);
         target.setInitializedResult(CdpTarget.InitializationStatus.ABORTED);
         target.close();
         if (target.isTargetExposed() && initializedSuccess) {
@@ -244,7 +244,7 @@ public class CdpBrowser extends Browser {
             if (target == null) {
                 throw new JvppeteerException("Missing target for page (id = " + targetId + ")");
             }
-            if (!target.initializedResult.waitingGetResult().equals(CdpTarget.InitializationStatus.SUCCESS)) {
+            if (!Objects.equals(target.initializedResult.waitingGetResult(), CdpTarget.InitializationStatus.SUCCESS)) {
                 throw new JvppeteerException("Failed to create target for page (id =" + targetId + ")");
             }
             Page page = target.page();
@@ -267,7 +267,7 @@ public class CdpBrowser extends Browser {
     }
 
     public List<CdpTarget> targets() {
-        return this.targetManager.getAvailableTargets().values().stream().filter(target -> target.isTargetExposed() && target.initializedResult.waitingGetResult().equals(CdpTarget.InitializationStatus.SUCCESS)).collect(Collectors.toList());
+        return this.targetManager.getAvailableTargets().values().stream().filter(target -> target.isTargetExposed() && Objects.equals(target.initializedResult.waitingGetResult(),CdpTarget.InitializationStatus.SUCCESS)).collect(Collectors.toList());
     }
 
     public String version() throws JsonProcessingException {
