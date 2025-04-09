@@ -49,9 +49,7 @@ public class GetQueryHandler {
     public static void registerCustomQueryHandler(String name, QueryHandler handler) {
         if (customQueryHandlers.containsKey(name))
             throw new JvppeteerException("A custom query handler named " + name + " already exists");
-        Pattern pattern = Pattern.compile("^[a-zA-Z]+$");
-        Matcher isValidName = pattern.matcher(name);
-        if (!isValidName.matches())
+        if (!name.matches("^[a-zA-Z]+$"))
             throw new IllegalArgumentException("Custom query handler names may only contain [a-zA-Z]");
         customQueryHandlers.put(name, handler);
     }
