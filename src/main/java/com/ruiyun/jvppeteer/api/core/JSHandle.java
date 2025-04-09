@@ -116,7 +116,7 @@ public abstract class JSHandle {
                 "        }\n" +
                 "      }\n" +
                 "      return enumerableProperties;\n" +
-                "    }", null);
+                "    }");
         Map<String, JSHandle> map = new LinkedHashMap<>(propertyNames.size());
         for (String propertyName : propertyNames) {
             JSHandle handle = this.getProperty(propertyName);
