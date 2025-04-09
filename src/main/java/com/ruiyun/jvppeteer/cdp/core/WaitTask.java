@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -54,9 +53,9 @@ public class WaitTask {
     public void rerun() {
         for (ExecutorService executorService : this.rerun) {
             executorService.shutdownNow();
-            this.terminate(null);
         }
         this.rerun.clear();
+        this.terminate(null);
         ExecutorService rerunTaskService = Executors.newSingleThreadExecutor(new NamedThreadFactory("jvppeteer-waitTask-service"));
         rerunTaskService.execute(() -> {
             try {
@@ -140,8 +139,18 @@ public class WaitTask {
         }
     }
 
-    public JSHandle result() throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
-        return this.result.waitingGetResult(this.timeout, TimeUnit.MILLISECONDS);
+    public JSHandle result(){
+        JSHandle result = null;
+        try {
+            result = this.result.waitingGetResult(this.timeout, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            for (ExecutorService executorService : this.rerun) {
+                executorService.shutdownNow();
+            }
+            this.rerun.clear();
+            this.terminate(e);
+        }
+        return result;
     }
 
     private Throwable getBadError(Throwable error) {
