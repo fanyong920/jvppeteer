@@ -12,10 +12,10 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,11 +31,10 @@ public class WaitTask {
     private final List<Object> args = new ArrayList<>();
     private final String fn;
     private final ElementHandle root;
-    public static final ExecutorService waitTaskService = Executors.newCachedThreadPool(new NamedThreadFactory("jvppeteer-waitTask-service"));
     private final int timeout;
     private volatile JSHandle poller;
     private final AwaitableResult<JSHandle> result = AwaitableResult.create();
-    private final CompletableFuture<JSHandle> rerunFuture;
+    private final List<ExecutorService> rerun = Collections.synchronizedList(new ArrayList<>());
 
     public WaitTask(Realm world, WaitTaskOptions options, String pptrFunction, EvaluateType type, Object... args) {
         this.world = world;
@@ -49,68 +48,75 @@ public class WaitTask {
         }
         Optional.ofNullable(args).ifPresent(args1 -> this.args.addAll(Arrays.asList(args1)));
         this.world.taskManager.add(this);
-        this.rerunFuture = CompletableFuture.supplyAsync(this::rerun, waitTaskService);
+        this.rerun();
     }
 
-    public JSHandle rerun() {
-        try {
-            switch (this.polling) {
-                case "raf":
-                    List<Object> args = new ArrayList<>();
-                    args.add(new LazyArg());
-                    args.add(this.fn);
-                    args.addAll(this.args);
-                    this.poller = this.world.evaluateHandle("({RAFPoller, createFunction}, fn, ...args) => {\n" +
-                            "  const fun = createFunction(fn);\n" +
-                            "  return new RAFPoller(() => {\n" +
-                            "    return fun(...args);\n" +
-                            "  });\n" +
-                            "}", args);
-                    break;
-                case "mutation":
-                    List<Object> args1 = new ArrayList<>();
-                    args1.add(new LazyArg());
-                    args1.add(this.root);
-                    args1.add(this.fn);
-                    args1.addAll(this.args);
-                    this.poller = this.world.evaluateHandle("({MutationPoller, createFunction}, root, fn, ...args) => {\n" +
-                            "  const fun = createFunction(fn);\n" +
-                            "  return new MutationPoller(() => {\n" +
-                            "    return fun(...args);\n" +
-                            "  }, root || document);\n" +
-                            "}", args1);
-                    break;
-                default:
-                    List<Object> args2 = new ArrayList<>();
-                    args2.add(new LazyArg());
-                    args2.add(this.polling);
-                    args2.add(this.fn);
-                    args2.addAll(this.args);
-                    this.poller = this.world.evaluateHandle("({IntervalPoller, createFunction}, ms, fn, ...args) => {\n" +
-                            "  const fun = createFunction(fn);\n" +
-                            "  return new IntervalPoller(() => {\n" +
-                            "    return fun(...args);\n" +
-                            "  }, ms);\n" +
-                            "}", args2);
-
-            }
-            this.poller.evaluate("poller => {\n" +
-                    "  void poller.start();\n" +
-                    "}");
-
-            JSHandle result = this.poller.evaluateHandle("poller => {\n" +
-                    "        return poller.result();\n" +
-                    "      }");
+    public void rerun() {
+        for (ExecutorService executorService : this.rerun) {
+            executorService.shutdownNow();
             this.terminate(null);
-            return result;
-        } catch (Exception error) {
-            Throwable badError = this.getBadError(error);
-            if (Objects.nonNull(badError)) {
-                this.terminate(badError);
-            }
-            return null;
         }
+        this.rerun.clear();
+        ExecutorService rerunTaskService = Executors.newSingleThreadExecutor(new NamedThreadFactory("jvppeteer-waitTask-service"));
+        rerunTaskService.execute(() -> {
+            try {
+                switch (this.polling) {
+                    case "raf":
+                        List<Object> args = new ArrayList<>();
+                        args.add(new LazyArg());
+                        args.add(this.fn);
+                        args.addAll(this.args);
+                        this.poller = this.world.evaluateHandle("({RAFPoller, createFunction}, fn, ...args) => {\n" +
+                                "  const fun = createFunction(fn);\n" +
+                                "  return new RAFPoller(() => {\n" +
+                                "    return fun(...args);\n" +
+                                "  });\n" +
+                                "}", args);
+                        break;
+                    case "mutation":
+                        List<Object> args1 = new ArrayList<>();
+                        args1.add(new LazyArg());
+                        args1.add(this.root);
+                        args1.add(this.fn);
+                        args1.addAll(this.args);
+                        this.poller = this.world.evaluateHandle("({MutationPoller, createFunction}, root, fn, ...args) => {\n" +
+                                "  const fun = createFunction(fn);\n" +
+                                "  return new MutationPoller(() => {\n" +
+                                "    return fun(...args);\n" +
+                                "  }, root || document);\n" +
+                                "}", args1);
+                        break;
+                    default:
+                        List<Object> args2 = new ArrayList<>();
+                        args2.add(new LazyArg());
+                        args2.add(this.polling);
+                        args2.add(this.fn);
+                        args2.addAll(this.args);
+                        this.poller = this.world.evaluateHandle("({IntervalPoller, createFunction}, ms, fn, ...args) => {\n" +
+                                "  const fun = createFunction(fn);\n" +
+                                "  return new IntervalPoller(() => {\n" +
+                                "    return fun(...args);\n" +
+                                "  }, ms);\n" +
+                                "}", args2);
 
+                }
+                this.poller.evaluate("poller => {\n" +
+                        "  void poller.start();\n" +
+                        "}");
+
+                JSHandle result = this.poller.evaluateHandle("poller => {\n" +
+                        "        return poller.result();\n" +
+                        "      }");
+                this.result.onSuccess(result);
+                this.terminate(null);
+            } catch (Exception error) {
+                Throwable badError = this.getBadError(error);
+                if (Objects.nonNull(badError)) {
+                    this.terminate(badError);
+                }
+            }
+        });
+        this.rerun.add(rerunTaskService);
     }
 
     public void terminate(Throwable error) {
@@ -135,11 +141,7 @@ public class WaitTask {
     }
 
     public JSHandle result() throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
-        if (this.timeout == 0) {
-            return this.rerunFuture.get();
-        } else {
-            return this.rerunFuture.get(this.timeout, TimeUnit.MILLISECONDS);
-        }
+        return this.result.waitingGetResult(this.timeout, TimeUnit.MILLISECONDS);
     }
 
     private Throwable getBadError(Throwable error) {

@@ -32,22 +32,6 @@ public class TaskManager {
     }
 
     public void rerunAll() {
-//        CompletionService<Void> completionService = new ExecutorCompletionService<>(WaitTask.waitTaskService);
-//        List<Future<Void>> futures = new java.util.ArrayList<>();
-//        this.tasks.forEach(task -> {
-//            Future<Void> future = completionService.submit(() -> {
-//                task.rerun();
-//                return null;
-//            });
-//            futures.add(future);
-//
-//        });
-//        for (Future<Void> future : futures) {
-//            try {
-//                future.get();
-//            } catch (Exception e) {
-//                LOGGER.error("jvppeteer error", e);
-//            }
-//        }
+        this.tasks.forEach(WaitTask::rerun);
     }
 }
