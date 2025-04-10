@@ -34,6 +34,7 @@ public class WaitTask {
     private volatile JSHandle poller;
     private final AwaitableResult<JSHandle> result = AwaitableResult.create();
     private final List<ExecutorService> rerun = Collections.synchronizedList(new ArrayList<>());
+    private volatile Throwable badError;
 
     public WaitTask(Realm world, WaitTaskOptions options, String pptrFunction, EvaluateType type, Object... args) {
         this.world = world;
@@ -55,7 +56,6 @@ public class WaitTask {
             executorService.shutdownNow();
         }
         this.rerun.clear();
-        this.terminate(null);
         ExecutorService rerunTaskService = Executors.newSingleThreadExecutor(new NamedThreadFactory("jvppeteer-waitTask-service"));
         rerunTaskService.execute(() -> {
             try {
@@ -107,18 +107,18 @@ public class WaitTask {
                         "        return poller.result();\n" +
                         "      }");
                 this.result.onSuccess(result);
-                this.terminate(null);
+                this.terminate();
             } catch (Exception error) {
                 Throwable badError = this.getBadError(error);
                 if (Objects.nonNull(badError)) {
-                    this.terminate(badError);
+                    this.setBadError(badError);
                 }
             }
         });
         this.rerun.add(rerunTaskService);
     }
 
-    public void terminate(Throwable error) {
+    public void terminate() {
         this.world.taskManager.delete(this);
         if (Objects.nonNull(this.poller)) {
             try {
@@ -133,24 +133,29 @@ public class WaitTask {
                 // Ignore errors since they most likely come from low-level cleanup.
             }
         }
-        if (error != null && !this.result.isDone()) {
-            this.result.complete();
-            throwError(error);
+        if (this.badError != null) {
+            throwError(this.badError);
         }
     }
 
-    public JSHandle result(){
-        JSHandle result = null;
+    public JSHandle result() {
         try {
-            result = this.result.waitingGetResult(this.timeout, TimeUnit.MILLISECONDS);
+            JSHandle result = this.result.waitingGetResult(this.timeout, TimeUnit.MILLISECONDS);
+            if (Objects.nonNull(result)) {
+                return result;
+            }
+            if (Objects.nonNull(this.badError)) {
+                this.terminate();
+            }
         } catch (Exception e) {
+            this.setBadError(e);
             for (ExecutorService executorService : this.rerun) {
                 executorService.shutdownNow();
             }
             this.rerun.clear();
-            this.terminate(e);
+            this.terminate();
         }
-        return result;
+        return null;
     }
 
     private Throwable getBadError(Throwable error) {
@@ -180,7 +185,21 @@ public class WaitTask {
             }
             return error;
         }
-        return new JvppeteerException("WaitTask failed with an error: " + error.getMessage(), error);
+        return error;
+    }
+
+    public void setBadError(Throwable badError) {
+        if (this.badError == null) {
+            synchronized (this) {
+                if (this.badError == null) {
+                    //既然已经发生错误，那么需要唤醒等待result的主线程
+                    if(!this.result.isDone()){
+                        this.result.complete();
+                    }
+                    this.badError = badError;
+                }
+            }
+        }
     }
 
 }

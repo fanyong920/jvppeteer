@@ -22,7 +22,7 @@ public class TaskManager {
     public void terminateAll(JvppeteerException error) {
         tasks.forEach(task -> {
                     try {
-                        task.terminate(error);
+                        task.setBadError(error);
                     } catch (Exception e) {
                         LOGGER.error("jvppeteer error", e);
                     }
