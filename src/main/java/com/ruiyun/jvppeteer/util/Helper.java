@@ -500,7 +500,7 @@ public class Helper {
         try {
             latch.await(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            throw new JvppeteerException(e);
         }
     }
 

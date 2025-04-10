@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.common;
 
+import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +22,7 @@ public class AwaitableResult<T> {
         try {
             this.latch.await();
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            throw new JvppeteerException(e);
         }
     }
 
@@ -34,8 +35,7 @@ public class AwaitableResult<T> {
                 return this.latch.await(timeout, unit);
             }
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
+            throw new JvppeteerException(e);
         }
     }
 
