@@ -7,14 +7,14 @@ import java.util.concurrent.TimeUnit;
 public class AwaitableResult<T> {
 
     private final CountDownLatch latch = new CountDownLatch(1);
-    private volatile T response;
+    private volatile T result;
 
     public static <T> AwaitableResult<T> create() {
         return new AwaitableResult<>();
     }
 
     public boolean isDone() {
-        return this.response != null;
+        return this.result != null;
     }
 
     public void waiting() {
@@ -41,7 +41,7 @@ public class AwaitableResult<T> {
 
     public T waitingGetResult() {
         this.waiting();
-        return this.response;
+        return this.result;
     }
 
     public T waitingGetResult(int timeout, TimeUnit unit) {
@@ -49,25 +49,25 @@ public class AwaitableResult<T> {
             return this.waitingGetResult();
         } else {
             boolean result = this.waiting(timeout, unit);
-            if(!result){
-                throw new TimeoutException("Waiting for result timeout");
+            if (!result) {
+                throw new TimeoutException("Waiting for Result timeout of " + timeout + " ms exceeded");
             }
-            return this.response;
+            return this.result;
         }
     }
 
 
     public T get() {
-        return this.response;
+        return this.result;
     }
 
     public void onSuccess(T result) {
-        this.response = result;
+        this.result = result;
         this.complete();
     }
 
     public void complete(T result) {
-        this.response = result;
+        this.result = result;
         if (this.latch.getCount() > 0) {
             this.latch.countDown();
         }
