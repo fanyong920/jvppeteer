@@ -628,4 +628,23 @@ public class Helper {
         }
         return partitionKey.get("sourceOrigin").asText();
     }
+
+    /**
+     * 移除Map对象里面的null值
+     * @param params map对象
+     */
+    public static void removeNull(Object params) {
+        if (params instanceof Map) {
+            Map<?, ?> map = (Map<?, ?>) params;
+            map.entrySet().removeIf(entry -> {
+                if (entry.getValue() == null) {
+                    return true;
+                }
+                if (entry.getValue() instanceof Map) {
+                    removeNull(entry.getValue());
+                }
+                return false;
+            });
+        }
+    }
 }

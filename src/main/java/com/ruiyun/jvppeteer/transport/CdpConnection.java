@@ -31,6 +31,7 @@ import static com.ruiyun.jvppeteer.common.Constant.PARAMS;
 import static com.ruiyun.jvppeteer.common.Constant.RESULT;
 import static com.ruiyun.jvppeteer.common.Constant.SESSION_ID;
 import static com.ruiyun.jvppeteer.util.Helper.createProtocolErrorMessage;
+import static com.ruiyun.jvppeteer.util.Helper.removeNull;
 
 /**
  * web socket client 浏览器级别的连接
@@ -124,7 +125,8 @@ public class CdpConnection extends Connection {
         return this.callbacks.create(callback, (id) -> {
             ObjectNode objectNode = OBJECTMAPPER.createObjectNode();
             objectNode.put(METHOD, method);
-            if (params != null) {
+            if (Objects.nonNull(params)) {
+                removeNull(params);
                 objectNode.putPOJO(PARAMS, params);
             }
             objectNode.put(ID, id);
