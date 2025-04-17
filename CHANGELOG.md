@@ -312,8 +312,14 @@
 
 ### Version Release 3.3.6(2025/4/10)
 
-- [fix: releaseObject改为不等待结果的方式](https://github.com/fanyong920/jvppeteer/commit/672905d35e277cc19193a1062f00c6dbf78952cd)
-- [fix: ElementHandle.$$() 方法](https://github.com/fanyong920/jvppeteer/commit/9157c12ae298dff242747f817b0cc1ea70f0cfb2)
-- [fix: parlse-js的注入方式改为用 page.evaluate()方法](https://github.com/fanyong920/jvppeteer/commit/92c50ba80b4f3254080e2960cb4ae1825cb8714d)
-- [fix: ElementHandle.$()修复](https://github.com/fanyong920/jvppeteer/commit/a1037953931faf9c3d0562d9556894c8f1b97666)
-- [fix: WaitTask在完成之后删除任务](https://github.com/fanyong920/jvppeteer/commit/7a7740d6381bd282f35ad1f9bc9fd8677a05bc96)
+- [fix: AwaitableResult内变量response 重命名为 result;修改AwaitableResult() 超时的错误信息](https://github.com/fanyong920/jvppeteer/commit/985f129b905d61fc0649d818ab8daf7c5b4e1673)
+- [refactor: registerCustomQueryHandler()简化name的校验代码](https://github.com/fanyong920/jvppeteer/commit/4e912406350b79f261b43f85c9f1a9feb7fd6e00)
+- [fix: WaitTask.result() 超时处理;以及rerun() 的修改](https://github.com/fanyong920/jvppeteer/commit/8b1306d62d8e9032aca2ee7a9e0671ddb20710ca)
+- [refactor: equals() 改用 Objects.equals()](https://github.com/fanyong920/jvppeteer/commit/5ea74a29dfd3237cf1d7f5c6fcbb53db1119a456)
+- [fix: roll to Firefox 137.0 and Chrome 135.0.7049.42](https://github.com/fanyong920/jvppeteer/commit/be679af8efeffe3a4d52781123ba6dc5ad4a423e)
+- [feat: improve screencast options](https://github.com/fanyong920/jvppeteer/commit/50e6994cd4b556afbfc7a0f005a54d31a4fa441b)
+- [refactor: use the browser getter](https://github.com/fanyong920/jvppeteer/commit/ac81c4993bfd8b1de7930d154ce229457063510f)
+
+### Version Release 3.3.7(2025/4/17)
+
+- [feat: 移除 params 中的null值](https://github.com/fanyong920/jvppeteer/commit/ab36531ab9a0aeee9d41084864544a0cd78341a9)
