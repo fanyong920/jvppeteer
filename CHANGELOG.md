@@ -323,3 +323,7 @@
 ### Version Release 3.3.7(2025/4/17)
 
 - [feat: 移除 params 中的null值](https://github.com/fanyong920/jvppeteer/commit/ab36531ab9a0aeee9d41084864544a0cd78341a9)
+
+### Version Release 3.3.8(2025/4/21)
+
+- [fix: Page.screenshot() 中保存图片的路径大写变小写的问题](https://github.com/fanyong920/jvppeteer/commit/a7106e1981ea5d14b5472ef46dd5f0a56354e6f5)
