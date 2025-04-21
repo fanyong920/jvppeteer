@@ -1288,7 +1288,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
         synchronized (this.browserContext()) {//一个上下文只能有一个截图操作
             if (StringUtil.isNotEmpty(options.getPath())) {
                 String filePath = options.getPath();
-                String path = filePath.substring(0, filePath.lastIndexOf('.') + 1).toLowerCase();
+                String path = filePath.substring(0, filePath.lastIndexOf('.') + 1);
                 options.setPath(path + options.getType().toString());
             }
             if (options.getType().equals(ImageType.JPG)) {
