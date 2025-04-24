@@ -11,12 +11,6 @@ if [[ ! -f "/etc/os-release" ]]; then
   exit 1
 fi
 
-ID=$(bash -c 'source /etc/os-release && echo $ID')
-if [[ "${ID}" != "ubuntu" && "${ID}" != "debian" ]]; then
-  echo "ERROR: cannot install on $ID distribution - only Ubuntu and Debian are supported"
-  exit 1
-fi
-
 ## 1. make sure to remove old beta if any.
 #if dpkg --get-selections | grep -q "^google-chrome-beta[[:space:]]*install$" >/dev/null; then
 #  apt-get remove -y google-chrome-beta
