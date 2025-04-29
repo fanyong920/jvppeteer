@@ -327,3 +327,7 @@
 ### Version Release 3.3.8(2025/4/21)
 
 - [fix: Page.screenshot() 中保存图片的路径大写变小写的问题](https://github.com/fanyong920/jvppeteer/commit/a7106e1981ea5d14b5472ef46dd5f0a56354e6f5)
+
+### Version Release 3.3.9(2025/4/29)
+
+- [fix:允许centos下载chrome](https://github.com/fanyong920/jvppeteer/commit/60d962f6faaa33ca7c6cbc5f0fd7354a437aa758)
