@@ -20,7 +20,7 @@ public class WorkerTarget extends CdpTarget {
             if (this.session() == null){
                 session = this.sessionFactory.create(false);
             }
-            this.webWorker = new CdpWebWorker(session, this.targetInfo.getUrl(), this.getTargetId(),this.type(),(arg1, arg2, arg3) -> {} /* consoleAPICalled */, (arg) -> {} /* exceptionThrown */);
+            this.webWorker = new CdpWebWorker(session, this.targetInfo.getUrl(), this.getTargetId(),this.type(),(arg1, arg2, arg3) -> {} /* consoleAPICalled */, (arg) -> {} /* exceptionThrown */,null);
         }
         return this.webWorker;
     }

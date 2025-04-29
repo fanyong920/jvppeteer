@@ -364,7 +364,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         if (request == null) {
             return;
         }
-        this.maybeReassignOOPIFRequestClient(client, request);
+        this.adoptCdpSessionIfNeeded(client, request);
         request.setFailureText(event.getErrorText());
         CdpResponse response = request.response();
         if (Objects.nonNull(response)) {
@@ -379,7 +379,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         if (request == null) {
             return;
         }
-        this.maybeReassignOOPIFRequestClient(client, request);
+        this.adoptCdpSessionIfNeeded(client, request);
         if (Objects.nonNull(request.response())) {
             request.response().resolveBody(null);
         }
@@ -387,13 +387,14 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.emit(NetworkManagerEvent.RequestFinished, request);
     }
 
-    private void maybeReassignOOPIFRequestClient(CDPSession client, CdpRequest request) {
-        // Document requests for OOPIFs start in the parent frame but are adopted by their
-        // child frame, meaning their loadingFinished and loadingFailed events are fired on
-        // the child session. In this case we reassign the request CDPSession to ensure all
-        // subsequent actions use the correct session (e.g. retrieving response body in
-        // HTTPResponse).
-        if (client != request.client() && request.isNavigationRequest()) {
+    private void adoptCdpSessionIfNeeded(CDPSession client, CdpRequest request) {
+        // Document requests for OOPIFs start in the parent frame but are
+        // adopted by their child frame, meaning their loadingFinished and
+        // loadingFailed events are fired on the child session. In this case
+        // we reassign the request CDPSession to ensure all subsequent
+        // actions use the correct session (e.g. retrieving response body in
+        // HTTPResponse). The same applies to main worker script requests.
+        if (client != request.client()) {
             request.setClient(client);
         }
     }

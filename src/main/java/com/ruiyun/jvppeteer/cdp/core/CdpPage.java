@@ -255,7 +255,7 @@ public class CdpPage extends Page {
     private final Consumer<CdpCDPSession> onAttachedToTarget = (session) -> {
         this.frameManager.onAttachedToTarget(session.getTarget());
         if ("worker".equals(session.getTarget().getTargetInfo().getType())) {
-            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::addConsoleMessage, CdpPage.this::handleException);
+            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::addConsoleMessage, CdpPage.this::handleException,this.frameManager.networkManager());
             this.workers.put(session.id(), webWorker);
             this.emit(PageEvents.WorkerCreated, webWorker);
         }
