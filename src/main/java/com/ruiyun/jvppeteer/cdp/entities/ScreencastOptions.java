@@ -28,7 +28,7 @@ public class ScreencastOptions {
      */
     private String ffmpegPath;
     /**
-     * 录制的格式：webm或者gif
+     * 录制的格式：webm、gif、MP4
      */
     private ScreenCastFormat format;
     /**
