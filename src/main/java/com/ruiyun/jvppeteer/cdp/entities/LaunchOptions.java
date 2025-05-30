@@ -38,6 +38,7 @@ public class LaunchOptions extends ConnectOptions {
         this.setDebuggingPort(builder.debuggingPort);
         this.setTimeout(builder.timeout);
         this.setProtocol(builder.protocol);
+        this.setNetworkEnabled(builder.networkEnabled);
     }
 
 
@@ -221,6 +222,7 @@ public class LaunchOptions extends ConnectOptions {
         private String cacheDir;
         private Map<String, Object> extraPrefsFirefox;
         private Protocol protocol;
+        private boolean networkEnabled;
 
         private Builder() {
         }
@@ -345,6 +347,11 @@ public class LaunchOptions extends ConnectOptions {
             return this;
         }
 
+        public Builder networkEnabled(boolean networkEnabled) {
+            this.networkEnabled = networkEnabled;
+            return this;
+        }
+
         public LaunchOptions build() {
             return new LaunchOptions(this);
         }
@@ -437,5 +444,4 @@ public class LaunchOptions extends ConnectOptions {
     public void setExtraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
         this.extraPrefsFirefox = extraPrefsFirefox;
     }
-
 }

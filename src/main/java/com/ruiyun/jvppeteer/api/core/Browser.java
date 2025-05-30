@@ -229,4 +229,6 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
 
     public abstract void cancelDownload(String key, String id);
 
+    public abstract boolean isNetworkEnabled();
+
 }

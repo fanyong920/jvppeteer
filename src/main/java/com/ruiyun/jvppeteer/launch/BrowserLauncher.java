@@ -244,7 +244,7 @@ public abstract class BrowserLauncher {
 
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
         Runnable closeCallback = runner::closeBrowser;
-        CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true);
+        CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled());
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);
         if (options.getWaitForInitialPage()) {
@@ -266,7 +266,7 @@ public abstract class BrowserLauncher {
     }
 
     private Browser createBiDiBrowser(BidiConnection connection, Runnable closeCallback, Process process, LaunchOptions options) throws IOException {
-        return BidiBrowser.create(process, closeCallback, connection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), null);
+        return BidiBrowser.create(process, closeCallback, connection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), null, options.getNetworkEnabled());
     }
 
     /**
@@ -330,7 +330,7 @@ public abstract class BrowserLauncher {
         List<String> browserContextIds;
         Runnable closeCallback = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
-        return CdpBrowser.create(connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true);
+        return CdpBrowser.create(connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true, options.getNetworkEnabled());
     }
 
     private BidiBrowser connectToBiDiBrowse(ConnectionTransport connectionTransport, String url, ConnectOptions options) throws JsonProcessingException {
@@ -339,7 +339,7 @@ public abstract class BrowserLauncher {
         try {
             JsonNode result = pureBidiConnection.send("session.status", Collections.emptyMap());
             if (result.has("type") && Objects.equals(result.get("type").asText(), "success")) {
-                return BidiBrowser.create(null, null, pureBidiConnection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), options.getCapabilities());
+                return BidiBrowser.create(null, null, pureBidiConnection, null, options.getDefaultViewport(), options.getAcceptInsecureCerts(), options.getCapabilities(), options.getNetworkEnabled());
             }
         } catch (Exception e) {
             if (!(e instanceof ProtocolException)) {

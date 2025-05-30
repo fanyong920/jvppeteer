@@ -52,14 +52,15 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private volatile UserAgentMetadata userAgentMetadata;
     private final Map<CDPSession, Map<ConnectionEvents, Consumer<?>>> clients = new HashMap<>();
     private volatile boolean userRequestInterceptionEnabled = false;
-
-    public NetworkManager(FrameProvider frameManager) {
+    private volatile boolean networkEnabled;
+    public NetworkManager(FrameProvider frameManager,  boolean networkEnabled) {
         super();
         this.frameManager = frameManager;
+        this.networkEnabled = networkEnabled;
     }
 
     public void addClient(CDPSession client) {
-        if (this.clients.containsKey(client)) {
+        if (!this.networkEnabled || this.clients.containsKey(client)) {
             return;
         }
         Map<ConnectionEvents, Consumer<?>> listeners = new HashMap<>();

@@ -20,7 +20,6 @@ import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.common.Product;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -57,10 +56,11 @@ public class CdpBrowser extends Browser {
     private final TargetManager targetManager;
     private String executablePath;
     private List<String> defaultArgs;
+    private final boolean networkEnabled;
 
-
-    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
+    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled) {
         super();
+        this.networkEnabled  = networkEnabled;
         this.defaultViewport = viewport;
         this.process = process;
         this.connection = connection;
@@ -304,8 +304,8 @@ public class CdpBrowser extends Browser {
     }
 
 
-    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets) {
-        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets);
+    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets,boolean networkEnabled) {
+        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets,networkEnabled);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("ignore", true);
@@ -368,44 +368,9 @@ public class CdpBrowser extends Browser {
         this.connection.send("Browser.cancelDownload", params);
     }
 
-
-    public enum BrowserEvent {
-        /**
-         * 创建target
-         * {@link Target}
-         */
-        TargetCreated,
-        /**
-         * 销毁target
-         * {@link Target}
-         */
-        TargetDestroyed,
-        /**
-         * target变化
-         * {@link Target}
-         */
-        TargetChanged,
-        /**
-         * 发现target
-         * {@link TargetInfo}
-         */
-        TargetDiscovered,
-        /**
-         * 断开连接
-         * Object
-         */
-        Disconnected,
-        /**
-         * 下载进度时触发
-         */
-        DownloadProgress,
-
-        /**
-         * 当页面准备开始下载时促发
-         */
-        DownloadWillBegin
-
-
+    @Override
+    public boolean isNetworkEnabled() {
+        return this.networkEnabled;
     }
 
 }

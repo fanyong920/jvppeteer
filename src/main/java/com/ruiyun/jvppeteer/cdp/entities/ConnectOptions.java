@@ -16,6 +16,10 @@ public class ConnectOptions  {
      */
     private boolean acceptInsecureCerts = false;
     /**
+     * Is network events enabled?
+     */
+    private boolean networkEnabled = true;
+    /**
      * Sets a consistent viewport for each page.
      */
     private Viewport defaultViewport ;
@@ -143,5 +147,13 @@ public class ConnectOptions  {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
+    }
+
+    public boolean getNetworkEnabled() {
+        return networkEnabled;
+    }
+
+    public void setNetworkEnabled(boolean networkEnabled) {
+        this.networkEnabled = networkEnabled;
     }
 }

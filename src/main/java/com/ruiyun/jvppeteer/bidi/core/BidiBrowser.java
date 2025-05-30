@@ -13,13 +13,13 @@ import com.ruiyun.jvppeteer.api.events.TrustedEmitter;
 import com.ruiyun.jvppeteer.bidi.entities.SupportedWebDriverCapabilities;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandler;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandlerType;
-import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -46,6 +46,7 @@ public class BidiBrowser extends Browser {
     private final Map<UserContext, BidiBrowserContext> browserContexts = new WeakHashMap<>();
     private final TrustedEmitter<BrowserEvents> trustedEmitter = new TrustedEmitter<>();
     private final BidiBrowserTarget target = new BidiBrowserTarget(this);
+    private final boolean networkEnabled;
 
     static {
         subscribeModules.add("browsingContext");
@@ -61,7 +62,7 @@ public class BidiBrowser extends Browser {
         subscribeCdpEvents.add("goog:cdp.Page.screencastFrame");
     }
 
-    public static BidiBrowser create(Process process, Runnable closeCallback, BidiConnection connection, CdpConnection cdpConnection, Viewport defaultViewport, boolean acceptInsecureCerts, SupportedWebDriverCapabilities capabilities) throws JsonProcessingException {
+    public static BidiBrowser create(Process process, Runnable closeCallback, BidiConnection connection, CdpConnection cdpConnection, Viewport defaultViewport, boolean acceptInsecureCerts, SupportedWebDriverCapabilities capabilities, boolean networkEnabled) throws JsonProcessingException {
         ObjectNode capabilitiesNode = Constant.OBJECTMAPPER.createObjectNode();
         if (Objects.nonNull(capabilities)) {
             capabilitiesNode.putPOJO("firstMatch", capabilities.getFirstMatch());
@@ -85,19 +86,27 @@ public class BidiBrowser extends Browser {
         if (!isFirefox) {
             subscribes.addAll(subscribeCdpEvents);
         }
+        subscribes = subscribes.stream().filter(module -> {
+            if (!networkEnabled) {
+                return !Objects.equals(module, "network") &&
+                        !Objects.equals(module, "goog:cdp.Network.requestWillBeSent");
+            }
+            return true;
+        }).collect(Collectors.toList());
         session.subscribe(subscribes, null);
-        BidiBrowser browser = new BidiBrowser(session.browser, process, closeCallback, cdpConnection, defaultViewport);
+        BidiBrowser browser = new BidiBrowser(session.browser, process, closeCallback, cdpConnection, defaultViewport, networkEnabled);
         browser.initialize();
         return browser;
     }
 
-    private BidiBrowser(BrowserCore browserCore, Process process, Runnable closeCallback, CdpConnection cdpConnection, Viewport defaultViewport) {
+    private BidiBrowser(BrowserCore browserCore, Process process, Runnable closeCallback, CdpConnection cdpConnection, Viewport defaultViewport, boolean networkEnabled) {
         super();
         this.process = process;
         this.closeCallback = closeCallback;
         this.browserCore = browserCore;
         this.defaultViewport = defaultViewport;
         this.cdpConnection = cdpConnection;
+        this.networkEnabled = networkEnabled;
         this.trustedEmitter.pipeTo(this);
     }
 
@@ -105,7 +114,7 @@ public class BidiBrowser extends Browser {
         for (UserContext userContext : this.browserCore.userContexts()) {
             this.createBrowserContext(userContext);
         }
-        this.browserCore.once(BrowserCore.BrowserCoreEvent.disconnected, ignored ->{
+        this.browserCore.once(BrowserCore.BrowserCoreEvent.disconnected, ignored -> {
             this.trustedEmitter.emit(BrowserEvents.Disconnected, true);
             this.trustedEmitter.removeAllListeners(null);
         });
@@ -194,7 +203,7 @@ public class BidiBrowser extends Browser {
 
     @Override
     public String version() throws JsonProcessingException {
-        return this.browserName() +"/"+ this.browserVersion();
+        return this.browserName() + "/" + this.browserVersion();
     }
 
     private String browserName() {
@@ -267,6 +276,11 @@ public class BidiBrowser extends Browser {
         params.put("guid", guid);
         params.put("browserContextId", browserContextId);
         this.browserCore.session().send("Browser.cancelDownload", params);
+    }
+
+    @Override
+    public boolean isNetworkEnabled() {
+        return this.networkEnabled;
     }
 
 }
