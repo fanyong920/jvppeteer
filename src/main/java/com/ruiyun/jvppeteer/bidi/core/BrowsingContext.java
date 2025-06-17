@@ -80,6 +80,15 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.userContext.on(UserContext.UserContextEvent.closed, closedEventConsumer);
         this.disposables.add(new DisposableStack<>(this.userContext, UserContext.UserContextEvent.closed, closedEventConsumer));
 
+        Consumer<FileDialogInfo> fileDialogOpenedConsumer = info -> {
+            if(!Objects.equals(this.id, info.getContext())){
+                return;
+            }
+            this.emit(BrowsingContextEvents.filedialogopened, info);
+        };
+        this.session().on(ConnectionEvents.input_fileDialogOpened,  fileDialogOpenedConsumer);
+        this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.input_fileDialogOpened, fileDialogOpenedConsumer));
+
         Consumer<ContextCreatedEvent> contextCreatedEventConsumer = info -> {
             if (!Objects.equals(info.getParent(), this.id)) {
                 return;
@@ -498,6 +507,10 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
          * Navigation.class
          */
         navigation,
+        /**
+         * FileDialogInfo.class
+         */
+        filedialogopened,
         /**
          * RequestCore
          */

@@ -7,7 +7,7 @@ import com.ruiyun.jvppeteer.api.core.Connection;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.Capabilities;
-import com.ruiyun.jvppeteer.bidi.entities.ClosedEvent;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.NewResult;
 import com.ruiyun.jvppeteer.bidi.events.NavigationInfoEvent;
 import com.ruiyun.jvppeteer.common.Constant;

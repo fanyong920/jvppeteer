@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.bidi.core;
 
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.bidi.entities.ClosedEvent;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptClosedParameters;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandlerType;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptOpenedParameters;

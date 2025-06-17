@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.bidi.entities;
+package com.ruiyun.jvppeteer.bidi.events;
 
 public class ClosedEvent {
     private String reason;

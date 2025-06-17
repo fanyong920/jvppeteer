@@ -79,7 +79,8 @@ public enum ConnectionEvents {
     script_realmCreated("script.realmCreated"),
     script_realmDestroyed("script.realmDestroyed"),
     script_message("script.message"),
-    browsingContext_userPromptClosed("browsingContext.userPromptClosed");
+    browsingContext_userPromptClosed("browsingContext.userPromptClosed"),
+    input_fileDialogOpened("input.fileDialogOpened");
     private final String eventName;
 
     ConnectionEvents(String eventName) {

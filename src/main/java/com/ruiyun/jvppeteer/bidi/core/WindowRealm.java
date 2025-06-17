@@ -1,7 +1,7 @@
 package com.ruiyun.jvppeteer.bidi.core;
 
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.bidi.entities.ClosedEvent;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.RealmInfo;
 import com.ruiyun.jvppeteer.bidi.entities.RealmType;
 import com.ruiyun.jvppeteer.bidi.entities.Target;

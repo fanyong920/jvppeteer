@@ -2,7 +2,6 @@ package com.ruiyun.jvppeteer.cdp.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
-import com.ruiyun.jvppeteer.cdp.events.FileChooserOpenedEvent;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.List;
@@ -14,18 +13,15 @@ import java.util.List;
  */
 public class FileChooser {
 
-    private ElementHandle element;
+    private final ElementHandle element;
 
     private volatile boolean handled;
 
-    private boolean multiple;
+    private final boolean multiple;
 
-    public FileChooser() {
-    }
-
-    public FileChooser(ElementHandle element, FileChooserOpenedEvent event) {
+    public FileChooser(ElementHandle element, boolean multiple) {
         this.element = element;
-        this.multiple = !"selectSingle".equals(event.getMode());
+        this.multiple = multiple;
         this.handled = false;
     }
 
@@ -49,8 +45,13 @@ public class FileChooser {
     /**
      * 关闭文件选择器而不选择任何文件。
      */
-    public void cancel() {
+    public void cancel() throws JsonProcessingException {
         ValidateUtil.assertArg(!this.handled, "Cannot cancel FileChooser which is already handled!");
         this.handled = true;
+        // XXX: These events should converted to trusted events. Perhaps do this
+        // in `DOM.setFileInputFiles`?
+        this.element.evaluate("element => {\n" +
+                "      element.dispatchEvent(new Event('cancel', {bubbles: true}));\n" +
+                "    }");
     }
 }

@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 
 public class BidiFrame extends Frame {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BidiFrame.class);
@@ -481,15 +482,15 @@ public class BidiFrame extends Frame {
         }
     }
 
-    public void setFiles(BidiElementHandle elementHandle, List<String> files) {
+    public void setFiles(BidiElementHandle elementHandle, List<String> files) throws JsonProcessingException {
         ValidateUtil.assertArg(!this.detached(), "Attempted to use detached Frame " + this.id);
-        SharedReference reference = new SharedReference(elementHandle.remoteValue().getSharedId(), elementHandle.remoteValue().getHandle());
+        SharedReference reference = OBJECTMAPPER.readValue(OBJECTMAPPER.writeValueAsString(elementHandle.remoteValue()), SharedReference.class);
         this.browsingContext.setFiles(reference, files);
     }
 
-    public List<RemoteValue> locateNodes(BidiElementHandle elementHandle, ObjectNode locator) {
+    public List<RemoteValue> locateNodes(BidiElementHandle elementHandle, ObjectNode locator) throws JsonProcessingException {
         ValidateUtil.assertArg(!this.detached(), "Attempted to use detached Frame " + this.id);
-        SharedReference reference = new SharedReference(elementHandle.remoteValue().getSharedId(), elementHandle.remoteValue().getHandle());
+        SharedReference reference = OBJECTMAPPER.readValue(OBJECTMAPPER.writeValueAsString(elementHandle.remoteValue()), SharedReference.class);
         return this.browsingContext.locateNodes(locator, Collections.singletonList(reference));
     }
 

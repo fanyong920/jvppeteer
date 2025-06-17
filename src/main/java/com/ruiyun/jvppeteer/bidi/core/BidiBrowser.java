@@ -53,6 +53,7 @@ public class BidiBrowser extends Browser {
         subscribeModules.add("network");
         subscribeModules.add("log");
         subscribeModules.add("script");
+        subscribeModules.add("input");
         subscribeCdpEvents.add("goog:cdp.Debugger.scriptParsed");
         subscribeCdpEvents.add("goog:cdp.CSS.styleSheetAdded");
         subscribeCdpEvents.add("goog:cdp.Runtime.executionContextsCleared");

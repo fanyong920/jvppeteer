@@ -95,7 +95,7 @@ public class BidiElementHandle extends ElementHandle {
     }
 
     @Override
-    public void uploadFile(List<String> filePaths) throws EvaluateException {
+    public void uploadFile(List<String> filePaths) throws EvaluateException, JsonProcessingException {
         List<String> files = filePaths.stream().map(filePath -> {
             Path absolutePath = Paths.get(filePath).toAbsolutePath();
             boolean readable = Files.isReadable(absolutePath);
@@ -108,7 +108,7 @@ public class BidiElementHandle extends ElementHandle {
     }
 
     @Override
-    public List<ElementHandle> queryAXTree(String name, String role) {
+    public List<ElementHandle> queryAXTree(String name, String role) throws JsonProcessingException {
         ObjectNode locator = Constant.OBJECTMAPPER.createObjectNode();
         locator.put("type", "accessibility");
         ObjectNode value = Constant.OBJECTMAPPER.createObjectNode();

@@ -290,7 +290,7 @@ public class CdpPage extends Page {
         } catch (JsonProcessingException e) {
             throwError(e);
         }
-        FileChooser fileChooser = new FileChooser(handle, event);
+        FileChooser fileChooser = new FileChooser(handle, !Objects.equals(event.getMode(), "selectSingle"));
         for (AwaitableResult<FileChooser> subject : this.fileChooserResults) {
             subject.onSuccess(fileChooser);
         }
@@ -332,6 +332,7 @@ public class CdpPage extends Page {
     }
 
     public void setGeolocation(GeolocationOptions options) {
+        super.setGeolocation(options);
         this.emulationManager.setGeolocation(options);
     }
 

@@ -35,11 +35,7 @@ import com.ruiyun.jvppeteer.bidi.entities.ReloadParameters;
 import com.ruiyun.jvppeteer.bidi.entities.RemoteValue;
 import com.ruiyun.jvppeteer.bidi.entities.SetGeoLocationOverrideOptions;
 import com.ruiyun.jvppeteer.bidi.entities.SetViewportParameters;
-import com.ruiyun.jvppeteer.common.AwaitableResult;
-import com.ruiyun.jvppeteer.common.BindingFunction;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
-import com.ruiyun.jvppeteer.common.MediaType;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.bidi.events.FileDialogInfo;
 import com.ruiyun.jvppeteer.cdp.core.Accessibility;
 import com.ruiyun.jvppeteer.cdp.core.Coverage;
 import com.ruiyun.jvppeteer.cdp.core.EmulationManager;
@@ -128,6 +124,7 @@ public class BidiPage extends Page {
     private String userInterception;
     private String authInterception;
     private String extraHeadersInterception;
+    private final Set<AwaitableResult<FileChooser>> fileChooserResults = new HashSet<>();
 
     private BidiPage(BidiBrowserContext browserContext, BrowsingContext browsingContext) {
         super();
@@ -189,7 +186,7 @@ public class BidiPage extends Page {
             BidiFrame frame = iterator.next();
             frames.addAll(frame.childFrames());
         }
-            if (StringUtil.isNotEmpty(this.userAgentPreloadScript)) {
+        if (StringUtil.isNotEmpty(this.userAgentPreloadScript)) {
             this.removeScriptToEvaluateOnNewDocument(this.userAgentPreloadScript);
         }
 
@@ -620,7 +617,26 @@ public class BidiPage extends Page {
 
     @Override
     public AwaitableResult<FileChooser> fileChooserWaitFor() {
-        throw new UnsupportedOperationException();
+        AwaitableResult<FileChooser> result = AwaitableResult.create();
+        this.fileChooserResults.add(result);
+        this.frame.browsingContext.once(BrowsingContext.BrowsingContextEvents.filedialogopened, (Consumer<FileDialogInfo>) info -> {
+            if (Objects.isNull(info.getElement())) {
+                return;
+            }
+            RemoteValue value = new RemoteValue();
+            value.setSharedId(info.getElement().getSharedId());
+            value.setHandle(info.getElement().getHandle());
+            value.setType("node");
+            System.out.println("来了，卧槽");
+            FileChooser chooser = new FileChooser(BidiElementHandle.from(value, this.frame.mainRealm()), info.getMultiple());
+            Iterator<AwaitableResult<FileChooser>> iterator = this.fileChooserResults.iterator();
+            while (iterator.hasNext()) {
+                AwaitableResult<FileChooser> awaitableResult = iterator.next();
+                awaitableResult.onSuccess(chooser);
+                iterator.remove();
+            }
+        });
+        return result;
     }
 
     @Override
