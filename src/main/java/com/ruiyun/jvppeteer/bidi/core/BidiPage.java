@@ -21,6 +21,7 @@ import com.ruiyun.jvppeteer.bidi.entities.BytesValue;
 import com.ruiyun.jvppeteer.bidi.entities.CaptureScreenshotOptions;
 import com.ruiyun.jvppeteer.bidi.entities.ClipRectangle;
 import com.ruiyun.jvppeteer.bidi.entities.CookieFilter;
+import com.ruiyun.jvppeteer.bidi.entities.GeolocationCoordinates;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.ImageFormat;
 import com.ruiyun.jvppeteer.bidi.entities.InterceptPhase;
@@ -32,6 +33,7 @@ import com.ruiyun.jvppeteer.bidi.entities.PrintOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PrintPageParameters;
 import com.ruiyun.jvppeteer.bidi.entities.ReloadParameters;
 import com.ruiyun.jvppeteer.bidi.entities.RemoteValue;
+import com.ruiyun.jvppeteer.bidi.entities.SetGeoLocationOverrideOptions;
 import com.ruiyun.jvppeteer.bidi.entities.SetViewportParameters;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
@@ -67,6 +69,11 @@ import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.BindingFunction;
+import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
+import com.ruiyun.jvppeteer.common.MediaType;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.FileUtil;
@@ -340,7 +347,14 @@ public class BidiPage extends Page {
 
     @Override
     public void setGeolocation(GeolocationOptions options) {
-        this.cdpEmulationManager.setGeolocation(options);
+        super.setGeolocation(options);
+        SetGeoLocationOverrideOptions setGeoLocationOverrideOptions = new SetGeoLocationOverrideOptions();
+        GeolocationCoordinates coordinates = new GeolocationCoordinates();
+        coordinates.setLatitude(options.getLatitude());
+        coordinates.setLongitude(options.getLongitude());
+        coordinates.setAccuracy(options.getAccuracy());
+        setGeoLocationOverrideOptions.setCoordinates(coordinates);
+        this.frame.browsingContext.setGeolocationOverride(setGeoLocationOverrideOptions);
     }
 
     @Override

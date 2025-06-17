@@ -10,7 +10,8 @@ import com.ruiyun.jvppeteer.bidi.entities.AddPreloadScriptOptions;
 import com.ruiyun.jvppeteer.bidi.entities.BaseParameters;
 import com.ruiyun.jvppeteer.bidi.entities.BeforeRequestSentParameters;
 import com.ruiyun.jvppeteer.bidi.entities.CaptureScreenshotOptions;
-import com.ruiyun.jvppeteer.bidi.entities.ClosedEvent;
+import com.ruiyun.jvppeteer.bidi.entities.SetGeoLocationOverrideOptions;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.CookieFilter;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.HandleUserPromptOptions;
@@ -26,6 +27,7 @@ import com.ruiyun.jvppeteer.bidi.entities.SharedReference;
 import com.ruiyun.jvppeteer.bidi.entities.SourceActions;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptOpenedParameters;
 import com.ruiyun.jvppeteer.bidi.events.ContextCreatedEvent;
+import com.ruiyun.jvppeteer.bidi.events.FileDialogInfo;
 import com.ruiyun.jvppeteer.bidi.events.NavigationInfoEvent;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DisposableStack;
@@ -460,6 +462,14 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
             result.add(Constant.OBJECTMAPPER.convertValue(next, RemoteValue.class));
         }
         return result;
+    }
+
+    public void setGeolocationOverride(SetGeoLocationOverrideOptions options) {
+        ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("contexts", Collections.singletonList(this.id));
+        params.put("coordinates", options.getCoordinates());
+        this.userContext.browser.session().send("emulation.setGeolocationOverride", params);
     }
 
     String originalOpener() {

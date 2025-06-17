@@ -146,7 +146,17 @@ public abstract class Page extends EventEmitter<PageEvents> {
      *
      * @param options 地理位置具体信息
      */
-    public abstract void setGeolocation(GeolocationOptions options);
+    public void setGeolocation(GeolocationOptions options){
+        if (options.getLongitude() < -180 || options.getLongitude() > 180) {
+            throw new IllegalArgumentException("Invalid longitude " + options.getLongitude() + ": precondition -180 <= LONGITUDE <= 180 failed.");
+        }
+        if (options.getLatitude() < -90 || options.getLatitude() > 90) {
+            throw new IllegalArgumentException("Invalid latitude " + options.getLatitude() + ": precondition -90 <= LATITUDE <= 90 failed.");
+        }
+        if (options.getAccuracy() < 0) {
+            throw new IllegalArgumentException("Invalid accuracy " + options.getAccuracy() + ": precondition 0 <= ACCURACY failed.");
+        }
+    }
 
     /**
      * 创建此页面的目标。
