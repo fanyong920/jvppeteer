@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +38,7 @@ public class BrowserRunner {
     private Process process;
     private Connection connection;
     private volatile boolean closed;
-    private static final List<BrowserRunner> runners = new ArrayList<>();
+    private static final List<BrowserRunner> runners = Collections.synchronizedList(new ArrayList<>());
     private static boolean isRegisterShutdownHook = false;
     private final String customizedUserDataDir;
     /**
