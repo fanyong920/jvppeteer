@@ -36,6 +36,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.CDP_BINDING_PREFIX;
@@ -133,7 +135,7 @@ public class CdpFrame extends Frame {
         AtomicBoolean ensureNewDocumentNavigation = new AtomicBoolean(false);
         LifecycleWatcher watcher = new LifecycleWatcher(this.frameManager.networkManager(), this, waitUntil);
         try {
-            this.navigate(this.client, url, referrer, refererPolicy, this.id(), ensureNewDocumentNavigation);
+            this.navigate(this.client, url, referrer, StringUtil.isNotEmpty(refererPolicy) ? referrerPolicyToProtocol(refererPolicy) : null, this.id(), ensureNewDocumentNavigation);
             String timeoutMessage = "Navigation timeout of " + timeout + " ms exceeded";
             Supplier<Boolean> conditionChecker = () -> {
                 if (watcher.terminationIsDone()) {
@@ -398,5 +400,27 @@ public class CdpFrame extends Frame {
 
     public void setId(String frameId) {
         this.id = frameId;
+    }
+
+    /**
+     * Converts a web-facing referrer policy string to the corresponding CDP (Chrome DevTools Protocol) camelCase format.
+     *
+     * @param referrerPolicy The web-facing referrer policy (e.g., "no-referrer-when-downgrade").
+     * @return The CDP-compatible referrer policy in camelCase (e.g., "noReferrerWhenDowngrade").
+     */
+    public static String referrerPolicyToProtocol(String referrerPolicy) {
+        // See
+        // https://chromedevtools.github.io/devtools-protocol/tot/Page/#type-ReferrerPolicy
+        // We need to conver from Web-facing phase to CDP's camelCase.
+        Pattern pattern = Pattern.compile("-(.)");
+        Matcher matcher = pattern.matcher(referrerPolicy);
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            matcher.appendReplacement(result, matcher.group(1).toUpperCase());
+        }
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 }
