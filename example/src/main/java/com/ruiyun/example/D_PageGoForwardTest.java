@@ -22,7 +22,8 @@ public class D_PageGoForwardTest {
             page.goTo("https://translate.alibaba.com/");
             //返回上一个页面
             Response response = page.goBack();
-            System.out.println(response.url() + " " +response.ok());
+            if(response != null)
+                System.out.println(response.url() + " " +response.ok());
             //又往前走一个页面
             Response response1 = page.goForward();
             if(response1 != null){
