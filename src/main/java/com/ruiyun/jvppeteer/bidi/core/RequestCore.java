@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.AuthCredentials;
 import com.ruiyun.jvppeteer.bidi.entities.BaseParameters;
 import com.ruiyun.jvppeteer.bidi.entities.BeforeRequestSentParameters;
-import com.ruiyun.jvppeteer.bidi.entities.ClosedEvent;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.FetchErrorParameters;
 import com.ruiyun.jvppeteer.bidi.entities.FetchTimingInfo;
 import com.ruiyun.jvppeteer.bidi.entities.Header;
