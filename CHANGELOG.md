@@ -331,3 +331,13 @@
 ### Version Release 3.3.9(2025/4/29)
 
 - [fix:允许centos下载chrome](https://github.com/fanyong920/jvppeteer/commit/60d962f6faaa33ca7c6cbc5f0fd7354a437aa758)
+
+### Version Release 3.4.0(2025/6/24)
+
+- [fix: correctly conver referrerPolicy to protocol value](https://github.com/fanyong920/jvppeteer/commit/1869bc43a474430488e84610ca2c8c43c85e39d6)
+- [fix: 启动多个浏览器时避免BrowserRunner的runners属性出现线程不安全问题](https://github.com/fanyong920/jvppeteer/commit/4f33e84d0a03ce2fabd56dfda4ab1289ba397ac4)
+- [feat(webdriver): support FileChooser with WebDriver BiDi](https://github.com/fanyong920/jvppeteer/commit/d47188658407c7dbce3ddb5d903d847f96b4f874)
+- [feat(webdriver): support geolocation emulation (#13773)](https://github.com/fanyong920/jvppeteer/commit/10652ee5dac8a6dff72195ba7e18ea8be4bfd7d6)
+- [feat: allow turning off network events](https://github.com/fanyong920/jvppeteer/commit/b2dab1410974e78a64f91f89e104c48992f3aca8)
+- [fix: 完善ScreencastOptions中ScreenCastFormat属性注释](https://github.com/fanyong920/jvppeteer/commit/33873794057d65ca05c2659efc0667fae4600721)
+- [feat: support network requests for workers](https://github.com/fanyong920/jvppeteer/commit/5d04ea06a1c05f084ce0123bffe55b546f4cb88a)
