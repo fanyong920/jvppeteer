@@ -222,7 +222,7 @@ public class LaunchOptions extends ConnectOptions {
         private String cacheDir;
         private Map<String, Object> extraPrefsFirefox;
         private Protocol protocol;
-        private boolean networkEnabled;
+        private boolean networkEnabled = true;
 
         private Builder() {
         }
