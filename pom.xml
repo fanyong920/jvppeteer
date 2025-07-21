@@ -5,7 +5,7 @@
     <groupId>io.github.fanyong920</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>jar</packaging>
-    <version>3.4.0</version>
+    <version>3.4.1</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <url>https://github.com/fanyong920/jvppeteer</url>
@@ -50,7 +50,7 @@
         <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
         <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
-        <nexus.staging.maven.plugin.version>1.6.8</nexus.staging.maven.plugin.version>
+        <central.publishing.maven.plugin.version>0.8.0</central.publishing.maven.plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -77,16 +77,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -196,13 +186,12 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>${nexus.staging.maven.plugin.version}</version>
+                    <groupId>org.sonatype.central</groupId>
+                    <artifactId>central-publishing-maven-plugin</artifactId>
+                    <version>${central.publishing.maven.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>biz.aQute.bnd</groupId>
@@ -216,7 +205,7 @@
     </build>
     <profiles>
         <profile>
-            <id>ossrh</id>
+            <id>central</id>
             <activation>
                 <property>
                     <name>performRelease</name>
@@ -234,14 +223,13 @@
                         <artifactId>maven-gpg-plugin</artifactId>
                     </plugin>
                     <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
                         <extensions>true</extensions>
                         <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <publishingServerId>central</publishingServerId>
                         </configuration>
+
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>

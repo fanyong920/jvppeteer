@@ -341,3 +341,7 @@
 - [feat: allow turning off network events](https://github.com/fanyong920/jvppeteer/commit/b2dab1410974e78a64f91f89e104c48992f3aca8)
 - [fix: 完善ScreencastOptions中ScreenCastFormat属性注释](https://github.com/fanyong920/jvppeteer/commit/33873794057d65ca05c2659efc0667fae4600721)
 - [feat: support network requests for workers](https://github.com/fanyong920/jvppeteer/commit/5d04ea06a1c05f084ce0123bffe55b546f4cb88a)
+
+### Version Release 3.4.1(2025/7/21)
+
+- [fix:3.4.0 版本 network 事件监听不到](https://github.com/fanyong920/jvppeteer/commit/0f142e00fbe112c6f7f99d5c0f8d7ef4f60c82ae)
