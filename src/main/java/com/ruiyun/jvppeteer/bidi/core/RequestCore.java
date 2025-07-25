@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.bidi.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
@@ -17,6 +18,7 @@ import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DisposableStack;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
@@ -24,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+
+import static com.ruiyun.jvppeteer.util.Helper.throwError;
 
 public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
     private volatile String error;
@@ -33,6 +38,7 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
     private final List<DisposableStack<?>> disposables = new ArrayList<>();
     private final BeforeRequestSentParameters event;
     private volatile boolean disposed;
+    private String responseContent;
 
     public RequestCore(BrowsingContext browsingContext, BeforeRequestSentParameters event) {
         super();
@@ -227,6 +233,23 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
             params.put("body", bodyNode);
         }
         this.session().send("network.provideResponse", params);
+    }
+
+    public String getResponseContent() {
+       if(Objects.isNull(this.responseContent)){
+           try {
+               Map<String, Object> params = ParamsFactory.create();
+               params.put("dataType", "response");
+               params.put("request", this.id());
+               this.responseContent = this.session().send("network.getData", params).asText();
+           }catch (Exception e){
+               if(e instanceof ProtocolException && e.getMessage().contains("No resource with given identifier found")){
+                    throw new ProtocolException("Could not load body for this request. This might happen if the request is a preflight request.", e);
+               }
+               throwError(e);
+           }
+       }
+        return this.responseContent;
     }
 
     public void continueWithAuth(String action, AuthCredentials credentials) {

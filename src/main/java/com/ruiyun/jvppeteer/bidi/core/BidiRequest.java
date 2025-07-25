@@ -103,6 +103,10 @@ public class BidiRequest extends Request {
         return StringUtil.isEmpty(this.request.resourceType()) ? ResourceType.Other : ResourceType.valueOf(this.request.resourceType().toLowerCase());
     }
 
+   public String getResponseContent() {
+        return this.request.getResponseContent();
+    }
+
     @Override
     public String method() {
         return this.request.method();

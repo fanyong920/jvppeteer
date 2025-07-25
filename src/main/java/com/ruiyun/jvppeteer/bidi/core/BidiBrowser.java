@@ -21,9 +21,11 @@ import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -95,6 +97,18 @@ public class BidiBrowser extends Browser {
             return true;
         }).collect(Collectors.toList());
         session.subscribe(subscribes, null);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("collectors", Collections.singletonList("response"));
+            params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
+            session.send("network.addDataCollector",params);
+        } catch (Exception e) {
+            if(e instanceof ProtocolException){
+                LOGGER.error("puppeteer:error {}", e.getMessage(), e);
+            }else {
+                throw e;
+            }
+        }
         BidiBrowser browser = new BidiBrowser(session.browser, process, closeCallback, cdpConnection, defaultViewport, networkEnabled);
         browser.initialize();
         return browser;

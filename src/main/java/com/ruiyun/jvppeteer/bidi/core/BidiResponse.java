@@ -7,12 +7,13 @@ import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.bidi.entities.FetchTimingInfo;
 import com.ruiyun.jvppeteer.bidi.entities.Header;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteAddress;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceTiming;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseSecurityDetails;
 import com.ruiyun.jvppeteer.cdp.entities.SecurityDetails;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -142,7 +143,7 @@ public class BidiResponse extends Response {
 
     @Override
     public byte[] content() {
-        throw new UnsupportedOperationException();
+        return Base64Util.decode(this.request.getResponseContent().getBytes());
     }
 
 }
