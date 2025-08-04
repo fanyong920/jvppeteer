@@ -105,17 +105,17 @@ public class ChromeLauncher extends BrowserLauncher {
         enabledFeatures = enabledFeatures.stream().filter(feature -> !"".equals(feature)).collect(Collectors.toList());
         List<String> chromeArguments;
         List<String> ignoreDefaultArgs;
-        if (!options.getIgnoreAllDefaultArgs()) {//不忽略默认参数
-            chromeArguments = new ArrayList<>(Constant.DEFAULT_ARGS);
-            chromeArguments.add("--disable-features=" + String.join(",", disabledFeatures));
-            chromeArguments.add("--enable-features=" + String.join(",", enabledFeatures));
-        } else if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {//指定忽略的默认参数
-            chromeArguments = new ArrayList<>(Constant.DEFAULT_ARGS);
-            chromeArguments.add("--disable-features=" + String.join(",", disabledFeatures));
-            chromeArguments.add("--enable-features=" + String.join(",", enabledFeatures));
+        //忽略全部默认参数
+        if (options.getIgnoreAllDefaultArgs()) {
+          chromeArguments = new ArrayList<>();
+        }else {
+          chromeArguments = new ArrayList<>(Constant.DEFAULT_ARGS);
+          chromeArguments.add("--disable-features=" + String.join(",", disabledFeatures));
+          chromeArguments.add("--enable-features=" + String.join(",", enabledFeatures));
+          //默认参数基础上再忽略指定参数
+          if(ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
             chromeArguments.removeAll(ignoreDefaultArgs);
-        } else {//忽略全部默认参数
-            chromeArguments = new ArrayList<>();
+          }
         }
 
         if (StringUtil.isNotEmpty(options.getUserDataDir())) {
