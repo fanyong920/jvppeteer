@@ -255,6 +255,8 @@ public class Helper {
         return platform().contains("mac");
     }
 
+    public static boolean isUnixLike() { return !isWindows() && new File("/bin/sh").canExecute(); }
+
     public static String join(String root, String... args) {
         return java.nio.file.Paths.get(root, args).toString();
     }
@@ -427,9 +429,9 @@ public class Helper {
      * @throws NoSuchFieldException   field not found
      * @throws IllegalAccessException illegal access
      */
-    public static long getPidForLinuxOrMac(Process process) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+    public static long getPidForUnixLike(Process process) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         long pid = -1;
-        if (Helper.isMac() || Helper.isLinux()) {
+        if (Helper.isUnixLike()) {
             String version = System.getProperty("java.version");
             double jdkVersion = Double.parseDouble(version.substring(0, 3));
             Class<?> clazz;

@@ -80,7 +80,6 @@ public abstract class BrowserLauncher {
         FetcherOptions fetcherOptions = new FetcherOptions();
         fetcherOptions.setProduct(this.product);
         fetcherOptions.setCacheDir(this.cacheDir);
-        BrowserFetcher browserFetcher = new BrowserFetcher(fetcherOptions);
         /*指定了启动路径，则启动指定路径的chrome*/
         if (StringUtil.isNotEmpty(preferredExecutablePath)) {
             boolean assertDir = FileUtil.assertExecutable(Paths.get(preferredExecutablePath).normalize().toAbsolutePath().toString());
@@ -100,6 +99,7 @@ public abstract class BrowserLauncher {
                 return preferredExecutablePath;
             }
         }
+        BrowserFetcher browserFetcher = new BrowserFetcher(fetcherOptions);
         /*指定了首选版本*/
         if (StringUtil.isNotEmpty(preferredRevision)) {
             RevisionInfo revisionInfo = browserFetcher.revisionInfo(preferredRevision.replace("stable_", ""));
@@ -289,7 +289,7 @@ public abstract class BrowserLauncher {
         }
         try {
             if (pid == -1) {
-                pid = Helper.getPidForLinuxOrMac(process);
+                pid = Helper.getPidForUnixLike(process);
             }
         } catch (Exception e) {
             LOGGER.error("get browser pid error by reflection: ", e);
