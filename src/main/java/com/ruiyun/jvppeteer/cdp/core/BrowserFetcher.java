@@ -528,7 +528,7 @@ public class BrowserFetcher {
     private Path copyShellFile(String path) throws IOException {
         Path tempDirectory = Paths.get(FileUtil.createProfileDir(SHELLS_PREFIX));
         Path shellPath = tempDirectory.resolve(path);
-        if (Helper.isMac() || Helper.isLinux()) {
+        if (Helper.isUnixLike()) {
             Files.createFile(shellPath, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
         } else if (Helper.isWindows()) {
             Files.createFile(shellPath);

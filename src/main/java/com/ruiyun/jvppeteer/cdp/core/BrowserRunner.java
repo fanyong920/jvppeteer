@@ -113,12 +113,12 @@ public class BrowserRunner {
             }
             Process exec;
             String command;
-            if (Helper.isLinux() || Helper.isMac()) {
+            if (Helper.isUnixLike()) {
                 command = "kill -9 " + pid;
                 exec = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", command});
             } else {
-                    command = "cmd.exe /c taskkill /pid " + pid + " /F /T ";
-                    exec = Runtime.getRuntime().exec(command);
+                command = "cmd.exe /c taskkill /pid " + pid + " /F /T ";
+                exec = Runtime.getRuntime().exec(command);
             }
             try {
                 if (Objects.nonNull(exec)) {

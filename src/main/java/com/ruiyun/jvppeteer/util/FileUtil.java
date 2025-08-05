@@ -101,7 +101,7 @@ public class FileUtil {
             if (parent != null && !Files.exists(parent)) {
                 createDirs(parent);
             }
-            if (Helper.isMac() || Helper.isLinux()) {
+            if (Helper.isUnixLike()) {
                 Files.createFile(path1, PosixFilePermissions.asFileAttribute(rwxrwxrwx));
             } else if (Helper.isWindows()) {
                 Files.createFile(path1);
@@ -110,7 +110,7 @@ public class FileUtil {
     }
 
     public static void createDirs(Path path) throws IOException {
-        if (Helper.isMac() || Helper.isLinux()) {
+        if (Helper.isUnixLike()) {
             Files.createDirectories(path, PosixFilePermissions.asFileAttribute(rwxrwxrwx));
         } else if (Helper.isWindows()) {
             Files.createDirectories(path);
