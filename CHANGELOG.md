@@ -345,3 +345,11 @@
 ### Version Release 3.4.1(2025/7/21)
 
 - [fix:3.4.0 版本 network 事件监听不到](https://github.com/fanyong920/jvppeteer/commit/0f142e00fbe112c6f7f99d5c0f8d7ef4f60c82ae)
+
+### Version Release 3.4.2(2025/12/1)
+
+- [feat:support network response content in BiDi](https://github.com/fanyong920/jvppeteer/commit/aedcf804279074907c78274e50eb61ba4e8d796a)
+- [feat: add debugging highlight to ElementHandle.click()](https://github.com/fanyong920/jvppeteer/commit/bb435368f5ce2b18f1439e46c06a1f7d9316a516)
+- [Provides basic support for Unix-like systems other than Mac/Linux](https://github.com/fanyong920/jvppeteer/commit/daadb4dee360889ae183d3a7f5150610faa56833)
+- [fix: ignore wasn't found errors in NetworkManager](https://github.com/fanyong920/jvppeteer/commit/0fbecaa828dd8ae3c594d0d9b40f9282d9d1fd1f)
+- [feat: emulateTimezone via BiDi](https://github.com/fanyong920/jvppeteer/commit/e3c5e8af57a30388f3cf3a9235ed6206a8e033df)

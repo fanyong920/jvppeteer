@@ -5,7 +5,7 @@
     <groupId>io.github.fanyong920</groupId>
     <artifactId>jvppeteer</artifactId>
     <packaging>jar</packaging>
-    <version>3.4.1</version>
+    <version>3.4.2</version>
     <name>jvppeteer</name>
     <description>java version of puppeteer</description>
     <url>https://github.com/fanyong920/jvppeteer</url>
@@ -48,7 +48,7 @@
         <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
         <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
         <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
-        <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
+        <maven.shade.plugin.version>3.4.2</maven.shade.plugin.version>
         <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
         <central.publishing.maven.plugin.version>0.8.0</central.publishing.maven.plugin.version>
     </properties>
