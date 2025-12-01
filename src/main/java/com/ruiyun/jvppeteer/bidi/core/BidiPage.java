@@ -376,7 +376,7 @@ public class BidiPage extends Page {
 
     @Override
     public void emulateTimezone(String timezoneId) {
-        this.cdpEmulationManager.emulateTimezone(timezoneId);
+        this.frame.browsingContext.setTimezoneOverride(timezoneId);
     }
 
     @Override
