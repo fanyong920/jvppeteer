@@ -5,9 +5,6 @@ import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.Request;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.FrameProvider;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.AuthChallengeResponse;
 import com.ruiyun.jvppeteer.cdp.entities.Credentials;
 import com.ruiyun.jvppeteer.cdp.entities.InternalNetworkConditions;
@@ -24,7 +21,11 @@ import com.ruiyun.jvppeteer.cdp.events.RequestServedFromCacheEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.cdp.events.ResponseReceivedEvent;
 import com.ruiyun.jvppeteer.cdp.events.ResponseReceivedExtraInfoEvent;
+import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.FrameProvider;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
+import com.ruiyun.jvppeteer.exception.TargetCloseException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
@@ -38,6 +39,9 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+import static com.ruiyun.jvppeteer.util.Helper.throwError;
+
 public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEvent> {
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkManager.class);
     private final FrameProvider frameManager;
@@ -45,7 +49,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private Map<String, String> extraHTTPHeaders;
     private volatile Credentials credentials;
     private final Set<String> attemptedAuthentications = new HashSet<>();
-    private volatile boolean protocolRequestInterceptionEnabled;
+    private volatile Boolean protocolRequestInterceptionEnabled;
     private volatile Boolean userCacheDisabled;
     private InternalNetworkConditions emulatedNetworkConditions;
     private volatile String userAgent;
@@ -53,10 +57,15 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private final Map<CDPSession, Map<ConnectionEvents, Consumer<?>>> clients = new HashMap<>();
     private volatile boolean userRequestInterceptionEnabled = false;
     private volatile boolean networkEnabled;
-    public NetworkManager(FrameProvider frameManager,  boolean networkEnabled) {
+
+    public NetworkManager(FrameProvider frameManager, boolean networkEnabled) {
         super();
         this.frameManager = frameManager;
         this.networkEnabled = networkEnabled;
+    }
+
+    private boolean canIgnoreError(Exception error) {
+        return error instanceof TargetCloseException || (StringUtil.isNotEmpty(error.getMessage()) && (error.getMessage().contains("Not supported") || error.getMessage().contains("wasn't found")));
     }
 
     public void addClient(CDPSession client) {
@@ -100,14 +109,21 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         client.on(ConnectionEvents.CDPSession_Disconnected, disconnected);
         listeners.put(ConnectionEvents.CDPSession_Disconnected, disconnected);
 
+        try {
+            this.clients.put(client, listeners);
+            client.send("Network.enable");
+            this.applyExtraHTTPHeaders(client);
+            this.applyNetworkConditions(client);
+            this.applyProtocolCacheDisabled(client);
+            this.applyProtocolRequestInterception(client);
+            this.applyUserAgent(client);
+        } catch (Exception e) {
+            if (canIgnoreError(e)) {
+                return;
+            }
+            throwError(e);
+        }
 
-        this.clients.put(client, listeners);
-        client.send("Network.enable");
-        this.applyExtraHTTPHeaders(client);
-        this.applyNetworkConditions(client);
-        this.applyProtocolCacheDisabled(client);
-        this.applyProtocolRequestInterception(client);
-        this.applyUserAgent(client);
     }
 
     public void removeClient(CDPSession client) {
@@ -120,7 +136,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     public void authenticate(Credentials credentials) {
         this.credentials = credentials;
         boolean enabled = this.userRequestInterceptionEnabled || this.credentials != null;
-        if (enabled == this.protocolRequestInterceptionEnabled)
+        if (Objects.equals(enabled, this.protocolRequestInterceptionEnabled))
             return;
         this.protocolRequestInterceptionEnabled = enabled;
         this.clients.forEach((client1, disposables) -> this.applyProtocolRequestInterception(client1));
@@ -136,20 +152,30 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     }
 
     private void applyProtocolRequestInterception(CDPSession client) {
+        if (Objects.isNull(this.protocolRequestInterceptionEnabled)) {
+            return;
+        }
         if (this.userCacheDisabled == null) {
             this.userCacheDisabled = false;
         }
-        if (this.protocolRequestInterceptionEnabled) {
-            this.applyProtocolCacheDisabled(client);
-            Map<String, Object> params = ParamsFactory.create();
-            params.put("handleAuthRequests", true);
-            List<Object> patterns = new ArrayList<>();
-            patterns.add(Constant.OBJECTMAPPER.createObjectNode().put("urlPattern", "*"));
-            params.put("patterns", patterns);
-            client.send("Fetch.enable", params);
-        } else {
-            this.applyProtocolCacheDisabled(client);
-            client.send("Fetch.disable");
+        try {
+            if (this.protocolRequestInterceptionEnabled) {
+                this.applyProtocolCacheDisabled(client);
+                Map<String, Object> params = ParamsFactory.create();
+                params.put("handleAuthRequests", true);
+                List<Object> patterns = new ArrayList<>();
+                patterns.add(Constant.OBJECTMAPPER.createObjectNode().put("urlPattern", "*"));
+                params.put("patterns", patterns);
+                client.send("Fetch.enable", params);
+            } else {
+                this.applyProtocolCacheDisabled(client);
+                client.send("Fetch.disable");
+            }
+        } catch (Exception e) {
+            if (canIgnoreError(e)) {
+                return;
+            }
+            throwError(e);
         }
     }
 
@@ -161,40 +187,68 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         if (this.userCacheDisabled == null) {
             return;
         }
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("cacheDisabled", this.userCacheDisabled);
-        client.send("Network.setCacheDisabled", params);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("cacheDisabled", this.userCacheDisabled);
+            client.send("Network.setCacheDisabled", params);
+        } catch (Exception e) {
+            if(canIgnoreError(e)){
+                return;
+            }
+            throwError(e);
+        }
     }
 
     private void applyExtraHTTPHeaders(CDPSession client) {
         if (this.extraHTTPHeaders == null) {
             return;
         }
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("headers", this.extraHTTPHeaders);
-        client.send("Network.setExtraHTTPHeaders", params);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("headers", this.extraHTTPHeaders);
+            client.send("Network.setExtraHTTPHeaders", params);
+        } catch (Exception e) {
+            if (canIgnoreError(e)) {
+                return;
+            }
+            throwError(e);
+        }
     }
 
     private void applyNetworkConditions(CDPSession client) {
         if (this.emulatedNetworkConditions == null) {
             return;
         }
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("offline", this.emulatedNetworkConditions.getOffline());
-        params.put("latency", this.emulatedNetworkConditions.getLatency());
-        params.put("uploadThroughput", this.emulatedNetworkConditions.getUpload());
-        params.put("downloadThroughput", this.emulatedNetworkConditions.getDownload());
-        client.send("Network.emulateNetworkConditions", params);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("offline", this.emulatedNetworkConditions.getOffline());
+            params.put("latency", this.emulatedNetworkConditions.getLatency());
+            params.put("uploadThroughput", this.emulatedNetworkConditions.getUpload());
+            params.put("downloadThroughput", this.emulatedNetworkConditions.getDownload());
+            client.send("Network.emulateNetworkConditions", params);
+        } catch (Exception e) {
+            if (canIgnoreError(e)) {
+                return;
+            }
+            throwError(e);
+        }
     }
 
     private void applyUserAgent(CDPSession client) {
         if (this.userAgent == null) {
             return;
         }
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("userAgent", this.userAgent);
-        params.put("userAgentMetadata", this.userAgentMetadata);
-        client.send("Network.setUserAgentOverride", params);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("userAgent", this.userAgent);
+            params.put("userAgentMetadata", this.userAgentMetadata);
+            client.send("Network.setUserAgentOverride", params);
+        } catch (Exception e) {
+            if (canIgnoreError(e)) {
+                return;
+            }
+            throwError(e);
+        }
     }
 
     public int inFlightRequestsCount() {
@@ -233,7 +287,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     public void setRequestInterception(boolean value) {
         this.userRequestInterceptionEnabled = value;
         boolean enabled = this.userRequestInterceptionEnabled || this.credentials != null;
-        if (enabled == this.protocolRequestInterceptionEnabled)
+        if (Objects.equals(enabled, this.protocolRequestInterceptionEnabled))
             return;
         this.protocolRequestInterceptionEnabled = enabled;
         this.clients.forEach((client1, disposables) -> this.applyProtocolRequestInterception(client1));
@@ -241,7 +295,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
 
     public void onRequestWillBeSent(CDPSession client, RequestWillBeSentEvent event) {
         // Request interception doesn't happen for data URLs with Network Service.
-        if (this.protocolRequestInterceptionEnabled && !event.getRequest().getUrl().startsWith("data:")) {
+        if (Objects.nonNull(this.protocolRequestInterceptionEnabled) && this.protocolRequestInterceptionEnabled && !event.getRequest().getUrl().startsWith("data:")) {
             String networkRequestId = event.getRequestId();
             this.networkEventManager.storeRequestWillBeSent(networkRequestId, event);
             RequestPausedEvent requestPausedEvent = this.networkEventManager.getRequestPaused(networkRequestId);
@@ -285,7 +339,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     }
 
     public void onRequestPaused(CDPSession client, RequestPausedEvent event) {
-        if (!this.userRequestInterceptionEnabled && this.protocolRequestInterceptionEnabled) {
+        if (!this.userRequestInterceptionEnabled && Objects.nonNull(this.protocolRequestInterceptionEnabled) && this.protocolRequestInterceptionEnabled) {
             try {
                 Map<String, Object> params = ParamsFactory.create();
                 params.put("requestId", event.getRequestId());
@@ -301,9 +355,9 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             return;
         }
         RequestWillBeSentEvent requestWillBeSentEvent = this.networkEventManager.getRequestWillBeSent(networkRequestId);
-        if (Objects.nonNull(requestWillBeSentEvent) && (!Objects.equals(requestWillBeSentEvent.getRequest().getUrl(), event.getRequest().getUrl()) || !Objects.equals(requestWillBeSentEvent.getRequest().getMethod(),event.getRequest().getMethod()))) {
+        if (Objects.nonNull(requestWillBeSentEvent) && (!Objects.equals(requestWillBeSentEvent.getRequest().getUrl(), event.getRequest().getUrl()) || !Objects.equals(requestWillBeSentEvent.getRequest().getMethod(), event.getRequest().getMethod()))) {
             this.networkEventManager.forgetRequestWillBeSent(networkRequestId);
-            requestWillBeSentEvent = null ;
+            requestWillBeSentEvent = null;
         }
         if (requestWillBeSentEvent != null) {
             this.patchRequestEventHeaders(requestWillBeSentEvent, event);
