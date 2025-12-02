@@ -16,7 +16,6 @@ import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.IsolatedWorldEmitter;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.DeviceRequestPromptManager;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
@@ -327,7 +326,7 @@ public class CdpFrame extends Frame {
                 "      }", Collections.singletonList(binding.name()));
     }
 
-    public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
+    public CdpDeviceRequestPrompt waitForDevicePrompt(int timeout) {
         return this.deviceRequestPromptManager().waitForDevicePrompt(timeout);
     }
 

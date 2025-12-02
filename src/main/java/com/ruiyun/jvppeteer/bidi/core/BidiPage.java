@@ -2,7 +2,9 @@ package com.ruiyun.jvppeteer.bidi.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Keyboard;
@@ -67,7 +69,6 @@ import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
@@ -818,7 +819,11 @@ public class BidiPage extends Page {
 
     @Override
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
-        throw new UnsupportedOperationException();
+        return this.mainFrame().waitForDevicePrompt(timeout);
+    }
+
+    public BluetoothEmulation bluetooth() {
+        return this.mainFrame().browsingContext.bluetooth();
     }
 
     private boolean testUrlMatchCookie(List<String> urls, Cookie cookie) {

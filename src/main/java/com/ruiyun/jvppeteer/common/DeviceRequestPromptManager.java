@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.common;
 
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.cdp.core.CdpDeviceRequestPrompt;
 import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import java.util.HashSet;
@@ -15,7 +16,7 @@ public class DeviceRequestPromptManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeviceRequestPromptManager.class);
     private CDPSession client;
     private final TimeoutSettings timeoutSettings;
-    private final Set<AwaitableResult<DeviceRequestPrompt>> deviceRequestPromps = new HashSet<>();
+    private final Set<AwaitableResult<CdpDeviceRequestPrompt>> deviceRequestPromps = new HashSet<>();
 
     public DeviceRequestPromptManager(CDPSession client, TimeoutSettings timeoutSettings) {
         this.client = client;
@@ -27,24 +28,24 @@ public class DeviceRequestPromptManager {
     private void onDeviceRequestPrompted(DeviceRequestPromptedEvent event) {
         if (this.deviceRequestPromps.isEmpty()) return;
         Objects.requireNonNull(this.client, "Session is detached");
-        DeviceRequestPrompt devicePrompt = new DeviceRequestPrompt(this.client, this.timeoutSettings, event);
-        for (AwaitableResult<DeviceRequestPrompt> subject : this.deviceRequestPromps) {
+        CdpDeviceRequestPrompt devicePrompt = new CdpDeviceRequestPrompt(this.client, this.timeoutSettings, event);
+        for (AwaitableResult<CdpDeviceRequestPrompt> subject : this.deviceRequestPromps) {
             subject.onSuccess(devicePrompt);
         }
         this.deviceRequestPromps.clear();
     }
 
-    public DeviceRequestPrompt waitForDevicePrompt() {
+    public CdpDeviceRequestPrompt waitForDevicePrompt() {
         return this.waitForDevicePrompt(null);
     }
 
-    public DeviceRequestPrompt waitForDevicePrompt(Integer timeout) {
+    public CdpDeviceRequestPrompt waitForDevicePrompt(Integer timeout) {
         Objects.requireNonNull(this.client, "Cannot wait for device prompt through detached session!");
         boolean needsEnable = this.deviceRequestPromps.isEmpty();
         if (Objects.isNull(timeout)) {
             timeout = this.timeoutSettings.timeout();
         }
-        AwaitableResult<DeviceRequestPrompt> promptAwaitableResult = AwaitableResult.create();
+        AwaitableResult<CdpDeviceRequestPrompt> promptAwaitableResult = AwaitableResult.create();
         try {
             this.deviceRequestPromps.add(promptAwaitableResult);
             if (needsEnable) {

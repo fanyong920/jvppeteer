@@ -80,7 +80,8 @@ public enum ConnectionEvents {
     script_realmDestroyed("script.realmDestroyed"),
     script_message("script.message"),
     browsingContext_userPromptClosed("browsingContext.userPromptClosed"),
-    input_fileDialogOpened("input.fileDialogOpened");
+    input_fileDialogOpened("input.fileDialogOpened"),
+    bluetooth_requestDevicePromptUpdated("bluetooth.requestDevicePromptUpdated");
     private final String eventName;
 
     ConnectionEvents(String eventName) {

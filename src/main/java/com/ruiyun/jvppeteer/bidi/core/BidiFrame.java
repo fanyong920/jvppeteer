@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.bidi.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Response;
@@ -25,7 +26,7 @@ import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
+import com.ruiyun.jvppeteer.cdp.core.CdpDeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
@@ -376,7 +377,7 @@ public class BidiFrame extends Frame {
 
     @Override
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
-        throw new UnsupportedOperationException();
+      return this.browsingContext.waitForDevicePrompt(timeout);
     }
 
     @Override

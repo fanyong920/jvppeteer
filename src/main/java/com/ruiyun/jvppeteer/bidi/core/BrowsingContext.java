@@ -3,6 +3,8 @@ package com.ruiyun.jvppeteer.bidi.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
+import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.AddInterceptOptions;
@@ -56,6 +58,8 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     private final List<DisposableStack<?>> disposables = new ArrayList<>();
     private final Map<String, RequestCore> requests = new LinkedHashMap<>();
     private volatile Navigation navigation;
+    private BluetoothEmulation bluetoothEmulation;
+    private BidiDeviceRequestPromptManager deviceRequestPromptManager;
 
     private BrowsingContext(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
         super();
@@ -65,6 +69,8 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.userContext = userContext;
         this.originalOpener = originalOpener;
         this.defaultRealm = this.createWindowRealm(null);
+        this.bluetoothEmulation = new BidiBluetoothEmulation(this.id, this.session());
+        this.deviceRequestPromptManager = new BidiDeviceRequestPromptManager(this.session(), this.id);
     }
 
     public static BrowsingContext from(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
@@ -81,12 +87,12 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.disposables.add(new DisposableStack<>(this.userContext, UserContext.UserContextEvent.closed, closedEventConsumer));
 
         Consumer<FileDialogInfo> fileDialogOpenedConsumer = info -> {
-            if(!Objects.equals(this.id, info.getContext())){
+            if (!Objects.equals(this.id, info.getContext())) {
                 return;
             }
             this.emit(BrowsingContextEvents.filedialogopened, info);
         };
-        this.session().on(ConnectionEvents.input_fileDialogOpened,  fileDialogOpenedConsumer);
+        this.session().on(ConnectionEvents.input_fileDialogOpened, fileDialogOpenedConsumer);
         this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.input_fileDialogOpened, fileDialogOpenedConsumer));
 
         Consumer<ContextCreatedEvent> contextCreatedEventConsumer = info -> {
@@ -94,16 +100,16 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
                 return;
             }
             BrowsingContext browsingContext = BrowsingContext.from(this.userContext, this, info.getContext(), info.getUrl(), info.getOriginalOpener());
-            if(Objects.isNull(info.getContext())){
+            if (Objects.isNull(info.getContext())) {
                 this.children.put("null", browsingContext);
-            }else {
+            } else {
                 this.children.put(info.getContext(), browsingContext);
             }
             Consumer<Object> closedConsumer = ignored -> {
                 browsingContext.removeAllListeners(null);
-                if(Objects.isNull(browsingContext.id)){
+                if (Objects.isNull(browsingContext.id)) {
                     this.children.remove("null");
-                }else {
+                } else {
                     this.children.remove(browsingContext.id);
                 }
             };
@@ -300,10 +306,10 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         Map<String, Object> params = ParamsFactory.create();
         params.put("context", this.id);
         params.put("delta", delta);
-        this.session().send("browsingContext.traverseHistory", params,null,false);
+        this.session().send("browsingContext.traverseHistory", params, null, false);
     }
 
-    public void navigate(String url, ReadinessState wait,boolean waitForResult) {
+    public void navigate(String url, ReadinessState wait, boolean waitForResult) {
         ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), "Attempted to use detached BrowsingContext: " + this.id);
         Map<String, Object> params = ParamsFactory.create();
         params.put("context", this.id);
@@ -481,7 +487,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.userContext.browser.session().send("emulation.setGeolocationOverride", params);
     }
 
-    public void setTimezoneOverride(String timezoneId){
+    public void setTimezoneOverride(String timezoneId) {
         ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
         if (StringUtil.isNotEmpty(timezoneId) && timezoneId.startsWith("GMT")) {
             // CDP requires `GMT` prefix before timezone offset, while BiDi does not. Remove the
@@ -491,7 +497,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         Map<String, Object> params = ParamsFactory.create();
         params.put("timezoneId", timezoneId);
         params.put("contexts", Collections.singletonList(this.id));
-        this.userContext.browser.session().send("emulation.setTimezoneOverride",params);
+        this.userContext.browser.session().send("emulation.setTimezoneOverride", params);
     }
 
     String originalOpener() {
@@ -504,6 +510,14 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
 
     public WindowRealm defaultRealm() {
         return this.defaultRealm;
+    }
+
+    public BluetoothEmulation bluetooth() {
+        return this.bluetoothEmulation;
+    }
+
+    public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
+        return this.deviceRequestPromptManager.waitForDevicePrompt(timeout);
     }
 
 

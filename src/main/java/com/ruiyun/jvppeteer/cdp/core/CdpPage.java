@@ -3,6 +3,7 @@ package com.ruiyun.jvppeteer.cdp.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
@@ -104,6 +105,7 @@ public class CdpPage extends Page {
 
     private volatile boolean closed = false;
     private final TargetManager targetManager;
+    private final CdpBluetoothEmulation cdpBluetoothEmulation;
     private volatile CDPSession primaryTargetClient;
     private CdpTarget primaryTarget;
     private final CDPSession tabTargetClient;
@@ -141,6 +143,7 @@ public class CdpPage extends Page {
         this.tracing = new Tracing(client);
         this.coverage = new Coverage(client);
         this.viewport = null;
+        this.cdpBluetoothEmulation = new CdpBluetoothEmulation(this.primaryTargetClient.connection());
         Map<FrameManager.FrameManagerEvent, Consumer<?>> frameManagerHandlers = Collections.unmodifiableMap(new HashMap<FrameManager.FrameManagerEvent, Consumer<?>>() {{
             put(FrameManager.FrameManagerEvent.FrameAttached, ((Consumer<CdpFrame>) (frame) -> CdpPage.this.emit(PageEvents.FrameAttached, frame)));
             put(FrameManager.FrameManagerEvent.FrameDetached, ((Consumer<CdpFrame>) (frame) -> CdpPage.this.emit(PageEvents.FrameDetached, frame)));
@@ -255,7 +258,7 @@ public class CdpPage extends Page {
     private final Consumer<CdpCDPSession> onAttachedToTarget = (session) -> {
         this.frameManager.onAttachedToTarget(session.getTarget());
         if ("worker".equals(session.getTarget().getTargetInfo().getType())) {
-            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::addConsoleMessage, CdpPage.this::handleException,this.frameManager.networkManager());
+            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::addConsoleMessage, CdpPage.this::handleException, this.frameManager.networkManager());
             this.workers.put(session.id(), webWorker);
             this.emit(PageEvents.WorkerCreated, webWorker);
         }
@@ -970,6 +973,11 @@ public class CdpPage extends Page {
 
     public CdpMouse mouse() {
         return mouse;
+    }
+
+    @Override
+    public BluetoothEmulation bluetooth() {
+        return this.cdpBluetoothEmulation;
     }
 
     /**

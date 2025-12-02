@@ -10,7 +10,6 @@ import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.QuerySelector;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
@@ -58,8 +57,8 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
     /**
      * 将框架或页面导航到给定的 url。
      *
-     * @param url           将框架导航到的 URL。URL 应包含方案，例如 https://
-     * @param options       可选的配置等待行为的选项。
+     * @param url     将框架导航到的 URL。URL 应包含方案，例如 https://
+     * @param options 可选的配置等待行为的选项。
      * @return waitForResult = true 返回页面导航的响应，如果存在多个重定向，导航将使用最后一个重定向的响应进行解析。否则返回 null
      */
     public abstract Response goTo(String url, GoToOptions options);
@@ -279,7 +278,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
      * @return 返回匹配选择器的目标元素的句柄.
      */
     public ElementHandle waitForSelector(String selector, WaitForSelectorOptions options) throws JsonProcessingException {
-        QuerySelector querySelector = GetQueryHandler.getQueryHandlerAndSelector(selector,this);
+        QuerySelector querySelector = GetQueryHandler.getQueryHandlerAndSelector(selector, this);
         options.setPolling(querySelector.getPolling());
         return querySelector.getQueryHandler().waitFor(this, querySelector.getUpdatedSelector(), options);
     }
@@ -292,7 +291,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
      * @param args         pptrFunction 的参数
      * @return pptrFunction 执行的结果
      */
-    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options,EvaluateType type, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
+    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
         return this.mainRealm().waitForFunction(pptrFunction, options, type, args);
     }
 

@@ -41,7 +41,6 @@ import com.ruiyun.jvppeteer.cdp.events.ScreencastFrameEvent;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
@@ -146,7 +145,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      *
      * @param options 地理位置具体信息
      */
-    public void setGeolocation(GeolocationOptions options){
+    public void setGeolocation(GeolocationOptions options) {
         if (options.getLongitude() < -180 || options.getLongitude() > 180) {
             throw new IllegalArgumentException("Invalid longitude " + options.getLongitude() + ": precondition -180 <= LONGITUDE <= 180 failed.");
         }
@@ -638,7 +637,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @return 响应
      */
     public Response goTo(String url) throws ExecutionException, InterruptedException {
-        return this.goTo(url,new GoToOptions());
+        return this.goTo(url, new GoToOptions());
     }
 
     /**
@@ -649,14 +648,14 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * <p>超时
      * <p>主页面不能加载
      *
-     * @param url           url
-     * @param options       <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
-     *                      <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
-     *                      <p>load - 页面的load事件触发时
-     *                      <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
-     *                      <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
-     *                      <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
-     *                      <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
+     * @param url     url
+     * @param options <p>timeout 跳转等待时间，单位是毫秒, 默认是30秒, 传 0 表示无限等待。可以通过page.setDefaultNavigationTimeout(timeout)方法修改默认值
+     *                <p>waitUntil  满足什么条件认为页面跳转完成，默认是 load 事件触发时。指定事件数组，那么所有事件触发后才认为是跳转完成。事件包括：
+     *                <p>load - 页面的load事件触发时
+     *                <p>domcontentloaded - 页面的 DOMContentLoaded 事件触发时
+     *                <p>networkidle0 - 不再有网络连接时触发（至少500毫秒后）
+     *                <p>networkidle2 - 只有2个网络连接时触发（至少500毫秒后）
+     *                <p>referer  Referer header value. If provided it will take preference over the referer header value set by page.setExtraHTTPHeaders().
      * @return Response
      */
     public Response goTo(String url, GoToOptions options) throws ExecutionException, InterruptedException {
@@ -762,11 +761,11 @@ public abstract class Page extends EventEmitter<PageEvents> {
         };
         this.on(PageEvents.Request, requestListener);
         boolean waiting = result.waiting(timeout, TimeUnit.MILLISECONDS);
-        if(!waiting){
+        if (!waiting) {
             throw new TimeoutException("WaitForRequest timeout of " + timeout + " ms exceeded");
         }
         try {
-            if(targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())){
+            if (targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())) {
                 throw targetCloseException.get();
             }
             return result.get();
@@ -820,7 +819,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @return 要等到的请求
      */
     public Response waitForResponse(String url, Predicate<Response> predicate, Integer timeout) {
-        if (Objects.isNull(timeout)){
+        if (Objects.isNull(timeout)) {
             timeout = this._timeoutSettings.timeout();
         }
         Predicate<Response> waitForResponsePredicate = response -> {
@@ -831,7 +830,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
             }
             return false;
         };
-       AwaitableResult<Response> result = AwaitableResult.create();
+        AwaitableResult<Response> result = AwaitableResult.create();
         Consumer<Response> responseListener = response -> {
             if (waitForResponsePredicate.test(response)) {
                 result.complete(response);
@@ -846,14 +845,14 @@ public abstract class Page extends EventEmitter<PageEvents> {
         this.once(PageEvents.Close, closeListener);
         try {
             boolean waiting = result.waiting(timeout, TimeUnit.MILLISECONDS);
-            if(!waiting){
+            if (!waiting) {
                 throw new com.ruiyun.jvppeteer.exception.TimeoutException("WaitForResponse timeout of " + timeout + " ms exceeded");
             }
-            if(targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())){
+            if (targetCloseException.isDone() && Objects.nonNull(targetCloseException.get()) && Objects.isNull(result.get())) {
                 throw targetCloseException.get();
             }
             return result.get();
-        }  finally {
+        } finally {
             this.off(PageEvents.Response, responseListener);
             this.off(PageEvents.Close, closeListener);
         }
@@ -1540,6 +1539,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public JSHandle waitForFunction(String pptrFunction, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
         return this.waitForFunction(pptrFunction, new WaitForSelectorOptions(), args);
     }
+
     /**
      * 等待提供的函数 pptrFunction 在页面上下文中计算时返回真值。
      *
@@ -1558,7 +1558,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param pptrFunction 将在浏览器上下文中评估函数，直到返回真值。
      * @param options      等待函数的选项，包括超时设置等
      * @param args         传递给函数的参数，可以是任意类型
-     * @param type 有时候需要指定 pptrFunction 为 EvaluateType#String 才能正确执行，大多数情况不需要指定
+     * @param type         有时候需要指定 pptrFunction 为 EvaluateType#String 才能正确执行，大多数情况不需要指定
      * @return JSHandle 返回函数执行结果的JSHandle对象
      */
     public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, java.util.concurrent.TimeoutException {
@@ -1588,6 +1588,12 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
         return this.mainFrame().waitForDevicePrompt(timeout);
     }
+
+    /**
+     * 获取蓝牙设备
+     * @return BluetoothEmulation
+     */
+    public abstract BluetoothEmulation bluetooth();
 
     /**
      * page.close() 在 beforeunload 处理之前默认不执行
