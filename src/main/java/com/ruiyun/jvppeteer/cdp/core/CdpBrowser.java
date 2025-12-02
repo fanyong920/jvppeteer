@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.cdp.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
@@ -18,8 +19,10 @@ import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -60,7 +63,7 @@ public class CdpBrowser extends Browser {
 
     protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled) {
         super();
-        this.networkEnabled  = networkEnabled;
+        this.networkEnabled = networkEnabled;
         this.defaultViewport = viewport;
         this.process = process;
         this.connection = connection;
@@ -267,7 +270,7 @@ public class CdpBrowser extends Browser {
     }
 
     public List<CdpTarget> targets() {
-        return this.targetManager.getAvailableTargets().values().stream().filter(target -> target.isTargetExposed() && Objects.equals(target.initializedResult.waitingGetResult(),CdpTarget.InitializationStatus.SUCCESS)).collect(Collectors.toList());
+        return this.targetManager.getAvailableTargets().values().stream().filter(target -> target.isTargetExposed() && Objects.equals(target.initializedResult.waitingGetResult(), CdpTarget.InitializationStatus.SUCCESS)).collect(Collectors.toList());
     }
 
     public String version() throws JsonProcessingException {
@@ -304,8 +307,8 @@ public class CdpBrowser extends Browser {
     }
 
 
-    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets,boolean networkEnabled) {
-        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets,networkEnabled);
+    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled) {
+        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets, networkEnabled);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("ignore", true);
@@ -371,6 +374,24 @@ public class CdpBrowser extends Browser {
     @Override
     public boolean isNetworkEnabled() {
         return this.networkEnabled;
+    }
+
+    @Override
+    public List<ScreenInfo> screens() throws JsonProcessingException {
+        return Constant.OBJECTMAPPER.treeToValue(this.connection.send("Emulation.getScreenInfos").get("screenInfos"), new TypeReference<ArrayList<ScreenInfo>>() {
+        });
+    }
+
+    @Override
+    public ScreenInfo addScreen(AddScreenParams params) throws JsonProcessingException {
+        return Constant.OBJECTMAPPER.treeToValue(this.connection.send("Emulation.addScreen", params).get("screenInfo"), ScreenInfo.class);
+    }
+
+    @Override
+    public void removeScreen(String screenId) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("screenId", screenId);
+        this.connection.send("Emulation.removeScreen", params);
     }
 
 }

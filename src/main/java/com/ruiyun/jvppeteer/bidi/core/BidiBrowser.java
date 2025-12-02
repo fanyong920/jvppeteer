@@ -18,8 +18,10 @@ import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
@@ -101,11 +103,11 @@ public class BidiBrowser extends Browser {
             Map<String, Object> params = ParamsFactory.create();
             params.put("collectors", Collections.singletonList("response"));
             params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
-            session.send("network.addDataCollector",params);
+            session.send("network.addDataCollector", params);
         } catch (Exception e) {
-            if(e instanceof ProtocolException){
+            if (e instanceof ProtocolException) {
                 LOGGER.error("puppeteer:error {}", e.getMessage(), e);
-            }else {
+            } else {
                 throw e;
             }
         }
@@ -296,6 +298,21 @@ public class BidiBrowser extends Browser {
     @Override
     public boolean isNetworkEnabled() {
         return this.networkEnabled;
+    }
+
+    @Override
+    public List<ScreenInfo> screens() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ScreenInfo addScreen(AddScreenParams params) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeScreen(String screenId) {
+        throw new UnsupportedOperationException();
     }
 
 }

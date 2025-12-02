@@ -7,12 +7,6 @@ public class RequestDevicePromptUpdatedParameters {
     private List<RequestDeviceInfo> devices;
     private String prompt;
 
-    public RequestDevicePromptUpdatedParameters(String id, List<RequestDeviceInfo> devices, String prompt) {
-        this.id = id;
-        this.devices = devices;
-        this.prompt = prompt;
-    }
-
     public String getId() {
         return id;
     }

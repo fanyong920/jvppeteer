@@ -7,7 +7,9 @@ import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
+import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.ScreenInfo;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -231,4 +233,20 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
 
     public abstract boolean isNetworkEnabled();
 
+    /**
+     * Gets a list of screen information objects.
+     */
+    public abstract List<ScreenInfo> screens() throws JsonProcessingException;
+
+    /**
+     * Adds a new screen, returns the added screen information object.
+     * Only supported in headless mode.
+     */
+    public abstract ScreenInfo addScreen(AddScreenParams params) throws JsonProcessingException;
+
+    /**
+     * Removes a screen.
+     * Only supported in headless mode. Fails if the primary screen id is specified.
+     */
+    public abstract void removeScreen(String screenId);
 }
