@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Connection;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.cdp.core.CdpDeviceRequestPrompt;
 import com.ruiyun.jvppeteer.cdp.entities.DeviceRequestPromptDevice;
 import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
-import com.ruiyun.jvppeteer.common.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.DeviceRequestPromptManager;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(1000);
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(1000);
         System.out.println(deviceRequestPrompt.getDevices().size());
     }
 
@@ -48,7 +48,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt();
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt();
         System.out.println(deviceRequestPrompt.getDevices().size());
     }
 
@@ -67,7 +67,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(1);
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(1);
         System.out.println(deviceRequestPrompt.getDevices().size());
     }
 
@@ -86,7 +86,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(0);
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(0);
         System.out.println(deviceRequestPrompt.getDevices().size());
     }
 
@@ -105,11 +105,11 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        AtomicReference<DeviceRequestPrompt> deviceRequestPrompt2 = new AtomicReference<>();
+        AtomicReference<CdpDeviceRequestPrompt> deviceRequestPrompt2 = new AtomicReference<>();
         new Thread(() -> {
             deviceRequestPrompt2.set(manager.waitForDevicePrompt());
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt();
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt();
         System.out.println(deviceRequestPrompt == deviceRequestPrompt2.get());
     }
 
@@ -127,7 +127,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(0);
+        CdpDeviceRequestPrompt deviceRequestPrompt = manager.waitForDevicePrompt(0);
         System.out.println(deviceRequestPrompt.getDevices().size());
     }
 
@@ -146,7 +146,7 @@ public class MockCDPSession extends CDPSession {
     public void test8() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         try {
             System.out.println(deviceRequestPrompt.getDevices());
             List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -170,7 +170,7 @@ public class MockCDPSession extends CDPSession {
     public void test9() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         try {
             System.out.println(deviceRequestPrompt.getDevices());
             List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -194,7 +194,7 @@ public class MockCDPSession extends CDPSession {
     public void test10() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 System.out.println(deviceRequestPrompt.getDevices());
@@ -225,7 +225,7 @@ public class MockCDPSession extends CDPSession {
         List<DeviceRequestPromptDevice> devices2 = new ArrayList<>();
         devices2.add(new DeviceRequestPromptDevice("00000000", "Device 0"));
         devices2.add(new DeviceRequestPromptDevice("11111111", "Device 1"));
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", devices2));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", devices2));
         DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"));
         System.out.println(deviceRequestPromptDevice1);
     }
@@ -235,7 +235,7 @@ public class MockCDPSession extends CDPSession {
     public void test12() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 System.out.println(deviceRequestPrompt.getDevices());
@@ -263,7 +263,7 @@ public class MockCDPSession extends CDPSession {
     public void test13() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -281,7 +281,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"),1);
+        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"), 1);
         System.out.println(deviceRequestPrompt.getDevices().contains(deviceRequestPromptDevice1));
     }
 
@@ -291,7 +291,7 @@ public class MockCDPSession extends CDPSession {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
         timeoutSettings.setDefaultTimeout(2);
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -319,7 +319,7 @@ public class MockCDPSession extends CDPSession {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
         timeoutSettings.setDefaultTimeout(2);
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -337,7 +337,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"),3);
+        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"), 3);
         System.out.println(deviceRequestPrompt.getDevices().contains(deviceRequestPromptDevice1));
     }
 
@@ -346,7 +346,7 @@ public class MockCDPSession extends CDPSession {
     public void test16() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -359,7 +359,7 @@ public class MockCDPSession extends CDPSession {
                 throw new RuntimeException(e);
             }
         }).start();
-        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"),0);
+        DeviceRequestPromptDevice deviceRequestPromptDevice1 = deviceRequestPrompt.waitForDevice(deviceRequestPromptDevice -> deviceRequestPromptDevice.getName().equals("Device 1"), 0);
         System.out.println(deviceRequestPrompt.getDevices().contains(deviceRequestPromptDevice1));
     }
 
@@ -368,7 +368,7 @@ public class MockCDPSession extends CDPSession {
     public void test17() throws InterruptedException {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -402,7 +402,7 @@ public class MockCDPSession extends CDPSession {
     public void test18() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -429,8 +429,8 @@ public class MockCDPSession extends CDPSession {
     public void test19() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
-        deviceRequestPrompt.select(new DeviceRequestPromptDevice("11111111","Device 1"));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        deviceRequestPrompt.select(new DeviceRequestPromptDevice("11111111", "Device 1"));
     }
 
     //should fail when selecting prompt twice
@@ -438,7 +438,7 @@ public class MockCDPSession extends CDPSession {
     public void test21() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         new Thread(() -> {
             try {
                 List<DeviceRequestPromptDevice> devices = new ArrayList<>();
@@ -466,7 +466,7 @@ public class MockCDPSession extends CDPSession {
     public void test22() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         deviceRequestPrompt.cancel();
     }
 
@@ -475,7 +475,7 @@ public class MockCDPSession extends CDPSession {
     public void test23() {
         MockCDPSession client = new MockCDPSession();
         TimeoutSettings timeoutSettings = new TimeoutSettings();
-        DeviceRequestPrompt deviceRequestPrompt = new DeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
+        CdpDeviceRequestPrompt deviceRequestPrompt = new CdpDeviceRequestPrompt(client, timeoutSettings, new DeviceRequestPromptedEvent("00000000000000000000000000000000", new ArrayList<>()));
         deviceRequestPrompt.cancel();
         deviceRequestPrompt.cancel();
     }
