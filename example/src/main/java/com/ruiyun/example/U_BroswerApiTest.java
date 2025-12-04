@@ -19,6 +19,8 @@ import com.ruiyun.jvppeteer.cdp.events.DownloadProgressEvent;
 import com.ruiyun.jvppeteer.cdp.events.DownloadWillBeginEvent;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
+import com.ruiyun.jvppeteer.common.CreateType;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.common.WorkAreaInsets;
 import com.ruiyun.jvppeteer.exception.LaunchException;
@@ -358,6 +360,23 @@ public class U_BroswerApiTest {
         browser.removeScreen(screenInfo.getId());
         System.out.println("screens2: "+ browser.screens());
     }
+    /**
+     * Browser.newPage(
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test12() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        BrowserContext browserContext = browser.defaultBrowserContext();
+        CreatePageOptions createPageOptions = new CreatePageOptions();
+        createPageOptions.setType(CreateType.Window);
+        Page page = browserContext.newPage(createPageOptions);
+        System.out.println(browserContext.pages().contains( page) && browser.pages().contains(page));
+        browser.close();
+    }
+
+
 
 
 }

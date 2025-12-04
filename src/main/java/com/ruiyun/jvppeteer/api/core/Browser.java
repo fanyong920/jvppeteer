@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
 import java.util.List;
 import java.util.Objects;
@@ -88,13 +89,21 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * @return WebSocket URL
      */
     public abstract String wsEndpoint();
-
     /**
      * 在 默认浏览器上下文 中创建新的 page。
      *
      * @return 新创建的页面对象
      */
-    public abstract Page newPage();
+    public  Page newPage() {
+        return this.newPage(null);
+    }
+    /**
+     * 在 默认浏览器上下文 中创建新的 page。
+     *
+     * @param options 创建页面的选项
+     * @return 新创建的页面对象
+     */
+    public abstract Page newPage(CreatePageOptions  options);
 
     /**
      * 获取所有活动的 targets。

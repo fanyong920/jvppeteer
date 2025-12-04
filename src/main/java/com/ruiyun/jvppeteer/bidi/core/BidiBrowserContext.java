@@ -10,16 +10,16 @@ import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.api.events.TrustedEmitter;
 import com.ruiyun.jvppeteer.bidi.entities.BytesValue;
 import com.ruiyun.jvppeteer.bidi.entities.CreateBrowsingContextOptions;
-import com.ruiyun.jvppeteer.bidi.entities.CreateType;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PartialCookie;
 import com.ruiyun.jvppeteer.bidi.entities.PermissionOverride;
 import com.ruiyun.jvppeteer.bidi.entities.PermissionState;
-import com.ruiyun.jvppeteer.cdp.entities.CookieData;
-import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
-import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
+import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
+import com.ruiyun.jvppeteer.common.CreateType;
+import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
@@ -199,9 +199,15 @@ public class BidiBrowserContext extends BrowserContext {
     }
 
     @Override
-    public Page newPage() {
+    public Page newPage(CreatePageOptions options) {
         synchronized (this) {
-            BrowsingContext context = this.userContext.createBrowsingContext(CreateType.Tab, new CreateBrowsingContextOptions());
+            CreateType type;
+            if (options != null && CreateType.Window.equals(options.getType())) {
+                type = CreateType.Window;
+            } else {
+                type = CreateType.Tab;
+            }
+            BrowsingContext context = this.userContext.createBrowsingContext(type, new CreateBrowsingContextOptions());
             Page page = this.pages.get(context);
             Objects.requireNonNull(page, "Page is not found");
             if (Objects.nonNull(this.defaultViewport)) {

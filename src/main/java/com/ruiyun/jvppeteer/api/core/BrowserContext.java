@@ -4,6 +4,7 @@ import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import java.util.List;
 import java.util.Objects;
@@ -75,7 +76,17 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
      *
      * @return 新创建的 Page 实例
      */
-    public abstract Page newPage();
+    public Page newPage() {
+        return this.newPage(null);
+    }
+
+    /**
+     * 在此 浏览器上下文 中创建一个新的 page。
+     *
+     * @param options 创建page的参数
+     * @return 新创建的 Page 实例
+     */
+    public abstract Page newPage(CreatePageOptions options);
 
     /**
      * 获取与此 浏览器上下文 关联的 browser。

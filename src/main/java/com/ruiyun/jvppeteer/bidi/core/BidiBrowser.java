@@ -20,6 +20,7 @@ import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
@@ -200,7 +201,7 @@ public class BidiBrowser extends Browser {
     }
 
     @Override
-    public Page newPage() {
+    public Page newPage(CreatePageOptions options) {
         return this.defaultBrowserContext().newPage();
     }
 

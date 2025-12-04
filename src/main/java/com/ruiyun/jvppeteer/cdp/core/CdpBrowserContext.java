@@ -8,6 +8,7 @@ import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
@@ -97,9 +98,9 @@ public class CdpBrowserContext extends BrowserContext {
         this.connection.send("Browser.resetPermissions", params);
     }
 
-    public Page newPage() {
+    public Page newPage(CreatePageOptions options) {
         synchronized (this) {
-            return this.cdpBrowser.createPageInContext(this.id);
+            return this.cdpBrowser.createPageInContext(this.id,options);
         }
     }
 

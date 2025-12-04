@@ -21,8 +21,11 @@ import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.CreatePageOptions;
+import com.ruiyun.jvppeteer.common.CreateType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
+import com.ruiyun.jvppeteer.common.WindowBounds;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -230,15 +233,31 @@ public class CdpBrowser extends Browser {
         return this.connection.url();
     }
 
-    public Page newPage() {
-        return this.defaultContext.newPage();
+    public Page newPage(CreatePageOptions options) {
+        return this.defaultContext.newPage(options);
     }
 
-    Page createPageInContext(String contextId) {
+    Page createPageInContext(String contextId, CreatePageOptions options) {
+        boolean hasTargets = this.targets().stream()
+                .anyMatch(t -> t.browserContext().id().equals(contextId));
+        WindowBounds windowBounds =
+                (options != null && CreateType.Window.equals(options.getType())) ?
+                        options.getWindowBounds() :
+                        null;
         Map<String, Object> params = ParamsFactory.create();
         params.put("url", "about:blank");
         if (StringUtil.isNotEmpty(contextId)) {
             params.put("browserContextId", contextId);
+        }
+        if(Objects.nonNull(windowBounds)){
+            params.put("left", windowBounds.getLeft());
+            params.put("top", windowBounds.getTop());
+            params.put("width", windowBounds.getWidth());
+            params.put("height", windowBounds.getHeight());
+            params.put("windowState", windowBounds.getWindowState().name().toLowerCase());
+        }
+        if(hasTargets && Objects.nonNull(options) && Objects.equals(options.getType(), CreateType.Window)){
+            params.put("newWindow", true);
         }
         JsonNode result = this.connection.send("Target.createTarget", params);
         if (result != null) {
