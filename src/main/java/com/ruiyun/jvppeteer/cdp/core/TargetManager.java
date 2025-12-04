@@ -280,7 +280,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
      * @param session client
      */
     private static void runIfWaitingForDebugger(CDPSession session) {
-        session.send("Runtime.runIfWaitingForDebugger", null, null, true);
+        session.send("Runtime.runIfWaitingForDebugger", null, null, false);
     }
 
     private void silentDetach(Connection parentConnection, CDPSession session) {
