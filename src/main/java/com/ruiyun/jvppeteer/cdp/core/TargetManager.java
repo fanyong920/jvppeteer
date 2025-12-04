@@ -284,12 +284,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
     }
 
     private void silentDetach(Connection parentConnection, CDPSession session) {
-        try {
-            runIfWaitingForDebugger(session);
-        } catch (Exception ignore) {
-
-        }
-
+        runIfWaitingForDebugger(session);
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put(Constant.SESSION_ID, session.id());
@@ -300,10 +295,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
 
     //WebSocketConnectReadThread
     private void silentDetach(CDPSession parentSession, CDPSession session) {
-        try {
-            runIfWaitingForDebugger(session);
-        } catch (Exception ignore) {
-        }
+        runIfWaitingForDebugger(session);
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put(Constant.SESSION_ID, session.id());
