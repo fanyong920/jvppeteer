@@ -16,13 +16,17 @@ public class H_PageEvaluteTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器
+        LAUNCHOPTIONS.setNetworkEnabled(false);
         try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
             //打开一个页面
             Page page = browser.newPage();
             //监听devtool控制台输出
             page.on(PageEvents.Console, (Consumer<ConsoleMessage>) consoleMessage -> System.out.println("console=" + consoleMessage.text()));
             //在devtool 控制台打印输出
-            page.evaluate("console.log('hello', 5, {foo: 'bar'})");
+            Object evaluate = page.evaluate("() => {\n" +
+                    "        return window.location.href;\n" +
+                    "      }");
+            System.out.println("evaluate=" + evaluate);
             //等待5s看看效果
             Thread.sleep(5000);
         }
@@ -93,6 +97,29 @@ public class H_PageEvaluteTest {
                     "    );\n" +
                     "  });\n" +
                     "}", 2000);
+            //等待5s看看效果
+            Thread.sleep(5000);
+        }
+    }
+
+    /**
+     * should support thrown platform objects as error messages
+     *
+     * @throws Exception error
+     */
+    @Test
+    public void test5() throws Exception {
+        //启动浏览器
+        try (Browser browser = Puppeteer.launch(LAUNCHOPTIONS)) {
+            //打开一个页面
+            Page page = browser.newPage();
+            try {
+                page.evaluate("() => {\n" +
+                        "          throw new DOMException('some DOMException message');\n" +
+                        "        }");
+            } catch (Exception e) {
+                System.out.println("error=" + e.getMessage());
+            }
             //等待5s看看效果
             Thread.sleep(5000);
         }

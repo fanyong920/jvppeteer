@@ -166,6 +166,13 @@ public class Helper {
     }
 
     public static void createBidiEvaluationError(com.ruiyun.jvppeteer.bidi.entities.ExceptionDetails details) {
+        // Heuristic detecting a platform object was thrown. WebDriver BiDi serializes
+        // platform objects without value. If so, throw a generic error with the actual
+        // exception's message, as there is no way to restore the original exception's
+        // constructor.
+        if (Objects.equals(details.getException().getType(), "object") && Objects.isNull(details.getException().getValue())) {
+            throw new EvaluateException(details.getText());
+        }
         if (!Objects.equals("error", details.getException().getType())) {
             throw new EvaluateException(String.valueOf(details.getException().getValue()));
         }
@@ -255,7 +262,9 @@ public class Helper {
         return platform().contains("mac");
     }
 
-    public static boolean isUnixLike() { return !isWindows() && new File("/bin/sh").canExecute(); }
+    public static boolean isUnixLike() {
+        return !isWindows() && new File("/bin/sh").canExecute();
+    }
 
     public static String join(String root, String... args) {
         return java.nio.file.Paths.get(root, args).toString();
@@ -633,6 +642,7 @@ public class Helper {
 
     /**
      * 移除Map对象里面的null值
+     *
      * @param params map对象
      */
     public static void removeNull(Object params) {
