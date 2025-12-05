@@ -1,7 +1,6 @@
 package com.ruiyun.jvppeteer.cdp.events;
 
 import com.ruiyun.jvppeteer.cdp.entities.DeviceRequestPromptDevice;
-
 import java.util.List;
 
 public class DeviceRequestPromptedEvent {

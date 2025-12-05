@@ -27,6 +27,7 @@ import com.ruiyun.jvppeteer.cdp.events.AuthRequiredEvent;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.DetachedFromTargetEvent;
+import com.ruiyun.jvppeteer.cdp.events.DeviceRequestPromptedEvent;
 import com.ruiyun.jvppeteer.cdp.events.DownloadProgressEvent;
 import com.ruiyun.jvppeteer.cdp.events.DownloadWillBeginEvent;
 import com.ruiyun.jvppeteer.cdp.events.EntryAddedEvent;
@@ -445,6 +446,9 @@ public interface Constant {
                         break;
                     case "input.fileDialogOpened":
                         put(event.getEventName(), FileDialogInfo.class);
+                        break;
+                    case "DeviceAccess.deviceRequestPrompted":
+                        put(event.getEventName(), DeviceRequestPromptedEvent.class);
                         break;
                 }
             }

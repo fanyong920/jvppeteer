@@ -4,6 +4,9 @@ public class DeviceRequestPromptDevice {
     private String id;
     private String name;
 
+    public DeviceRequestPromptDevice() {
+    }
+
     public DeviceRequestPromptDevice(String id, String name) {
         this.id = id;
         this.name = name;

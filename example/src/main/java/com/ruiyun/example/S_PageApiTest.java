@@ -1,7 +1,9 @@
 package com.ruiyun.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
@@ -33,8 +35,11 @@ import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
+import com.ruiyun.jvppeteer.common.AdapterState;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
+import com.ruiyun.jvppeteer.common.BluetoothManufacturerData;
 import com.ruiyun.jvppeteer.common.MediaType;
+import com.ruiyun.jvppeteer.common.PreconnectedPeripheral;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.WebPermission;
@@ -46,6 +51,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import org.junit.Test;
@@ -627,10 +633,10 @@ public class S_PageApiTest {
     public void test14() throws Exception {
         Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
-        page.goTo("https://smallpdf.com/cn/pdf-to-word");
+        page.goTo("https://www.pdf.to/word/?lang=zh");
         //webdriver bidi不支持
         AwaitableResult<FileChooser> result = page.fileChooserWaitFor();
-        page.click("#app > div > div:nth-child(1) > header > div.rh8nkv-3.gcKsMX > div > div > label > form > label > div > div.sc-8s01yt-1.XegmY > div.l3tlg0-5.ekSdZR > button.l3tlg0-0.ggoliT");
+        page.click("#text > span");
         FileChooser fileChooser = result.waitingGetResult();
         //上传文件
         fileChooser.accept(Arrays.asList("C:\\Users\\fanyong\\Pictures\\Saved Pictures\\1.jpg", "C:\\Users\\fanyong\\Pictures\\Saved Pictures\\2.jpg"));
@@ -639,6 +645,19 @@ public class S_PageApiTest {
         AwaitableResult<FileChooser> result2 = page.fileChooserWaitFor();
         page.click("#app > div > div > div.sc-1lrg9x7-1.llrKYu > div.sc-1lrg9x7-2.WzjRx > div.sc-1lrg9x7-3.yLQpw > div > div.sc-1dnebxo-1.jYoHNJ > div > div.g1gmt0-1.eXUQYI > button");
         result2.waitingGetResult().accept(Collections.singletonList("C:\\Users\\fanyong\\Pictures\\Saved Pictures\\IMG_20180820_174844.jpg"));
+        Thread.sleep(10000);
+        browser.close();
+    }
+
+    @Test
+    public void test145() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        page.setContent("<input type=file oninput='javascript:console.timeStamp()'>");
+        AwaitableResult<FileChooser> fileChooserWaitFor = page.fileChooserWaitFor();
+        page.click("input");
+        FileChooser fileChooser = fileChooserWaitFor.waitingGetResult(30,  TimeUnit.SECONDS);
+        fileChooser.accept(Collections.singletonList("C:\\Users\\fanyong\\Pictures\\Saved Pictures\\1.jpg"));
         Thread.sleep(10000);
         browser.close();
     }
@@ -863,6 +882,20 @@ public class S_PageApiTest {
         Thread.sleep(5000);
     }
 
+
+    @Test
+    public void test230() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        page.goTo("https://www.baidu.com/");
+        //selector => !!document.querySelector(selector) 返回的就是true或者false
+        ElementHandle handle = page.$("#su");
+        Object jsHandle = page.evaluate("ele => ele.className", handle);
+        System.out.println(jsHandle);
+//        browser.close();
+        Thread.sleep(5000);
+    }
+
     /**
      * Page.waitForFunction()
      */
@@ -1041,7 +1074,7 @@ public class S_PageApiTest {
     }
 
     /**
-     * 录制屏幕某个区域 录制格式gif
+     * 录制屏幕某个区域 录制格式mp4
      */
     @Test
     public void test31() throws Exception {
@@ -1079,6 +1112,41 @@ public class S_PageApiTest {
         page.goTo("https://www.baidu.com");
         page.waitForNetworkIdle(new WaitForNetworkIdleOptions(NETWORK_IDLE_TIME, 2, null));
         System.out.println("完成拉2");
+    }
+
+    /**
+     * waitForNetworkIdle
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test32() throws Exception {
+        List<String> args = new ArrayList<>();
+        args.add("--enable-features=WebBluetoothNewPermissionsBackend");
+        args.add("--enable-features=WebBluetooth");
+        LAUNCHOPTIONS.setArgs(args);
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = Browser.newPage();
+        page.goTo("https://www.geetest.com/demo/slide-en.html");
+        page.bluetooth().emulateAdapter(AdapterState.poweredOn);
+        page.bluetooth().simulatePreconnectedPeripheral(new PreconnectedPeripheral("09:09:09:09:09:09", "SOME_NAME", Collections.singletonList(new BluetoothManufacturerData(17, "AP8BAX8=")), Collections.singletonList("12345678-1234-5678-9abc-def123456789")));
+        new Thread(() -> {
+            DeviceRequestPrompt deviceRequestPrompt = page.waitForDevicePrompt();
+            deviceRequestPrompt.cancel();
+            System.out.println("取消了");
+        }).start();
+        try {
+            page.evaluate("async function triggerBluetoothDevicePrompt() {\n" +
+                    "  const device = await navigator.bluetooth.requestDevice({\n" +
+                    "    acceptAllDevices: true,\n" +
+                    "    optionalServices: [],\n" +
+                    "  });\n" +
+                    "  return device.name;\n" +
+                    "}");
+
+        } catch (JsonProcessingException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
 }
