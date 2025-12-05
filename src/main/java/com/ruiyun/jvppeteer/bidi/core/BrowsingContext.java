@@ -46,6 +46,9 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
+
+import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
+
 public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContextEvents> {
     private volatile String url;
     UserContext userContext;
@@ -520,7 +523,16 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         return this.deviceRequestPromptManager.waitForDevicePrompt(timeout);
     }
 
-
+    public void setOfflineMode(boolean enabled){
+        Map<String, Object> params = ParamsFactory.create();
+        if (enabled) {
+            ObjectNode offlineConditions = OBJECTMAPPER.createObjectNode();
+            offlineConditions.put("type", "offline");
+            params.put("networkConditions", offlineConditions);
+        }
+        params.put("contexts", Collections.singletonList(this.id));
+        this.session().send("Network.setBypassServiceWorker", params);
+    }
     public enum BrowsingContextEvents {
         /**
          * ClosedEvent.class

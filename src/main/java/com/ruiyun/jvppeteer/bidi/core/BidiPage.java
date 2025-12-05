@@ -685,9 +685,8 @@ public class BidiPage extends Page {
     @Override
     public void setOfflineMode(boolean enabled) {
         if (!this.browserContext.browser().cdpSupported()) {
-            throw new UnsupportedOperationException();
+            this.frame.browsingContext.setOfflineMode(enabled);
         }
-
         if (Objects.isNull(this.emulatedNetworkConditions)) {
             this.emulatedNetworkConditions = new InternalNetworkConditions(false, -1, -1, 0);
         }

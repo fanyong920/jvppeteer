@@ -26,7 +26,6 @@ import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
-import com.ruiyun.jvppeteer.cdp.core.CdpDeviceRequestPrompt;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
@@ -377,7 +376,7 @@ public class BidiFrame extends Frame {
 
     @Override
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
-      return this.browsingContext.waitForDevicePrompt(timeout);
+        return this.browsingContext.waitForDevicePrompt(timeout);
     }
 
     @Override
@@ -527,6 +526,5 @@ public class BidiFrame extends Frame {
                 return ConsoleMessageType.valueOf(method);
         }
     }
-
 
 }
