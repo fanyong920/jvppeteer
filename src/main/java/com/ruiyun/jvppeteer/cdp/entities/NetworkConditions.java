@@ -1,7 +1,10 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 
 public class NetworkConditions {
-
+    /**
+     * 模拟离线模式
+     */
+    private Boolean offline;
     /**
      * 下载速度（字节/秒） (bytes/s)
      */
@@ -46,6 +49,14 @@ public class NetworkConditions {
 
     public void setLatency(double latency) {
         this.latency = latency;
+    }
+
+    public Boolean getOffline() {
+        return offline;
+    }
+
+    public void setOffline(Boolean offline) {
+        this.offline = offline;
     }
 
     @Override
