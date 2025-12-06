@@ -533,6 +533,13 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("Network.setBypassServiceWorker", params);
     }
+
+    public void setUserAgent(String userAgent){
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("userAgent", userAgent);
+        params.put("contexts", Collections.singletonList(this.id));
+        this.session().send("emulation.setUserAgentOverride", params);
+    }
     public enum BrowsingContextEvents {
         /**
          * ClosedEvent.class

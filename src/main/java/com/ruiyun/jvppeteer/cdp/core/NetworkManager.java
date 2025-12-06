@@ -24,6 +24,7 @@ import com.ruiyun.jvppeteer.cdp.events.ResponseReceivedExtraInfoEvent;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.FrameProvider;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -57,6 +58,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
     private final Map<CDPSession, Map<ConnectionEvents, Consumer<?>>> clients = new HashMap<>();
     private volatile boolean userRequestInterceptionEnabled = false;
     private volatile boolean networkEnabled;
+    private String platform;
 
     public NetworkManager(FrameProvider frameManager, boolean networkEnabled) {
         super();
@@ -242,6 +244,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             Map<String, Object> params = ParamsFactory.create();
             params.put("userAgent", this.userAgent);
             params.put("userAgentMetadata", this.userAgentMetadata);
+            params.put("platform", this.platform);
             client.send("Network.setUserAgentOverride", params);
         } catch (Exception e) {
             if (canIgnoreError(e)) {
@@ -273,9 +276,10 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.clients.forEach((client1, disposables) -> this.applyNetworkConditions(client1));
     }
 
-    public void setUserAgent(String userAgent, UserAgentMetadata userAgentMetadata) {
-        this.userAgent = userAgent;
-        this.userAgentMetadata = userAgentMetadata;
+    public void setUserAgent(UserAgentOptions options) {
+        this.userAgent = options.getUserAgent();
+        this.userAgentMetadata = options.getUserAgentMetadata();
+        this.platform = options.getPlatform();
         this.clients.forEach((client1, disposables) -> this.applyUserAgent(client1));
     }
 

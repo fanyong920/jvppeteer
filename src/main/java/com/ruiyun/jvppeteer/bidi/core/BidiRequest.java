@@ -134,7 +134,7 @@ public class BidiRequest extends Request {
     }
 
     private boolean hasInternalHeaderOverwrite() {
-        return !this.extraHTTPHeaders().isEmpty() || !this.userAgentHeaders().isEmpty();
+        return !this.extraHTTPHeaders().isEmpty();
     }
 
     private List<HeaderEntry> extraHTTPHeaders() {
@@ -148,24 +148,12 @@ public class BidiRequest extends Request {
         return Collections.emptyList();
     }
 
-    private List<HeaderEntry> userAgentHeaders() {
-        if (Objects.nonNull(this.frame)) {
-            if (Objects.nonNull(this.frame.page().userAgentHeaders)) {
-                return this.frame.page().userAgentHeaders;
-            } else {
-                return Collections.emptyList();
-            }
-        }
-        return Collections.emptyList();
-    }
-
     @Override
     public List<HeaderEntry> headers() {
         List<HeaderEntry> headers = new ArrayList<>();
         if (ValidateUtil.isNotEmpty(this.request.headers())) {
             headers.addAll(this.request.headers().stream().map(header -> new HeaderEntry(header.getName().toLowerCase(), header.getValue().getValue())).collect(Collectors.toList()));
         }
-        headers.addAll(this.userAgentHeaders());
         headers.addAll(this.extraHTTPHeaders());
         return headers;
     }

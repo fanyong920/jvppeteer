@@ -21,6 +21,7 @@ public class A_LaunchTest {
 //        executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe").
 //        product(Product.Firefox).
             headless(false).
+            devtools(true).
 //            protocol(Protocol.CDP).
             //不设置窗口大小
                     defaultViewport(null).

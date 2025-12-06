@@ -1,7 +1,6 @@
 package com.ruiyun.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
@@ -42,13 +41,13 @@ import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.PreconnectedPeripheral;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
+import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
+import com.ruiyun.jvppeteer.util.Helper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +58,6 @@ import org.junit.Test;
 
 import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
-import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 
 public class S_PageApiTest {
     /**
@@ -292,12 +290,12 @@ public class S_PageApiTest {
         storage.add(token);
         Object tokens = page.evaluate("(storage) => {\n" +
                 "  return  parsel.stringify(storage);\n" +
-                "}",storage);
-        System.out.println("string "+ token);
+                "}", storage);
+        System.out.println("string " + token);
         boolean hasParselJsScript = (boolean) page.evaluate(" () => {\n" +
                 "  return !!document.querySelectorAll(\"#parsel-js\")\n" +
                 "}");
-        System.out.println("hasParselJsScript "+hasParselJsScript);
+        System.out.println("hasParselJsScript " + hasParselJsScript);
         elementHandle4.dispose();
         Thread.sleep(15000);
         browser.close();
@@ -601,31 +599,70 @@ public class S_PageApiTest {
     public void test13() throws Exception {
         Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
         Page page = browser.newPage();
-//        page.setBypassCSP(true);
-//        page.setBypassServiceWorker(true);
-//        page.setCacheEnabled(true);
-//        page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-//        List<WebWorker> workers = page.workers();
-//        for (WebWorker worker : workers) {
-//            System.out.println("worker: " + worker.url());
-//        }
-        page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36");
-        Thread.sleep(2000);
-        page.focus("#hotsearch-content-wrapper > li:nth-child(1) > a");
-        Thread.sleep(2000);
-        page.hover("#hotsearch-content-wrapper > li:nth-child(2) > a");
-        Thread.sleep(2000);
-        page.tap("#hotsearch-content-wrapper > li:nth-child(1) > a");
-        Thread.sleep(2000);
-        page.bringToFront();
-        page.goTo("https://pptr.nodejs.cn/api/puppeteer.page.setuseragent");
-        page.goTo("https://www.geetest.com/demo/slide-en.html");
-        Thread.sleep(2000);
-        page.goBack();
-        Thread.sleep(2000);
-        page.goForward();
-        Thread.sleep(2000);
-        System.out.println("done...");
+        System.out.println("should work with options parameter...");
+        Object userAgent = page.evaluate("() => {\n" +
+                "          return navigator.userAgent;\n" +
+                "        }");
+        System.out.println("userAgent: " + userAgent);
+        page.setUserAgent("foobar");
+        new Thread(() -> {
+            try {
+                page.goTo("https://www.baidu.com");
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+        Request request = page.waitForRequest("https://www.baidu.com/");
+        System.out.println("userAgent equals: " + request.headers().stream().anyMatch(header -> header.getName().equals("user-agent") && header.getValue().equals("foobar")));
+        page.close();
+        System.out.println("should work with platform option...");
+        Page page2 = browser.newPage();
+        Object platform = page2.evaluate("() => {\n" +
+                "          return navigator.platform;\n" +
+                "        }");
+        System.out.println("platform: " + platform);
+        UserAgentOptions userAgentOptions = new UserAgentOptions();
+        userAgentOptions.setPlatform("MockPlatform");
+        userAgentOptions.setUserAgent("foobar");
+        page2.setUserAgent(userAgentOptions);
+        Object platform2 = page2.evaluate("() => {\n" +
+                "          return navigator.platform;\n" +
+                "        }");
+        System.out.println("platform: " + platform2);
+        new Thread(() -> {
+            try {
+                page2.goTo("https://www.baidu.com");
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+        Request request2 = page2.waitForRequest("https://www.baidu.com/");
+        System.out.println("userAgent equals: " + request2.headers().stream().anyMatch(header -> header.getName().equals("user-agent") && header.getValue().equals("foobar")));
+        System.out.println("should work with platform option without userAgent...");
+        Page page3 = browser.newPage();
+        Object originalUserAgent = page3.evaluate("() => {\n" +
+                "        return navigator.userAgent;\n" +
+                "      }");
+        Object platform3 = page3.evaluate("() => {\n" +
+                "          return navigator.platform;\n" +
+                "        }");
+        System.out.println("platform: " + platform3);
+        UserAgentOptions mockPlatform = new UserAgentOptions();
+        mockPlatform.setPlatform("MockPlatform");
+        page3.setUserAgent(mockPlatform);
+        boolean equals = page3.evaluate("() => {\n" +
+                "          return navigator.userAgent;\n" +
+                "        }").equals(originalUserAgent);
+        System.out.println("originalUserAgent equals: " + equals);
+        new Thread(() -> {
+            try {
+                page3.goTo("https://www.baidu.com");
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+        Request request3 = page3.waitForRequest("https://www.baidu.com/");
+        System.out.println("userAgent equals: " + request3.headers().stream().anyMatch(header -> header.getName().equals("user-agent") && header.getValue().equals(originalUserAgent)));
         browser.close();
     }
 
@@ -656,7 +693,7 @@ public class S_PageApiTest {
         page.setContent("<input type=file oninput='javascript:console.timeStamp()'>");
         AwaitableResult<FileChooser> fileChooserWaitFor = page.fileChooserWaitFor();
         page.click("input");
-        FileChooser fileChooser = fileChooserWaitFor.waitingGetResult(30,  TimeUnit.SECONDS);
+        FileChooser fileChooser = fileChooserWaitFor.waitingGetResult(30, TimeUnit.SECONDS);
         fileChooser.accept(Collections.singletonList("C:\\Users\\fanyong\\Pictures\\Saved Pictures\\1.jpg"));
         Thread.sleep(10000);
         browser.close();

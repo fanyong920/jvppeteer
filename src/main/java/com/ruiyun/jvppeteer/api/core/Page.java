@@ -31,7 +31,6 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenRecorderOptions;
 import com.ruiyun.jvppeteer.cdp.entities.ScreencastOptions;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotClip;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
-import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
@@ -45,6 +44,7 @@ import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
+import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
@@ -520,15 +520,15 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param userAgent 此页面中使用的特定用户代理
      */
     public void setUserAgent(String userAgent) {
-        this.setUserAgent(userAgent, null);
+        this.setUserAgent(new UserAgentOptions(userAgent));
     }
 
     /**
      * 给页面设置userAgent
      *
-     * @param userAgent 此页面中使用的特定用户代理
+     * @param options 此页面中使用的特定用户代理参数
      */
-    public abstract void setUserAgent(String userAgent, UserAgentMetadata userAgentMetadata);
+    public abstract void setUserAgent(UserAgentOptions options);
 
 
     /**
@@ -1591,6 +1591,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
 
     /**
      * 获取蓝牙设备
+     *
      * @return BluetoothEmulation
      */
     public abstract BluetoothEmulation bluetooth();

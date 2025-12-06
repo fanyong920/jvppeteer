@@ -71,6 +71,7 @@ import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.FileUtil;
@@ -105,7 +106,6 @@ import static com.ruiyun.jvppeteer.util.Helper.convertCookiesSameSiteCdpToBiDi;
 import static com.ruiyun.jvppeteer.util.Helper.rewriteNavigationError;
 
 public class BidiPage extends Page {
-    List<HeaderEntry> userAgentHeaders;
     List<HeaderEntry> extraHTTPHeaders;
     private final TrustedEmitter<PageEvents> trustedEmitter = new TrustedEmitter<>();
     private final BidiBrowserContext browserContext;
@@ -119,8 +119,7 @@ public class BidiPage extends Page {
     private final Coverage coverage;
     private final EmulationManager cdpEmulationManager;
     private InternalNetworkConditions emulatedNetworkConditions;
-    private String userAgentInterception;
-    private String userAgentPreloadScript;
+    private String overrideNavigatorPropertiesPreloadScript;
     Credentials credentials;
     private String userInterception;
     private String authInterception;
@@ -161,25 +160,25 @@ public class BidiPage extends Page {
     }
 
     @Override
-    public void setUserAgent(String userAgent, UserAgentMetadata userAgentMetadata) {
-        if (!this.browserContext.browser().cdpSupported() && Objects.nonNull(userAgentMetadata)) {
+    public void setUserAgent(UserAgentOptions options) {
+        String userAgent =  options.getUserAgent();
+        String platform = options.getPlatform();
+        UserAgentMetadata metadata = options.getUserAgentMetadata();
+        if(Objects.isNull(userAgent)){
+            userAgent = this.browserContext.browser().userAgent();
+        }
+        if (!this.browserContext.browser().cdpSupported() && (Objects.nonNull(metadata) || Objects.nonNull(platform))) {
             throw new UnsupportedOperationException(
-                    "Current Browser does not support " + userAgentMetadata);
-        } else if (this.browserContext.browser().cdpSupported() && Objects.nonNull(userAgentMetadata)) {
+                    "Current Browser does not support `userAgentMetadata` or `platform`");
+        } else if (this.browserContext.browser().cdpSupported() && (Objects.nonNull(metadata) || Objects.nonNull(platform))) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("userAgent", userAgent);
-            params.put("userAgentMetadata", userAgentMetadata);
+            params.put("userAgentMetadata", metadata);
+            params.put("platform", platform);
             this.client().send("Network.setUserAgentOverride", params);
         }
         boolean enable = !Objects.equals(userAgent, "");
-        if (Objects.isNull(userAgent)) {
-            userAgent = this.browserContext.browser().userAgent();
-        }
-        this.userAgentHeaders = new ArrayList<>();
-        if (enable) {
-            this.userAgentHeaders.add(new HeaderEntry("User-Agent", userAgent));
-        }
-        this.userAgentInterception = this.toggleInterception(Collections.singletonList(InterceptPhase.BEFORE_REQUEST_SENT.toString()), this.userAgentInterception, enable);
+        this.frame.browsingContext.setUserAgent(enable ? userAgent : null);
         List<BidiFrame> frames = new ArrayList<>();
         frames.add(this.frame);
         Iterator<BidiFrame> iterator = frames.iterator();
@@ -187,30 +186,35 @@ public class BidiPage extends Page {
             BidiFrame frame = iterator.next();
             frames.addAll(frame.childFrames());
         }
-        if (StringUtil.isNotEmpty(this.userAgentPreloadScript)) {
-            this.removeScriptToEvaluateOnNewDocument(this.userAgentPreloadScript);
+        if (StringUtil.isNotEmpty(this.overrideNavigatorPropertiesPreloadScript)) {
+            this.removeScriptToEvaluateOnNewDocument(this.overrideNavigatorPropertiesPreloadScript);
         }
 
         if (enable) {
             try {
-                NewDocumentScriptEvaluation evaluateToken = this.evaluateOnNewDocument("(userAgent) => {\n" +
-                        "  Object.defineProperty(navigator, 'userAgent', {\n" +
-                        "    value: userAgent,\n" +
-                        "    configurable: true,\n" +
-                        "  });\n" +
-                        "}", EvaluateType.STRING, userAgent);
-                this.userAgentPreloadScript = evaluateToken.getIdentifier();
+                NewDocumentScriptEvaluation evaluateToken = this.evaluateOnNewDocument("(platform) => {\n" +
+                        "  if (platform) {\n" +
+                        "    Object.defineProperty(navigator, 'platform', {\n" +
+                        "      value: platform,\n" +
+                        "      configurable: true,\n" +
+                        "    });\n" +
+                        "  }\n" +
+                        "};", EvaluateType.STRING, platform);
+                this.overrideNavigatorPropertiesPreloadScript = evaluateToken.getIdentifier();
             } catch (JsonProcessingException e) {
                 LOGGER.error("Failed to evaluate userAgent", e);
             }
         }
         for (BidiFrame frame : frames) {
             try {
-                frame.evaluate("(userAgent) => {\n" +
-                        "  Object.defineProperty(navigator, 'userAgent', {\n" +
-                        "    value: userAgent,\n" +
-                        "  });\n" +
-                        "}", Collections.singletonList(userAgent));
+                frame.evaluate("(platform) => {\n" +
+                        "  if (platform) {\n" +
+                        "    Object.defineProperty(navigator, 'platform', {\n" +
+                        "      value: platform,\n" +
+                        "      configurable: true,\n" +
+                        "    });\n" +
+                        "  }\n" +
+                        "};", Collections.singletonList(platform));
             } catch (Exception e) {
                 LOGGER.error("Failed to evaluate frame", e);
             }

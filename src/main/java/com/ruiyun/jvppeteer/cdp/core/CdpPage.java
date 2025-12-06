@@ -63,6 +63,7 @@ import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -585,8 +586,11 @@ public class CdpPage extends Page {
         this.frameManager.networkManager().setExtraHTTPHeaders(headers);
     }
 
-    public void setUserAgent(String userAgent, UserAgentMetadata userAgentMetadata) {
-        this.frameManager.networkManager().setUserAgent(userAgent, userAgentMetadata);
+    public void setUserAgent(UserAgentOptions options) {
+        if(Objects.isNull(options.getUserAgent())){
+            options.setUserAgent(this.browser().userAgent());
+        }
+        this.frameManager.networkManager().setUserAgent(options);
     }
 
     public Metrics metrics() throws JsonProcessingException {
