@@ -43,7 +43,6 @@ import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
-import com.ruiyun.jvppeteer.util.Helper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1184,6 +1183,25 @@ public class S_PageApiTest {
         } catch (JsonProcessingException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    /**
+     * Page.openDevTools()
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test33() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        page.goTo("about:blank");
+        Page openDevTools = page.openDevTools();
+        openDevTools.waitForFunction("() => {\n" +
+                "      // @ts-expect-error wrong context.\n" +
+                "      return Boolean(window.DevToolsAPI);\n" +
+                "    }");
+        Thread.sleep(5000);
+        browser.close();
     }
 
 }

@@ -47,7 +47,6 @@ import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotClip;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
-import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
@@ -587,7 +586,7 @@ public class CdpPage extends Page {
     }
 
     public void setUserAgent(UserAgentOptions options) {
-        if(Objects.isNull(options.getUserAgent())){
+        if (Objects.isNull(options.getUserAgent())) {
             options.setUserAgent(this.browser().userAgent());
         }
         this.frameManager.networkManager().setUserAgent(options);
@@ -1095,6 +1094,14 @@ public class CdpPage extends Page {
 
     public boolean isDragging() {
         return this.isDragging;
+    }
+
+    @Override
+    public Page openDevTools() {
+        CdpTarget cdpTarget = (CdpTarget) this.target();
+        String pageTargetId = cdpTarget.getTargetId();
+        CdpBrowser browser = (CdpBrowser) this.browser();
+        return browser.createDevToolsPage(pageTargetId);
     }
 
     public Accessibility accessibility() {

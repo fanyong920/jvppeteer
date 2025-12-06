@@ -16,12 +16,12 @@ import org.junit.Test;
 
 public class A_LaunchTest {
     public static final LaunchOptions LAUNCHOPTIONS = LaunchOptions.builder().
-//            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").
+            executablePath("D:\\jvppeteer\\chrome-win32\\chrome-win32\\chrome.exe").
+
 //            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
 //        executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe").
 //        product(Product.Firefox).
             headless(false).
-            devtools(true).
 //            protocol(Protocol.CDP).
             //不设置窗口大小
                     defaultViewport(null).

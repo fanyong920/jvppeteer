@@ -1614,6 +1614,12 @@ public abstract class Page extends EventEmitter<PageEvents> {
         return isDragging;
     }
 
+    /**
+     * Opens DevTools for the current Page and returns the DevTools Page. This
+     * method is only available in Chrome.
+     */
+    public abstract Page openDevTools();
+
     private static final Map<String, Double> unitToPixels = new HashMap<String, Double>() {
         private static final long serialVersionUID = -4861220887908575532L;
 

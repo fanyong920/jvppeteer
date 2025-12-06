@@ -249,14 +249,14 @@ public class CdpBrowser extends Browser {
         if (StringUtil.isNotEmpty(contextId)) {
             params.put("browserContextId", contextId);
         }
-        if(Objects.nonNull(windowBounds)){
+        if (Objects.nonNull(windowBounds)) {
             params.put("left", windowBounds.getLeft());
             params.put("top", windowBounds.getTop());
             params.put("width", windowBounds.getWidth());
             params.put("height", windowBounds.getHeight());
             params.put("windowState", windowBounds.getWindowState().name().toLowerCase());
         }
-        if(hasTargets && Objects.nonNull(options) && Objects.equals(options.getType(), CreateType.Window)){
+        if (hasTargets && Objects.nonNull(options) && Objects.equals(options.getType(), CreateType.Window)) {
             params.put("newWindow", true);
         }
         JsonNode result = this.connection.send("Target.createTarget", params);
@@ -413,4 +413,22 @@ public class CdpBrowser extends Browser {
         this.connection.send("Emulation.removeScreen", params);
     }
 
+    public Page createDevToolsPage(String pageTargetId) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("targetId", pageTargetId);
+        JsonNode openDevToolsResponse = this.connection.send("Target.openDevTools", params);
+        CdpTarget target = (CdpTarget) this.waitForTarget(t -> ((CdpTarget) t).getTargetId().equals(openDevToolsResponse.get("targetId").asText()));
+        if (Objects.isNull(target)) {
+            throw new JvppeteerException("Missing target for DevTools page (id = " + pageTargetId + ")");
+        }
+        boolean initialized = target.initializedResult.waitingGetResult().equals(CdpTarget.InitializationStatus.SUCCESS);
+        if (!initialized) {
+            throw new JvppeteerException("Failed to create target for DevTools page (id = " + pageTargetId + ")");
+        }
+        Page page = target.page();
+        if (Objects.isNull(page)) {
+            throw new JvppeteerException("Failed to create a DevTools Page for target (id = " + pageTargetId + ")");
+        }
+        return page;
+    }
 }
