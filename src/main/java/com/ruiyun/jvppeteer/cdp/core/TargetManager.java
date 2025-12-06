@@ -8,6 +8,7 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.cdp.entities.FilterEntry;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
+import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.events.AttachedToTargetEvent;
 import com.ruiyun.jvppeteer.cdp.events.DetachedFromTargetEvent;
 import com.ruiyun.jvppeteer.cdp.events.TargetCreatedEvent;
@@ -46,7 +47,17 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
     private final Map<CDPSession, Consumer<DetachedFromTargetEvent>> detachedFromTargetListenersBySession = new WeakHashMap<>();
     private final Map<Connection, Consumer<DetachedFromTargetEvent>> detachedFromTargetListenersByConnection = new WeakHashMap<>();
     private final AwaitableResult<Boolean> initializeResult = AwaitableResult.create();
+    // IDs of tab targets detected while running the initial Target.setAutoAttach
+    // request. These are the targets whose initialization we want to await for
+    // before resolving puppeteer.connect() or launch() to avoid flakiness.
+    // Whenever a sub-target whose parent is a tab target is attached, we remove
+    // the tab target from this list. Once the list is empty, we resolve the
+    // initializeDeferred.
     private final Set<String> targetsIdsForInit = Collections.synchronizedSet(new HashSet<>());
+    // This is false until the connection-level Target.setAutoAttach request is
+    // done. It indicates whethere we are running the initial auto-attach step or
+    // if we are handling targets after that.
+    private boolean initialAttachDone = false;
     private final boolean waitForInitiallyDiscoveredTargets;
     private final List<FilterEntry> discoveryFilter = new ArrayList<FilterEntry>() {{
         add(new FilterEntry());
@@ -78,26 +89,11 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         this.setupAttachmentListeners(this.connection);
     }
 
-    public void storeExistingTargetsForInit() {
-        if (!this.waitForInitiallyDiscoveredTargets) {
-            return;
-        }
-        this.discoveredTargetsByTargetId.forEach((targetId, targetInfo) -> {
-            boolean isPageOrFrame = "page".equals(targetInfo.getType()) || "iframe".equals(targetInfo.getType());
-            boolean isExtension = targetInfo.getUrl().startsWith("chrome-extension://");
-            CdpTarget targetForFilter = new CdpTarget(targetInfo, null, null, this, null);
-            if ((this.targetFilterCallback == null || this.targetFilterCallback.apply(targetForFilter)) && isPageOrFrame && !isExtension) {
-                this.targetsIdsForInit.add(targetInfo.getTargetId());
-            }
-        });
-    }
-
     public void initialize() {
         Map<String, Object> params = ParamsFactory.create();
         params.put("discover", true);
         params.put("filter", this.discoveryFilter);
         this.connection.send("Target.setDiscoverTargets", params);
-        this.storeExistingTargetsForInit();
         params.clear();
         params.put("waitForDebuggerOnStart", true);
         params.put("flatten", true);
@@ -108,6 +104,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         params.put("filter", filter);
         params.put("waitForDebuggerOnStart", true);
         this.connection.send("Target.setAutoAttach", params);
+        this.initialAttachDone = true;
         this.finishInitializationIfReady(null);
         this.initializeResult.waitingGetResult();
     }
@@ -166,7 +163,6 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             return;
         }
         if ("service_worker".equals(targetInfo.getType())) {
-            this.finishInitializationIfReady(targetInfo.getTargetId());
             silentDetach(parentConnection, session);
             if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId())) {
                 return;
@@ -181,9 +177,11 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         CdpTarget target = isExistingTarget ? this.attachedTargetsByTargetId.get(targetInfo.getTargetId()) : this.targetFactory.create(targetInfo, session, null);
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
-            this.finishInitializationIfReady(targetInfo.getTargetId());
             silentDetach(parentConnection, session);
             return;
+        }
+        if (this.waitForInitiallyDiscoveredTargets && Objects.equals(targetInfo.getType(), "tab") && !this.initialAttachDone) {
+            this.targetsIdsForInit.add(targetInfo.getTargetId());
         }
         this.setupAttachmentListeners(session);
         if (isExistingTarget) {
@@ -195,11 +193,9 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             this.attachedTargetsBySessionId.put(session.id(), target);
         }
         parentConnection.emit(ConnectionEvents.CDPSession_Ready, session);
-        this.targetsIdsForInit.remove(target.getTargetId());
         if (!isExistingTarget) {
             this.emit(TargetManagerEvent.TargetAvailable, target);
         }
-        this.finishInitializationIfReady(null);
         Map<String, Object> params = ParamsFactory.create();
         params.put("waitForDebuggerOnStart", true);
         params.put("flatten", true);
@@ -208,9 +204,12 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         try {
             //容易出错，问题不大
             session.send("Target.setAutoAttach", params);
+        } catch (Exception ignored) {
+        }
+        try {
+            //容易出错，问题不大
             runIfWaitingForDebugger(session);
         } catch (Exception ignored) {
-            //  LOGGER.error("jvppeteer error: ", e);
         }
     }
 
@@ -224,7 +223,6 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             return;
         }
         if ("service_worker".equals(targetInfo.getType())) {
-            this.finishInitializationIfReady(targetInfo.getTargetId());
             silentDetach(parentSession, session);
             if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId())) {
                 return;
@@ -237,11 +235,17 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         }
         boolean isExistingTarget = this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId());
         CdpTarget target = isExistingTarget ? this.attachedTargetsByTargetId.get(targetInfo.getTargetId()) : this.targetFactory.create(targetInfo, session, parentSession);
+        CdpTarget parentTarget = ((CdpCDPSession) parentSession).getTarget();
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
-            this.finishInitializationIfReady(targetInfo.getTargetId());
+            if(Objects.nonNull(parentTarget) && Objects.equals(TargetType.TAB,parentTarget.type())){
+                this.finishInitializationIfReady(targetInfo.getTargetId());
+            }
             silentDetach(parentSession, session);
             return;
+        }
+        if (this.waitForInitiallyDiscoveredTargets && Objects.equals(targetInfo.getType(), "tab") && !this.initialAttachDone) {
+            this.targetsIdsForInit.add(targetInfo.getTargetId());
         }
         this.setupAttachmentListeners(session);
         if (isExistingTarget) {
@@ -252,14 +256,14 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             this.attachedTargetsByTargetId.put(targetInfo.getTargetId(), target);
             this.attachedTargetsBySessionId.put(session.id(), target);
         }
-        CdpTarget parentTarget = ((CdpCDPSession) parentSession).getTarget();
         parentTarget.addChildTarget(target);
         parentSession.emit(ConnectionEvents.CDPSession_Ready, session);
-        this.targetsIdsForInit.remove(target.getTargetId());
         if (!isExistingTarget) {
             this.emit(TargetManagerEvent.TargetAvailable, target);
         }
-        this.finishInitializationIfReady(null);
+        if(Objects.equals(TargetType.TAB,parentTarget.type())){
+            this.finishInitializationIfReady(parentTarget.getTargetId());
+        }
         Map<String, Object> params = ParamsFactory.create();
         params.put("waitForDebuggerOnStart", true);
         params.put("flatten", true);
@@ -402,6 +406,11 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
     private void finishInitializationIfReady(String targetId) {
         if (StringUtil.isNotEmpty(targetId)) {
             this.targetsIdsForInit.remove(targetId);
+        }
+        // If we are still initializing it might be that we have not learned about
+        // some targets yet.
+        if (!this.initialAttachDone) {
+            return;
         }
         if (this.targetsIdsForInit.isEmpty()) {
             this.initializeResult.onSuccess(true);
