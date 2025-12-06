@@ -2,12 +2,14 @@ package com.ruiyun.jvppeteer.cdp.core;
 
 import com.ruiyun.jvppeteer.cdp.entities.QueuedEventGroup;
 import com.ruiyun.jvppeteer.cdp.entities.RedirectInfo;
+import com.ruiyun.jvppeteer.cdp.entities.RequestWillBeSentExtraInfoEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestPausedEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.cdp.events.ResponseReceivedExtraInfoEvent;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class NetworkEventManager {
@@ -47,6 +49,7 @@ public class NetworkEventManager {
     private final Map<String, RequestWillBeSentEvent> requestWillBeSentMap = new HashMap<>();
     private final Map<String, RequestPausedEvent> requestPausedMap = new HashMap<>();
     private final Map<String, CdpRequest> httpRequestsMap = new HashMap<>();
+    private final Map<String, LinkedList<RequestWillBeSentExtraInfoEvent>> requestWillBeSentExtraInfoMap = new HashMap<>();
 
     /**
      * The below maps are used to reconcile Network.responseReceivedExtraInfo
@@ -64,9 +67,17 @@ public class NetworkEventManager {
     public void forget(String networkRequestId) {
         this.requestWillBeSentMap.remove(networkRequestId);
         this.requestPausedMap.remove(networkRequestId);
+        this.requestWillBeSentExtraInfoMap.remove(networkRequestId);
         this.queuedEventGroupMap.remove(networkRequestId);
         this.queuedRedirectInfoMap.remove(networkRequestId);
         this.responseReceivedExtraInfoMap.remove(networkRequestId);
+    }
+
+    public LinkedList<RequestWillBeSentExtraInfoEvent> requestExtraInfo(String networkRequestId) {
+        if (!this.requestWillBeSentExtraInfoMap.containsKey(networkRequestId)) {
+            this.requestWillBeSentExtraInfoMap.put(networkRequestId, new LinkedList<>());
+        }
+        return this.requestWillBeSentExtraInfoMap.get(networkRequestId);
     }
 
     public LinkedList<ResponseReceivedExtraInfoEvent> responseExtraInfo(String networkRequestId) {

@@ -1,5 +1,6 @@
 package com.ruiyun.example;
 
+import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Request;
@@ -8,6 +9,8 @@ import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.cdp.core.CdpRequest;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ContinueRequestOverrides;
+import com.ruiyun.jvppeteer.cdp.entities.Cookie;
+import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceTiming;
@@ -170,5 +173,27 @@ public class J_RequestTest {
             page.goTo("https://www.baidu.com/", options);
             Thread.sleep(5000);
         }
+    }
+
+    @Test
+    public void test13() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        List<Cookie> cookies = page.cookies();
+        for (Cookie cookie : cookies) {
+            cookie.setHttpOnly(true);
+        }
+        CookieParam cookieParam = new CookieParam();
+        cookieParam.setName("username");
+        cookieParam.setValue("John Doe");
+        cookieParam.setHttpOnly( true);
+        cookieParam.setUrl("https://www.baidu.com/");
+        page.setCookie(cookieParam);
+
+        Response response = page.goTo("https://www.baidu.com/");
+         response.request().headers().forEach(headerEntry -> {
+             System.out.println("header:" + headerEntry);
+        });
+        browser.close();
     }
 }

@@ -11,6 +11,7 @@ import com.ruiyun.jvppeteer.cdp.entities.InternalNetworkConditions;
 import com.ruiyun.jvppeteer.cdp.entities.NetworkConditions;
 import com.ruiyun.jvppeteer.cdp.entities.QueuedEventGroup;
 import com.ruiyun.jvppeteer.cdp.entities.RedirectInfo;
+import com.ruiyun.jvppeteer.cdp.entities.RequestWillBeSentExtraInfoEvent;
 import com.ruiyun.jvppeteer.cdp.entities.ResponsePayload;
 import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.events.AuthRequiredEvent;
@@ -86,6 +87,10 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         Consumer<RequestWillBeSentEvent> requestWillBeSent = event -> this.onRequestWillBeSent(client, event);
         client.on(ConnectionEvents.Network_requestWillBeSent, requestWillBeSent);
         listeners.put(ConnectionEvents.Network_requestWillBeSent, requestWillBeSent);
+
+        Consumer<RequestWillBeSentExtraInfoEvent> requestWillBeSentExtraInfo = event -> this.onRequestWillBeSentExtraInfo(client, event);
+        client.on(ConnectionEvents.Network_requestWillBeSentExtraInfo, requestWillBeSentExtraInfo);
+        listeners.put(ConnectionEvents.Network_requestWillBeSentExtraInfo, requestWillBeSentExtraInfo);
 
         Consumer<RequestServedFromCacheEvent> requestServedFromCache = event -> this.onRequestServedFromCache(client, event);
         client.on(ConnectionEvents.Network_requestServedFromCache, requestServedFromCache);
@@ -194,7 +199,7 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             params.put("cacheDisabled", this.userCacheDisabled);
             client.send("Network.setCacheDisabled", params);
         } catch (Exception e) {
-            if(canIgnoreError(e)){
+            if (canIgnoreError(e)) {
                 return;
             }
             throwError(e);
@@ -484,6 +489,10 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
             if (Objects.nonNull(request)) {
                 this.handleRequestRedirect(client, request, event.getRedirectResponse(), redirectResponseExtraInfo);
                 redirectChain = request.redirectChain();
+                RequestWillBeSentExtraInfoEvent extraInfo = this.networkEventManager.requestExtraInfo(event.getRequestId()).poll();
+                if (Objects.nonNull(extraInfo)) {
+                    request.updateHeaders(extraInfo.getHeaders());
+                }
             }
         }
         String frameId = event.getFrameId();
@@ -496,6 +505,15 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
         this.networkEventManager.storeRequest(event.getRequestId(), request);
         this.emit(NetworkManagerEvent.Request, request);
         request.finalizeInterceptions();
+    }
+
+    public void onRequestWillBeSentExtraInfo(CDPSession client, RequestWillBeSentExtraInfoEvent event) {
+        CdpRequest request = this.networkEventManager.getRequest(event.getRequestId());
+        if (Objects.nonNull(request)) {
+            request.updateHeaders(event.getHeaders());
+        } else {
+            this.networkEventManager.requestExtraInfo(event.getRequestId()).add(event);
+        }
     }
 
     private void handleRequestRedirect(CDPSession _client, CdpRequest request, ResponsePayload responsePayload, ResponseReceivedExtraInfoEvent extraInfo) {

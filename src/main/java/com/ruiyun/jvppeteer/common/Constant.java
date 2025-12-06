@@ -22,6 +22,7 @@ import com.ruiyun.jvppeteer.bidi.events.ContextCreatedEvent;
 import com.ruiyun.jvppeteer.bidi.events.FileDialogInfo;
 import com.ruiyun.jvppeteer.bidi.events.NavigationInfoEvent;
 import com.ruiyun.jvppeteer.cdp.entities.DragInterceptedEvent;
+import com.ruiyun.jvppeteer.cdp.entities.RequestWillBeSentExtraInfoEvent;
 import com.ruiyun.jvppeteer.cdp.events.AttachedToTargetEvent;
 import com.ruiyun.jvppeteer.cdp.events.AuthRequiredEvent;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
@@ -449,6 +450,9 @@ public interface Constant {
                         break;
                     case "DeviceAccess.deviceRequestPrompted":
                         put(event.getEventName(), DeviceRequestPromptedEvent.class);
+                        break;
+                    case "Network.requestWillBeSentExtraInfo":
+                        put(event.getEventName(), RequestWillBeSentExtraInfoEvent.class);
                         break;
                 }
             }

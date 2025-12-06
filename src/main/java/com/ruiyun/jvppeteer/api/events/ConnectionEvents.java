@@ -48,6 +48,7 @@ public enum ConnectionEvents {
     Network_loadingFinished("Network.loadingFinished"),
     Network_loadingFailed("Network.loadingFailed"),
     Network_responseReceivedExtraInfo("Network.responseReceivedExtraInfo"),
+    Network_requestWillBeSentExtraInfo("Network.requestWillBeSentExtraInfo"),
     Tracing_tracingComplete("Tracing.tracingComplete"),
     Input_dragIntercepted("Input.dragIntercepted"),
     /**

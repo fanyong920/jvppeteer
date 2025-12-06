@@ -60,7 +60,11 @@ public class CdpRequest extends Request {
         this.redirectChain = redirectChain;
         this.initiator = event.getInitiator();
         this.interception.setEnabled(allowInterception);
-        for (Map.Entry<String, String> entry : event.getRequest().getHeaders().entrySet()) {
+        updateHeaders(event.getRequest().getHeaders());
+    }
+
+    public void updateHeaders(Map<String, String> headers) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
             this.headers.add(new HeaderEntry(entry.getKey().toLowerCase(), entry.getValue()));
         }
     }
