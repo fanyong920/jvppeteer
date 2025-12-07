@@ -169,7 +169,7 @@ public class BidiFrame extends Frame {
                     text.deleteCharAt(text.length() - 1);
                     this.page().trustedEmitter().emit(
                             PageEvents.Console,
-                            new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), this));
+                            new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), this,null));
                 }
             } else if (isJavaScriptLogEntry(entry)) {
                 StringBuilder stackLines = new StringBuilder();
