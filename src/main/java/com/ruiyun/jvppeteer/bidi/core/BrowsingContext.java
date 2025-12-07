@@ -22,6 +22,7 @@ import com.ruiyun.jvppeteer.bidi.entities.PartitionDescriptor;
 import com.ruiyun.jvppeteer.bidi.entities.PrintOptions;
 import com.ruiyun.jvppeteer.bidi.entities.ReloadParameters;
 import com.ruiyun.jvppeteer.bidi.entities.RemoteValue;
+import com.ruiyun.jvppeteer.bidi.entities.ScreenOrientation;
 import com.ruiyun.jvppeteer.bidi.entities.SetGeoLocationOverrideOptions;
 import com.ruiyun.jvppeteer.bidi.entities.SetViewportParameters;
 import com.ruiyun.jvppeteer.bidi.entities.SharedReference;
@@ -523,7 +524,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         return this.deviceRequestPromptManager.waitForDevicePrompt(timeout);
     }
 
-    public void setOfflineMode(boolean enabled){
+    public void setOfflineMode(boolean enabled) {
         Map<String, Object> params = ParamsFactory.create();
         if (enabled) {
             ObjectNode offlineConditions = OBJECTMAPPER.createObjectNode();
@@ -534,12 +535,21 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.session().send("Network.setBypassServiceWorker", params);
     }
 
-    public void setUserAgent(String userAgent){
+    public void setScreenOrientationOverride(ScreenOrientation screenOrientation) {
+        ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("screenOrientation", screenOrientation);
+        params.put("contexts", Collections.singletonList(this.id));
+        this.session().send("emulation.setScreenOrientationOverride", params);
+    }
+
+    public void setUserAgent(String userAgent) {
         Map<String, Object> params = ParamsFactory.create();
         params.put("userAgent", userAgent);
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("emulation.setUserAgentOverride", params);
     }
+
     public enum BrowsingContextEvents {
         /**
          * ClosedEvent.class

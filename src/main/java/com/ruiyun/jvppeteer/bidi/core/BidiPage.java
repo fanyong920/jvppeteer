@@ -35,6 +35,9 @@ import com.ruiyun.jvppeteer.bidi.entities.PrintOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PrintPageParameters;
 import com.ruiyun.jvppeteer.bidi.entities.ReloadParameters;
 import com.ruiyun.jvppeteer.bidi.entities.RemoteValue;
+import com.ruiyun.jvppeteer.bidi.entities.ScreenOrientation;
+import com.ruiyun.jvppeteer.bidi.entities.ScreenOrientationNatural;
+import com.ruiyun.jvppeteer.bidi.entities.ScreenOrientationType;
 import com.ruiyun.jvppeteer.bidi.entities.SetGeoLocationOverrideOptions;
 import com.ruiyun.jvppeteer.bidi.entities.SetViewportParameters;
 import com.ruiyun.jvppeteer.bidi.events.FileDialogInfo;
@@ -161,10 +164,10 @@ public class BidiPage extends Page {
 
     @Override
     public void setUserAgent(UserAgentOptions options) {
-        String userAgent =  options.getUserAgent();
+        String userAgent = options.getUserAgent();
         String platform = options.getPlatform();
         UserAgentMetadata metadata = options.getUserAgentMetadata();
-        if(Objects.isNull(userAgent)){
+        if (Objects.isNull(userAgent)) {
             userAgent = this.browserContext.browser().userAgent();
         }
         if (!this.browserContext.browser().cdpSupported() && (Objects.nonNull(metadata) || Objects.nonNull(platform))) {
@@ -409,7 +412,18 @@ public class BidiPage extends Page {
             if (Objects.nonNull(viewport) && viewport.getDeviceScaleFactor() != null) {
                 options.setDevicePixelRatio(viewport.getDeviceScaleFactor());
             }
+
+            ScreenOrientation screenOrientation = null;
+
+            if (viewport != null) {
+                if (viewport.getIsLandscape()) {
+                    screenOrientation = new ScreenOrientation(ScreenOrientationNatural.Landscape, ScreenOrientationType.LandscapePrimary);
+                } else {
+                    screenOrientation = new ScreenOrientation(ScreenOrientationNatural.Portrait, ScreenOrientationType.PortraitPrimary);
+                }
+            }
             this.frame.browsingContext.setViewport(options);
+            this.frame.browsingContext.setScreenOrientationOverride(screenOrientation);
             this.viewport = viewport;
             return;
         }

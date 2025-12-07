@@ -7,8 +7,8 @@ import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Connection;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.Callback;
@@ -64,7 +64,7 @@ public class BidiConnection extends Connection {
             } catch (JsonProcessingException e) {
                 throw new JvppeteerException(e);
             }
-            if(LOGGER.isDebugEnabled()){
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("jvppeteer:webDriverBiDi:SEND ► {}", stringifiedMessage);
             }
 //            LOGGER.info("jvppeteer:webDriverBiDi:SEND ► {}", stringifiedMessage);
@@ -81,7 +81,7 @@ public class BidiConnection extends Connection {
             if (this.delay > 0) {
                 Helper.justWait(this.delay);
             }
-            if(LOGGER.isDebugEnabled()){
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("jvppeteer:webDriverBiDi:RECV ◀{}", message);
             }
 //            LOGGER.info("jvppeteer:webDriverBiDi:RECV ◀{}", message);
@@ -216,7 +216,10 @@ public class BidiConnection extends Connection {
                                 return;
                             }
                             String method = response.get(METHOD).asText();
-                            this.emit(ConnectionEvents.valueOf(method.replace(".", "_")), Objects.isNull(LISTENER_CLASSES.get(method)) ? true : OBJECTMAPPER.treeToValue(response.get(PARAMS), LISTENER_CLASSES.get(method)));
+                            boolean match = EVENTS.contains(method);
+                            if (match) {
+                                this.emit(ConnectionEvents.valueOf(method.replace(".", "_")), Objects.isNull(LISTENER_CLASSES.get(method)) ? true : OBJECTMAPPER.treeToValue(response.get(PARAMS), LISTENER_CLASSES.get(method)));
+                            }
                             return;
                     }
                 }

@@ -102,12 +102,24 @@ public class BidiBrowser extends Browser {
         session.subscribe(subscribes, null);
         try {
             Map<String, Object> params = ParamsFactory.create();
-            params.put("collectors", Collections.singletonList("response"));
+            params.put("dataTypes", Collections.singletonList("request"));
             params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
             session.send("network.addDataCollector", params);
         } catch (Exception e) {
             if (e instanceof ProtocolException) {
-                LOGGER.error("puppeteer:error {}", e.getMessage(), e);
+                LOGGER.error("jvppeteer:error {}", e.getMessage(), e);
+            } else {
+                throw e;
+            }
+        }
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("dataTypes", Collections.singletonList("response"));
+            params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
+            session.send("network.addDataCollector", params);
+        } catch (Exception e) {
+            if (e instanceof ProtocolException) {
+                LOGGER.error("jvppeteer:error {}", e.getMessage(), e);
             } else {
                 throw e;
             }

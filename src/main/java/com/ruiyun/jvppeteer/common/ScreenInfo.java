@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.common;
 
+import com.ruiyun.jvppeteer.cdp.entities.ScreenOrientation;
+
 public class ScreenInfo {
     private int left;
     private int top;
