@@ -361,7 +361,7 @@ public class CdpPage extends Page {
         if (!"worker".equals(event.getEntry().getSource())) {
             List<ConsoleMessageLocation> locations = new ArrayList<>();
             locations.add(new ConsoleMessageLocation(event.getEntry().getUrl(), event.getEntry().getLineNumber()));
-            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null));
+            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null,event.getEntry().getStackTrace()));
         }
     }
 
@@ -695,7 +695,7 @@ public class CdpPage extends Page {
                 }
             }
         }
-        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, stackTraceLocations, null);
+        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, stackTraceLocations, null,stackTrace);
         this.emit(PageEvents.Console, message);
     }
 

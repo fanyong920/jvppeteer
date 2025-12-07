@@ -14,17 +14,19 @@ public class ConsoleMessage {
     private List<ConsoleMessageLocation> stackTraceLocations;
     private String text;
     private Frame frame;
+    private StackTrace rawStackTrace;
 
     public ConsoleMessage() {
     }
 
-    public ConsoleMessage(ConsoleMessageType type, String text, List<JSHandle> args, List<ConsoleMessageLocation> stackTraceLocations, Frame frame) {
+    public ConsoleMessage(ConsoleMessageType type, String text, List<JSHandle> args, List<ConsoleMessageLocation> stackTraceLocations, Frame frame, StackTrace rawStackTrace) {
         super();
         this.type = type;
         this.text = text;
         this.args = args;
         this.stackTraceLocations = stackTraceLocations;
         this.frame = frame;
+        this.rawStackTrace = rawStackTrace;
     }
 
     /**
@@ -62,6 +64,13 @@ public class ConsoleMessage {
 
     public List<ConsoleMessageLocation> stackTrace() {
         return this.stackTraceLocations;
+    }
+    /**
+     * The underlying protocol stack trace if available.
+     *
+     */
+    private StackTrace rawStackTrace() {
+        return rawStackTrace;
     }
 
     @Override
