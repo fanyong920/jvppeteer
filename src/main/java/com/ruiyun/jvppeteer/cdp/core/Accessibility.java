@@ -20,8 +20,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Accessibility {
+    private static final Logger log = LoggerFactory.getLogger(Accessibility.class);
     private final Realm realm;
     private String frameId = "";
 
@@ -97,8 +100,13 @@ public class Accessibility {
                     try {
                         Frame frame = handle.contentFrame();
                         if (Objects.nonNull(frame)) {
-                            SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
-                            defaultRoot.setIframeSnapshot(iframeSnapshot);
+                            try {
+                                SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
+                                defaultRoot.setIframeSnapshot(iframeSnapshot);
+                            } catch (Exception e) {
+                                // Frames can get detached at any time resulting in errors.
+                                log.error("jvppeteer error ", e);
+                            }
                         }
                     } finally {
                         handle.dispose();
