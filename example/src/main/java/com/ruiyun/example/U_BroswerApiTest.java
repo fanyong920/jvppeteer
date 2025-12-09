@@ -69,7 +69,7 @@ public class U_BroswerApiTest {
         page.close();
         System.out.println("browser userAgent1: " + browser.userAgent());
         cdpBrowserContext.newPage();
-        browser.pages().forEach(page1 -> {
+        browser.pages(true).forEach(page1 -> {
                     try {
                         System.out.println("page title: " + page1.title());
                     } catch (JsonProcessingException e) {

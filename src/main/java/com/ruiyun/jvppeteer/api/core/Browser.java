@@ -89,21 +89,23 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * @return WebSocket URL
      */
     public abstract String wsEndpoint();
+
     /**
      * 在 默认浏览器上下文 中创建新的 page。
      *
      * @return 新创建的页面对象
      */
-    public  Page newPage() {
+    public Page newPage() {
         return this.newPage(null);
     }
+
     /**
      * 在 默认浏览器上下文 中创建新的 page。
      *
      * @param options 创建页面的选项
      * @return 新创建的页面对象
      */
-    public abstract Page newPage(CreatePageOptions  options);
+    public abstract Page newPage(CreatePageOptions options);
 
     /**
      * 获取所有活动的 targets。
@@ -154,7 +156,19 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * @return 所有打开的 pages
      */
     public List<Page> pages() {
-        return this.browserContexts().stream().flatMap(context -> context.pages().stream()).collect(Collectors.toList());
+        return this.pages(false);
+    }
+
+    /**
+     * 获取此 Browser 内所有打开的 pages 的列表。
+     * <p>
+     * 如果有多个 浏览器上下文，则返回所有 浏览器上下文 中的所有 pages。
+     *
+     * @param includeAll experimental, setting to true includes all kinds of pages.
+     * @return 所有打开的 pages
+     */
+    public List<Page> pages(boolean includeAll) {
+        return this.browserContexts().stream().flatMap(context -> context.pages(includeAll).stream()).collect(Collectors.toList());
     }
 
     /**

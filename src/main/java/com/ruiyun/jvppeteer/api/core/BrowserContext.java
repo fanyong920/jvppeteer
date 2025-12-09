@@ -56,7 +56,18 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
      *
      * @return 所有打开的 pages
      */
-    public abstract List<Page> pages();
+    public List<Page> pages() {
+        return this.pages(false);
+    }
+
+    /**
+     * 获取此 浏览器上下文 内所有打开的 pages 的列表。
+     * <p>
+     * 不可见的 pages，例如 "background_page"，这里不会列出。你可以使用 Target.page() 找到它们。
+     * @param includeAll 是否包含所有类型的页面
+     * @return 所有打开的 pages
+     */
+    public abstract List<Page> pages(boolean includeAll);
 
     /**
      * 授予指定页面的权限设置

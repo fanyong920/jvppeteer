@@ -70,8 +70,8 @@ public class CdpBrowserContext extends BrowserContext {
         return this.cdpBrowser.targets().stream().filter(target -> target.browserContext() == this).collect(Collectors.toList());
     }
 
-    public List<Page> pages() {
-        return this.targets().stream().filter(target -> TargetType.PAGE.equals(target.type()) || (TargetType.OTHER.equals(target.type()) && this.cdpBrowser.getIsPageTargetCallback() != null ? this.cdpBrowser.getIsPageTargetCallback().apply(target) : true)).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
+    public List<Page> pages(boolean includeAll) {
+        return this.targets().stream().filter(target -> TargetType.PAGE.equals(target.type()) || ((TargetType.OTHER.equals(target.type()) || includeAll) && this.cdpBrowser.getIsPageTargetCallback() != null ? this.cdpBrowser.getIsPageTargetCallback().apply(target) : true)).map(Target::page).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     public void overridePermissions(String origin, WebPermission... webPermissions) {

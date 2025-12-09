@@ -161,7 +161,7 @@ public class BidiBrowserContext extends BrowserContext {
     }
 
     @Override
-    public List<Page> pages() {
+    public List<Page> pages(boolean includeAll) {
         return this.userContext.browsingContexts().stream().map(this.pages::get).collect(Collectors.toList());
     }
 
