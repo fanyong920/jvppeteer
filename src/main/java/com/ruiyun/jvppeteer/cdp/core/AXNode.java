@@ -235,7 +235,7 @@ public class AXNode {
             node.setElementHandle(null);
         }
         node.setElementHandle(this.realm.adoptBackendNode(this.payload.getBackendDOMNodeId()).asElement());
-
+        node.setBackendNodeId(this.payload.getBackendDOMNodeId());
         for (String userStringProperty : userStringProperties) {
             if (!properties.containsKey(userStringProperty))
                 continue;
