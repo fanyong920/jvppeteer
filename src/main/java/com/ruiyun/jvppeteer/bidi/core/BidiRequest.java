@@ -122,15 +122,12 @@ public class BidiRequest extends Request {
 
     @Override
     public boolean hasPostData() {
-        if (!this.frame.page().browser().cdpSupported()) {
-            throw new UnsupportedOperationException();
-        }
         return this.request.hasPostData();
     }
 
     @Override
     public String fetchPostData() {
-        throw new UnsupportedOperationException();
+       return this.request.fetchPostData();
     }
 
     private boolean hasInternalHeaderOverwrite() {

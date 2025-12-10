@@ -103,7 +103,7 @@ public class BidiBrowser extends Browser {
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put("dataTypes", Collections.singletonList("request"));
-            params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
+            params.put("maxEncodedDataSize", 20_000_000);// 20 MB
             session.send("network.addDataCollector", params);
         } catch (Exception e) {
             if (e instanceof ProtocolException) {
@@ -115,7 +115,7 @@ public class BidiBrowser extends Browser {
         try {
             Map<String, Object> params = ParamsFactory.create();
             params.put("dataTypes", Collections.singletonList("response"));
-            params.put("maxEncodedDataSize", 20 * 1000 * 1000);// 20 MB
+            params.put("maxEncodedDataSize", 20_000_000);// 20 MB
             session.send("network.addDataCollector", params);
         } catch (Exception e) {
             if (e instanceof ProtocolException) {

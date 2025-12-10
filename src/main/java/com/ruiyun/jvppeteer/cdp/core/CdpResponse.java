@@ -127,7 +127,7 @@ public class CdpResponse extends Response {
             }
         } catch (Exception e) {
             if (e instanceof ProtocolException && "No resource with given identifier found".equals(e.getMessage())) {
-                throw new ProtocolException("Could not load body for this request. This might happen if the request is a preflight request.", e);
+                throw new ProtocolException("Could not load response body for this request. This might happen if the request is a preflight request.", e);
             }
             throwError(e);
         }

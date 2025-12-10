@@ -7,17 +7,17 @@ import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.AuthCredentials;
 import com.ruiyun.jvppeteer.bidi.entities.BaseParameters;
 import com.ruiyun.jvppeteer.bidi.entities.BeforeRequestSentParameters;
-import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.entities.FetchErrorParameters;
 import com.ruiyun.jvppeteer.bidi.entities.FetchTimingInfo;
 import com.ruiyun.jvppeteer.bidi.entities.Header;
 import com.ruiyun.jvppeteer.bidi.entities.Initiator;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseCompletedParameters;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
+import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
+import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DisposableStack;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -39,6 +39,7 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
     private final BeforeRequestSentParameters event;
     private volatile boolean disposed;
     private String responseContent;
+    private String requestBodyPromise;
 
     public RequestCore(BrowsingContext browsingContext, BeforeRequestSentParameters event) {
         super();
@@ -158,7 +159,7 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
         while (Objects.nonNull(redirect1)) {
             if (Objects.isNull(redirect1.redirect())) {
                 return redirect1;
-            }else {
+            } else {
                 redirect1 = redirect1.redirect();
             }
         }
@@ -186,7 +187,7 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
     }
 
     public boolean hasPostData() {
-        return this.event.getRequest().getHasPostData();
+        return this.event.getRequest().getBodySize() > 0;
     }
 
     /**
@@ -201,12 +202,12 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
         params.put("request", this.id());
         params.put("url", url);
         params.put("method", method);
-        if(ValidateUtil.isNotEmpty(headers)){
+        if (ValidateUtil.isNotEmpty(headers)) {
             params.put("headers", headers);
         }
         params.put("cookies", cookies);
         ObjectNode bodyNode = Constant.OBJECTMAPPER.createObjectNode();
-        if(StringUtil.isNotEmpty(body)){
+        if (StringUtil.isNotEmpty(body)) {
             bodyNode.put("type", "base64");
             bodyNode.put("value", body);
             params.put("body", bodyNode);
@@ -226,7 +227,7 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
         params.put("statusCode", statusCode);
         params.put("reasonPhrase", reasonPhrase);
         params.put("headers", headers);
-        if(Objects.nonNull(body)) {
+        if (Objects.nonNull(body)) {
             ObjectNode bodyNode = Constant.OBJECTMAPPER.createObjectNode();
             bodyNode.put("type", "base64");
             bodyNode.put("value", body);
@@ -235,20 +236,39 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
         this.session().send("network.provideResponse", params);
     }
 
+    public String fetchPostData() {
+        if (!this.hasPostData()) {
+            return null;
+        }
+        if (StringUtil.isEmpty(this.requestBodyPromise)) {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("dataType", "request");
+            params.put("request", this.id());
+            JsonNode data = this.session().send("network.getData", params);
+            JsonNode type = data.at("/result/bytes/type");
+            if (!type.isMissingNode() && "string".equals(type.asText())) {
+                this.requestBodyPromise = data.at("/result/bytes/value").asText();
+                return this.requestBodyPromise;
+            }
+            throw new UnsupportedOperationException("Collected request body data of type: " + type.asText() + "is not supported");
+        }
+        return this.requestBodyPromise;
+    }
+
     public String getResponseContent() {
-       if(Objects.isNull(this.responseContent)){
-           try {
-               Map<String, Object> params = ParamsFactory.create();
-               params.put("dataType", "response");
-               params.put("request", this.id());
-               this.responseContent = this.session().send("network.getData", params).asText();
-           }catch (Exception e){
-               if(e instanceof ProtocolException && e.getMessage().contains("No resource with given identifier found")){
-                    throw new ProtocolException("Could not load body for this request. This might happen if the request is a preflight request.", e);
-               }
-               throwError(e);
-           }
-       }
+        if (Objects.isNull(this.responseContent)) {
+            try {
+                Map<String, Object> params = ParamsFactory.create();
+                params.put("dataType", "response");
+                params.put("request", this.id());
+                this.responseContent = this.session().send("network.getData", params).asText();
+            } catch (Exception e) {
+                if (e instanceof ProtocolException && e.getMessage().contains("No resource with given identifier found")) {
+                    throw new ProtocolException("Could not load response body for this request. This might happen if the request is a preflight request.", e);
+                }
+                throwError(e);
+            }
+        }
         return this.responseContent;
     }
 
