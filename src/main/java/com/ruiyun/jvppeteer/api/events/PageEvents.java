@@ -1,8 +1,6 @@
 package com.ruiyun.jvppeteer.api.events;
 
 import com.ruiyun.jvppeteer.cdp.core.CdpDialog;
-import com.ruiyun.jvppeteer.cdp.core.CdpPage;
-import com.ruiyun.jvppeteer.cdp.core.CdpRequest;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.cdp.entities.PageMetrics;
 
@@ -62,7 +60,7 @@ public enum PageEvents {
      */
     Metrics,
     /**
-     * 当页面内发生未捕获的异常时触发。包含 {@link PageEvents#Error}。
+     * 当页面内发生未捕获的异常时触发。包含 {@link PageEvents#Error}与未知类型的数据。
      */
     PageError,
     /**
