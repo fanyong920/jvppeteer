@@ -136,7 +136,8 @@ public class CdpRequest extends Request {
      * @return Map
      */
     public List<HeaderEntry> headers() {
-        return this.headers;
+        // Callers should not be allowed to mutate internal structure.
+        return new ArrayList<>(this.headers);
     }
 
     /**

@@ -150,6 +150,7 @@ public class BidiRequest extends Request {
 
     @Override
     public List<HeaderEntry> headers() {
+        // Callers should not be allowed to mutate internal structure.
         List<HeaderEntry> headers = new ArrayList<>();
         if (ValidateUtil.isNotEmpty(this.request.headers())) {
             headers.addAll(this.request.headers().stream().map(header -> new HeaderEntry(header.getName().toLowerCase(), header.getValue().getValue())).collect(Collectors.toList()));
