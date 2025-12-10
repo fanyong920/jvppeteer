@@ -196,19 +196,37 @@ public class AXNode {
                 return false;
         }
     }
+    public boolean isLandmark() {
+        switch (this.role) {
+            case "banner":
+            case "complementary":
+            case "contentinfo":
+            case "form":
+            case "main":
+            case "navigation":
+            case "region":
+            case "search":
+                return true;
+            default:
+                return false;
+        }
+    }
 
     public boolean isInteresting(boolean insideControl) {
         if ("Ignored".equals(this.role) || this.hidden || this.ignored)
             return false;
 
+        if (this.isLandmark())
+            return true;
+
         if (this.focusable || this.richlyEditable)
             return true;
 
-        // If it's not focusable but has a control role, then it's interesting.
+        // If it"s not focusable but has a control role, then it"s interesting.
         if (this.isControl())
             return true;
 
-        // A non focusable child of a control is not interesting
+        // A non-focusable child of a control is not interesting
         if (insideControl)
             return false;
 
@@ -245,7 +263,7 @@ public class AXNode {
         }
 
         for (String booleanProperty : booleanProperties) {
-            // WebArea's treat focus differently than other nodes. They report whether their frame  has focus,
+            // WebArea"s treat focus differently than other nodes. They report whether their frame  has focus,
             // not whether focus is specifically on the root node.
             if ("focused".equals(booleanProperty) && "RootWebArea".equals(this.role))
                 continue;

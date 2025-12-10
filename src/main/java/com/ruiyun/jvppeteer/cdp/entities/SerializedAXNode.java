@@ -1,5 +1,6 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import java.util.List;
 
@@ -64,7 +65,7 @@ public class SerializedAXNode {
     private String url;
 
     private List<SerializedAXNode> children;
-
+    @JsonIgnore
     private ElementHandle elementHandle;
 
     private Integer backendNodeId;
