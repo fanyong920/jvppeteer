@@ -36,7 +36,8 @@ public class AXNode {
             "description",
             "keyshortcuts",
             "roledescription",
-            "valuetext"
+            "valuetext",
+            "url"
     };
     private static final String[] booleanProperties = new String[]{
             "disabled",

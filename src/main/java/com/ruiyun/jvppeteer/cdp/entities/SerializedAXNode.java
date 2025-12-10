@@ -58,6 +58,10 @@ public class SerializedAXNode {
     private String invalid;
 
     private String orientation;
+    /**
+     * Url for link elements.
+     */
+    private String url;
 
     private List<SerializedAXNode> children;
 
@@ -289,6 +293,14 @@ public class SerializedAXNode {
         this.backendNodeId = backendNodeId;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     @Override
     public String toString() {
         return "SerializedAXNode{" +
@@ -317,6 +329,7 @@ public class SerializedAXNode {
                 ", haspopup='" + haspopup + '\'' +
                 ", invalid='" + invalid + '\'' +
                 ", orientation='" + orientation + '\'' +
+                ", url='" + url + '\'' +
                 ", children=" + children +
                 ", elementHandle=" + elementHandle +
                 ", backendNodeId=" + backendNodeId +
