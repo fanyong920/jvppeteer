@@ -63,6 +63,8 @@ public class SerializedAXNode {
 
     private ElementHandle elementHandle;
 
+    private Integer backendNodeId;
+
     public String getRole() {
         return role;
     }
@@ -274,8 +276,17 @@ public class SerializedAXNode {
     public void setElementHandle(ElementHandle elementHandle) {
         this.elementHandle = elementHandle;
     }
+
     public ElementHandle getElementHandle() {
         return elementHandle;
+    }
+
+    public Integer getBackendNodeId() {
+        return backendNodeId;
+    }
+
+    public void setBackendNodeId(Integer backendNodeId) {
+        this.backendNodeId = backendNodeId;
     }
 
     @Override
@@ -308,6 +319,9 @@ public class SerializedAXNode {
                 ", orientation='" + orientation + '\'' +
                 ", children=" + children +
                 ", elementHandle=" + elementHandle +
+                ", backendNodeId=" + backendNodeId +
                 '}';
     }
+
+
 }
