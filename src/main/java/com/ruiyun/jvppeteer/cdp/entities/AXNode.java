@@ -26,6 +26,10 @@ public class AXNode {
      */
     private AXValue role;
     /**
+     * This `Node`'s Chrome raw role.
+     */
+    public AXValue chromeRole;
+    /**
      * The accessible name for this `Node`.
      */
     private AXValue name;
@@ -152,5 +156,12 @@ public class AXNode {
 
     public void setParentId(String parentId) {
         this.parentId = parentId;
+    }
+    public AXValue getChromeRole() {
+        return chromeRole;
+    }
+
+    public void setChromeRole(AXValue chromeRole) {
+        this.chromeRole = chromeRole;
     }
 }

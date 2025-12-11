@@ -65,53 +65,54 @@ public class Accessibility {
             payloads.add(Constant.OBJECTMAPPER.treeToValue(next, com.ruiyun.jvppeteer.cdp.entities.AXNode.class));
         }
         AXNode defaultRoot = AXNode.createTree(realm, payloads);
+        AXNode needle = defaultRoot;
         if (Objects.isNull(defaultRoot)) {
             return null;
         }
         if (options.getIncludeIframes()) {
             populateIframes(options, defaultRoot);
-            if (ValidateUtil.isNotEmpty(defaultRoot.getChildren())) {
-                for (AXNode child : defaultRoot.getChildren()) {
-                    populateIframes(options, child);
-                }
-            }
         }
-        AXNode needle = defaultRoot;
         if (StringUtil.isNotEmpty(backendNodeId)) {
             String finalBackendNodeId = backendNodeId;
-            needle = defaultRoot.find(node -> finalBackendNodeId.equals(node.getPayload().getBackendDOMNodeId() + ""));
-            if (Objects.isNull(needle))
-                return null;
+            needle = defaultRoot.find(node -> finalBackendNodeId.equals(node.getPayload().getBackendDOMNodeId() .toString()));
         }
-        if (!options.getInterestingOnly())
-            return this.serializeTree(needle, null).get(0);
+        if (Objects.isNull(needle))
+            return null;
+        if (!options.getInterestingOnly()) {
+            List<SerializedAXNode> serializedTree = this.serializeTree(needle, null);
+            return serializedTree.isEmpty() ? null : serializedTree.get(0);
+        }
         Set<AXNode> interestingNodes = new HashSet<>();
         this.collectInterestingNodes(interestingNodes, defaultRoot, false);
-        if (!interestingNodes.contains(needle))
-            return null;
-        return this.serializeTree(needle, interestingNodes).get(0);
+
+        List<SerializedAXNode> serializedTree = this.serializeTree(needle, interestingNodes);
+        return serializedTree.isEmpty() ? null : serializedTree.get(0);
     }
 
-    private void populateIframes(SnapshotOptions options, AXNode defaultRoot) throws JsonProcessingException, IllegalAccessException, IntrospectionException, InvocationTargetException {
+    private void populateIframes(SnapshotOptions options, AXNode defaultRoot) throws JsonProcessingException {
         if (Objects.nonNull(defaultRoot.getPayload().getRole()) && Objects.equals("Iframe", defaultRoot.getPayload().getRole().getValue())) {
-            if (Objects.nonNull(defaultRoot.getPayload().getBackendDOMNodeId())) {
-                ElementHandle handle = this.realm.adoptBackendNode(defaultRoot.getPayload().getBackendDOMNodeId()).asElement();
-                if (Objects.nonNull(handle)) {
-                    try {
-                        Frame frame = handle.contentFrame();
-                        if (Objects.nonNull(frame)) {
-                            try {
-                                SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
-                                defaultRoot.setIframeSnapshot(iframeSnapshot);
-                            } catch (Exception e) {
-                                // Frames can get detached at any time resulting in errors.
-                                log.error("jvppeteer error ", e);
-                            }
-                        }
-                    } finally {
-                        handle.dispose();
-                    }
+            if (Objects.isNull(defaultRoot.getPayload().getBackendDOMNodeId())) {
+                return;
+            }
+            ElementHandle handle = this.realm.adoptBackendNode(defaultRoot.getPayload().getBackendDOMNodeId()).asElement();
+            if (Objects.isNull(handle)) {
+                return;
+            }
+            try {
+                Frame frame = handle.contentFrame();
+                if (Objects.isNull(frame)) {
+                    return;
                 }
+                SerializedAXNode iframeSnapshot = frame.accessibility().snapshot(options);
+                defaultRoot.setIframeSnapshot(iframeSnapshot);
+            } catch (Exception e) {
+                // Frames can get detached at any time resulting in errors.
+                log.error("jvppeteer error ", e);
+            } finally {
+                handle.dispose();
+            }
+            for (AXNode child : defaultRoot.getChildren()) {
+                this.populateIframes(options, child);
             }
         }
     }
@@ -129,7 +130,8 @@ public class Accessibility {
         }
     }
 
-    private List<SerializedAXNode> serializeTree(AXNode node, Set<AXNode> interestingNodes) throws IllegalAccessException, IntrospectionException, InvocationTargetException, JsonProcessingException {
+    private List<SerializedAXNode> serializeTree(AXNode node, Set<AXNode> interestingNodes) throws
+            IllegalAccessException, IntrospectionException, InvocationTargetException, JsonProcessingException {
         List<SerializedAXNode> children = new ArrayList<>();
         if (ValidateUtil.isNotEmpty(node.getChildren())) {
             for (AXNode child : node.getChildren())
@@ -143,7 +145,7 @@ public class Accessibility {
             serializedNode.setChildren(children);
         }
         if (Objects.nonNull(node.getIframeSnapshot())) {
-            if (ValidateUtil.isEmpty(serializedNode.getChildren())) {
+            if (Objects.isNull(serializedNode.getChildren())) {
                 serializedNode.setChildren(new ArrayList<>());
             }
             serializedNode.getChildren().add(node.getIframeSnapshot());
