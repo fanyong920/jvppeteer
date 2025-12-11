@@ -182,6 +182,12 @@ public abstract class BrowserLauncher {
             }
         } catch (Exception e) {
             runner.closeBrowser();
+            if (e.getMessage().contains("Failed to create a ProcessSingleton for your profile directory")) {
+                throw new LaunchException("The browser is already running for " + customizedUserDataDir + ". Use a different `userDataDir` or stop the running browser first.");
+            }
+            if (e.getMessage().contains("Missing X server") && !options.getHeadless()) {
+                throw new LaunchException("Missing X server to start the headful browser. set headless to true");
+            }
             throw new LaunchException("Failed to launch the browser process: " + e.getMessage(), e);
         }
     }
@@ -237,7 +243,7 @@ public abstract class BrowserLauncher {
                 }
                 throw new LaunchException("Failed to launch the browser process! Browser process Output: " + chromeOutputBuilder);
             } catch (Exception e) {
-                throw new LaunchException("Failed to launch the browser process! " + e.getMessage()  + chromeOutputBuilder, e);
+                throw new LaunchException("Failed to launch the browser process! " + e.getMessage() + chromeOutputBuilder, e);
             }
         }
     }
