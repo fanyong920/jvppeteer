@@ -272,7 +272,7 @@ public interface Constant {
 
     String JV_HANDLE_MESSAGE_THREAD = "JvHandleMessageThread-";
     /**
-     * connection cdpsession的监听器执行时所对应的类
+     * connection cdpSession的监听器执行时所对应的类
      */
     Map<String, Class<?>> LISTENER_CLASSES = new HashMap<String, Class<?>>() {
         {
