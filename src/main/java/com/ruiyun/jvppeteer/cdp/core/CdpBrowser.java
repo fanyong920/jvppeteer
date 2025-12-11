@@ -63,8 +63,8 @@ public class CdpBrowser extends Browser {
     private String executablePath;
     private List<String> defaultArgs;
     private final boolean networkEnabled;
-
-    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled) {
+    private boolean handleDevToolsAsPage;
+    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled,boolean handleDevToolsAsPage) {
         super();
         this.networkEnabled = networkEnabled;
         this.defaultViewport = viewport;
@@ -78,6 +78,7 @@ public class CdpBrowser extends Browser {
         if (targetFilterCallback == null) {
             targetFilterCallback = (ignore) -> true;
         }
+        this.handleDevToolsAsPage = handleDevToolsAsPage;
         this.setIsPageTargetCallback(isPageTargetCallback);
         this.targetManager = new TargetManager(connection, this.createTarget(), targetFilterCallback, waitForInitiallyDiscoveredTargets);
         this.defaultContext = new CdpBrowserContext(connection, this, "");
@@ -138,7 +139,7 @@ public class CdpBrowser extends Browser {
 
     private void setIsPageTargetCallback(Function<Target, Boolean> isPageTargetCallback) {
         if (isPageTargetCallback == null) {
-            isPageTargetCallback = (target -> TargetType.PAGE.equals(target.type()) || TargetType.BACKGROUND_PAGE.equals(target.type()) || TargetType.WEBVIEW.equals(target.type()));
+            isPageTargetCallback = (target -> TargetType.PAGE.equals(target.type()) || TargetType.BACKGROUND_PAGE.equals(target.type()) || TargetType.WEBVIEW.equals(target.type()) || (this.handleDevToolsAsPage && TargetType.OTHER.equals(target.type()) && target.url().startsWith("devtools://")));
         }
         this.isPageTargetCallback = isPageTargetCallback;
     }
@@ -326,8 +327,8 @@ public class CdpBrowser extends Browser {
     }
 
 
-    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled) {
-        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets, networkEnabled);
+    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled,boolean handleDevToolsAsPage) {
+        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets, networkEnabled,handleDevToolsAsPage);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("ignore", true);

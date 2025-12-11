@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Protocol;
+import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
 import java.util.ArrayList;
@@ -19,11 +20,12 @@ public class A_LaunchTest {
             executablePath("D:\\jvppeteer\\chrome-win32\\chrome-win32\\chrome.exe").
 
 //            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
-//        executablePath("C:\\Users\\fanyong\\Desktop\\jvppeteer\\example\\.local-browser\\win32-133.0\\core\\firefox.exe").
+//        executablePath("C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe").
 //        product(Product.Firefox).
             headless(false).
-//            protocol(Protocol.CDP).
+//            protocol(Protocol.WebDriverBiDi).
             //不设置窗口大小
+    devtools(true).
                     defaultViewport(null).
             build();
 
@@ -55,6 +57,13 @@ public class A_LaunchTest {
             //看看targets里面都有什么，包含browser,page,等类型,其中还包含了上面newPage得到page
             for (Target target : targets) {
                 System.out.println("two type=" + target.type() + ", url=" + target.url());
+                if(target.type().equals(TargetType.OTHER)){
+                    Page devtoolPage = target.asPage();
+                    System.out.println("devtoolPage="+devtoolPage.evaluate("() => {\n" +
+                            "        // @ts-expect-error devtools context.\n" +
+                            "        return Boolean(DevToolsAPI);\n" +
+                            "      }"));
+                }
             }
             System.out.println("浏览器版本：" + browser.version());
         }

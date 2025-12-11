@@ -250,7 +250,7 @@ public abstract class BrowserLauncher {
 
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
         Runnable closeCallback = runner::closeBrowser;
-        CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled());
+        CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);
         if (options.getWaitForInitialPage()) {
@@ -336,7 +336,7 @@ public abstract class BrowserLauncher {
         List<String> browserContextIds;
         Runnable closeCallback = () -> connection.send("Browser.close");
         browserContextIds = Constant.OBJECTMAPPER.readerFor(javaType).readValue(result.get("browserContextIds"));
-        return CdpBrowser.create(connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true, options.getNetworkEnabled());
+        return CdpBrowser.create(connection, browserContextIds, options.getAcceptInsecureCerts(), options.getDefaultViewport(), null, closeCallback, options.getTargetFilter(), options.getIsPageTarget(), true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
     }
 
     private BidiBrowser connectToBiDiBrowse(ConnectionTransport connectionTransport, String url, ConnectOptions options) throws JsonProcessingException {
