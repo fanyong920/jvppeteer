@@ -49,7 +49,6 @@ public abstract class Request {
      * @return ContinueRequestOverrides
      */
     public ContinueRequestOverrides continueRequestOverrides() {
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
         return this.interception.getRequestOverrides();
     }
 
@@ -59,7 +58,6 @@ public abstract class Request {
      * @return ResponseForRequest
      */
     public ResponseForRequest responseForRequest() {
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
         return this.interception.getResponse();
     }
 
@@ -69,7 +67,6 @@ public abstract class Request {
      * @return 最近中止请求的原因
      */
     public ErrorReasons abortErrorReason() {
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
         return this.interception.getAbortReason();
     }
 
@@ -243,9 +240,11 @@ public abstract class Request {
      */
     public abstract String failure();
 
-    protected boolean canBeIntercepted() {
-        return !this.url().startsWith("data:") && !this.fromMemoryCache;
+    protected void verifyInterception(){
+        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
+        ValidateUtil.assertArg(!this.interception.getHandled(), "Request is already handled!");
     }
+    protected abstract boolean canBeIntercepted();
 
     /**
      * 继续请求
@@ -274,11 +273,10 @@ public abstract class Request {
      * @param overrides 重写请求的信息。
      */
     public void continueRequest(ContinueRequestOverrides overrides, Integer priority) {
+        this.verifyInterception();
         if (!this.canBeIntercepted()) {
             return;
         }
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
-        ValidateUtil.assertArg(!this.interception.getHandled(), "Request is already handled!");
         if (priority == null) {
             this._continue(overrides);
             return;
@@ -316,11 +314,10 @@ public abstract class Request {
      * @param priority 可选的）如果提供，则使用协作处理规则来解决拦截。否则，拦截将立即解决。
      */
     public void respond(ResponseForRequest response, Integer priority) {
+        this.verifyInterception();
         if (!this.canBeIntercepted()) {
             return;
         }
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
-        ValidateUtil.assertArg(!this.interception.getHandled(), "Request is already handled!");
         if (priority == null) {
             this._respond(response);
             return;
@@ -356,11 +353,10 @@ public abstract class Request {
      * @param priority  （可选的）如果提供，则使用协作处理规则来解决拦截。否则，拦截将立即解决。
      */
     public void abort(ErrorReasons errorCode, Integer priority) {
+        this.verifyInterception();
         if (!this.canBeIntercepted()) {
             return;
         }
-        ValidateUtil.assertArg(this.interception.getEnabled(), "Request Interception is not enabled!");
-        ValidateUtil.assertArg(!this.interception.getHandled(), "Request is already handled!");
         if (priority == null) {
             this._abort(errorCode);
             return;

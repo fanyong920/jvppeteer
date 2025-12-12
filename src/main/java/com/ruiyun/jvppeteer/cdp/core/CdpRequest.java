@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.Request;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.ContinueRequestOverrides;
 import com.ruiyun.jvppeteer.cdp.entities.ErrorReasons;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
@@ -12,6 +11,7 @@ import com.ruiyun.jvppeteer.cdp.entities.Initiator;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
 import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -188,6 +188,10 @@ public class CdpRequest extends Request {
         return this.redirectChain;
     }
 
+    protected boolean canBeIntercepted() {
+        return !this.url().startsWith("data:") && !this.fromMemoryCache;
+    }
+
     /**
      * 访问有关请求失败的信息。
      *
@@ -218,8 +222,6 @@ public class CdpRequest extends Request {
             handleError(e);
         }
     }
-
-
 
 
     public void _respond(ResponseForRequest response) {
@@ -319,7 +321,6 @@ public class CdpRequest extends Request {
     public boolean fromMemoryCache() {
         return fromMemoryCache;
     }
-
 
 
     public void setClient(CDPSession client) {

@@ -13,6 +13,8 @@ import com.ruiyun.jvppeteer.cdp.entities.Credentials;
 import com.ruiyun.jvppeteer.cdp.entities.ErrorReasons;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.Initiator;
+import com.ruiyun.jvppeteer.cdp.entities.InterceptResolutionAction;
+import com.ruiyun.jvppeteer.cdp.entities.InterceptResolutionState;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
 import com.ruiyun.jvppeteer.common.Constant;
@@ -88,6 +90,21 @@ public class BidiRequest extends Request {
                 this.continueRequest(continueRequestOverrides, 0);
             });
         }
+    }
+
+    @Override
+    protected boolean canBeIntercepted() {
+        return this.request.isBlocked();
+    }
+
+    @Override
+    public InterceptResolutionState interceptResolutionState() {
+        if (!this.request.isBlocked()) {
+            InterceptResolutionState state = new InterceptResolutionState();
+            state.setAction(InterceptResolutionAction.DISABLED);
+            return state;
+        }
+        return super.interceptResolutionState();
     }
 
     @Override
