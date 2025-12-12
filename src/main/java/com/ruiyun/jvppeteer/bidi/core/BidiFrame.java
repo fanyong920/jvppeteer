@@ -115,7 +115,7 @@ public class BidiFrame extends Frame {
             this.page().trustedEmitter().emit(PageEvents.FrameDetached, this);
         });
         this.browsingContext.on(BrowsingContext.BrowsingContextEvents.request, (Consumer<RequestCore>) request -> {
-            BidiRequest httpRequest = BidiRequest.from(request, this, null);
+            BidiRequest httpRequest = BidiRequest.from(request, this, this.page().isNetworkInterceptionEnabled(),null);
             request.once(RequestCore.RequestCoreEvents.success, (Consumer<ResponseData>) ignored -> {
                 this.page().trustedEmitter().emit(PageEvents.RequestFinished, httpRequest);
             });

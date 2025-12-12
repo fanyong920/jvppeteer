@@ -124,10 +124,10 @@ public class BidiPage extends Page {
     private InternalNetworkConditions emulatedNetworkConditions;
     private String overrideNavigatorPropertiesPreloadScript;
     Credentials credentials;
-    private String userInterception;
     private String authInterception;
     private String extraHeadersInterception;
     private final Set<AwaitableResult<FileChooser>> fileChooserResults = new HashSet<>();
+    private String requestInterception;
 
     private BidiPage(BidiBrowserContext browserContext, BrowsingContext browsingContext) {
         super();
@@ -290,9 +290,7 @@ public class BidiPage extends Page {
     public List<BidiFrame> frames() {
         List<BidiFrame> frames = new CopyOnWriteArrayList<>();
         frames.add(this.frame);
-        Iterator<BidiFrame> iterator = frames.iterator();
-        while (iterator.hasNext()) {
-            BidiFrame frame = iterator.next();
+        for (BidiFrame frame : frames) {
             frames.addAll(frame.childFrames());
         }
         return frames;
@@ -663,6 +661,14 @@ public class BidiPage extends Page {
         return result;
     }
 
+    public boolean isNetworkInterceptionEnabled() {
+        return (
+                StringUtil.isNotEmpty(this.requestInterception) ||
+                        StringUtil.isNotEmpty(this.extraHeadersInterception) ||
+                        StringUtil.isNotEmpty(this.authInterception)
+        );
+    }
+
     @Override
     public List<WebWorker> workers() {
         return Collections.unmodifiableList(new ArrayList<>(this.workers));
@@ -670,7 +676,7 @@ public class BidiPage extends Page {
 
     @Override
     public void setRequestInterception(boolean enable) {
-        this.userInterception = this.toggleInterception(Collections.singletonList(InterceptPhase.BEFORE_REQUEST_SENT.toString()), this.userInterception, enable);
+        this.requestInterception = this.toggleInterception(Collections.singletonList(InterceptPhase.BEFORE_REQUEST_SENT.toString()), this.requestInterception, enable);
     }
 
     @Override

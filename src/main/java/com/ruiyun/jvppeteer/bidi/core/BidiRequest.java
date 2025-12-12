@@ -8,7 +8,6 @@ import com.ruiyun.jvppeteer.bidi.entities.FetchTimingInfo;
 import com.ruiyun.jvppeteer.bidi.entities.Header;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
 import com.ruiyun.jvppeteer.bidi.entities.Value;
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.cdp.entities.ContinueRequestOverrides;
 import com.ruiyun.jvppeteer.cdp.entities.Credentials;
 import com.ruiyun.jvppeteer.cdp.entities.ErrorReasons;
@@ -16,6 +15,7 @@ import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.Initiator;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -38,18 +38,18 @@ public class BidiRequest extends Request {
     private final RequestCore request;
     private volatile boolean authenticationHandled;
 
-    public BidiRequest(RequestCore request, BidiFrame frame, BidiRequest redirect) {
+    public BidiRequest(RequestCore request, BidiFrame frame, boolean isNetworkInterceptionEnabled, BidiRequest redirect) {
         super();
         requests.put(request, this);
-        this.interception.setEnabled(request.isBlocked());
+        this.interception.setEnabled(isNetworkInterceptionEnabled);
         this.request = request;
         this.frame = frame;
         this.redirectChain = Objects.nonNull(redirect) ? redirect.redirectChain() : new ArrayList<>();
         this.id = request.id();
     }
 
-    public static BidiRequest from(RequestCore bidiRequest, BidiFrame frame, BidiRequest redirect) {
-        BidiRequest request = new BidiRequest(bidiRequest, frame, redirect);
+    public static BidiRequest from(RequestCore bidiRequest, BidiFrame frame, boolean isNetworkInterceptionEnabled, BidiRequest redirect) {
+        BidiRequest request = new BidiRequest(bidiRequest, frame, isNetworkInterceptionEnabled, redirect);
         request.initialize();
         return request;
     }
@@ -62,7 +62,7 @@ public class BidiRequest extends Request {
 
     private void initialize() {
         this.request.on(RequestCore.RequestCoreEvents.redirect, (Consumer<RequestCore>) request -> {
-            BidiRequest httpRequest = BidiRequest.from(request, this.frame, this);
+            BidiRequest httpRequest = BidiRequest.from(request, this.frame, this.interception.getEnabled(), this);
             this.redirectChain.add(this);
             request.once(RequestCore.RequestCoreEvents.success, (ignored) -> {
                 this.frame.page().trustedEmitter().emit(PageEvents.RequestFinished, httpRequest);
@@ -103,7 +103,7 @@ public class BidiRequest extends Request {
         return StringUtil.isEmpty(this.request.resourceType()) ? ResourceType.Other : ResourceType.valueOf(this.request.resourceType().toLowerCase());
     }
 
-   public String getResponseContent() {
+    public String getResponseContent() {
         return this.request.getResponseContent();
     }
 
@@ -127,7 +127,7 @@ public class BidiRequest extends Request {
 
     @Override
     public String fetchPostData() {
-       return this.request.fetchPostData();
+        return this.request.fetchPostData();
     }
 
     private boolean hasInternalHeaderOverwrite() {
