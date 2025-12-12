@@ -16,14 +16,12 @@ import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandlerType;
 import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
-import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
-import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -278,54 +276,64 @@ public class BidiBrowser extends Browser {
      */
     @Override
     public void setDownloadBehavior(DownloadOptions options) {
-        if (Objects.isNull(options.getBehavior())) {
-            options.setBehavior(DownloadPolicy.Default);
+        if (Objects.equals(options.getBehavior().getBehavior(), "allowAndName")) {
+            throw new UnsupportedOperationException("`allowAndName` is not supported in WebDriver BiDi");
         }
-        if (options.getBehavior().equals(DownloadPolicy.Allow) || options.getBehavior().equals(DownloadPolicy.AllowAndName)) {
-            if (StringUtil.isBlank(options.getDownloadPath())) {
-                throw new JvppeteerException("This is required if behavior is set to 'allow' or 'allowAndName'.");
+        if (Objects.equals(options.getBehavior().getBehavior(), "allow")) {
+            if (StringUtil.isEmpty(options.getDownloadPath())) {
+                throw new UnsupportedOperationException("`downloadPath` is required in `allow` download behavior");
             }
+            Map<String, Object> params = ParamsFactory.create();
+            ObjectNode downloadBehavior = Constant.OBJECTMAPPER.createObjectNode();
+            downloadBehavior.put("type", "allowed");
+            downloadBehavior.put("destinationFolder", options.getDownloadPath());
+            params.put("downloadBehavior", downloadBehavior);
+            params.put("userContexts", Collections.singletonList(options.getBrowserContextId()));
+            this.browserCore.session().send("browser.setDownloadBehavior", params);
+
         }
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("behavior", options.getBehavior().getBehavior());
-        params.put("downloadPath", options.getDownloadPath());
-        params.put("browserContextId", options.getBrowserContextId());
-        params.put("eventsEnabled", options.getEventsEnabled());
-        this.browserCore.session().send("Browser.setDownloadBehavior", params);
+        if (Objects.equals(options.getBehavior().getBehavior(), "deny")) {
+            Map<String, Object> params = ParamsFactory.create();
+            ObjectNode downloadBehavior = Constant.OBJECTMAPPER.createObjectNode();
+            downloadBehavior.put("type", "denied");
+            params.put("downloadBehavior", downloadBehavior);
+            params.put("userContexts", Collections.singletonList(options.getBrowserContextId()));
+            this.browserCore.session().send("browser.setDownloadBehavior", params);
+        }
     }
 
-    /**
-     * 设置下载行为
-     *
-     * @param guid             下载的全局唯一标识符。
-     * @param browserContextId BrowserContext 在其中执行操作。省略时，将使用默认浏览器上下文。
-     */
-    @Override
-    public void cancelDownload(String guid, String browserContextId) {
-        Map<String, Object> params = ParamsFactory.create();
-        params.put("guid", guid);
-        params.put("browserContextId", browserContextId);
-        this.browserCore.session().send("Browser.cancelDownload", params);
-    }
+/**
+ * 设置下载行为
+ *
+ * @param guid             下载的全局唯一标识符。
+ * @param browserContextId BrowserContext 在其中执行操作。省略时，将使用默认浏览器上下文。
+ */
+@Override
+public void cancelDownload(String guid, String browserContextId) {
+    Map<String, Object> params = ParamsFactory.create();
+    params.put("guid", guid);
+    params.put("browserContextId", browserContextId);
+    this.browserCore.session().send("Browser.cancelDownload", params);
+}
 
-    @Override
-    public boolean isNetworkEnabled() {
-        return this.networkEnabled;
-    }
+@Override
+public boolean isNetworkEnabled() {
+    return this.networkEnabled;
+}
 
-    @Override
-    public List<ScreenInfo> screens() {
-        throw new UnsupportedOperationException();
-    }
+@Override
+public List<ScreenInfo> screens() {
+    throw new UnsupportedOperationException();
+}
 
-    @Override
-    public ScreenInfo addScreen(AddScreenParams params) {
-        throw new UnsupportedOperationException();
-    }
+@Override
+public ScreenInfo addScreen(AddScreenParams params) {
+    throw new UnsupportedOperationException();
+}
 
-    @Override
-    public void removeScreen(String screenId) {
-        throw new UnsupportedOperationException();
-    }
+@Override
+public void removeScreen(String screenId) {
+    throw new UnsupportedOperationException();
+}
 
 }
