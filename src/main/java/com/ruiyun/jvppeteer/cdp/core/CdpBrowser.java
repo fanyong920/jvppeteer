@@ -63,7 +63,7 @@ public class CdpBrowser extends Browser {
     private String executablePath;
     private List<String> defaultArgs;
     private final boolean networkEnabled;
-    private boolean handleDevToolsAsPage;
+    private final boolean handleDevToolsAsPage;
     protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled,boolean handleDevToolsAsPage) {
         super();
         this.networkEnabled = networkEnabled;
@@ -139,7 +139,7 @@ public class CdpBrowser extends Browser {
 
     private void setIsPageTargetCallback(Function<Target, Boolean> isPageTargetCallback) {
         if (isPageTargetCallback == null) {
-            isPageTargetCallback = (target -> TargetType.PAGE.equals(target.type()) || TargetType.BACKGROUND_PAGE.equals(target.type()) || TargetType.WEBVIEW.equals(target.type()) || (this.handleDevToolsAsPage && TargetType.OTHER.equals(target.type()) && target.url().startsWith("devtools://")));
+            isPageTargetCallback = (target -> TargetType.PAGE.equals(target.type()) || TargetType.BACKGROUND_PAGE.equals(target.type()) || TargetType.WEBVIEW.equals(target.type()) || (this.handleDevToolsAsPage && TargetType.OTHER.equals(target.type()) && isDevToolsPageTarget(target.url())));
         }
         this.isPageTargetCallback = isPageTargetCallback;
     }
@@ -195,7 +195,7 @@ public class CdpBrowser extends Browser {
             }
             SessionFactory createSession = (isAutoAttachEmulated) -> this.connection._createSession(targetInfo, isAutoAttachEmulated);
             OtherTarget otherTarget = new OtherTarget(targetInfo, session, context, this.targetManager, createSession);
-            if (StringUtil.isNotEmpty(targetInfo.getUrl()) && targetInfo.getUrl().startsWith("devtools://")) {
+            if (StringUtil.isNotEmpty(targetInfo.getUrl()) && isDevToolsPageTarget(targetInfo.getUrl())) {
                 return new DevToolsTarget(targetInfo, session, context, this.targetManager, createSession, this.defaultViewport);
             }
             if (this.isPageTargetCallback.apply(otherTarget)) {
@@ -431,5 +431,8 @@ public class CdpBrowser extends Browser {
             throw new JvppeteerException("Failed to create a DevTools Page for target (id = " + pageTargetId + ")");
         }
         return page;
+    }
+    public static boolean isDevToolsPageTarget(String url) {
+        return url.startsWith("devtools://devtools/bundled/devtools_app.html");
     }
 }
