@@ -22,7 +22,7 @@ import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;

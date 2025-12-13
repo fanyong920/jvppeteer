@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.bidi.entities.NavigationInfo;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.Collections;

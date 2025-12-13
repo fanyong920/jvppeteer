@@ -49,7 +49,6 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.EntryAddedEvent;
@@ -62,7 +61,9 @@ import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -361,7 +362,7 @@ public class CdpPage extends Page {
         if (!"worker".equals(event.getEntry().getSource())) {
             List<ConsoleMessageLocation> locations = new ArrayList<>();
             locations.add(new ConsoleMessageLocation(event.getEntry().getUrl(), event.getEntry().getLineNumber()));
-            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null,event.getEntry().getStackTrace()));
+            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null, event.getEntry().getStackTrace()));
         }
     }
 
@@ -695,14 +696,17 @@ public class CdpPage extends Page {
                 }
             }
         }
-        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, stackTraceLocations, null,stackTrace);
+        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, stackTraceLocations, null, stackTrace);
         this.emit(PageEvents.Console, message);
     }
 
-    public Response reload(WaitForOptions options) {
+    @Override
+    public Response reload(ReloadOptions options) {
         options.setIgnoreSameDocumentNavigation(true);
         return this.waitForNavigation(options, () -> {
-            this.primaryTargetClient.send("Page.reload", null, null, false);
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("ignoreCache", !Objects.isNull(options.getIgnoreCache()) && options.getIgnoreCache());
+            this.primaryTargetClient.send("Page.reload", params, null, false);
         });
     }
 
@@ -806,7 +810,7 @@ public class CdpPage extends Page {
     public void setViewport(Viewport viewport) {
         boolean needsReload = this.emulationManager.emulateViewport(viewport);
         this.viewport = viewport;
-        if (needsReload) this.reload(new WaitForOptions());
+        if (needsReload) this.reload();
     }
 
     public Viewport viewport() {

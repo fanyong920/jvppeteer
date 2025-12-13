@@ -5,7 +5,7 @@ import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import org.junit.Test;
 
 

@@ -8,7 +8,7 @@ import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddScriptTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.common.QuerySelector;
 import com.ruiyun.jvppeteer.exception.EvaluateException;

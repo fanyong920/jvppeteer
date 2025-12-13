@@ -5,9 +5,8 @@ import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
-import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import com.ruiyun.jvppeteer.cdp.entities.NetworkConditions;
 import com.ruiyun.jvppeteer.cdp.entities.TargetType;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
@@ -21,21 +20,15 @@ public class B_PageGotoTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器
-        try  {
+        try {
             Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
             //打开一个页面
             Page page = browser.newPage();
-            GoToOptions options = new GoToOptions();
-            List<PuppeteerLifeCycle> waitUntil = new ArrayList<>();
-            //页面加载到 networkidle状态下 goto才算完成
-            waitUntil.add(PuppeteerLifeCycle.networkIdle);
-            options.setWaitUntil(waitUntil);
-            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map", options);
-            //不添加waitUntil参数，默认是load
-            page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
-                    Thread.sleep(5000);
-            System.out.println("完成了。。。");
-        }catch (Exception e) {
+            NetworkConditions networkConditions = new NetworkConditions(0, 0, 0);
+            networkConditions.setOffline(true);
+            page.emulateNetworkConditions(networkConditions);
+            page.goTo("https://baidu.com");
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -72,6 +65,7 @@ public class B_PageGotoTest {
             page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         }
     }
+
     //测试超时时间，使用options的超时时间，而不是默认的
     @Test
     public void test5() throws Exception {
@@ -85,7 +79,7 @@ public class B_PageGotoTest {
             page.setDefaultNavigationTimeout(0);
             GoToOptions options = new GoToOptions();
             options.setTimeout(1);
-            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map",options);
+            page.goTo("https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map", options);
             //不添加waitUntil参数，默认是load
             page.goTo("https://www.baidu.com/?tn=68018901_16_pg");
         }

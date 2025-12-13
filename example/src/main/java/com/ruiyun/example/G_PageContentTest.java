@@ -7,7 +7,7 @@ import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.cdp.entities.PageMetrics;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import java.util.Arrays;
 import java.util.function.Consumer;

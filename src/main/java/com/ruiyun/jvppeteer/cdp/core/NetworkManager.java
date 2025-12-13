@@ -273,11 +273,18 @@ public class NetworkManager extends EventEmitter<NetworkManager.NetworkManagerEv
 
     public void emulateNetworkConditions(NetworkConditions networkConditions) {
         if (this.emulatedNetworkConditions == null) {
-            this.emulatedNetworkConditions = new InternalNetworkConditions(false, -1, -1, 0);
+            this.emulatedNetworkConditions = new InternalNetworkConditions(networkConditions != null ?
+                    networkConditions.getOffline() : false,-1, -1, 0);
         }
-        this.emulatedNetworkConditions.setUpload(networkConditions.getUpload());
-        this.emulatedNetworkConditions.setDownload(networkConditions.getDownload());
-        this.emulatedNetworkConditions.setLatency(networkConditions.getLatency());
+
+        this.emulatedNetworkConditions.setUpload(networkConditions != null ?
+                networkConditions.getUpload() : -1);
+        this.emulatedNetworkConditions.setDownload(networkConditions != null ?
+                networkConditions.getDownload() : -1);
+        this.emulatedNetworkConditions.setLatency(networkConditions != null ?
+                networkConditions.getLatency() : 0);
+        this.emulatedNetworkConditions.setOffline(networkConditions != null ?
+                networkConditions.getOffline() : false);
         this.clients.forEach((client1, disposables) -> this.applyNetworkConditions(client1));
     }
 

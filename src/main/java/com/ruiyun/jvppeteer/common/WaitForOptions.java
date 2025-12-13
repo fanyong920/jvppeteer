@@ -1,9 +1,9 @@
-package com.ruiyun.jvppeteer.cdp.entities;
+package com.ruiyun.jvppeteer.common;
 
-import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import java.util.List;
 
 public class WaitForOptions {
+
     private boolean ignoreSameDocumentNavigation;
 
     /**

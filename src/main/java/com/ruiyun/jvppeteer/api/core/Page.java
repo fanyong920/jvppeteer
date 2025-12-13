@@ -34,7 +34,6 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.cdp.events.ScreencastFrameEvent;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
@@ -42,9 +41,11 @@ import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
@@ -666,7 +667,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * 重新加载页面
      */
     public Response reload() {
-        WaitForOptions options = new WaitForOptions();
+        ReloadOptions options = new ReloadOptions();
         options.setIgnoreSameDocumentNavigation(true);
         return this.reload(options);
     }
@@ -677,7 +678,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param options 与${@link Page#goTo(String, GoToOptions)}中的options是一样的配置
      * @return 响应
      */
-    public abstract Response reload(WaitForOptions options);
+    public abstract Response reload(ReloadOptions options);
 
     /**
      * 此方法在页面跳转到一个新地址或重新加载时解析，如果你的代码会间接引起页面跳转，这个方法比较有用
@@ -713,7 +714,15 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public Response waitForNavigation(WaitForOptions options) {
         return this.waitForNavigation(options, null);
     }
-
+    /**
+     * 等到某个请求
+     *
+     * @param predicate 等待的请求
+     * @return 要等到的请求
+     */
+    public Request waitForRequest(Predicate<Request> predicate) {
+        return this.waitForRequest(null, predicate, this._timeoutSettings.timeout());
+    }
     /**
      * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
      *

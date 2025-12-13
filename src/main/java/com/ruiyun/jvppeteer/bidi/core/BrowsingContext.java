@@ -532,7 +532,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
             params.put("networkConditions", offlineConditions);
         }
         params.put("contexts", Collections.singletonList(this.id));
-        this.session().send("Network.setBypassServiceWorker", params);
+        this.session().send("emulation.setNetworkConditions", params);
     }
 
     public void setScreenOrientationOverride(ScreenOrientation screenOrientation) {

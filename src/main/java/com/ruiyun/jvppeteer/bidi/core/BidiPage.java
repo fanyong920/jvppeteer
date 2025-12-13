@@ -69,7 +69,8 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.ReloadOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.MediaType;
@@ -317,10 +318,12 @@ public class BidiPage extends Page {
     }
 
     @Override
-    public BidiResponse reload(WaitForOptions options) {
+    public BidiResponse reload(ReloadOptions options) {
         Runnable navigationRunner = () -> {
             try {
-                this.frame.browsingContext.reload(new ReloadParameters());
+                ReloadParameters reloadParameters = new ReloadParameters();
+                reloadParameters.setIgnoreCache(options.getIgnoreCache());
+                this.frame.browsingContext.reload(reloadParameters);
             } catch (Exception e) {
                 rewriteNavigationError(this.url(), Objects.isNull(options.getTimeout()) ? this._timeoutSettings.navigationTimeout() : options.getTimeout(), e);
             }
@@ -736,8 +739,9 @@ public class BidiPage extends Page {
             return;
         }
         if (Objects.isNull(this.emulatedNetworkConditions)) {
-            this.emulatedNetworkConditions = new InternalNetworkConditions(false, -1, -1, 0);
+            this.emulatedNetworkConditions = new InternalNetworkConditions(networkConditions != null ? networkConditions.getOffline() : false, -1, -1, 0);
         }
+        this.emulatedNetworkConditions.setOffline(Objects.nonNull(networkConditions) ? networkConditions.getOffline() : false);
         this.emulatedNetworkConditions.setUpload(Objects.nonNull(networkConditions) ? networkConditions.getUpload() : -1);
         this.emulatedNetworkConditions.setDownload(Objects.nonNull(networkConditions) ? networkConditions.getDownload() : -1);
         this.emulatedNetworkConditions.setLatency(Objects.nonNull(networkConditions) ? networkConditions.getLatency() : 0);

@@ -40,6 +40,7 @@ import com.ruiyun.jvppeteer.common.BluetoothManufacturerData;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.PreconnectedPeripheral;
 import com.ruiyun.jvppeteer.common.PredefinedNetworkConditions;
+import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
@@ -52,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.junit.Test;
 
 
@@ -1201,6 +1203,39 @@ public class S_PageApiTest {
                 "      return Boolean(window.DevToolsAPI);\n" +
                 "    }");
         Thread.sleep(5000);
+        browser.close();
+    }
+
+    /**
+     * Page.reload()
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test34() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        page.on(PageEvents.Request, (Consumer<Request>) request -> {
+            System.out.println(request.url());
+        });
+        page.goTo("E:\\puppeteer\\test\\assets\\one-style.html");
+        new Thread(() -> {
+            ReloadOptions reloadOptions = new ReloadOptions();
+            reloadOptions.setIgnoreCache(false);
+            page.reload(reloadOptions);
+        }).start();
+        Predicate<Request> predicate = rq -> rq.url().contains("/cached/one-style.html");
+        Request request = page.waitForRequest(predicate);
+        boolean b = request.headers().stream().anyMatch(headerEntry -> headerEntry.getName().equals("if-modified-since"));
+        System.out.println("b=" + b);
+        new Thread(() -> {
+            ReloadOptions reloadOptions = new ReloadOptions();
+            reloadOptions.setIgnoreCache(true);
+            page.reload(reloadOptions);
+        }).start();
+        Request request2 = page.waitForRequest("/cached/one-style.html");
+        boolean b2 = request2.headers().stream().anyMatch(headerEntry -> headerEntry.getName().equals("if-modified-since"));
+        System.out.println("b2=" + b);
         browser.close();
     }
 

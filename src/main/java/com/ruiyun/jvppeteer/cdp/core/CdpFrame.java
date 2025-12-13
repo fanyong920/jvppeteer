@@ -12,7 +12,7 @@ import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
 import com.ruiyun.jvppeteer.cdp.entities.FramePayload;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.PreloadScript;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.IsolatedWorldEmitter;

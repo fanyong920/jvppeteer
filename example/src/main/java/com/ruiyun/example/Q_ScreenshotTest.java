@@ -12,7 +12,7 @@ import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.ImageType;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
-import com.ruiyun.jvppeteer.cdp.entities.WaitForOptions;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import java.util.Collections;
