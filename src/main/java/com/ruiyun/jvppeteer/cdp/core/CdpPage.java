@@ -440,7 +440,7 @@ public class CdpPage extends Page {
      * ${@link CdpPage#goTo(String, GoToOptions)}
      * ${@link CdpPage#goBack(WaitForOptions)}
      * ${@link CdpPage#goForward(WaitForOptions)}
-     * ${@link CdpPage#reload(WaitForOptions)}
+     * ${@link CdpPage#reload(ReloadOptions)}
      * ${@link CdpPage#waitForNavigation()}
      *
      * @param timeout 超时时间
@@ -980,6 +980,16 @@ public class CdpPage extends Page {
 
     public CdpMouse mouse() {
         return mouse;
+    }
+
+    @Override
+    public void resize(int contentWidth, int contentHeight) {
+        int windowId = this.primaryTargetClient.send("Browser.getWindowForTarget").get("windowId").asInt();
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("windowId", windowId);
+        params.put("width", contentWidth);
+        params.put("height", contentHeight);
+        this.primaryTargetClient.send("Browser.setContentsSize", params);
     }
 
     @Override

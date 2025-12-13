@@ -278,7 +278,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * ${@link Page#goTo(String, GoToOptions)}
      * ${@link Page#goBack(WaitForOptions)}
      * ${@link Page#goForward(WaitForOptions)}
-     * ${@link Page#reload(WaitForOptions)}
+     * ${@link Page#reload(ReloadOptions)}
      * ${@link Page#setContent(String) }
      * ${@link Page#waitForNavigation()}
      *
@@ -1585,6 +1585,14 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public DeviceRequestPrompt waitForDevicePrompt() {
         return this.waitForDevicePrompt(this._timeoutSettings.timeout());
     }
+
+    /**
+     * Resizes the browser window the page is in so that the content area
+     * (excluding browser UI) is according to the specified width and height.
+     * @param contentWidth 浏览器内容宽度
+     * @param contentHeight 浏览器内容高度
+     */
+    public abstract void resize(int contentWidth, int contentHeight);
 
     /**
      * 此方法通常与从 API（例如 WebBluetooth）触发设备请求的操作结合使用。<p>

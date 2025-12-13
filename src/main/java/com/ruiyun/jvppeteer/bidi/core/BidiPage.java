@@ -968,6 +968,11 @@ public class BidiPage extends Page {
         return this.mouse;
     }
 
+    @Override
+    public void resize(int contentWidth, int contentHeight) {
+        throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
+    }
+
 
     EventEmitter<PageEvents> trustedEmitter() {
         return this.trustedEmitter;
