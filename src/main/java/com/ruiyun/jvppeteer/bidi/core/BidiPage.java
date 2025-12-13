@@ -844,16 +844,9 @@ public class BidiPage extends Page {
     }
 
     private Response go(int delta, WaitForOptions options) {
-        try {
-            return this.waitForNavigation(options, () -> {
-                this.frame.browsingContext.traverseHistory(delta);
-            });
-        } catch (Exception e) {
-            if (e instanceof EvaluateException && e.getMessage().contains("no such history entry")) {
-                return null;
-            }
-            throw e;
-        }
+        return this.waitForNavigation(options, () -> {
+            this.frame.browsingContext.traverseHistory(delta);
+        });
     }
 
     @Override
