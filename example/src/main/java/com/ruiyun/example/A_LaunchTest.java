@@ -25,7 +25,7 @@ public class A_LaunchTest {
             headless(false).
 //            protocol(Protocol.WebDriverBiDi).
             //不设置窗口大小
-                    devtools(true).
+//                    devtools(true).
             defaultViewport(null).
             build();
 

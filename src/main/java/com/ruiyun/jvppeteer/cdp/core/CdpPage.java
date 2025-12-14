@@ -991,12 +991,17 @@ public class CdpPage extends Page {
 
     @Override
     public void resize(int contentWidth, int contentHeight) {
-        int windowId = this.primaryTargetClient.send("Browser.getWindowForTarget").get("windowId").asInt();
+        int windowId = windowId();
         Map<String, Object> params = ParamsFactory.create();
         params.put("windowId", windowId);
         params.put("width", contentWidth);
         params.put("height", contentHeight);
         this.primaryTargetClient.send("Browser.setContentsSize", params);
+    }
+
+    @Override
+    public int windowId() {
+        return this.primaryTargetClient.send("Browser.getWindowForTarget").get("windowId").asInt();
     }
 
     @Override

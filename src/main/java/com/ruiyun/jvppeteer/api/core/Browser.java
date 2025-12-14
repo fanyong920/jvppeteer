@@ -11,6 +11,7 @@ import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
+import com.ruiyun.jvppeteer.common.WindowBounds;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -89,6 +90,16 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * @return WebSocket URL
      */
     public abstract String wsEndpoint();
+
+    /**
+     * Gets the specified window {@link WindowBounds | bounds}.
+     */
+    public abstract WindowBounds getWindowBounds(int windowId);
+
+    /**
+     * Sets the specified window {@link WindowBounds | bounds}.
+     */
+    public abstract void setWindowBounds(int windowId, WindowBounds windowBounds);
 
     /**
      * 在 默认浏览器上下文 中创建新的 page。

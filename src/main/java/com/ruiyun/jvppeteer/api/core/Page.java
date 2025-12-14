@@ -1605,6 +1605,13 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public abstract void resize(int contentWidth, int contentHeight);
 
     /**
+     * Returns the page's window id.
+     *
+     * @return windowId
+     */
+    public abstract int windowId();
+
+    /**
      * 此方法通常与从 API（例如 WebBluetooth）触发设备请求的操作结合使用。<p>
      * 提醒<p>
      * 必须在发送设备请求之前调用此函数。它不会返回当前活动的设备提示。<p>

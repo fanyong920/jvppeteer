@@ -22,6 +22,8 @@ import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.CreateType;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
+import com.ruiyun.jvppeteer.common.WindowBounds;
+import com.ruiyun.jvppeteer.common.WindowState;
 import com.ruiyun.jvppeteer.common.WorkAreaInsets;
 import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
@@ -147,6 +149,7 @@ public class U_BroswerApiTest {
     }
 
     /**
+     * -
      * 下载测试 ：同时下载
      *
      * @throws Exception 异常
@@ -305,7 +308,7 @@ public class U_BroswerApiTest {
         return client;
     }
 
-    class MyWebSocketTransport extends WebSocketTransport {
+    static class MyWebSocketTransport extends WebSocketTransport {
 
         public MyWebSocketTransport(URI serverUri, Draft protocolDraft, Map<String, String> httpHeaders, int timeout) {
             super(serverUri, protocolDraft, httpHeaders, timeout);
@@ -350,16 +353,17 @@ public class U_BroswerApiTest {
         addScreenParams.setWidth(1600);
         addScreenParams.setHeight(1200);
         addScreenParams.setColorDepth(32);
-        WorkAreaInsets  workAreaInsets= new WorkAreaInsets();
+        WorkAreaInsets workAreaInsets = new WorkAreaInsets();
         workAreaInsets.setBottom(80.0);
         addScreenParams.setWorkAreaInsets(workAreaInsets);
         addScreenParams.setLabel("secondary");
         ScreenInfo screenInfo = browser.addScreen(addScreenParams);
 
-        System.out.println("screens1: "+ browser.screens());
+        System.out.println("screens1: " + browser.screens());
         browser.removeScreen(screenInfo.getId());
-        System.out.println("screens2: "+ browser.screens());
+        System.out.println("screens2: " + browser.screens());
     }
+
     /**
      * Browser.newPage(
      *
@@ -372,11 +376,49 @@ public class U_BroswerApiTest {
         CreatePageOptions createPageOptions = new CreatePageOptions();
         createPageOptions.setType(CreateType.Window);
         Page page = browserContext.newPage(createPageOptions);
-        System.out.println(browserContext.pages().contains( page) && browser.pages().contains(page));
+        System.out.println(browserContext.pages().contains(page) && browser.pages().contains(page));
         browser.close();
     }
 
+    /**
+     * Browser.getWindowBounds()
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test13() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        BrowserContext context = browser.defaultBrowserContext();
+        CreatePageOptions createPageOptions = new CreatePageOptions();
+        WindowBounds initialBounds = new WindowBounds();
+        initialBounds.setLeft(10);
+        initialBounds.setTop(20);
+        initialBounds.setWidth(800);
+        initialBounds.setHeight(600);
 
+        createPageOptions.setType(CreateType.Window);
+        createPageOptions.setWindowBounds(initialBounds);
+        Page page = context.newPage(createPageOptions);
+        int windowId = page.windowId();
+        WindowBounds bounds1 = browser.getWindowBounds(windowId);
+        System.out.println("bounds1: " + Constant.OBJECTMAPPER.writeValueAsString(bounds1));
+
+        WindowBounds setBounds = new WindowBounds();
+        setBounds.setLeft(100);
+        setBounds.setTop(200);
+        setBounds.setWidth(1600);
+        setBounds.setHeight(900);
+        browser.setWindowBounds(windowId, setBounds);
+        WindowBounds bounds2 = browser.getWindowBounds(windowId);
+        System.out.println("bounds2: " + Constant.OBJECTMAPPER.writeValueAsString(bounds2));
+
+        WindowBounds setState = new WindowBounds();
+        setState.setWindowState(WindowState.Maximized);
+        browser.setWindowBounds(windowId, setState);
+        WindowBounds bounds3 = browser.getWindowBounds(windowId);
+        System.out.println("bounds3: " + Constant.OBJECTMAPPER.writeValueAsString(bounds3));
+        browser.close();
+    }
 
 
 }

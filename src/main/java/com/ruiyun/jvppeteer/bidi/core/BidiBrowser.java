@@ -22,6 +22,7 @@ import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
+import com.ruiyun.jvppeteer.common.WindowBounds;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -208,6 +209,16 @@ public class BidiBrowser extends Browser {
     @Override
     public String wsEndpoint() {
         return this.connection().url();
+    }
+
+    @Override
+    public WindowBounds getWindowBounds(int windowId) {
+       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setWindowBounds(int windowId, WindowBounds windowBounds) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

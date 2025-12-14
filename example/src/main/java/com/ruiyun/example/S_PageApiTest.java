@@ -1266,8 +1266,30 @@ public class S_PageApiTest {
         System.out.println(page.evaluate("() => {\n" +
                 "          return document.hasFocus();\n" +
                 "        }"));
+    }
 
-
+    /**
+     * Page.resize()
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test36() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        BrowserContext context = browser.defaultBrowserContext();
+        Page page = context.newPage();
+        page.setViewport(null);
+        page.evaluate("() => {\n" +
+                "        return new Promise(resolve => {\n" +
+                "          window.onresize = resolve;\n" +
+                "        });\n" +
+                "      }");
+        page.resize(500, 400);
+        Object innerSize = page.evaluate("() => {\n" +
+                "        return {width: window.innerWidth, height: window.innerHeight};\n" +
+                "      }");
+        //innerSize.width = 500;innerSize.height = 400;
+        System.out.println(innerSize);
     }
 
 }

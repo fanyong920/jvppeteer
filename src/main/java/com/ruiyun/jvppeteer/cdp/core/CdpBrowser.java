@@ -64,7 +64,8 @@ public class CdpBrowser extends Browser {
     private List<String> defaultArgs;
     private final boolean networkEnabled;
     private final boolean handleDevToolsAsPage;
-    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled,boolean handleDevToolsAsPage) {
+
+    protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled, boolean handleDevToolsAsPage) {
         super();
         this.networkEnabled = networkEnabled;
         this.defaultViewport = viewport;
@@ -234,6 +235,22 @@ public class CdpBrowser extends Browser {
         return this.connection.url();
     }
 
+    @Override
+    public WindowBounds getWindowBounds(int windowId) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("windowId", windowId);
+        JsonNode response = this.connection.send("Browser.getWindowBounds", params).get("bounds");
+        return Constant.OBJECTMAPPER.convertValue(response, WindowBounds.class);
+    }
+
+    @Override
+    public void setWindowBounds(int windowId, WindowBounds windowBounds) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("windowId", windowId);
+        params.put("bounds", windowBounds);
+        this.connection.send("Browser.setWindowBounds", params);
+    }
+
     public Page newPage(CreatePageOptions options) {
         return this.defaultContext.newPage(options);
     }
@@ -255,7 +272,7 @@ public class CdpBrowser extends Browser {
             params.put("top", windowBounds.getTop());
             params.put("width", windowBounds.getWidth());
             params.put("height", windowBounds.getHeight());
-            params.put("windowState", windowBounds.getWindowState().name().toLowerCase());
+            params.put("windowState", windowBounds.getWindowState());
         }
         if (hasTargets && Objects.nonNull(options) && Objects.equals(options.getType(), CreateType.Window)) {
             params.put("newWindow", true);
@@ -327,8 +344,8 @@ public class CdpBrowser extends Browser {
     }
 
 
-    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled,boolean handleDevToolsAsPage) {
-        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets, networkEnabled,handleDevToolsAsPage);
+    public static CdpBrowser create(Connection connection, List<String> contextIds, boolean acceptInsecureCerts, Viewport defaultViewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> IsPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled, boolean handleDevToolsAsPage) {
+        CdpBrowser cdpBrowser = new CdpBrowser(connection, contextIds, defaultViewport, process, closeCallback, targetFilterCallback, IsPageTargetCallback, waitForInitiallyDiscoveredTargets, networkEnabled, handleDevToolsAsPage);
         if (acceptInsecureCerts) {
             Map<String, Object> params = ParamsFactory.create();
             params.put("ignore", true);
@@ -432,6 +449,7 @@ public class CdpBrowser extends Browser {
         }
         return page;
     }
+
     public static boolean isDevToolsPageTarget(String url) {
         return url.startsWith("devtools://devtools/bundled/devtools_app.html");
     }
