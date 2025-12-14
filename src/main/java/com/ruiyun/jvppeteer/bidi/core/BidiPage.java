@@ -69,14 +69,13 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
-import com.ruiyun.jvppeteer.common.ReloadOptions;
-import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.MediaType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
-import com.ruiyun.jvppeteer.exception.EvaluateException;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -670,11 +669,7 @@ public class BidiPage extends Page {
     }
 
     public boolean isNetworkInterceptionEnabled() {
-        return (
-                StringUtil.isNotEmpty(this.requestInterception) ||
-                        StringUtil.isNotEmpty(this.extraHeadersInterception) ||
-                        StringUtil.isNotEmpty(this.authInterception)
-        );
+        return StringUtil.isNotEmpty(this.requestInterception) || StringUtil.isNotEmpty(this.authInterception);
     }
 
     @Override
@@ -689,13 +684,7 @@ public class BidiPage extends Page {
 
     @Override
     public void setExtraHTTPHeaders(Map<String, String> headers) {
-        List<HeaderEntry> extraHTTPHeaders = new ArrayList<>();
-        headers.forEach((key, value) -> extraHTTPHeaders.add(new HeaderEntry(key.toLowerCase(), value)));
-        this.extraHTTPHeaders = extraHTTPHeaders;
-        this.extraHeadersInterception = this.toggleInterception(
-                Collections.singletonList(InterceptPhase.BEFORE_REQUEST_SENT.toString()),
-                this.extraHeadersInterception,
-                !extraHTTPHeaders.isEmpty());
+        this.frame.browsingContext.setExtraHTTPHeaders(headers);
     }
 
     @Override

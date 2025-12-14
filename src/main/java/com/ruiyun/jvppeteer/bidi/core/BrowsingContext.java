@@ -39,6 +39,7 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
@@ -62,8 +64,8 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     private final List<DisposableStack<?>> disposables = new ArrayList<>();
     private final Map<String, RequestCore> requests = new LinkedHashMap<>();
     private volatile Navigation navigation;
-    private BluetoothEmulation bluetoothEmulation;
-    private BidiDeviceRequestPromptManager deviceRequestPromptManager;
+    private final BluetoothEmulation bluetoothEmulation;
+    private final BidiDeviceRequestPromptManager deviceRequestPromptManager;
 
     private BrowsingContext(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
         super();
@@ -548,6 +550,32 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         params.put("userAgent", userAgent);
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("emulation.setUserAgentOverride", params);
+    }
+
+    public void setExtraHTTPHeaders(Map<String, String> headers) {
+        List<Map<String, Object>> processedHeaders = headers.entrySet().stream()
+                .map(entry -> {
+                    // Validate value is string (implicit in type safety)
+                    String key = entry.getKey();
+                    String value = entry.getValue();
+
+                    // Create header object matching BiDi specification
+                    Map<String, Object> header = new HashMap<>();
+                    header.put("name", key.toLowerCase());
+                    Map<String, Object> valueObj = new HashMap<>();
+                    valueObj.put("type", "string");
+                    valueObj.put("value", value);
+                    header.put("value", valueObj);
+
+                    return header;
+                })
+                .collect(Collectors.toList());
+
+        // Send via WebDriver BiDi session (pseudo-code)
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("headers", processedHeaders);
+        params.put("contexts", Collections.singletonList(this.id));
+        this.session().send("network.setExtraHeaders", params);
     }
 
     public enum BrowsingContextEvents {

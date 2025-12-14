@@ -23,7 +23,6 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,14 +81,6 @@ public class BidiRequest extends Request {
         this.request.on(RequestCore.RequestCoreEvents.authenticate, this.handleAuthentication());
 
         this.frame.page().trustedEmitter().emit(PageEvents.Request, this);
-
-        if (this.hasInternalHeaderOverwrite()) {
-            this.interception.getHandlers().add(() -> {
-                ContinueRequestOverrides continueRequestOverrides = new ContinueRequestOverrides();
-                continueRequestOverrides.setHeaders(this.headers());
-                this.continueRequest(continueRequestOverrides, 0);
-            });
-        }
     }
 
     @Override
@@ -147,21 +138,6 @@ public class BidiRequest extends Request {
         return this.request.fetchPostData();
     }
 
-    private boolean hasInternalHeaderOverwrite() {
-        return !this.extraHTTPHeaders().isEmpty();
-    }
-
-    private List<HeaderEntry> extraHTTPHeaders() {
-        if (Objects.nonNull(this.frame)) {
-            if (Objects.nonNull(this.frame.page().extraHTTPHeaders)) {
-                return this.frame.page().extraHTTPHeaders;
-            } else {
-                return Collections.emptyList();
-            }
-        }
-        return Collections.emptyList();
-    }
-
     @Override
     public List<HeaderEntry> headers() {
         // Callers should not be allowed to mutate internal structure.
@@ -169,7 +145,6 @@ public class BidiRequest extends Request {
         if (ValidateUtil.isNotEmpty(this.request.headers())) {
             headers.addAll(this.request.headers().stream().map(header -> new HeaderEntry(header.getName().toLowerCase(), header.getValue().getValue())).collect(Collectors.toList()));
         }
-        headers.addAll(this.extraHTTPHeaders());
         return headers;
     }
 
