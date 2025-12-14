@@ -756,7 +756,8 @@ public class CdpPage extends Page {
     private Response go(int delta, WaitForOptions options) throws JsonProcessingException {
         JsonNode historyNode = this.primaryTargetClient.send("Page.getNavigationHistory");
         GetNavigationHistoryResponse history = OBJECTMAPPER.treeToValue(historyNode, GetNavigationHistoryResponse.class);
-        if ((history.getCurrentIndex() + delta) < 0) throw new JvppeteerException("History entry to navigate to not found.");
+        if ((history.getCurrentIndex() + delta) < 0)
+            throw new JvppeteerException("History entry to navigate to not found.");
         NavigationEntry entry = history.getEntries().get(history.getCurrentIndex() + delta);
         if (Objects.isNull(entry)) throw new JvppeteerException("History entry to navigate to not found.");
         Map<String, Object> params = new HashMap<>();
@@ -880,6 +881,11 @@ public class CdpPage extends Page {
             }
         }
         return null;
+    }
+
+    @Override
+    public void emulateFocusedPage(boolean enabled) {
+        this.emulationManager.emulateFocus(enabled);
     }
 
     /**

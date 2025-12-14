@@ -2,6 +2,7 @@ package com.ruiyun.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
@@ -1207,7 +1208,7 @@ public class S_PageApiTest {
     }
 
     /**
-     * Page.reload()
+     * Page.reload() 还不能跑通，可能缺少对应的环境
      *
      * @throws Exception 异常
      */
@@ -1218,10 +1219,15 @@ public class S_PageApiTest {
         page.on(PageEvents.Request, (Consumer<Request>) request -> {
             System.out.println(request.url());
         });
-        page.goTo("E:\\puppeteer\\test\\assets\\one-style.html");
+        page.goTo("http://localhost:8080/one-style.html");
         new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             ReloadOptions reloadOptions = new ReloadOptions();
-            reloadOptions.setIgnoreCache(false);
+            reloadOptions.setIgnoreCache(true);
             page.reload(reloadOptions);
         }).start();
         Predicate<Request> predicate = rq -> rq.url().contains("/cached/one-style.html");
@@ -1237,6 +1243,31 @@ public class S_PageApiTest {
         boolean b2 = request2.headers().stream().anyMatch(headerEntry -> headerEntry.getName().equals("if-modified-since"));
         System.out.println("b2=" + b);
         browser.close();
+    }
+
+    /**
+     * Page.reload()
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test35() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        BrowserContext context = browser.createBrowserContext();
+        Page page = browser.newPage();
+        page.emulateFocusedPage(true);
+        Page page2 = context.newPage();
+        page2.bringToFront();
+        System.out.println(page.evaluate("() => {\n" +
+                "          return document.hasFocus();\n" +
+                "        }"));
+
+        page.emulateFocusedPage(false);
+        System.out.println(page.evaluate("() => {\n" +
+                "          return document.hasFocus();\n" +
+                "        }"));
+
+
     }
 
 }

@@ -2,12 +2,11 @@ package com.ruiyun.jvppeteer.cdp.core;
 
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.common.MediaType;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.cdp.entities.ClientProvider;
 import com.ruiyun.jvppeteer.cdp.entities.CpuThrottlingState;
 import com.ruiyun.jvppeteer.cdp.entities.DefaultBackgroundColorState;
 import com.ruiyun.jvppeteer.cdp.entities.EmulatedState;
+import com.ruiyun.jvppeteer.cdp.entities.FocusState;
 import com.ruiyun.jvppeteer.cdp.entities.GeoLocationState;
 import com.ruiyun.jvppeteer.cdp.entities.GeolocationOptions;
 import com.ruiyun.jvppeteer.cdp.entities.IdleOverridesState;
@@ -23,12 +22,11 @@ import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.ViewportState;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiencyState;
+import com.ruiyun.jvppeteer.common.MediaType;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.transport.CdpCDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,8 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class EmulationManager implements ClientProvider  {
+public class EmulationManager implements ClientProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(EmulationManager.class);
     final List<EmulatedState<?>> states = new ArrayList<>();
     final Set<CDPSession> secondaryClients = new HashSet<>();
@@ -54,6 +54,7 @@ public class EmulationManager implements ClientProvider  {
     private final EmulatedState<GeoLocationState> geoLocationState = new EmulatedState<>(new GeoLocationState(false, null), this, setGeolocation);
     private final EmulatedState<DefaultBackgroundColorState> defaultBackgroundColorState = new EmulatedState<>(new DefaultBackgroundColorState(false, null), this, setDefaultBackgroundColor);
     private final EmulatedState<JavascriptEnabledState> javascriptEnabledState = new EmulatedState<>(new JavascriptEnabledState(false, true), this, setJavaScriptEnabled);
+    private final EmulatedState<FocusState> focusState = new EmulatedState<>(new FocusState(false, true), this, emulateFocus);
 
     public EmulationManager(CDPSession client) {
         this.client = client;
@@ -77,7 +78,7 @@ public class EmulationManager implements ClientProvider  {
         return cdpSessionList;
     }
 
-    public void registerSpeculativeSession(CdpCDPSession _client){
+    public void registerSpeculativeSession(CdpCDPSession _client) {
         this.secondaryClients.add(_client);
         client.once(ConnectionEvents.CDPSession_Disconnected, event -> this.secondaryClients.remove(_client)
         );
@@ -91,17 +92,17 @@ public class EmulationManager implements ClientProvider  {
     }
 
     public boolean emulateViewport(Viewport viewport) {
-        if(viewport == null && !this.viewportState.getState().getActive()){
+        if (viewport == null && !this.viewportState.getState().getActive()) {
             return false;
         }
-        if(viewport != null){
-            this.viewportState.setState(new ViewportState(true,viewport));
-        }else {
-            this.viewportState.setState(new ViewportState(false,null));
+        if (viewport != null) {
+            this.viewportState.setState(new ViewportState(true, viewport));
+        } else {
+            this.viewportState.setState(new ViewportState(false, null));
         }
         boolean mobile = false;
         boolean hasTouch = false;
-        if(viewport != null) {
+        if (viewport != null) {
             mobile = viewport.getIsMobile();
             hasTouch = viewport.getHasTouch();
         }
@@ -151,7 +152,7 @@ public class EmulationManager implements ClientProvider  {
     };
 
     public void emulateIdleState(IdleOverridesState.Overrides overrides) {
-        this.idleOverridesState.setState(new IdleOverridesState(true,overrides));
+        this.idleOverridesState.setState(new IdleOverridesState(true, overrides));
     }
 
     private static final Updater<IdleOverridesState> emulateIdleState = (client, idleStateState) ->
@@ -185,8 +186,8 @@ public class EmulationManager implements ClientProvider  {
         }
     };
 
-    public void emulateTimezone(String timezoneId){
-        this.timezoneState.setState(new TimezoneState(true,timezoneId));
+    public void emulateTimezone(String timezoneId) {
+        this.timezoneState.setState(new TimezoneState(true, timezoneId));
     }
 
     private static final Updater<VisionDeficiencyState> emulateVisionDeficiency = (client, visionDeficiency) -> {
@@ -198,8 +199,8 @@ public class EmulationManager implements ClientProvider  {
         client.send("Emulation.setEmulatedVisionDeficiency", params);
     };
 
-    public void emulateVisionDeficiency(VisionDeficiency type){
-        this.visionDeficiencyState.setState(new VisionDeficiencyState(true,type));
+    public void emulateVisionDeficiency(VisionDeficiency type) {
+        this.visionDeficiencyState.setState(new VisionDeficiencyState(true, type));
     }
 
     private static final Updater<CpuThrottlingState> emulateCpuThrottling = (client, state) -> {
@@ -211,9 +212,9 @@ public class EmulationManager implements ClientProvider  {
         client.send("Emulation.setCPUThrottlingRate", params);
     };
 
-    public void emulateCPUThrottling(double factor){
-        ValidateUtil.assertArg(factor >= 1,"Throttling rate should be greater or equal to 1");
-        this.cpuThrottlingState.setState(new CpuThrottlingState(true,factor));
+    public void emulateCPUThrottling(double factor) {
+        ValidateUtil.assertArg(factor >= 1, "Throttling rate should be greater or equal to 1");
+        this.cpuThrottlingState.setState(new CpuThrottlingState(true, factor));
     }
 
     private static final Updater<MediaFeaturesState> emulateMediaFeatures = (client, state) -> {
@@ -226,14 +227,14 @@ public class EmulationManager implements ClientProvider  {
     };
 
     public void emulateMediaFeatures(List<MediaFeature> features) {
-        if(features != null && !features.isEmpty()){
+        if (features != null && !features.isEmpty()) {
             for (MediaFeature mediaFeature : features) {
                 String name = mediaFeature.getName();
                 Pattern pattern = Pattern.compile("^(?:prefers-(?:color-scheme|reduced-motion)|color-gamut)$");
-                ValidateUtil.assertArg(pattern.matcher(name).find(),"Unsupported media feature: " + name);
+                ValidateUtil.assertArg(pattern.matcher(name).find(), "Unsupported media feature: " + name);
             }
         }
-        this.mediaFeaturesState.setState(new MediaFeaturesState(true,features));
+        this.mediaFeaturesState.setState(new MediaFeaturesState(true, features));
     }
 
 
@@ -242,12 +243,12 @@ public class EmulationManager implements ClientProvider  {
             return;
         }
         Map<String, Object> params = ParamsFactory.create();
-        params.put("media", state.getType() == null  ? "" : state.getType().getType());
+        params.put("media", state.getType() == null ? "" : state.getType().getType());
         client.send("Emulation.setEmulatedMedia", params);
     };
 
-    public void emulateMediaType(MediaType type){
-        this.mediaTypeState.setState(new MediaTypeState(true,type));
+    public void emulateMediaType(MediaType type) {
+        this.mediaTypeState.setState(new MediaTypeState(true, type));
     }
 
     private static final Updater<GeoLocationState> setGeolocation = (client, state) -> {
@@ -263,15 +264,28 @@ public class EmulationManager implements ClientProvider  {
         } else {
             client.send("Emulation.setGeolocationOverride");
         }
-
     };
 
-    public  void setGeolocation(GeolocationOptions options) {
-        this.geoLocationState.setState(new GeoLocationState(true,new GeolocationOptions(options.getLongitude(), options.getLatitude(), options.getAccuracy())));
+    private static final Updater<FocusState> emulateFocus = (client, state) -> {
+        if (!state.active) {
+            return;
+        }
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("enabled", state.getEnabled());
+        client.send("Emulation.setFocusEmulationEnabled", params);
+    };
+
+    public void emulateFocus(boolean enabled) {
+        FocusState focusState = new FocusState(true, enabled);
+        this.focusState.setState(focusState);
+    }
+
+    public void setGeolocation(GeolocationOptions options) {
+        this.geoLocationState.setState(new GeoLocationState(true, new GeolocationOptions(options.getLongitude(), options.getLatitude(), options.getAccuracy())));
     }
 
 
-    private static final Updater<DefaultBackgroundColorState>  setDefaultBackgroundColor = (client, state) -> {
+    private static final Updater<DefaultBackgroundColorState> setDefaultBackgroundColor = (client, state) -> {
         if (!state.getActive()) {
             return;
         }
@@ -284,17 +298,17 @@ public class EmulationManager implements ClientProvider  {
      * Resets default white background
      */
     public void resetDefaultBackgroundColor() {
-        this.defaultBackgroundColorState.setState(new DefaultBackgroundColorState(true,null));
+        this.defaultBackgroundColorState.setState(new DefaultBackgroundColorState(true, null));
     }
 
     /**
      * Hides default white background
      */
     public void setTransparentBackgroundColor() {
-        this.defaultBackgroundColorState.setState(new DefaultBackgroundColorState(true,new RGBA(0,0,0,0)));
+        this.defaultBackgroundColorState.setState(new DefaultBackgroundColorState(true, new RGBA(0, 0, 0, 0)));
     }
 
-    private static final Updater<JavascriptEnabledState>  setJavaScriptEnabled = (client, state) -> {
+    private static final Updater<JavascriptEnabledState> setJavaScriptEnabled = (client, state) -> {
         if (!state.active) {
             return;
         }
@@ -303,7 +317,7 @@ public class EmulationManager implements ClientProvider  {
         client.send("Emulation.setScriptExecutionDisabled", params);
     };
 
-    public void setJavaScriptEnabled(boolean enabled){
-        this.javascriptEnabledState.setState(new JavascriptEnabledState(true,enabled));
+    public void setJavaScriptEnabled(boolean enabled) {
+        this.javascriptEnabledState.setState(new JavascriptEnabledState(true, enabled));
     }
 }

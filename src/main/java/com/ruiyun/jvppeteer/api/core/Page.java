@@ -714,6 +714,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public Response waitForNavigation(WaitForOptions options) {
         return this.waitForNavigation(options, null);
     }
+
     /**
      * 等到某个请求
      *
@@ -723,6 +724,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public Request waitForRequest(Predicate<Request> predicate) {
         return this.waitForRequest(null, predicate, this._timeoutSettings.timeout());
     }
+
     /**
      * 等到某个请求，url或者predicate只有有一个不为空,默认等待时间是30s
      *
@@ -1367,6 +1369,13 @@ public abstract class Page extends EventEmitter<PageEvents> {
     protected abstract String _screenshot(ScreenshotOptions options) throws IOException;
 
     /**
+     * Emulates focus state of the page.
+     *
+     * @param enabled - Whether to emulate focus.
+     */
+    public abstract void emulateFocusedPage(boolean enabled);
+
+    /**
      * 生成当前页面的pdf格式，带着 pring css media。如果要生成带着 screen media的pdf，在page.pdf() 前面先调用 page.emulateMedia('screen')
      * <p><strong>注意 目前仅支持无头模式的 Chrome</strong></p>
      *
@@ -1589,7 +1598,8 @@ public abstract class Page extends EventEmitter<PageEvents> {
     /**
      * Resizes the browser window the page is in so that the content area
      * (excluding browser UI) is according to the specified width and height.
-     * @param contentWidth 浏览器内容宽度
+     *
+     * @param contentWidth  浏览器内容宽度
      * @param contentHeight 浏览器内容高度
      */
     public abstract void resize(int contentWidth, int contentHeight);

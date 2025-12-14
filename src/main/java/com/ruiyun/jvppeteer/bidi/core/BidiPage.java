@@ -568,6 +568,11 @@ public class BidiPage extends Page {
     }
 
     @Override
+    public void emulateFocusedPage(boolean enabled) {
+        this.cdpEmulationManager.emulateFocus(enabled);
+    }
+
+    @Override
     public CDPSession createCDPSession() {
         return this.frame.createCDPSession();
     }
