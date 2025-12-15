@@ -179,17 +179,6 @@ public class BidiRequest extends Request {
     }
 
     @Override
-    public void continueRequest(ContinueRequestOverrides overrides, Integer priority) {
-        ContinueRequestOverrides newOverrides = new ContinueRequestOverrides();
-        if (this.hasInternalHeaderOverwrite()) {
-            newOverrides.setHeaders(this.headers());
-        } else {
-            newOverrides.setHeaders(null);
-        }
-        super.continueRequest(newOverrides, priority);
-    }
-
-    @Override
     public void _continue(ContinueRequestOverrides overrides) {
         List<Header> bidiHeaders = getBidiHeaders(overrides.getHeaders());
         this.interception.setHandled(true);
