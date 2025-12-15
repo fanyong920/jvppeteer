@@ -6,7 +6,6 @@ import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
-import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.AutofillData;
 import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
@@ -17,6 +16,7 @@ import com.ruiyun.jvppeteer.cdp.entities.DragData;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Point;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -243,7 +243,7 @@ public class R_ElementHandleApiTest {
         page.setViewport(new Viewport(1200, 1200));
         GoToOptions goToOptions = new GoToOptions();
         goToOptions.setWaitUntil(Collections.singletonList(PuppeteerLifeCycle.networkIdle));
-        page.goTo("https://www.baidu.com/?tn=68018901_16_pg",goToOptions);
+        page.goTo("https://www.baidu.com/?tn=68018901_16_pg", goToOptions);
         ElementHandle elementHandle = page.$("li.hotsearch-item:nth-child(4) > a:nth-child(1) > span:nth-child(4)");
         Frame frame = elementHandle.contentFrame();
         System.out.println("frame:" + frame);
@@ -634,6 +634,7 @@ public class R_ElementHandleApiTest {
 
     /**
      * ElementHandle.dispose
+     *
      * @throws Exception 异常
      */
     @Test
@@ -645,6 +646,44 @@ public class R_ElementHandleApiTest {
         button.click();
         button.dispose();
         Browser.close();
+    }
+
+    /**
+     * should click half-offscreen elements
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test18() throws Exception {
+        Browser Browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = Browser.newPage();
+        page.setContent("<!DOCTYPE html>\n" +
+                "<style>\n" +
+                "  body {\n" +
+                "    overflow: hidden;\n" +
+                "  }\n" +
+                "  #target {\n" +
+                "    width: 200px;\n" +
+                "    height: 200px;\n" +
+                "    background: red;\n" +
+                "    position: fixed;\n" +
+                "    left: -150px;\n" +
+                "    top: -150px;\n" +
+                "  }\n" +
+                "</style>\n" +
+                "<div id=\"target\" onclick=\"window.CLICKED=true;\"></div>");
+        page.click("#target");
+        //true
+        System.out.println(page.evaluate("() => {\n" +
+                "        return globalThis.CLICKED;\n" +
+                "      }"));
+        ElementHandle element = page.waitForSelector("#target");
+        BoundingBox boundingBox = element.boundingBox();
+        // height: 200,width: 200,x: -150,y: -150,
+        System.out.println(boundingBox);
+        // x: 25,y: 25
+        System.out.println(element.clickablePoint());
+
     }
 
 

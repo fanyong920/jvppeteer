@@ -595,6 +595,8 @@ public abstract class ElementHandle extends JSHandle {
     private void intersectBoundingBox(BoundingBox box, double width, double height) {
         box.setWidth(Math.max(box.getX() >= 0 ? Math.min(width - box.getX(), box.getWidth()) : Math.min(width, box.getWidth() + box.getX()), 0));
         box.setHeight(Math.max(box.getY() >= 0 ? Math.min(height - box.getY(), box.getHeight()) : Math.min(height, box.getHeight() + box.getY()), 0));
+        box.setX(Math.max(box.getX(), 0));
+        box.setY(Math.max(box.getY(), 0));
     }
 
     /**
