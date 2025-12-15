@@ -196,8 +196,6 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
 
         defaultPrefs.put("extensions.installDistroAddons", false);
 
-        defaultPrefs.put("extensions.screenshots.disabled", true);
-
         defaultPrefs.put("extensions.update.enabled", false);
 
         defaultPrefs.put("extensions.update.notifyUser", false);
