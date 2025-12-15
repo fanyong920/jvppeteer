@@ -268,6 +268,20 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
     public abstract boolean isNetworkEnabled();
 
     /**
+     * Installs an extension and returns the ID. In Chrome, this is only
+     * available if the browser was created using `pipe: true` and the
+     * `--enable-unsafe-extension-debugging` flag is set.
+     */
+    public abstract String installExtension(String path);
+
+    /**
+     * Uninstalls an extension. In Chrome, this is only available if the browser
+     * was created using `pipe: true` and the
+     * `--enable-unsafe-extension-debugging` flag is set.
+     */
+    public abstract void uninstallExtension(String id);
+
+    /**
      * Gets a list of screen information objects.
      */
     public abstract List<ScreenInfo> screens() throws JsonProcessingException;

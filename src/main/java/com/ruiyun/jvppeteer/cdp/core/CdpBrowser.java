@@ -414,6 +414,20 @@ public class CdpBrowser extends Browser {
     }
 
     @Override
+    public String installExtension(String path) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("path", path);
+        return this.connection.send("Extensions.loadUnpacked", params).asText();
+    }
+
+    @Override
+    public void uninstallExtension(String id) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("id", id);
+        this.connection.send("Extensions.uninstall", params);
+    }
+
+    @Override
     public List<ScreenInfo> screens() throws JsonProcessingException {
         return Constant.OBJECTMAPPER.treeToValue(this.connection.send("Emulation.getScreenInfos").get("screenInfos"), new TypeReference<ArrayList<ScreenInfo>>() {
         });

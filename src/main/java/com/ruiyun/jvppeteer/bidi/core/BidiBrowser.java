@@ -332,7 +332,17 @@ public boolean isNetworkEnabled() {
     return this.networkEnabled;
 }
 
-@Override
+    @Override
+    public String installExtension(String path) {
+        return this.browserCore.installExtension(path);
+    }
+
+    @Override
+    public void uninstallExtension(String id) {
+        this.browserCore.uninstallExtension(id);
+    }
+
+    @Override
 public List<ScreenInfo> screens() {
     throw new UnsupportedOperationException();
 }
