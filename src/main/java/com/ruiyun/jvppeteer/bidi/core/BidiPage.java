@@ -290,7 +290,9 @@ public class BidiPage extends Page {
     public List<BidiFrame> frames() {
         List<BidiFrame> frames = new CopyOnWriteArrayList<>();
         frames.add(this.frame);
-        for (BidiFrame frame : frames) {
+        Iterator<BidiFrame> iterator = frames.iterator();
+        while (iterator.hasNext()) {
+            BidiFrame frame = iterator.next();
             frames.addAll(frame.childFrames());
         }
         return frames;
