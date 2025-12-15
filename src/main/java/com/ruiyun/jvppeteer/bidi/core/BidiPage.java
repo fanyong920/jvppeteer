@@ -354,7 +354,7 @@ public class BidiPage extends Page {
 
     @Override
     public boolean isJavaScriptEnabled() {
-        return this.cdpEmulationManager.javascriptEnabled();
+        return this.frame.browsingContext.isJavaScriptEnabled();
     }
 
     @Override
@@ -371,7 +371,7 @@ public class BidiPage extends Page {
 
     @Override
     public void setJavaScriptEnabled(boolean enabled) {
-        this.cdpEmulationManager.setJavaScriptEnabled(enabled);
+        this.frame.browsingContext.setJavaScriptEnabled(enabled);
     }
 
     @Override

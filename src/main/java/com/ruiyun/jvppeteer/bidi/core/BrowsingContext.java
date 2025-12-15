@@ -66,6 +66,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     private volatile Navigation navigation;
     private final BluetoothEmulation bluetoothEmulation;
     private final BidiDeviceRequestPromptManager deviceRequestPromptManager;
+    private boolean javaScriptEnabled = true;
 
     private BrowsingContext(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
         super();
@@ -576,6 +577,18 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         params.put("headers", processedHeaders);
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("network.setExtraHeaders", params);
+    }
+
+    public void setJavaScriptEnabled(boolean enabled) {
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("enabled", enabled ? null : false);
+        params.put("contexts", Collections.singletonList(this.id));
+        this.session().send("emulation.setScriptingEnabled", params);
+        this.javaScriptEnabled = enabled;
+    }
+
+    public boolean isJavaScriptEnabled() {
+        return this.javaScriptEnabled;
     }
 
     public enum BrowsingContextEvents {
