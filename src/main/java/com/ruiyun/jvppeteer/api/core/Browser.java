@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.api.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
-import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;

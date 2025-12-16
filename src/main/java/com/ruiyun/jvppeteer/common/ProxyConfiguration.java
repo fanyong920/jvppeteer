@@ -1,4 +1,4 @@
-package com.ruiyun.jvppeteer.bidi.entities;
+package com.ruiyun.jvppeteer.common;
 
 import java.util.List;
 

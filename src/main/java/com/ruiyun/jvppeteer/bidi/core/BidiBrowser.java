@@ -13,7 +13,7 @@ import com.ruiyun.jvppeteer.api.events.TrustedEmitter;
 import com.ruiyun.jvppeteer.bidi.entities.SupportedWebDriverCapabilities;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandler;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandlerType;
-import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
@@ -192,7 +192,7 @@ public class BidiBrowser extends Browser {
 
     @Override
     public BrowserContext createBrowserContext(BrowserContextOptions options) {
-        UserContext userContext = this.browserCore.createUserContext();
+        UserContext userContext = this.browserCore.createUserContext(options);
         return this.createBrowserContext(userContext);
     }
 

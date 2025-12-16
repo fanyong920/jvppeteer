@@ -11,7 +11,7 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.cdp.entities.BrowserContextOptions;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;

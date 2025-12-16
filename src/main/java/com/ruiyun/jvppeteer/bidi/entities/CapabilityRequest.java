@@ -1,5 +1,7 @@
 package com.ruiyun.jvppeteer.bidi.entities;
 
+import com.ruiyun.jvppeteer.common.ProxyConfiguration;
+
 public class CapabilityRequest {
     private boolean acceptInsecureCerts;
     private String browserName;

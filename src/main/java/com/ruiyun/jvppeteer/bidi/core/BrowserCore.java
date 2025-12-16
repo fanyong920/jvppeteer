@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.AddPreloadScriptOptions;
+import com.ruiyun.jvppeteer.common.ProxyConfiguration;
 import com.ruiyun.jvppeteer.bidi.entities.RealmInfo;
 import com.ruiyun.jvppeteer.bidi.entities.RealmType;
 import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.events.ContextCreatedEvent;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DisposableStack;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
@@ -205,9 +207,19 @@ public class BrowserCore extends EventEmitter<BrowserCore.BrowserCoreEvent> {
         });
     }
 
-    public UserContext createUserContext() {
+    public UserContext createUserContext(BrowserContextOptions options) {
         throwIfDisposed("Browser has been disposed");
-        JsonNode res = this.session.send("browser.createUserContext", Collections.EMPTY_MAP);
+        ProxyConfiguration proxyConfig = null;
+        if(Objects.nonNull(options.getProxyServer())){
+            proxyConfig = new ProxyConfiguration();
+            proxyConfig.setProxyType("manual");
+            proxyConfig.setHttpProxy(options.getProxyServer());
+            proxyConfig.setSslProxy(options.getProxyServer());
+            proxyConfig.setNoProxy(options.getProxyBypassList());
+        }
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("proxy", proxyConfig);
+        JsonNode res = this.session.send("browser.createUserContext", params);
         return this.createUserContext(res.at("/result/userContext"));
     }
 
