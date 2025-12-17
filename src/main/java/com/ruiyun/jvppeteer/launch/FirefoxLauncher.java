@@ -139,7 +139,7 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
 
         defaultPrefs.put("apz.content_response_timeout", 60000);
 
-        defaultPrefs.put("browser.contentblocking.features.standard", "-tp,tpPrivate,cookieBehavior0,-cm,-fp");
+        defaultPrefs.put("browser.contentblocking.features.standard", "-tp,tpPrivate,cookieBehavior0,-cryptoTP,-fp");
         defaultPrefs.put("browser.dom.window.dump.enabled", true);
         defaultPrefs.put("browser.newtabpage.activity-stream.feeds.system.topstories", false);
         defaultPrefs.put("browser.newtabpage.enabled", false);
