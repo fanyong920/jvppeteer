@@ -9,6 +9,7 @@ import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.exception.ConnectionClosedException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.Callback;
@@ -16,7 +17,6 @@ import com.ruiyun.jvppeteer.transport.CallbackRegistry;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
-import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,7 +46,9 @@ public class BidiConnection extends Connection {
 
     @Override
     public JsonNode rawSend(String method, Object params, String sessionId, Integer timeout, boolean isBlocking) {
-        ValidateUtil.assertArg(!this.closed, "Protocol error: Connection closed.");
+        if (this.closed) {
+            throw new ConnectionClosedException(" Connection closed.");
+        }
         if (Objects.isNull(timeout)) {
             timeout = this.timeout;
         }

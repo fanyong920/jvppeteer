@@ -64,6 +64,7 @@ import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WaitForOptions;
+import com.ruiyun.jvppeteer.exception.ConnectionClosedException;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
@@ -969,7 +970,9 @@ public class CdpPage extends Page {
 
     public void close(boolean runBeforeUnload) {
         synchronized (this.browserContext()) {
-            ValidateUtil.assertArg(this.primaryTargetClient.connection() != null, "Protocol error: Connection closed. Most likely the page has been closed.");
+            if (Objects.isNull(this.primaryTargetClient.connection())) {
+                throw new ConnectionClosedException("Protocol error: Connection closed. Most likely the page has been closed.");
+            }
             if (runBeforeUnload) {
                 this.primaryTargetClient.send("Page.close");
             } else {

@@ -52,6 +52,7 @@ import static com.ruiyun.jvppeteer.common.Constant.SHELLS_PREFIX;
 public class BrowserFetcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserFetcher.class);
+
     private static final String LINUX = "linux64";
     private static final String MAC_ARM64 = "mac-arm64";
     private static final String MAC_X64 = "mac-x64";
