@@ -56,7 +56,7 @@ public class BidiConnection extends Connection {
         return this.callbacks.create(callback, (id) -> {
             ObjectNode paramsNode = OBJECTMAPPER.createObjectNode();
             paramsNode.put(METHOD, method);
-            if (params != null) {
+            if (Objects.nonNull(params)) {
                 paramsNode.putPOJO(PARAMS, params);
             }
             paramsNode.put(ID, id);
