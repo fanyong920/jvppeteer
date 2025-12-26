@@ -65,6 +65,21 @@ pipeRead.on('close', (code) => {
     process.exit(code || 0);
 });
 
+// 添加进程清理
+process.on('exit', () => {
+    kill(chrome);
+});
+
+process.on('SIGINT', () => {
+    kill(chrome);
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    kill(chrome);
+    process.exit(0);
+});
+
 function kill(chrome) {
     if (
         chrome &&
