@@ -78,11 +78,11 @@ import java.util.stream.Collectors;
 public interface Constant {
 
     /**
-     * chrome 临时文件夹前缀
+     * chrome运行时产生的临时文件夹前缀
      */
     String CHROME_PROFILE_PREFIX = "jvppeteer_dev_chrome_profile-";
     /**
-     * firefox 临时文件夹前缀
+     * firefox运行时产生的临时文件夹前缀
      */
     String FIREFOX_PROFILE_PREFIX = "jvppeteer_dev_firefox_profile-";
     /**
@@ -519,4 +519,10 @@ public interface Constant {
     String Infinity = "Infinity";
     String Navigate_Infinity = "-Infinity";
     String Navigate_Zero = "-0";
+
+    /**
+     * 当pipe连接时，配置在环境变中nodejs的路径
+     */
+    String JVPPETEER_NODEJS_PATH = "JVPPETEER_NODEJS_PATH";
+    String JVPPETEER_PIPE_LAUNCH_TMP_DIR = "jvppeteer_pipe_launch_tmpdir-";
 }

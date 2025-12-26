@@ -353,7 +353,7 @@ public class BrowserFetcher {
             mkdir(folderPath);
         }
         //用shell下载，不用java代码下载了
-        executeShell(url, folderPath, archive(this.product, this.platform, revision), fileName(this.product,this.platform));
+        executeShell(url, folderPath, archive(this.product, this.platform, revision), fileName(this.product, this.platform));
         RevisionInfo revisionInfo = this.revisionInfo(revision);
         if (revisionInfo != null) {
             File executableFile = new File(revisionInfo.getExecutablePath());
@@ -485,13 +485,13 @@ public class BrowserFetcher {
         BufferedReader stdoutReader = null;
         try {
             if (Helper.isLinux()) {
-                shellPath = copyShellFile(INSTALL_CHROME_FOR_TESTING_LINUX);
+                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_LINUX, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = new ProcessBuilder("/bin/sh", "-c", shellPath.toAbsolutePath() + " " + folderPath + " " + url + " " + archiveName + " " + executableName).redirectErrorStream(true).start();
             } else if (Helper.isWindows()) {
-                shellPath = copyShellFile(INSTALL_CHROME_FOR_TESTING_WIN);
+                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_WIN, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = new ProcessBuilder("powershell.exe", "-ExecutionPolicy", "Bypass", "-File", shellPath.toAbsolutePath().toString(), "-url", url, "-savePath", folderPath, "-archive", archiveName, "-executableName", executableName).redirectErrorStream(true).start();
             } else if (Helper.isMac()) {
-                shellPath = copyShellFile(INSTALL_CHROME_FOR_TESTING_MAC);
+                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_MAC, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", shellPath.toAbsolutePath().toString()});
             } else {
                 throw new JvppeteerException("Unsupported platform: " + Helper.platform());
@@ -526,22 +526,31 @@ public class BrowserFetcher {
         }
     }
 
-    private Path copyShellFile(String path) throws IOException {
-        Path tempDirectory = Paths.get(FileUtil.createProfileDir(SHELLS_PREFIX));
-        Path shellPath = tempDirectory.resolve(path);
+    /**
+     * 把resource文件复制到temp目录下
+     *
+     * @param name       复制的文件名
+     * @param tmpDir     temp目录
+     * @param folderPath resource下的要复制的文件所在的目录
+     * @return 复制后的文件路径
+     * @throws IOException 创建文件失败
+     */
+    public static Path copyResourceFileToTemp(String name, String tmpDir, String folderPath) throws IOException {
+        Path tempDirectory = Paths.get(tmpDir);
+        Path path = tempDirectory.resolve(name);
         if (Helper.isUnixLike()) {
-            Files.createFile(shellPath, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
+            Files.createFile(path, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
         } else if (Helper.isWindows()) {
-            Files.createFile(shellPath);
+            Files.createFile(path);
         }
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(shellPath.toFile())); BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(this.getClass().getResourceAsStream("/scripts/" + path))))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(path.toFile())); BufferedReader reader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(BrowserFetcher.class.getResourceAsStream(folderPath + name))))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 writer.write(line);
                 writer.newLine();
             }
         }
-        return shellPath;
+        return path;
     }
 
     /**

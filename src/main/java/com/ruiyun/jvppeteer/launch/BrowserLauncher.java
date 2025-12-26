@@ -24,6 +24,7 @@ import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.transport.ConnectionTransport;
+import com.ruiyun.jvppeteer.transport.PipeTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransport;
 import com.ruiyun.jvppeteer.transport.WebSocketTransportFactory;
 import com.ruiyun.jvppeteer.util.FileUtil;
@@ -147,11 +148,18 @@ public abstract class BrowserLauncher {
     }
 
     protected Browser createBrowser(LaunchOptions options, List<String> chromeArguments, String temporaryUserDataDir, boolean usePipe, List<String> defaultArgs, String customizedUserDataDir) {
-        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir, options.getProduct(), options.getProtocol(), customizedUserDataDir);
+        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir, options.getProduct(), options.getProtocol(), customizedUserDataDir,options.getEnv(),usePipe);
         try {
             Connection connection;
             if (usePipe) {
-                throw new LaunchException("Not supported pipe connect to browser");
+                runner.start();
+                PipeTransport pipeTransport = new PipeTransport(runner.getProcess().getInputStream(), runner.getProcess().getOutputStream());
+                connection = new CdpConnection("", pipeTransport, options.getSlowMo(), options.getProtocolTimeout());
+                runner.setConnection(connection);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Connect to browser by pipe");
+                }
+                return createCdpBrowser(options, defaultArgs, runner, connection);
             } else {
                 if (Protocol.CDP.equals(options.getProtocol())) {
                     runner.start();
@@ -182,10 +190,10 @@ public abstract class BrowserLauncher {
             }
         } catch (Exception e) {
             runner.closeBrowser();
-            if (e.getMessage().contains("Failed to create a ProcessSingleton for your profile directory")) {
+            if (Objects.nonNull(e.getMessage()) && e.getMessage().contains("Failed to create a ProcessSingleton for your profile directory")) {
                 throw new LaunchException("The browser is already running for " + customizedUserDataDir + ". Use a different `userDataDir` or stop the running browser first.");
             }
-            if (e.getMessage().contains("Missing X server") && !options.getHeadless()) {
+            if (Objects.nonNull(e.getMessage()) && e.getMessage().contains("Missing X server") && !options.getHeadless()) {
                 throw new LaunchException("Missing X server to start the headful browser. set headless to true");
             }
             throw new LaunchException("Failed to launch the browser process: " + e.getMessage(), e);
@@ -249,7 +257,13 @@ public abstract class BrowserLauncher {
     }
 
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
-        Runnable closeCallback = runner::closeBrowser;
+        Runnable closeCallback = () -> {
+            if(options.getPipe()){
+                System.out.println("Browser process has been terminated. pipe");
+                runner.destroyProcess(runner.getProcess());
+            }
+            runner.closeBrowser();
+        };
         CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);

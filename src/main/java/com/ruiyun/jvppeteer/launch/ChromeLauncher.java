@@ -1,16 +1,13 @@
 package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
-import com.ruiyun.jvppeteer.cdp.core.BrowserFetcher;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
-import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -67,7 +64,7 @@ public class ChromeLauncher extends BrowserLauncher {
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
         LOGGER.trace("Calling {} {}", this.executablePath, String.join(" ", chromeArguments));
         Browser browser = createBrowser(options, chromeArguments, temporaryUserDataDir, usePipe, defaultArgs, customizedUserDataDir);
-        LOGGER.info("Successfully launch the browser, the executablePath is {}, the protocol is {}", this.executablePath,options.getProtocol());
+        LOGGER.info("Browser started successfully, executablePath is {}, protocol is {}({}),version is {}", this.executablePath, options.getProtocol(), usePipe ? "pipe" : "websocket", browser.version());
         return browser;
     }
 
@@ -107,15 +104,15 @@ public class ChromeLauncher extends BrowserLauncher {
         List<String> ignoreDefaultArgs;
         //忽略全部默认参数
         if (options.getIgnoreAllDefaultArgs()) {
-          chromeArguments = new ArrayList<>();
-        }else {
-          chromeArguments = new ArrayList<>(Constant.DEFAULT_ARGS);
-          chromeArguments.add("--disable-features=" + String.join(",", disabledFeatures));
-          chromeArguments.add("--enable-features=" + String.join(",", enabledFeatures));
-          //默认参数基础上再忽略指定参数
-          if(ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
-            chromeArguments.removeAll(ignoreDefaultArgs);
-          }
+            chromeArguments = new ArrayList<>();
+        } else {
+            chromeArguments = new ArrayList<>(Constant.DEFAULT_ARGS);
+            chromeArguments.add("--disable-features=" + String.join(",", disabledFeatures));
+            chromeArguments.add("--enable-features=" + String.join(",", enabledFeatures));
+            //默认参数基础上再忽略指定参数
+            if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
+                chromeArguments.removeAll(ignoreDefaultArgs);
+            }
         }
 
         if (StringUtil.isNotEmpty(options.getUserDataDir())) {
