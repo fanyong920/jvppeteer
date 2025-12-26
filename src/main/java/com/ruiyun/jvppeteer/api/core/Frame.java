@@ -8,9 +8,9 @@ import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddScriptTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.FrameAddStyleTagOptions;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
-import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForSelectorOptions;
 import com.ruiyun.jvppeteer.common.QuerySelector;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.GetQueryHandler;
@@ -412,7 +412,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
             List<String> contents = Files.readAllLines(Paths.get(options.getPath()), StandardCharsets.UTF_8);
             options.setContent(String.join("\n", contents) + "//# sourceURL=" + options.getPath().replaceAll("\n", ""));
         }
-        return this.mainRealm().evaluateHandle("async ({url, id, type, content}) => {\n" +
+        return this.mainRealm().transferHandle(this.mainRealm().evaluateHandle("async ({url, id, type, content}) => {\n" +
                 "    return await new Promise((resolve, reject) => {\n" +
                 "      const script = document.createElement('script');\n" +
                 "      script.type = type;\n" +
@@ -442,8 +442,7 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
                 "        resolve(script);\n" +
                 "      }\n" +
                 "    });\n" +
-                "  }", Collections.singletonList(options)).asElement();
-
+                "  }", Collections.singletonList(options)).asElement());
     }
 
     /**
