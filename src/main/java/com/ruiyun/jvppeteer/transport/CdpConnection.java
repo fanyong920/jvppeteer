@@ -115,12 +115,11 @@ public class CdpConnection extends Connection {
         return !this.manuallyAttached.remove(targetId);
     }
 
-    public JsonNode rawSend(String method, Object params, String sessionId, Integer timeout,
-                            boolean isBlocking) {
+    public JsonNode rawSend(String method, Object params, String sessionId, Integer timeout, boolean isBlocking) {
         if (this.closed) {
             throw new ConnectionClosedException("Connection closed.");
-        };
-        if (timeout == null) {
+        }
+        if (Objects.isNull(timeout)) {
             timeout = this.timeout;
         }
         Callback callback = new Callback(this.id.incrementAndGet(), method, timeout);
