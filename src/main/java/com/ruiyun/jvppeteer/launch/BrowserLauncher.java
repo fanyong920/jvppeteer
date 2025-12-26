@@ -259,7 +259,6 @@ public abstract class BrowserLauncher {
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
         Runnable closeCallback = () -> {
             if(options.getPipe()){
-                System.out.println("Browser process has been terminated. pipe");
                 runner.destroyProcess(runner.getProcess());
             }
             runner.closeBrowser();
