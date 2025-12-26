@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.transport;
 
 import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.util.StreamUtil;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -8,6 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -89,7 +92,7 @@ public class PipeTransport implements ConnectionTransport {
      * 读取管道中的消息线程
      */
     private class PipeReaderThread extends Thread {
-        StringBuilder builder = new StringBuilder();
+        List<byte[]> pendingMessage = new ArrayList<>();
 
         @Override
         public void run() {
@@ -105,7 +108,7 @@ public class PipeTransport implements ConnectionTransport {
 
         private void readMessage() throws IOException {
             // 直接读取字节流，不假设第一个字节为长度
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[Constant.DEFAULT_BUFFER_SIZE];
             int bytesRead = pipeReader.read(buffer);
             if (bytesRead > 0) {
                 byte[] actualData = new byte[bytesRead];
@@ -114,17 +117,62 @@ public class PipeTransport implements ConnectionTransport {
             }
         }
 
-        public void dispatch(byte[] buffer) {
-            builder.append(new String(buffer, StandardCharsets.UTF_8));
-            int firstNullIndex = builder.indexOf("\0");
-            while (firstNullIndex != -1) {
-                // 截取第一个 \0 到第二个 \0 之间的字符串（不包含第二个 \0）
-                String extracted = builder.substring(0, firstNullIndex);
-                builder.delete(0, firstNullIndex + 1);
-                onMessage(extracted);
-                firstNullIndex = builder.indexOf("\0");
+//        public void dispatch(byte[] buffer) {
+//            builder.append(new String(buffer, StandardCharsets.UTF_8));
+//            int firstNullIndex = builder.indexOf("\0");
+//            while (firstNullIndex != -1) {
+//                // 截取第一个 \0 到第二个 \0 之间的字符串（不包含第二个 \0）
+//                String extracted = builder.substring(0, firstNullIndex);
+//                builder.delete(0, firstNullIndex + 1);
+//                onMessage(extracted);
+//                firstNullIndex = builder.indexOf("\0");
+//            }
+//
+//        }
+
+        private void dispatch(byte[] buffer) {
+            // Concatenate all pending messages
+            pendingMessage.add(buffer);
+            int totalLength = pendingMessage.stream().mapToInt(b -> b.length).sum();
+            if (totalLength == 0) {
+                return;
             }
 
+            byte[] concatBuffer = new byte[totalLength];
+            int position = 0;
+            for (byte[] buf : pendingMessage) {
+                System.arraycopy(buf, 0, concatBuffer, position, buf.length);
+                position += buf.length;
+            }
+
+            // Reset pending messages
+            pendingMessage.clear();
+
+            int start = 0;
+            int end = findNullByte(concatBuffer, start);
+
+            // Process all complete messages
+            while (end != -1) {
+                String message = new String(concatBuffer, start, end - start, StandardCharsets.UTF_8);
+                onMessage(message);
+                start = end + 1;
+                end = findNullByte(concatBuffer, start);
+            }
+
+            // Store any remaining data
+            if (start < concatBuffer.length) {
+                byte[] remaining = new byte[concatBuffer.length - start];
+                System.arraycopy(concatBuffer, start, remaining, 0, remaining.length);
+                pendingMessage.add(remaining);
+            }
+        }
+        private int findNullByte(byte[] buffer, int startIndex) {
+            for (int i = startIndex; i < buffer.length; i++) {
+                if (buffer[i] == 0) { // Compare with integer 0 for null byte
+                    return i;
+                }
+            }
+            return -1;
         }
     }
 }
