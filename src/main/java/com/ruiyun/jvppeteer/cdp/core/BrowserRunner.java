@@ -131,51 +131,10 @@ public class BrowserRunner {
         return pipeLaunchJsPath;
     }
 
-    public static boolean isNodeInstalled(List<String> args) {
-        // 首先尝试通用的 "node" 命令
-        if (runNodeCommand("node")) {
-            args.add("node");
-            return true;
-        }
-        // 在某些 Windows 系统上，Node.js 可能安装为 "node.exe"
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            if (runNodeCommand("node.exe")) {
-                args.add("node.exe");
-            }
-        }
-        return false;
-    }
-
-    private static boolean runNodeCommand(String command) {
-        try {
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.command().add("--version");
-            Process process = pb.start();
-            boolean finished = process.waitFor(5, TimeUnit.SECONDS);
-            if (!finished) {
-                process.destroy();
-                return false;
-            }
-            return process.exitValue() == 0;
-        } catch (IOException e) {
-            // 命令不存在或无法执行
-            return false;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        }
-    }
-
-
     /**
      * 如果本地没有找到，检查并下载 Node.js
      */
     public static String getNodeExecutablePath(String pipeDir) throws IOException {
-        // 首先检查系统是否已安装 Node.js
-        List<String> args = new ArrayList<>();
-        if (isNodeInstalled(args)) {
-            return args.get(0); // 返回已安装的 Node.js 路径
-        }
         Path pipePath = Paths.get(pipeDir);
         Path nodeExecutable;
         if (!Files.exists(pipePath) || !Files.isDirectory(pipePath)) {
@@ -377,13 +336,8 @@ public class BrowserRunner {
 
     }
 
-
     public boolean isClosed() {
         return this.closed;
-    }
-
-    public String getTempDirectory() {
-        return tempDirectory;
     }
 
     public void setConnection(Connection connection) {

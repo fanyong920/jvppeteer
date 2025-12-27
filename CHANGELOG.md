@@ -354,7 +354,7 @@
 - [fix: ignore wasn't found errors in NetworkManager](https://github.com/fanyong920/jvppeteer/commit/0fbecaa828dd8ae3c594d0d9b40f9282d9d1fd1f)
 - [feat: emulateTimezone via BiDi](https://github.com/fanyong920/jvppeteer/commit/e3c5e8af57a30388f3cf3a9235ed6206a8e033df)
 
-### Version Release 3.4.2(2025/12/17)
+### Version Release 3.5.0(2025/12/17)
 
 - [feat: respect proxyServer in incognito browser context in BiDi](https://github.com/fanyong920/jvppeteer/commit/a5c9a7d88e4c97c7fc9d7ec3c61313a0bb90cd4b)
 - [fix: handle clicks on partially offscreen elements](https://github.com/fanyong920/jvppeteer/commit/e0e3c9b6c75974e00cfbeaf9af28e15400f9c903)
@@ -397,3 +397,11 @@
 - [fix: TargetManager.runIfWaitingForDebugger() do not block](https://github.com/fanyong920/jvppeteer/commit/0a9f1d76f60312ea05573aae42cfe09dfd7a88cc)
 - [feat: add browser.screens, .addScreen and .removeScreen methods](https://github.com/fanyong920/jvppeteer/commit/c609b65e4f5afa4d91180a52c5332feba3c1e41a)
 - [feat(webdriver): bluetooth emulation via WebDriver BiDi](https://github.com/fanyong920/jvppeteer/commit/948d238c94bf4a7348d1325770fc6de1bf0b38c1)
+
+### Version Release 3.6.0(2025/12/27)
+
+- [fix：对buffer的直接处理，不转为字符串处理](https://github.com/fanyong920/jvppeteer/commit/b0684b10d97eb911e6218bb235bacdcf6db07b5d)
+- [feat:Connect to the Chrome browser via a pipe](https://github.com/fanyong920/jvppeteer/commit/52e4392815ff91494bac1724932da91769ff31c7)
+- [fix：对Page.addScriptTag()返回值transferHandle](https://github.com/fanyong920/jvppeteer/commit/55643214c8a1c88ffca35357a30fa4fbe1e6658b)
+- [fix：对nodejs和launch-browser-pipe.js存放目录改为可以用户指定和项目目录下的.pipe-resources](https://github.com/fanyong920/jvppeteer/commit/d0ed6c5da2594c025ce4e968da5190ac889f65fa)
+
