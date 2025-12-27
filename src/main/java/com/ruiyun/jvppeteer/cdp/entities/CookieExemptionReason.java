@@ -1,7 +1,6 @@
 package com.ruiyun.jvppeteer.cdp.entities;
 /**
  * Types of reasons why a cookie should have been blocked by 3PCD but is exempted for the request.
- * @experimental
  */
 public enum CookieExemptionReason {
     None,

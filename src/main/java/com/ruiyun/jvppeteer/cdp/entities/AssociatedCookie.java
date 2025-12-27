@@ -4,7 +4,6 @@ import java.util.List;
 /**
  * A cookie associated with the request which may or may not be sent with it.
  * Includes the cookies itself and reasons for blocking or exemption.
- * @experimental
  */
 public class AssociatedCookie {
     /**

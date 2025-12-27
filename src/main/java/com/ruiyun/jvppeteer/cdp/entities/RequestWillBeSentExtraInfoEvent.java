@@ -21,7 +21,6 @@ public class RequestWillBeSentExtraInfoEvent {
     /**
      * Connection timing information for the request.
      *
-     * @experimental
      */
     private ConnectTiming connectTiming;
     /**
