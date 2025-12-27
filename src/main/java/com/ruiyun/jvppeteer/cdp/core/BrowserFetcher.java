@@ -485,13 +485,13 @@ public class BrowserFetcher {
         BufferedReader stdoutReader = null;
         try {
             if (Helper.isLinux()) {
-                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_LINUX, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
+                shellPath = copyResourceFileToDirectory(INSTALL_CHROME_FOR_TESTING_LINUX, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = new ProcessBuilder("/bin/sh", "-c", shellPath.toAbsolutePath() + " " + folderPath + " " + url + " " + archiveName + " " + executableName).redirectErrorStream(true).start();
             } else if (Helper.isWindows()) {
-                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_WIN, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
+                shellPath = copyResourceFileToDirectory(INSTALL_CHROME_FOR_TESTING_WIN, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = new ProcessBuilder("powershell.exe", "-ExecutionPolicy", "Bypass", "-File", shellPath.toAbsolutePath().toString(), "-url", url, "-savePath", folderPath, "-archive", archiveName, "-executableName", executableName).redirectErrorStream(true).start();
             } else if (Helper.isMac()) {
-                shellPath = copyResourceFileToTemp(INSTALL_CHROME_FOR_TESTING_MAC, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
+                shellPath = copyResourceFileToDirectory(INSTALL_CHROME_FOR_TESTING_MAC, FileUtil.createProfileDir(SHELLS_PREFIX), "/scripts/");
                 process = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", shellPath.toAbsolutePath().toString()});
             } else {
                 throw new JvppeteerException("Unsupported platform: " + Helper.platform());
@@ -530,14 +530,14 @@ public class BrowserFetcher {
      * 把resource文件复制到temp目录下
      *
      * @param name       复制的文件名
-     * @param tmpDir     temp目录
+     * @param targetDir     目标文件夹
      * @param folderPath resource下的要复制的文件所在的目录
      * @return 复制后的文件路径
      * @throws IOException 创建文件失败
      */
-    public static Path copyResourceFileToTemp(String name, String tmpDir, String folderPath) throws IOException {
-        Path tempDirectory = Paths.get(tmpDir);
-        Path path = tempDirectory.resolve(name);
+    public static Path copyResourceFileToDirectory(String name, String targetDir, String folderPath) throws IOException {
+        Path targetPath = Paths.get(targetDir);
+        Path path = targetPath.resolve(name);
         if (Helper.isUnixLike()) {
             Files.createFile(path, PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx")));
         } else if (Helper.isWindows()) {

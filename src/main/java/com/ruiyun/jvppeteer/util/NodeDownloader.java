@@ -35,17 +35,16 @@ public class NodeDownloader {
      * 获取架构类型（排除 x86）
      */
     private static String getArchitecture() {
-        return "x64";
-//        if (Helper.arch().contains("amd64") || Helper.arch().contains("x86_64")) {
-//            return "x64";
-//        } else if (Helper.arch().contains("aarch64") || Helper.arch().contains("arm64")) {
-//            return "arm64";
-//        } else if (Helper.arch().contains("x86") || Helper.arch().contains("i386")) {
-//            // 不支持 x86 架构，抛出异常
-//            throw new UnsupportedOperationException("Node.js x86 architecture is not supported, please use x64 or arm64 instead: " + Helper.arch());
-//        } else {
-//            throw new UnsupportedOperationException("Unsupported architecture: " + Helper.arch());
-//        }
+        if (Helper.arch().contains("amd64") || Helper.arch().contains("x86_64")) {
+            return "x64";
+        } else if (Helper.arch().contains("aarch64") || Helper.arch().contains("arm64")) {
+            return "arm64";
+        } else if (Helper.arch().contains("x86") || Helper.arch().contains("i386")) {
+            // 不支持 x86 架构，抛出异常
+            throw new UnsupportedOperationException("Node.js x86 architecture is not supported, please use x64 or arm64 instead: " + Helper.arch());
+        } else {
+            throw new UnsupportedOperationException("Unsupported architecture: " + Helper.arch());
+        }
     }
 
     private static final String NODE_VERSION = "24.12.0";
@@ -55,13 +54,12 @@ public class NodeDownloader {
      * 根据操作系统获取对应的 Node.js 下载 URL
      */
     public static String getNodeDownloadUrl() {
-        String osType = getOSType();
-        String arch = getArchitecture();
-        String extension = osType.equals("win") ? ".zip" : ".tar.gz";
-
-        return NODE_DOWNLOAD_BASE_URL + "node-v" + NODE_VERSION + "-" + osType + "-" + arch + extension;
+        String extension = getOSType().equals("win") ? ".zip" : ".tar.gz";
+        return NODE_DOWNLOAD_BASE_URL + archive() + extension;
     }
-
+    public static String archive(){
+       return  "node-v" + NODE_VERSION + "-" + getOSType() + "-" + getArchitecture();
+    }
     /**
      * 下载 Node.js 到指定目录
      */
@@ -177,6 +175,7 @@ public class NodeDownloader {
                 zipInputStream.closeEntry();
             }
         }
+        zipPath.toFile().delete();
         return extractPath;
     }
 

@@ -521,8 +521,7 @@ public interface Constant {
     String Navigate_Zero = "-0";
 
     /**
-     * 当pipe连接时，配置在环境变中nodejs的路径
+     * 当pipe连接时，nodejs和launch-browser-pipe.js所在的目录
      */
-    String JVPPETEER_NODEJS_PATH = "JVPPETEER_NODEJS_PATH";
-    String JVPPETEER_PIPE_LAUNCH_TMP_DIR = "jvppeteer_pipe_launch_tmpdir-";
+    String JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR = "JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR";
 }

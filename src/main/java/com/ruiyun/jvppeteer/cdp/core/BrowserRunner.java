@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.BACKUP_SUFFIX;
-import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_NODEJS_PATH;
-import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_PIPE_LAUNCH_TMP_DIR;
+import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR;
 import static com.ruiyun.jvppeteer.common.Constant.PREFS_JS;
 import static com.ruiyun.jvppeteer.common.Constant.USER_JS;
 import static com.ruiyun.jvppeteer.util.FileUtil.removeFolder;
@@ -86,16 +85,14 @@ public class BrowserRunner {
         }
         List<String> arguments = new ArrayList<>();
         if (usepipe) {
-            String tmpDir = FileUtil.createProfileDir(JVPPETEER_PIPE_LAUNCH_TMP_DIR);
-            //添加node path
-            String nodePath = System.getProperty(JVPPETEER_NODEJS_PATH);
-            if (StringUtil.isEmpty(nodePath)) {
-                nodePath = ensureNodeInstalled(tmpDir);
+            String pipeDir = System.getProperty(JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR);
+            if (StringUtil.isEmpty(pipeDir)) {
+                pipeDir = Helper.join(System.getProperty("user.dir"), ".pipe-resources");
             }
-            arguments.add(nodePath);
+            //添加node path
+            arguments.add(getNodeExecutablePath(pipeDir));
             //添加launch-browser-pipe.js
-            arguments.add(BrowserFetcher.copyResourceFileToTemp("launch-browser-pipe.js", tmpDir, "/scripts/").toString());
-            FileUtil.removeFolderOnExit(tmpDir);
+            arguments.add(getPipeLaunchJsPath(pipeDir).toString());
             Map<String, Object> params = ParamsFactory.create();
             params.put("executablePath", this.executablePath);
             params.put("args", this.browserArgs);
@@ -114,6 +111,24 @@ public class BrowserRunner {
         this.process = processBuilder.start();
         this.closed = false;
         registerHook();
+    }
+
+    private static Path getPipeLaunchJsPath(String pipeDir) throws IOException {
+        Path pipePath = Paths.get(pipeDir);
+        Path pipeLaunchJsPath;
+        if (!Files.exists(pipePath) || !Files.isDirectory(pipePath)) {
+            FileUtil.createDirs(pipePath);
+            pipeLaunchJsPath = BrowserFetcher.copyResourceFileToDirectory("launch-browser-pipe.js", pipeDir, "/scripts/");
+        } else {
+            Path isExistJsPath = pipePath.resolve("launch-browser-pipe.js");
+            boolean isJsFileExist = Files.exists(isExistJsPath);
+            if (isJsFileExist) {
+                pipeLaunchJsPath = isExistJsPath;
+            } else {
+                pipeLaunchJsPath = BrowserFetcher.copyResourceFileToDirectory("launch-browser-pipe.js", pipeDir, "/scripts/");
+            }
+        }
+        return pipeLaunchJsPath;
     }
 
     public static boolean isNodeInstalled(List<String> args) {
@@ -153,30 +168,39 @@ public class BrowserRunner {
 
 
     /**
-     * 检查并下载 Node.js，如果本地没有找到
+     * 如果本地没有找到，检查并下载 Node.js
      */
-    public static String ensureNodeInstalled(String downloadDir) throws IOException {
+    public static String getNodeExecutablePath(String pipeDir) throws IOException {
         // 首先检查系统是否已安装 Node.js
         List<String> args = new ArrayList<>();
         if (isNodeInstalled(args)) {
             return args.get(0); // 返回已安装的 Node.js 路径
         }
-
-        // 如果系统未安装，则下载 Node.js
-        Path nodeDir = NodeDownloader.downloadNode(downloadDir);
-        Path nodeExecutable = NodeDownloader.getNodeExecutablePath(nodeDir);
-
+        Path pipePath = Paths.get(pipeDir);
+        Path nodeExecutable;
+        if (!Files.exists(pipePath) || !Files.isDirectory(pipePath)) {
+            FileUtil.createDirs(pipePath);
+            // 如果系统未安装，则下载 Node.js
+            Path nodeDir = NodeDownloader.downloadNode(pipeDir);
+            nodeExecutable = NodeDownloader.getNodeExecutablePath(nodeDir);
+        } else {
+            Path existNodePath = NodeDownloader.getNodeExecutablePath(pipePath.resolve(NodeDownloader.archive()));
+            boolean isNodeExist = Files.exists(existNodePath);
+            if (isNodeExist && Files.isExecutable(existNodePath)) {
+                nodeExecutable = existNodePath;
+            } else {
+                // 如果系统未安装，则下载 Node.js
+                Path nodeDir = NodeDownloader.downloadNode(pipeDir);
+                nodeExecutable = NodeDownloader.getNodeExecutablePath(nodeDir);
+                if (!Files.isExecutable(nodeExecutable)) {
+                    throw new IOException("Node.js is not executable,path : " + nodeExecutable);
+                }
+            }
+        }
         if (!Files.exists(nodeExecutable)) {
             throw new IOException("Node.js executable not found at: " + nodeExecutable);
         }
-
-        // 验证下载的 Node.js 是否可用
-        if (runNodeCommand(nodeExecutable.toString())) {
-            return nodeExecutable.toString();
-        }
-
-
-        throw new IOException("Downloaded Node.js is not working properly");
+        return nodeExecutable.toString();
     }
 
 
