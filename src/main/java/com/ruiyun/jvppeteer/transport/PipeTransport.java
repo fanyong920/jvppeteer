@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
@@ -27,13 +28,17 @@ public class PipeTransport implements ConnectionTransport {
     private final OutputStream pipeWriter;
     private Connection connection = null;
     private final BlockingQueue<String> sendQueue = new ArrayBlockingQueue<>(1000);
+    private final Thread readThread;
+    private final Thread writerThread;
 
     public PipeTransport(InputStream pipeReader, OutputStream pipeWriter) {
         this.pipeReader = new DataInputStream(new BufferedInputStream(pipeReader));
         this.pipeWriter = pipeWriter;
-        Thread readThread = new PipeReaderThread();
+        readThread = new PipeReaderThread();
+        readThread.setName("PipeReaderThread");
         readThread.start();
-        Thread writerThread = new PipeWriterThread();
+        writerThread = new PipeWriterThread();
+        writerThread.setName("PipeWriterThread");
         writerThread.start();
     }
 
@@ -59,8 +64,12 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void close() {
+        //浏览器意外关闭时候，connection不为空
+        Optional.ofNullable(this.connection).map(Connection::closeRunner).ifPresent(Runnable::run);
         StreamUtil.closeQuietly(pipeWriter);
         StreamUtil.closeQuietly(pipeReader);
+        readThread.interrupt();
+        writerThread.interrupt();
     }
 
     private class PipeWriterThread extends Thread {
@@ -99,7 +108,7 @@ public class PipeTransport implements ConnectionTransport {
             while (!isInterrupted()) {
                 try {
                     readMessage();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     break;
                 }
             }
@@ -116,19 +125,6 @@ public class PipeTransport implements ConnectionTransport {
                 dispatch(actualData);
             }
         }
-
-//        public void dispatch(byte[] buffer) {
-//            builder.append(new String(buffer, StandardCharsets.UTF_8));
-//            int firstNullIndex = builder.indexOf("\0");
-//            while (firstNullIndex != -1) {
-//                // 截取第一个 \0 到第二个 \0 之间的字符串（不包含第二个 \0）
-//                String extracted = builder.substring(0, firstNullIndex);
-//                builder.delete(0, firstNullIndex + 1);
-//                onMessage(extracted);
-//                firstNullIndex = builder.indexOf("\0");
-//            }
-//
-//        }
 
         private void dispatch(byte[] buffer) {
             // Concatenate all pending messages
@@ -154,6 +150,10 @@ public class PipeTransport implements ConnectionTransport {
             // Process all complete messages
             while (end != -1) {
                 String message = new String(concatBuffer, start, end - start, StandardCharsets.UTF_8);
+                if (message.equals("{\"method\":\"Browser.close\",\"id\":25}")) {
+                    close();
+                    return;
+                }
                 onMessage(message);
                 start = end + 1;
                 end = findNullByte(concatBuffer, start);
@@ -166,6 +166,7 @@ public class PipeTransport implements ConnectionTransport {
                 pendingMessage.add(remaining);
             }
         }
+
         private int findNullByte(byte[] buffer, int startIndex) {
             for (int i = startIndex; i < buffer.length; i++) {
                 if (buffer[i] == 0) { // Compare with integer 0 for null byte

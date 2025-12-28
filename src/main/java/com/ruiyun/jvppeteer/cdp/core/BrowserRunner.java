@@ -215,7 +215,7 @@ public class BrowserRunner {
             }
 
         } catch (Exception e) {
-            LOGGER.error("kill chrome process error ", e);
+            LOGGER.error("kill chrome process error {}",Thread.currentThread().getName(), e);
         } finally {
             try {
                 cleanUserDataDir();

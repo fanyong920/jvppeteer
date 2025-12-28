@@ -1,5 +1,5 @@
 // launch-browser-pipe.js
-import {spawn} from "node:child_process";
+import {spawn,execSync} from "node:child_process";
 
 
 // 从命令行参数读取 Chrome 路径和启动参数（JSON 格式）
@@ -8,7 +8,6 @@ if (!argsJson) {
     console.error('Usage: node launch-browser-pipe.js "<json>"');
     process.exit(1);
 }
-
 let config;
 try {
     config = JSON.parse(Buffer.from(process.argv[2], 'base64').toString('utf-8'));
@@ -37,7 +36,7 @@ pipeRead.on('data', (data) => {
 //从java接收
 process.stdin.on('data', (data) => {
     pendingMessage.push(data);
-    if (data.include('\0')) {
+    if (data.indexOf('\0') === -1) {
         return;
     }
     const concatBuffer = Buffer.concat(pendingMessage);
@@ -59,12 +58,15 @@ process.stdin.on('data', (data) => {
     }
 })
 
-
 // 可选：监听退出
-pipeRead.on('close', (code) => {
+pipeWrite.on('close', (code) => {
+    const closeMessage = {"method":"Browser.close","id":25}
+    process.stdout.write(JSON.stringify(closeMessage));
+    process.stdout.write('\0');
     kill(chrome);
     process.exit(code || 0);
 });
+
 
 // 添加进程清理
 process.on('exit', () => {
@@ -86,7 +88,7 @@ function kill(chrome) {
     ) {
         if (process.platform === 'win32') {
             try {
-                childProcess.execSync(
+                execSync(
                     `taskkill /pid ${chrome.pid} /T /F`,
                 );
             } catch (error) {

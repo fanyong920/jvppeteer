@@ -260,8 +260,10 @@ public abstract class BrowserLauncher {
         Runnable closeCallback = () -> {
             if(options.getPipe()){
                 runner.destroyProcess(runner.getProcess());
+                connection.onClose();
+            }else {
+                runner.closeBrowser();
             }
-            runner.closeBrowser();
         };
         CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
         cdpBrowser.setExecutablePath(this.executablePath);
@@ -271,7 +273,7 @@ public abstract class BrowserLauncher {
         }
         connection.setCloseRunner(() -> {
             if (!cdpBrowser.autoClose) {
-                LOGGER.info("Websocket connection has been closed,now shutting down browser process");
+                LOGGER.info("CdpConnection has been closed,now shutting down browser process");
                 cdpBrowser.disconnect();
                 try {
                     cdpBrowser.close();
