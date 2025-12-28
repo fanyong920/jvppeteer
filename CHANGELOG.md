@@ -405,3 +405,9 @@
 - [fix：对Page.addScriptTag()返回值transferHandle](https://github.com/fanyong920/jvppeteer/commit/55643214c8a1c88ffca35357a30fa4fbe1e6658b)
 - [fix：对nodejs和launch-browser-pipe.js存放目录改为可以用户指定和项目目录下的.pipe-resources](https://github.com/fanyong920/jvppeteer/commit/d0ed6c5da2594c025ce4e968da5190ac889f65fa)
 
+### Version Release 3.6.1(2025/12/28)
+
+- [fix:浏览器意外关闭时，使用自下而上清理资源的方式](https://github.com/fanyong920/jvppeteer/commit/2ce234f063b387dadde714c4e84097e00fb64bb8)
+- [fix:pipe连接，浏览器意外关闭的资源清理](https://github.com/fanyong920/jvppeteer/commit/4a4d4847e1245e336af6aac431a216f2efcaca3e)
+- [fix:修复SonarQube提示的js代码质量问题](https://github.com/fanyong920/jvppeteer/commit/2b3e32ba3ba85e4a41d43444a9ca50ae08f67896)
+
