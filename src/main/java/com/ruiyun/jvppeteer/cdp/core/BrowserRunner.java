@@ -87,7 +87,7 @@ public class BrowserRunner {
         if (usepipe) {
             String pipeDir = System.getProperty(JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR);
             if (StringUtil.isEmpty(pipeDir)) {
-                pipeDir = Helper.join(System.getProperty("user.dir"), ".pipe-resources");
+                pipeDir = Helper.join(System.getProperty("user.dir"), ".pipe-resources-"+Constant.JVPPETEER_VERSION);
             }
             //添加node path
             arguments.add(getNodeExecutablePath(pipeDir));
@@ -215,7 +215,7 @@ public class BrowserRunner {
             }
 
         } catch (Exception e) {
-            LOGGER.error("kill chrome process error {}",Thread.currentThread().getName(), e);
+            LOGGER.error("kill chrome process error ", e);
         } finally {
             try {
                 cleanUserDataDir();

@@ -11,7 +11,6 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
-import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadPolicy;
@@ -20,6 +19,7 @@ import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.CreateType;
@@ -320,18 +320,26 @@ public class CdpBrowser extends Browser {
         return version.getUserAgent();
     }
 
+    public volatile boolean closed;
+
     @Override
     public void close() {
-        this.autoClose = true;
+        if (this.closed) {
+            return;
+        }
         this.closeCallback.run();
         this.disconnect();
+        this.closed = true;
     }
 
     public void disconnect() {
-        this.autoClose = true;
+        if (this.closed) {
+            return;
+        }
         this.targetManager.dispose();
         this.connection.dispose();
         this.detach();
+        this.closed = true;
     }
 
     public boolean connected() {

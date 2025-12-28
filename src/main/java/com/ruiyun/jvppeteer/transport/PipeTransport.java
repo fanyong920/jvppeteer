@@ -30,7 +30,8 @@ public class PipeTransport implements ConnectionTransport {
     private final BlockingQueue<String> sendQueue = new ArrayBlockingQueue<>(1000);
     private final Thread readThread;
     private final Thread writerThread;
-    private boolean closed = false;
+    private volatile boolean closed = false;
+    volatile boolean remote = false;
 
     public PipeTransport(InputStream pipeReader, OutputStream pipeWriter) {
         this.pipeReader = new DataInputStream(new BufferedInputStream(pipeReader));
@@ -65,16 +66,17 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void close() {
-        if (closed) {
+        if (this.closed) {
             return;
         }
+        LOGGER.info("Pipe connection closed by " + (remote ? "remote peer" : "us"));
         this.closed = true;
         StreamUtil.closeQuietly(pipeWriter);
         StreamUtil.closeQuietly(pipeReader);
-        readThread.interrupt();
-        writerThread.interrupt();
         //浏览器意外关闭时候，connection不为空
         Optional.ofNullable(this.connection).map(Connection::closeRunner).ifPresent(Runnable::run);
+        readThread.interrupt();
+        writerThread.interrupt();
     }
 
     private class PipeWriterThread extends Thread {
@@ -155,7 +157,9 @@ public class PipeTransport implements ConnectionTransport {
             // Process all complete messages
             while (end != -1) {
                 String message = new String(concatBuffer, start, end - start, StandardCharsets.UTF_8);
+                //browser-launch-pipe.js 发送的pipe断开的消息
                 if (message.equals("{\"method\":\"Browser.close\",\"id\":25}")) {
+                    remote = true;
                     close();
                     return;
                 }

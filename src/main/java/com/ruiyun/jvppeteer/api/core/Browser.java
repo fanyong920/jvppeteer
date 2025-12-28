@@ -27,12 +27,6 @@ import static com.ruiyun.jvppeteer.util.Helper.waitForCondition;
 public abstract class Browser extends EventEmitter<BrowserEvents> implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Browser.class);
     /**
-     * 主动调用 browser.close时候为true
-     * 当 connection 断开，浏览器进程未关闭时候，杀死浏览器进程
-     */
-    public volatile boolean autoClose;
-
-    /**
      * 获取关联的 Process。
      *
      * @return 浏览器进程对象

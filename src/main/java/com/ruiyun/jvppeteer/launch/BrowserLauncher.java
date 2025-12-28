@@ -148,7 +148,7 @@ public abstract class BrowserLauncher {
     }
 
     protected Browser createBrowser(LaunchOptions options, List<String> chromeArguments, String temporaryUserDataDir, boolean usePipe, List<String> defaultArgs, String customizedUserDataDir) {
-        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir, options.getProduct(), options.getProtocol(), customizedUserDataDir,options.getEnv(),usePipe);
+        BrowserRunner runner = new BrowserRunner(this.executablePath, chromeArguments, temporaryUserDataDir, options.getProduct(), options.getProtocol(), customizedUserDataDir, options.getEnv(), usePipe);
         try {
             Connection connection;
             if (usePipe) {
@@ -257,13 +257,7 @@ public abstract class BrowserLauncher {
     }
 
     private CdpBrowser createCdpBrowser(LaunchOptions options, List<String> defaultArgs, BrowserRunner runner, Connection connection) {
-        Runnable closeCallback = () -> {
-            if(options.getPipe()){
-                runner.destroyProcess(runner.getProcess());
-            }else {
-                runner.closeBrowser();
-            }
-        };
+        Runnable closeCallback = runner::closeBrowser;
         CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);
@@ -271,13 +265,14 @@ public abstract class BrowserLauncher {
             cdpBrowser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
         }
         connection.setCloseRunner(() -> {
-            if (!cdpBrowser.autoClose) {
-                LOGGER.info("CdpConnection has been closed,now shutting down browser process");
-                try {
-                    cdpBrowser.close();
-                } catch (Exception e) {
-                    LOGGER.trace("jvppeteer error", e);
-                }
+            //专门用于浏览器意外关闭的逻辑
+            try {
+                //1.先清理掉connection
+                connection.dispose();
+                //2.再清理掉browser
+                cdpBrowser.close();
+            } catch (Exception e) {
+                LOGGER.trace("jvppeteer error", e);
             }
         });
         runner.setPid(getBrowserPid(connection, runner.getProcess()));
