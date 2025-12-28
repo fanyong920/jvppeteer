@@ -73,7 +73,7 @@ public class WebSocketTransport extends WebSocketClient implements ConnectionTra
     @Override
     public void onClose(int code, String reason, boolean remote) {//这里是WebSocketClient的实现方法,当websocket closed的时候会调用onClose
         LOGGER.info("Websocket connection closed by {} Code: {} Reason: {}", remote ? "remote peer" : "us", code, StringUtil.isEmpty(reason) ? CLOSE_REASON.get(code) : reason);
-        //浏览器以外关闭时候，connection不为空
+        //浏览器意外关闭时候，connection不为空
         Optional.ofNullable(this.connection).map(Connection::closeRunner).ifPresent(Runnable::run);
     }
 
