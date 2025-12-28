@@ -30,6 +30,7 @@ public class PipeTransport implements ConnectionTransport {
     private final BlockingQueue<String> sendQueue = new ArrayBlockingQueue<>(1000);
     private final Thread readThread;
     private final Thread writerThread;
+    private boolean closed = false;
 
     public PipeTransport(InputStream pipeReader, OutputStream pipeWriter) {
         this.pipeReader = new DataInputStream(new BufferedInputStream(pipeReader));
@@ -64,12 +65,16 @@ public class PipeTransport implements ConnectionTransport {
 
     @Override
     public void close() {
-        //浏览器意外关闭时候，connection不为空
-        Optional.ofNullable(this.connection).map(Connection::closeRunner).ifPresent(Runnable::run);
+        if (closed) {
+            return;
+        }
+        this.closed = true;
         StreamUtil.closeQuietly(pipeWriter);
         StreamUtil.closeQuietly(pipeReader);
         readThread.interrupt();
         writerThread.interrupt();
+        //浏览器意外关闭时候，connection不为空
+        Optional.ofNullable(this.connection).map(Connection::closeRunner).ifPresent(Runnable::run);
     }
 
     private class PipeWriterThread extends Thread {

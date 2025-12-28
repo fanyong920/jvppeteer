@@ -260,7 +260,6 @@ public abstract class BrowserLauncher {
         Runnable closeCallback = () -> {
             if(options.getPipe()){
                 runner.destroyProcess(runner.getProcess());
-                connection.onClose();
             }else {
                 runner.closeBrowser();
             }
@@ -274,7 +273,6 @@ public abstract class BrowserLauncher {
         connection.setCloseRunner(() -> {
             if (!cdpBrowser.autoClose) {
                 LOGGER.info("CdpConnection has been closed,now shutting down browser process");
-                cdpBrowser.disconnect();
                 try {
                     cdpBrowser.close();
                 } catch (Exception e) {
