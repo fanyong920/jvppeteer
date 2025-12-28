@@ -241,7 +241,7 @@ public class CdpConnection extends Connection {
 
     public void dispose() {
         this.onClose();//清理Connection资源
-        this.transport.close();//关闭websocket
+        this.transport.close();//关闭连接（pipe or websocket）
     }
 
     public void onClose() {
