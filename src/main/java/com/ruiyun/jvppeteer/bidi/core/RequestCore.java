@@ -13,6 +13,7 @@ import com.ruiyun.jvppeteer.bidi.entities.Header;
 import com.ruiyun.jvppeteer.bidi.entities.Initiator;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseCompletedParameters;
 import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
+import com.ruiyun.jvppeteer.bidi.entities.ResponseStartedParameters;
 import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.common.Constant;
@@ -98,6 +99,19 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
         };
         this.session().on(ConnectionEvents.network_fetchError, fetchErrorConsumer);
         this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.network_fetchError, fetchErrorConsumer));
+
+        Consumer<ResponseStartedParameters> responseStartedConsumer = event -> {
+            if (!Objects.equals(event.getContext(),this.browsingContext.id()) ||
+                    !Objects.equals(event.getRequest().getRequest(),this.id()) ||
+                    this.event.getRedirectCount() != event.getRedirectCount()) {
+                return;
+            }
+            this.response = event.getResponse();
+            this.event.getRequest().setTimings(event.getRequest().getTimings());
+            this.emit(RequestCoreEvents.response, this.response);
+        };
+        this.session().on(ConnectionEvents.network_responseStarted, responseStartedConsumer);
+        this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.network_responseStarted, responseStartedConsumer));
 
         Consumer<ResponseCompletedParameters> responseCompletedConsumer = event -> {
             if (!Objects.equals(event.getContext(), this.browsingContext.id())
@@ -302,17 +316,26 @@ public class RequestCore extends EventEmitter<RequestCore.RequestCoreEvents> {
 
     public enum RequestCoreEvents {
         /**
-         * RequestCore
+         * Emitted when the request is redirected.
+         * RequestCore.class
          */
         redirect,
         /**
+         * Emitted when the request succeeds.
          * true
          */
         authenticate,
         /**
+         * Emitted when the request succeeds.
          * ResponseData.class
          */
         success,
+        /**
+         * Analog of WebDriver BiDi event `network.responseStarted`. Emitted when a
+         * response is received.
+         * ResponseData.class
+         */
+        response,
         /**
          * string
          */

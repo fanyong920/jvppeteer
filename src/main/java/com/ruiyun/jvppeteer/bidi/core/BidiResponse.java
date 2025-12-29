@@ -20,22 +20,32 @@ import java.util.List;
 import java.util.Objects;
 
 public class BidiResponse extends Response {
-    private final ResponseData data;
+    private ResponseData data;
     private final BidiRequest request;
-    private ResponseSecurityDetails  securityDetails;
+    private ResponseSecurityDetails securityDetails;
     private final boolean cdpSupported;
+
     public BidiResponse(ResponseData data, BidiRequest request, boolean cdpSupported) {
         super();
         this.data = data;
         this.request = request;
         this.cdpSupported = cdpSupported;
         SecurityDetails securityDetails1 = data.getSecurityDetails();
-        if(this.cdpSupported && Objects.nonNull(securityDetails1)) {
+        if (this.cdpSupported && Objects.nonNull(securityDetails1)) {
             this.securityDetails = Constant.OBJECTMAPPER.convertValue(securityDetails1, ResponseSecurityDetails.class);
         }
     }
 
+    /**
+     * Returns a new BidiHTTPResponse or updates the existing one if it already exists.
+     */
     public static BidiResponse from(ResponseData data, BidiRequest request, boolean cdpSupported) {
+        BidiResponse existingResponse = request.response();
+        if (Objects.nonNull(existingResponse)) {
+            // Update existing response data with up-to-date data.
+            existingResponse.data = data;
+            return existingResponse;
+        }
         BidiResponse response = new BidiResponse(data, request, cdpSupported);
         response.initialize();
         return response;
@@ -43,11 +53,11 @@ public class BidiResponse extends Response {
 
     private void initialize() {
         BidiFrame frame = this.request.frame();
-        if(this.data.getFromCache()){
+        if (this.data.getFromCache()) {
             this.request.setFromMemoryCache(true);
 
             if (Objects.nonNull(frame)) {
-                frame.page().trustedEmitter().emit(PageEvents.RequestServedFromCache,this.request);
+                frame.page().trustedEmitter().emit(PageEvents.RequestServedFromCache, this.request);
             }
         }
         frame.page().trustedEmitter().emit(PageEvents.Response, this);
@@ -55,7 +65,7 @@ public class BidiResponse extends Response {
 
     @Override
     public RemoteAddress remoteAddress() {
-        return new RemoteAddress("",-1);
+        return new RemoteAddress("", -1);
     }
 
     @Override
@@ -76,10 +86,10 @@ public class BidiResponse extends Response {
     @Override
     public List<HeaderEntry> headers() {
         List<HeaderEntry> headers = new ArrayList<HeaderEntry>();
-        if(ValidateUtil.isNotEmpty(this.data.getHeaders())) {
+        if (ValidateUtil.isNotEmpty(this.data.getHeaders())) {
             for (Header header : this.data.getHeaders()) {
-                if(Objects.equals("string",header.getValue().getType())){
-                    headers.add(new HeaderEntry(header.getName().toLowerCase(),header.getValue().getValue()));
+                if (Objects.equals("string", header.getValue().getType())) {
+                    headers.add(new HeaderEntry(header.getName().toLowerCase(), header.getValue().getValue()));
                 }
             }
         }
@@ -128,6 +138,7 @@ public class BidiResponse extends Response {
     public Frame frame() {
         return this.request.frame();
     }
+
     @Override
     public boolean fromServiceWorker() {
         return false;
@@ -135,7 +146,7 @@ public class BidiResponse extends Response {
 
     @Override
     public ResponseSecurityDetails securityDetails() {
-        if(!this.cdpSupported) {
+        if (!this.cdpSupported) {
             throw new UnsupportedOperationException();
         }
         return this.securityDetails;

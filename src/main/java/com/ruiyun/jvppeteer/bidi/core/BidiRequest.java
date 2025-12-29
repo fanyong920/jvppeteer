@@ -74,8 +74,16 @@ public class BidiRequest extends Request {
             });
             httpRequest.finalizeInterceptions();
         });
+        this.request.once(RequestCore.RequestCoreEvents.response, (Consumer<ResponseData>) data -> {
+            // Create new response with the initial data. Note: the data can be updated later
+            // on, when the `success` event is received.
+            this.response = BidiResponse.from(data, this, this.frame.page().browser().cdpSupported());
+        });
 
         this.request.once(RequestCore.RequestCoreEvents.success, (Consumer<ResponseData>) data -> {
+            // The `network.responseCompleted` event (mapped to `success` here)
+            // contains the most up-to-date and complete response data, including
+            // headers that might be missing from `network.responseStarted`
             this.response = BidiResponse.from(data, this, this.frame.page().browser().cdpSupported());
         });
         this.request.on(RequestCore.RequestCoreEvents.authenticate, this.handleAuthentication());
