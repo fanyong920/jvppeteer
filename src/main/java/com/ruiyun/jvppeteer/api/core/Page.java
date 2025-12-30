@@ -1596,8 +1596,8 @@ public abstract class Page extends EventEmitter<PageEvents> {
     }
 
     /**
-     * Resizes the browser window the page is in so that the content area
-     * (excluding browser UI) is according to the specified width and height.
+     * Resizes the browser window of this page so that the content area (excluding
+     * browser UI) has the specified width and height.
      *
      * @param contentWidth  浏览器内容宽度
      * @param contentHeight 浏览器内容高度
