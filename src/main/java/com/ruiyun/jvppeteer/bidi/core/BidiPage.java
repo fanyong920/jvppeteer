@@ -726,7 +726,7 @@ public class BidiPage extends Page {
     public void emulateNetworkConditions(NetworkConditions networkConditions) {
         if (!this.browserContext.browser().cdpSupported()) {
             // Check if trying to set network throttling without offline mode
-            if (networkConditions != null && !networkConditions.getOffline() && (networkConditions.getUpload() >= 0 || networkConditions.getDownload() >= 0 || networkConditions.getLatency() > 0)) {
+            if ((networkConditions == null || !networkConditions.getOffline()) && (networkConditions.getUpload() >= 0 || networkConditions.getDownload() >= 0 || networkConditions.getLatency() > 0)) {
                 throw new UnsupportedOperationException("WebDriver BiDi only supports offline mode");
             }
             // Set offline mode
