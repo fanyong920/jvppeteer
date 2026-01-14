@@ -32,6 +32,11 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -658,5 +663,22 @@ public class Helper {
                 return false;
             });
         }
+    }
+
+    /**
+     * 解码字节数组为字符串，如果遇到无法解码的字节则抛出异常
+     */
+    public static String decodeUtf8(byte[] content) throws CharacterCodingException {
+        Charset charset = StandardCharsets.UTF_8;
+        CharsetDecoder decoder = charset.newDecoder();
+
+        // 设置致命错误模式，遇到无效字节时抛出异常
+        decoder.onMalformedInput(java.nio.charset.CodingErrorAction.REPORT);
+        decoder.onUnmappableCharacter(java.nio.charset.CodingErrorAction.REPORT);
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(content);
+        CharBuffer charBuffer = decoder.decode(byteBuffer);
+
+        return charBuffer.toString();
     }
 }

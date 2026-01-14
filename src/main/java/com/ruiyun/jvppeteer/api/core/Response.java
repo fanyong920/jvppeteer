@@ -1,13 +1,17 @@
 package com.ruiyun.jvppeteer.api.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteAddress;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceTiming;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseSecurityDetails;
+import com.ruiyun.jvppeteer.common.Constant;
+
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.util.List;
+
+import static com.ruiyun.jvppeteer.util.Helper.decodeUtf8;
 
 public abstract class Response {
     public Response() {
@@ -72,18 +76,23 @@ public abstract class Response {
     public abstract ResourceTiming timing();
 
     /**
-     * 响应正文的字节数组。
-     *
-     * @return 响应正文的字节数组。
+     * Promise which resolves to a buffer with response body.
+     * <p>
+     * The buffer might be re-encoded by the browser
+     * based on HTTP-headers or other heuristics. If the browser
+     * failed to detect the correct encoding, the buffer might
+     * be encoded incorrectly. See
+     * https://github.com/puppeteer/puppeteer/issues/6478.
      */
     public abstract byte[] content();
 
     /**
      * 响应正文的字符串
+     *
      * @return 响应正文的字符串
      */
-    public String text() {
-        return new String(content());
+    public String text() throws CharacterCodingException {
+        return decodeUtf8(content());
     }
 
     /**
