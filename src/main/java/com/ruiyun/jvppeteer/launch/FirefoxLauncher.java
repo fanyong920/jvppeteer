@@ -234,6 +234,10 @@ public class FirefoxLauncher extends com.ruiyun.jvppeteer.launch.BrowserLauncher
 
         defaultPrefs.put("remote.enabled", true);
 
+        // Until Bug 1999693 is resolved, this preference needs to be set to allow
+        // Webdriver BiDi to automatically dismiss file pickers.
+        defaultPrefs.put("remote.bidi.dismiss_file_pickers.enabled", true);
+
         defaultPrefs.put("security.certerrors.mitm.priming.enabled", false);
 
         defaultPrefs.put("security.fileuri.strict_origin_policy", false);
