@@ -43,7 +43,7 @@ public class CookieData {
      */
     private CookiePriority priority;
     /**
-     * True if cookie is SameParty.
+     * deprecated Always set to false. Supported only in Chrome.
      */
     private boolean sameParty;
     /**

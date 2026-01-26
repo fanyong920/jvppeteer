@@ -45,9 +45,8 @@ public class CookieParam {
      * "Low"|"Medium"|"High";
      */
     private CookiePriority priority;
-
     /**
-     * True if cookie is SameParty.
+     * deprecated Always set to false. Supported only in Chrome.
      */
     private boolean sameParty;
     /**

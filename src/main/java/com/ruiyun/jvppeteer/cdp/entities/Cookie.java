@@ -54,10 +54,7 @@ public class Cookie extends CookieData {
      * "Low"|"Medium"|"High";
      */
     private CookiePriority priority;
-    /**
-     * True if cookie is SameParty.
-     */
-    private boolean sameParty;
+
     /**
      * Cookie source scheme type.
      */
@@ -159,15 +156,6 @@ public class Cookie extends CookieData {
         this.priority = priority;
     }
 
-
-    public boolean getSameParty() {
-        return sameParty;
-    }
-
-    public void setSameParty(boolean sameParty) {
-        this.sameParty = sameParty;
-    }
-
     public CookieSourceScheme getSourceScheme() {
         return sourceScheme;
     }
@@ -206,7 +194,6 @@ public class Cookie extends CookieData {
                 ", session=" + session +
                 ", sameSite='" + sameSite + '\'' +
                 ", priority='" + priority + '\'' +
-                ", sameParty=" + sameParty +
                 ", sourceScheme='" + sourceScheme + '\'' +
                 ", partitionKey=" + partitionKey +
                 ", partitionKeyOpaque=" + partitionKeyOpaque +
