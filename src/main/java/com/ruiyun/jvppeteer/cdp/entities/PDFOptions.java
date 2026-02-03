@@ -84,7 +84,7 @@ public class PDFOptions {
      * 超时（以毫秒为单位）。通过 0 禁用超时。
      * 可以使用 Page.setDefaultTimeout() 更改默认值
      */
-    private int timeout = 30000;
+    private Integer timeout;
     /**
      * 如果为真，则等待 document.fonts.ready 解析。如果页面在后台，则可能需要使用 Page.bringToFront() 激活页面。
      */
@@ -226,11 +226,11 @@ public class PDFOptions {
         this.tagged = tagged;
     }
 
-    public int getTimeout() {
+    public Integer getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
 

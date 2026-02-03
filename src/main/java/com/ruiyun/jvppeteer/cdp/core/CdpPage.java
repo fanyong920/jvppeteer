@@ -899,6 +899,7 @@ public class CdpPage extends Page {
     }
 
     public byte[] pdf(PDFOptions options, LengthUnit lengthUnit) throws IOException {
+        int timeout = Objects.isNull(options.getTimeout()) ? this._timeoutSettings.navigationTimeout() : options.getTimeout();
         double paperWidth = 8.5;
         double paperHeight = 11;
         if (options.getFormat() != null) {
@@ -957,7 +958,7 @@ public class CdpPage extends Page {
         params.put("generateTaggedPDF", options.getTagged());
         params.put("generateDocumentOutline", options.getOutline());
 
-        JsonNode result = this.primaryTargetClient.send("Page.printToPDF", params);
+        JsonNode result = this.primaryTargetClient.send("Page.printToPDF", params, timeout, true);
 
         if (options.getOmitBackground()) {
             this.emulationManager.resetDefaultBackgroundColor();
