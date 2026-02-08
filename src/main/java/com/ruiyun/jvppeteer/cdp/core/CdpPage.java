@@ -135,6 +135,7 @@ public class CdpPage extends Page {
         Objects.requireNonNull(this.tabTargetClient, "Tab target session is not defined.");
         this.tabTarget = ((CdpCDPSession) this.tabTargetClient).getTarget();
         Objects.requireNonNull(this.tabTarget, "Tab target is not defined.");
+        this.tabId = this.tabTarget.getTargetInfo().getTargetId();
         this.primaryTarget = target;
         this.targetManager = target.targetManager();
         this.keyboard = new CdpKeyboard(client);

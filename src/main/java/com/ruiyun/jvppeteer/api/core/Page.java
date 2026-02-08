@@ -53,6 +53,9 @@ import com.ruiyun.jvppeteer.exception.TimeoutException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,9 +71,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
 
@@ -80,6 +80,13 @@ public abstract class Page extends EventEmitter<PageEvents> {
     protected final Map<Consumer<Request>, Consumer<Request>> requestHandlers = new WeakHashMap<>();
     protected boolean isDragging;
     protected List<String> inflight = new ArrayList<>();
+    /**
+     * Internal API to get an implementation-specific identifier
+     * for the tab. In Chrome, it is a tab target id. If unknown,
+     * returns an empty string.
+     *
+     */
+    public String tabId;
 
     public Page() {
         super();
