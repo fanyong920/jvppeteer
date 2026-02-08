@@ -5,7 +5,7 @@ public class CreateBrowsingContextOptions {
      * id
      */
     private String referenceContext;
-    private boolean background;
+    private Boolean background;
     /**
      * id
      */
@@ -19,11 +19,11 @@ public class CreateBrowsingContextOptions {
         this.referenceContext = referenceContext;
     }
 
-    public boolean getBackground() {
+    public Boolean getBackground() {
         return background;
     }
 
-    public void setBackground(boolean background) {
+    public void setBackground(Boolean background) {
         this.background = background;
     }
 

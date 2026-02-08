@@ -3,6 +3,11 @@ package com.ruiyun.jvppeteer.common;
 public class CreatePageOptions {
     private CreateType type;
     private WindowBounds windowBounds;
+    /**
+     * Whether to create the page in the background.
+     *
+     */
+    private Boolean background;
 
     public CreateType getType() {
         return type;
@@ -20,11 +25,11 @@ public class CreatePageOptions {
         this.windowBounds = windowBounds;
     }
 
-    @Override
-    public String toString() {
-        return "CreatePageOptions{" +
-                "type=" + type +
-                ", windowBounds=" + windowBounds +
-                '}';
+    public Boolean getBackground() {
+        return background;
+    }
+
+    public void setBackground(Boolean background) {
+        this.background = background;
     }
 }

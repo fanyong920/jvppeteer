@@ -223,7 +223,7 @@ public class BidiBrowser extends Browser {
 
     @Override
     public Page newPage(CreatePageOptions options) {
-        return this.defaultBrowserContext().newPage();
+        return this.defaultBrowserContext().newPage(options);
     }
 
     @Override

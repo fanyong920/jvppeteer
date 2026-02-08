@@ -207,7 +207,9 @@ public class BidiBrowserContext extends BrowserContext {
             } else {
                 type = CreateType.Tab;
             }
-            BrowsingContext context = this.userContext.createBrowsingContext(type, new CreateBrowsingContextOptions());
+            CreateBrowsingContextOptions createBrowsingContextOptions =  new CreateBrowsingContextOptions();
+            createBrowsingContextOptions.setBackground(options.getBackground());
+            BrowsingContext context = this.userContext.createBrowsingContext(type,createBrowsingContextOptions);
             Page page = this.pages.get(context);
             Objects.requireNonNull(page, "Page is not found");
             if (Objects.nonNull(this.defaultViewport)) {

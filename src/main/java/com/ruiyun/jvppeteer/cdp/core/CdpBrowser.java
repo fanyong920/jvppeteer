@@ -259,7 +259,7 @@ public class CdpBrowser extends Browser {
         boolean hasTargets = this.targets().stream()
                 .anyMatch(t -> t.browserContext().id().equals(contextId));
         WindowBounds windowBounds =
-                (options != null && CreateType.Window.equals(options.getType())) ?
+                (Objects.nonNull(options) && CreateType.Window.equals(options.getType())) ?
                         options.getWindowBounds() :
                         null;
         Map<String, Object> params = ParamsFactory.create();
@@ -276,6 +276,9 @@ public class CdpBrowser extends Browser {
         }
         if (hasTargets && Objects.nonNull(options) && Objects.equals(options.getType(), CreateType.Window)) {
             params.put("newWindow", true);
+        }
+        if (Objects.nonNull(options)) {
+            params.put("background", options.getBackground());
         }
         JsonNode result = this.connection.send("Target.createTarget", params);
         if (result != null) {
