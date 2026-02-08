@@ -300,8 +300,9 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     }
 
     public void close(boolean promptUnload) {
-        ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
-        this.children.values().parallelStream().forEach(child -> child.close(promptUnload));
+        // The WebDriver BiDi specification only allows closing top-level browsing contexts.
+        // Closing a top-level context automatically closes all its children, so there is
+        // no need to explicitly close nested contexts.
         Map<String, Object> params = ParamsFactory.create();
         params.put("context", this.id);
         params.put("promptUnload", promptUnload);
