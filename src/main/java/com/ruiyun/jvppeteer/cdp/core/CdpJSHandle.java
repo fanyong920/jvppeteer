@@ -76,7 +76,7 @@ public class CdpJSHandle extends JSHandle {
             }
             return value;
         }
-        return Helper.valueFromRemoteObject(this.remoteObject);
+        return Helper.valueFromPrimitiveRemoteObject(this.remoteObject);
     }
 
     @Override
@@ -99,7 +99,7 @@ public class CdpJSHandle extends JSHandle {
             String type = StringUtil.isNotEmpty(this.remoteObject.getSubtype()) ? this.remoteObject.getSubtype() : this.remoteObject.getType();
             return "JSHandle@" + type;
         }
-        return "JSHandle:" + Helper.valueFromRemoteObject(this.remoteObject);
+        return "JSHandle:" + Helper.valueFromPrimitiveRemoteObject(this.remoteObject);
     }
 
     @Override

@@ -295,7 +295,7 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
                 }
             }
             RemoteObject remoteObject = result.getResult();
-            return returnByValue ? Helper.valueFromRemoteObject(remoteObject) : this.world.createJSHandle(remoteObject);
+            return returnByValue ? Helper.valueFromPrimitiveRemoteObject(remoteObject) : this.world.createJSHandle(remoteObject);
         }
         Map<String, Object> params = new HashMap<>();
         List<JsonNode> argList = new ArrayList<>();
@@ -341,7 +341,7 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
             }
         }
         RemoteObject remoteObject = callFunctionOnPromise.getResult();
-        return returnByValue ? Helper.valueFromRemoteObject(remoteObject) : this.world.createJSHandle(remoteObject);
+        return returnByValue ? Helper.valueFromPrimitiveRemoteObject(remoteObject) : this.world.createJSHandle(remoteObject);
     }
 
     private void initPuppeteerUtil() throws JsonProcessingException {

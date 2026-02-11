@@ -46,7 +46,6 @@ import com.ruiyun.jvppeteer.cdp.entities.PaperFormats;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotClip;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
-import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
@@ -73,6 +72,7 @@ import com.ruiyun.jvppeteer.transport.CdpCDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -93,7 +93,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
-
 import static com.ruiyun.jvppeteer.common.Constant.ABOUT_BLANK;
 import static com.ruiyun.jvppeteer.common.Constant.CDP_BINDING_PREFIX;
 import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
@@ -102,6 +101,7 @@ import static com.ruiyun.jvppeteer.common.Constant.STREAM;
 import static com.ruiyun.jvppeteer.common.Constant.supportedMetrics;
 import static com.ruiyun.jvppeteer.util.Helper.convertCookiesPartitionKeyFromPuppeteerToCdp;
 import static com.ruiyun.jvppeteer.util.Helper.throwError;
+import static com.ruiyun.jvppeteer.util.Helper.valueFromJSHandle;
 
 public class CdpPage extends Page {
 
@@ -261,7 +261,7 @@ public class CdpPage extends Page {
     private final Consumer<CdpCDPSession> onAttachedToTarget = (session) -> {
         this.frameManager.onAttachedToTarget(session.getTarget());
         if ("worker".equals(session.getTarget().getTargetInfo().getType())) {
-            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::addConsoleMessage, CdpPage.this::handleException, this.frameManager.networkManager());
+            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::onConsoleAPI, CdpPage.this::handleException, this.frameManager.networkManager());
             this.workers.put(session.id(), webWorker);
             this.emit(PageEvents.WorkerCreated, webWorker);
         }
@@ -364,7 +364,7 @@ public class CdpPage extends Page {
         if (!"worker".equals(event.getEntry().getSource())) {
             List<ConsoleMessageLocation> locations = new ArrayList<>();
             locations.add(new ConsoleMessageLocation(event.getEntry().getUrl(), event.getEntry().getLineNumber()));
-            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null, event.getEntry().getStackTrace()));
+            this.emit(PageEvents.Console, new ConsoleMessage(convertConsoleMessageLevel(event.getEntry().getLevel()), event.getEntry().getText(), Collections.emptyList(), locations, null, event.getEntry().getStackTrace(), this.primaryTarget.getTargetId()));
         }
     }
 
@@ -672,33 +672,38 @@ public class CdpPage extends Page {
                 values.add(world.createJSHandle(arg));
             }
         }
-        this.addConsoleMessage(convertConsoleMessageLevel(event.getType()), values, event.getStackTrace());
-    }
-
-    //不能阻塞 WebSocketConnectReadThread
-    private void addConsoleMessage(ConsoleMessageType type, List<JSHandle> args, StackTrace stackTrace) {
         if (this.listenerCount(PageEvents.Console) == 0) {
-            args.forEach(JSHandle::dispose);
+            values.forEach(JSHandle::dispose);
             return;
         }
         List<String> textTokens = new ArrayList<>();
-        for (JSHandle arg : args) {
-            RemoteObject remoteObject = arg.remoteObject();
-            if (StringUtil.isNotEmpty(remoteObject.getObjectId())) {
-                textTokens.add(arg.toString());
+        for (JSHandle arg : values) {
+            Object value = valueFromJSHandle(arg);
+            if (value instanceof String) {
+                textTokens.add((String) value);
             } else {
-                textTokens.add(Helper.valueFromRemoteObject(remoteObject) + "");
-            }
-        }
-        List<ConsoleMessageLocation> stackTraceLocations = new ArrayList<>();
-        if (stackTrace != null) {
-            if (ValidateUtil.isNotEmpty(stackTrace.getCallFrames())) {
-                for (CallFrame callFrame : stackTrace.getCallFrames()) {
-                    stackTraceLocations.add(new ConsoleMessageLocation(callFrame.getUrl(), callFrame.getLineNumber(), callFrame.getColumnNumber()));
+                try {
+                    textTokens.add(OBJECTMAPPER.writeValueAsString(arg));
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("jvppeteer error", e);
                 }
             }
         }
-        ConsoleMessage message = new ConsoleMessage(type, String.join(" ", textTokens), args, stackTraceLocations, null, stackTrace);
+        List<ConsoleMessageLocation> stackTraceLocations = new ArrayList<>();
+        if (Objects.nonNull(event.getStackTrace()) && ValidateUtil.isNotEmpty(event.getStackTrace().getCallFrames())) {
+            for (CallFrame callFrame : event.getStackTrace().getCallFrames()) {
+                ConsoleMessageLocation location = new ConsoleMessageLocation();
+                location.setUrl(callFrame.getUrl());
+                location.setLineNumber(callFrame.getLineNumber());
+                location.setColumnNumber(callFrame.getColumnNumber());
+                stackTraceLocations.add(location);
+            }
+        }
+        String targetId = null;
+        if (world.environment().client() instanceof CdpCDPSession) {
+            targetId = ((CdpCDPSession) world.environment().client()).getTarget().getTargetId();
+        }
+        ConsoleMessage message = new ConsoleMessage(convertConsoleMessageLevel(event.getType()), String.join(" ", textTokens), values, stackTraceLocations, null, event.getStackTrace(), targetId);
         this.emit(PageEvents.Console, message);
     }
 
@@ -1031,13 +1036,14 @@ public class CdpPage extends Page {
         return page;
     }
 
-
     private void onBindingCalled(IsolatedWorld world, BindingCalledEvent event) {
         String payloadStr = event.getPayload();
         BindingPayload payload;
         try {
             payload = OBJECTMAPPER.readValue(payloadStr, BindingPayload.class);
         } catch (JsonProcessingException e) {
+            // The binding was either called by something in the page or it was
+            // called before our wrapper was initialized.
             return;
         }
         if (!"exposedFun".equals(payload.getType())) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.bidi.entities.SameSite;
 import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
@@ -21,6 +22,9 @@ import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -53,9 +57,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.CDP_SPECIFIC_PREFIX;
 import static com.ruiyun.jvppeteer.common.Constant.INTERNAL_URL;
@@ -75,7 +76,7 @@ public class Helper {
             name = "Error";
             message = exceptionDetails.getText();
         } else if (!"object".equals(exceptionDetails.getException().getType()) || !"error".equals(exceptionDetails.getException().getSubtype()) && StringUtil.isEmpty(exceptionDetails.getException().getObjectId())) {
-            return valueFromRemoteObject(exceptionDetails.getException());
+            return valueFromPrimitiveRemoteObject(exceptionDetails.getException());
         } else {
             String[] lines;
             lines = Optional.of(exceptionDetails).map(ExceptionDetails::getException).map(RemoteObject::getDescription).orElse("").split("\\n {4}at ");
@@ -121,7 +122,7 @@ public class Helper {
             name = "Error";
             message = exceptionDetails.getText();
         } else if (!"object".equals(exceptionDetails.getException().getType()) || !"error".equals(exceptionDetails.getException().getSubtype()) && StringUtil.isEmpty(exceptionDetails.getException().getObjectId())) {
-            return valueFromRemoteObject(exceptionDetails.getException());
+            return valueFromPrimitiveRemoteObject(exceptionDetails.getException());
         } else {
             String[] lines = Optional.of(exceptionDetails).map(ExceptionDetails::getException).map(RemoteObject::getDescription).orElse("").split("\n {4}at ");
             int size = Math.min(Optional.of(exceptionDetails).map(ExceptionDetails::getStackTrace).map(StackTrace::getCallFrames).map(List::size).orElse(0), lines.length - 1);
@@ -367,25 +368,6 @@ public class Helper {
         Matcher matcher = pattern.matcher(s);
         return matcher.matches();
     }
-
-    public static Object valueFromRemoteObject(RemoteObject remoteObject) {
-        ValidateUtil.assertArg(StringUtil.isEmpty(remoteObject.getObjectId()), "Cannot extract value when objectId is given");
-        if (StringUtil.isNotEmpty(remoteObject.getUnserializableValue())) {
-            if ("bigint".equals(remoteObject.getType()))
-                return new BigInteger(remoteObject.getUnserializableValue().replace("n", ""));
-            switch (remoteObject.getUnserializableValue()) {
-                case "-0":
-                case "NaN":
-                case "Infinity":
-                case "-Infinity":
-                    return remoteObject.getUnserializableValue();
-                default:
-                    throw new JvppeteerException("Unsupported unserializable value: " + remoteObject.getUnserializableValue());
-            }
-        }
-        return remoteObject.getValue();
-    }
-
     public static void releaseObject(CDPSession client, RemoteObject remoteObject) {
         if (StringUtil.isEmpty(remoteObject.getObjectId()))
             return;
@@ -680,5 +662,52 @@ public class Helper {
         CharBuffer charBuffer = decoder.decode(byteBuffer);
 
         return charBuffer.toString();
+    }
+
+    public static Object valueFromJSHandle(JSHandle handle) {
+        RemoteObject remoteObject = handle.remoteObject();
+        if (StringUtil.isNotEmpty(remoteObject.getObjectId())) {
+            return valueFromRemoteObjectReference(handle);
+        } else {
+            return valueFromPrimitiveRemoteObject(remoteObject);
+        }
+    }
+
+    public static String valueFromRemoteObjectReference(JSHandle handle) {
+        RemoteObject remoteObject = handle.remoteObject();
+        ValidateUtil.assertArg(StringUtil.isNotEmpty(remoteObject.getObjectId()), "Cannot extract value when no objectId is given");
+        String description = Objects.isNull(remoteObject.getDescription()) ? "" : remoteObject.getDescription();
+        if (Objects.equals("error", remoteObject.getSubtype()) && StringUtil.isNotEmpty(description)) {
+            int newlineIdx = description.indexOf('\n');
+            if (newlineIdx == -1) {
+                return description;
+            }
+            return description.substring(0, newlineIdx);
+        }
+        return "[" + (StringUtil.isNotEmpty(remoteObject.getSubtype()) ? remoteObject.getSubtype() : remoteObject.getType()) + " " + remoteObject.getClassName() + "]";
+    }
+
+    public static Object valueFromPrimitiveRemoteObject(RemoteObject remoteObject) {
+        ValidateUtil.assertArg(StringUtil.isEmpty(remoteObject.getObjectId()), "Cannot extract value when objectId is given");
+        if (StringUtil.isNotEmpty(remoteObject.getUnserializableValue())) {
+            if ("bigint".equals(remoteObject.getType())) {
+                String bigIntStr = remoteObject.getUnserializableValue().replace("n", "");
+                return new BigInteger(bigIntStr);
+            }
+            String unserializableValue = remoteObject.getUnserializableValue();
+            switch (unserializableValue) {
+                case "-0":
+                case "NaN":
+                case "Infinity":
+                case "-Infinity":
+                    return unserializableValue;
+                default:
+                    throw new JvppeteerException(
+                            "Unsupported unserializable value: " +
+                                    remoteObject.getUnserializableValue()
+                    );
+            }
+        }
+        return remoteObject.getValue();
     }
 }

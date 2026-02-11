@@ -20,6 +20,7 @@ import com.ruiyun.jvppeteer.exception.EvaluateException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -34,14 +35,20 @@ public class CdpWebWorker extends WebWorker {
     private final String id;
     private final TargetType targetType;
     private static final Logger LOGGER = LoggerFactory.getLogger(CdpWebWorker.class);
-    public CdpWebWorker(CDPSession client, String url, String targetId, TargetType targetType, ConsoleAPI consoleAPICalled, Consumer<ExceptionThrownEvent> exceptionThrown,NetworkManager networkManager) {
+    public CdpWebWorker(CDPSession client, String url, String targetId, TargetType targetType, BiConsumer<IsolatedWorld, ConsoleAPICalledEvent> consoleAPICalled, Consumer<ExceptionThrownEvent> exceptionThrown, NetworkManager networkManager) {
         super(url);
         this.id = targetId;
         this.client = client;
         this.targetType = targetType;
         this.world = new IsolatedWorld(null, this, new TimeoutSettings());
         this.client.once(ConnectionEvents.Runtime_executionContextCreated, (Consumer<ExecutionContextCreatedEvent>) event -> this.world.setContext(new ExecutionContext(client, event.getContext(), world)));
-        this.world.emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Consoleapicalled, (Consumer<ConsoleAPICalledEvent>) event -> consoleAPICalled.call(ConsoleMessageType.valueOf(event.getType().toUpperCase()), event.getArgs().stream().map((object) -> new CdpJSHandle(world, object)).collect(Collectors.toList()), event.getStackTrace()));
+        this.world.emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Consoleapicalled, (Consumer<ConsoleAPICalledEvent>) event -> {
+            try {
+                consoleAPICalled.accept(this.world,event);
+            } catch (Exception e) {
+                LOGGER.error("jvppeteer error", e);
+            }
+        });
         this.client.on(ConnectionEvents.Runtime_exceptionThrown, exceptionThrown);
         this.client.once(ConnectionEvents.CDPSession_Disconnected, (ignored) -> this.world.dispose());
         // This might fail if the target is closed before we receive all execution contexts.

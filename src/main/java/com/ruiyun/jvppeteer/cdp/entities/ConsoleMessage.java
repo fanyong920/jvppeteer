@@ -15,11 +15,11 @@ public class ConsoleMessage {
     private String text;
     private Frame frame;
     private StackTrace rawStackTrace;
-
+    private String targetId;
     public ConsoleMessage() {
     }
 
-    public ConsoleMessage(ConsoleMessageType type, String text, List<JSHandle> args, List<ConsoleMessageLocation> stackTraceLocations, Frame frame, StackTrace rawStackTrace) {
+    public ConsoleMessage(ConsoleMessageType type, String text, List<JSHandle> args, List<ConsoleMessageLocation> stackTraceLocations, Frame frame, StackTrace rawStackTrace, String targetId) {
         super();
         this.type = type;
         this.text = text;
@@ -27,6 +27,7 @@ public class ConsoleMessage {
         this.stackTraceLocations = stackTraceLocations;
         this.frame = frame;
         this.rawStackTrace = rawStackTrace;
+        this.targetId = targetId;
     }
 
     /**
@@ -73,13 +74,7 @@ public class ConsoleMessage {
         return rawStackTrace;
     }
 
-    @Override
-    public String toString() {
-        return "ConsoleMessage{" +
-                "type=" + type +
-                ", args=" + args +
-                ", stackTraceLocations=" + stackTraceLocations +
-                ", text='" + text + '\'' +
-                '}';
+    public String targetId() {
+        return targetId;
     }
 }
