@@ -591,9 +591,12 @@ public class Helper {
         }
         JsonNode priority = bidiCookie.path(CDP_SPECIFIC_PREFIX + "priority");
         if (!priority.isMissingNode()) {
-            cookie.setPriority(CookiePriority.valueOf(partitionKeyOpaque.asText()));
+            cookie.setPriority(CookiePriority.valueOf(priority.asText()));
         }
         JsonNode partitionKey = bidiCookie.path(CDP_SPECIFIC_PREFIX + "partitionKey");
+        if(!cookie.getSameParty()){
+            cookie.setSameParty(false);
+        }
         if (!partitionKey.isMissingNode()) {
             if (partitionKey.isTextual()) {
                 cookie.setPartitionKey(partitionKey);

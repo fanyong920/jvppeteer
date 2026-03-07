@@ -498,6 +498,12 @@ public class CdpPage extends Page {
             } else {
                 cookie.setPartitionKey(null);
             }
+            JsonNode sameParty = cookieNode.path("sameParty");
+            if (!sameParty.isMissingNode()) {
+                cookie.setSameParty(sameParty.asBoolean());
+            } else {
+                cookie.setSameParty(false);
+            }
             cookies.add(cookie);
         }
         return cookies;
