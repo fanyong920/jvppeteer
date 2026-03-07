@@ -377,6 +377,14 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         this.session().send("browsingContext.setViewport", params);
     }
 
+    public void setTouchOverride(Integer maxTouchPoints) {
+        ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("contexts", Collections.singletonList(this.id));
+        params.put("maxTouchPoints", maxTouchPoints);
+        this.session().send("emulation.setTouchOverride", params);
+    }
+
     public void performActions(List<SourceActions> actions) {
         ValidateUtil.assertArg(StringUtil.isEmpty(this.reason), this.reason);
         Map<String, Object> params = ParamsFactory.create();

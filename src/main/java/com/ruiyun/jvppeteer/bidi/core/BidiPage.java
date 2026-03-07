@@ -76,6 +76,7 @@ import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WaitForOptions;
+import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.util.Base64Util;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
@@ -406,6 +407,7 @@ public class BidiPage extends Page {
 
     @Override
     public void setViewport(Viewport viewport) throws ExecutionException, InterruptedException {
+        boolean needsReload = false;
         if (!this.browser().cdpSupported()) {
             SetViewportParameters options = new SetViewportParameters();
             if (Objects.nonNull(viewport) && viewport.getWidth() > 0 && viewport.getHeight() > 0) {
@@ -426,10 +428,30 @@ public class BidiPage extends Page {
             }
             this.frame.browsingContext.setViewport(options);
             this.frame.browsingContext.setScreenOrientationOverride(screenOrientation);
-            this.viewport = viewport;
-            return;
+            if ((this.viewport != null ? this.viewport.getHasTouch() : false) != (viewport != null ? viewport.getHasTouch() : false)) {
+                // The requested touch override state is different from the current one, meaning
+                // the reload is needed.
+                needsReload = true;
+                // 1 touch point if touch is enabled, null otherwise.
+                Integer maxTouchPoints = viewport != null && viewport.getHasTouch() ? 1 : null;
+                try {
+                    this.frame.browsingContext.setTouchOverride(maxTouchPoints);
+                } catch (Exception error) {
+                    if (error instanceof ProtocolException &&
+                            (error.getMessage().contains("unknown command") ||
+                                    error.getMessage().contains("unsupported operation"))) {
+                        // Tolerate not implemented or not supported commands. At least until
+                        // the `emulation.setTouchOverride` is supported by all the supported
+                        // browsers.
+                        // 记录日志或忽略异常
+                    } else {
+                        throw error;
+                    }
+                }
+            }
+        }else {
+            needsReload = this.cdpEmulationManager.emulateViewport(viewport);
         }
-        boolean needsReload = this.cdpEmulationManager.emulateViewport(viewport);
         this.viewport = viewport;
         if (needsReload) {
             this.reload();
