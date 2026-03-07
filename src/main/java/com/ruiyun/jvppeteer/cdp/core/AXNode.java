@@ -259,6 +259,10 @@ public class AXNode {
                 "  return node.nodeType === Node.TEXT_NODE ? node.parentElement : node;\n" +
                 "}").asElement());
         node.setBackendNodeId(this.payload.getBackendDOMNodeId());
+        // LoaderId is an experimental mechanism to establish unique IDs across
+        // navigations.
+        IsolatedWorld world = (IsolatedWorld) this.realm;
+        node.setLoadId(world.frame().loaderId());
         for (String userStringProperty : userStringProperties) {
             if (!properties.containsKey(userStringProperty))
                 continue;

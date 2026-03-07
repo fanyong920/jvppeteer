@@ -220,7 +220,7 @@ public class IsolatedWorld extends Realm {
         this.emitter.removeAllListeners(null);
     }
 
-    public CdpFrame getFrame() {
+    public CdpFrame frame() {
         return this.frame;
     }
 

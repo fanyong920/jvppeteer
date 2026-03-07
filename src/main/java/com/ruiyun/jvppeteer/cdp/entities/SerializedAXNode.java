@@ -2,6 +2,7 @@ package com.ruiyun.jvppeteer.cdp.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
+
 import java.util.List;
 
 public class SerializedAXNode {
@@ -67,8 +68,14 @@ public class SerializedAXNode {
     private List<SerializedAXNode> children;
     @JsonIgnore
     private ElementHandle elementHandle;
-
+    /**
+     * CDP-specific ID to reference the DOM node.
+     */
     private Integer backendNodeId;
+    /**
+     * CDP-specific documentId.
+     */
+    private String loadId;
 
     public String getRole() {
         return role;
@@ -302,40 +309,11 @@ public class SerializedAXNode {
         this.url = url;
     }
 
-    @Override
-    public String toString() {
-        return "SerializedAXNode{" +
-                "role='" + role + '\'' +
-                ", name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                ", description='" + description + '\'' +
-                ", keyshortcuts='" + keyshortcuts + '\'' +
-                ", roledescription='" + roledescription + '\'' +
-                ", valuetext='" + valuetext + '\'' +
-                ", disabled=" + disabled +
-                ", expanded=" + expanded +
-                ", focused=" + focused +
-                ", modal=" + modal +
-                ", multiline=" + multiline +
-                ", multiselectable=" + multiselectable +
-                ", readonly=" + readonly +
-                ", required=" + required +
-                ", selected=" + selected +
-                ", checked='" + checked + '\'' +
-                ", pressed='" + pressed + '\'' +
-                ", level=" + level +
-                ", valuemin=" + valuemin +
-                ", valuemax=" + valuemax +
-                ", autocomplete='" + autocomplete + '\'' +
-                ", haspopup='" + haspopup + '\'' +
-                ", invalid='" + invalid + '\'' +
-                ", orientation='" + orientation + '\'' +
-                ", url='" + url + '\'' +
-                ", children=" + children +
-                ", elementHandle=" + elementHandle +
-                ", backendNodeId=" + backendNodeId +
-                '}';
+    public String getLoadId() {
+        return loadId;
     }
 
-
+    public void setLoadId(String loadId) {
+        this.loadId = loadId;
+    }
 }
