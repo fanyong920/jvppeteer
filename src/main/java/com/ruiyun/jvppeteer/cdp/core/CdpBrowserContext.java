@@ -128,6 +128,12 @@ public class CdpBrowserContext extends BrowserContext {
                 objectNode.put("hasCrossSiteAncestor", partitionKey.get("hasCrossSiteAncestor").asBoolean());
                 convertCookie.setPartitionKey(objectNode);
             }
+            JsonNode sameParty = cookie.path("sameParty");
+            if (!sameParty.isMissingNode()) {
+                convertCookie.setSameParty(sameParty.asBoolean());
+            } else {
+                convertCookie.setSameParty(false);
+            }
             cookieList.add(convertCookie);
         }
         return cookieList;
