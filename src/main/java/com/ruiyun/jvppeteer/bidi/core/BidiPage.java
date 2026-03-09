@@ -21,6 +21,7 @@ import com.ruiyun.jvppeteer.bidi.entities.AddPreloadScriptOptions;
 import com.ruiyun.jvppeteer.bidi.entities.BidiViewport;
 import com.ruiyun.jvppeteer.bidi.entities.BytesValue;
 import com.ruiyun.jvppeteer.bidi.entities.CaptureScreenshotOptions;
+import com.ruiyun.jvppeteer.bidi.entities.ClientHintsMetadata;
 import com.ruiyun.jvppeteer.bidi.entities.ClipRectangle;
 import com.ruiyun.jvppeteer.bidi.entities.CookieFilter;
 import com.ruiyun.jvppeteer.bidi.entities.GeolocationCoordinates;
@@ -166,63 +167,22 @@ public class BidiPage extends Page {
     @Override
     public void setUserAgent(UserAgentOptions options) {
         String userAgent = options.getUserAgent();
-        String platform = options.getPlatform();
-        UserAgentMetadata metadata = options.getUserAgentMetadata();
-        if (Objects.isNull(userAgent)) {
-            userAgent = this.browserContext.browser().userAgent();
-        }
-        if (!this.browserContext.browser().cdpSupported() && (Objects.nonNull(metadata) || Objects.nonNull(platform))) {
-            throw new UnsupportedOperationException(
-                    "Current Browser does not support `userAgentMetadata` or `platform`");
-        } else if (this.browserContext.browser().cdpSupported() && (Objects.nonNull(metadata) || Objects.nonNull(platform))) {
-            Map<String, Object> params = ParamsFactory.create();
-            params.put("userAgent", userAgent);
-            params.put("userAgentMetadata", metadata);
-            params.put("platform", platform);
-            this.client().send("Network.setUserAgentOverride", params);
-        }
-        boolean enable = !Objects.equals(userAgent, "");
-        this.frame.browsingContext.setUserAgent(enable ? userAgent : null);
-        List<BidiFrame> frames = new ArrayList<>();
-        frames.add(this.frame);
-        Iterator<BidiFrame> iterator = frames.iterator();
-        while (iterator.hasNext()) {
-            BidiFrame frame = iterator.next();
-            frames.addAll(frame.childFrames());
-        }
-        if (StringUtil.isNotEmpty(this.overrideNavigatorPropertiesPreloadScript)) {
-            this.removeScriptToEvaluateOnNewDocument(this.overrideNavigatorPropertiesPreloadScript);
-        }
+        String platform = Objects.equals("",options.getPlatform()) ? null : options.getPlatform();
+        ClientHintsMetadata clientHints = ClientHintsMetadata.fromUserAgentMetadata(options.getUserAgentMetadata());
 
-        if (enable) {
-            try {
-                NewDocumentScriptEvaluation evaluateToken = this.evaluateOnNewDocument("(platform) => {\n" +
-                        "  if (platform) {\n" +
-                        "    Object.defineProperty(navigator, 'platform', {\n" +
-                        "      value: platform,\n" +
-                        "      configurable: true,\n" +
-                        "    });\n" +
-                        "  }\n" +
-                        "};", EvaluateType.STRING, platform);
-                this.overrideNavigatorPropertiesPreloadScript = evaluateToken.getIdentifier();
-            } catch (JsonProcessingException e) {
-                LOGGER.error("Failed to evaluate userAgent", e);
-            }
+        if (Objects.equals("",userAgent)) {
+            // In WebDriver BiDi null is used to restore the original user agent.
+            userAgent = null;
         }
-        for (BidiFrame frame : frames) {
-            try {
-                frame.evaluate("(platform) => {\n" +
-                        "  if (platform) {\n" +
-                        "    Object.defineProperty(navigator, 'platform', {\n" +
-                        "      value: platform,\n" +
-                        "      configurable: true,\n" +
-                        "    });\n" +
-                        "  }\n" +
-                        "};", Collections.singletonList(platform));
-            } catch (Exception e) {
-                LOGGER.error("Failed to evaluate frame", e);
-            }
+        this.frame.browsingContext.setUserAgent(userAgent);
+
+        if(Objects.nonNull(platform) && !Objects.equals("",platform)){
+            // Work-around until https://github.com/w3c/webdriver-bidi/issues/1065 is resolved.
+            // Set platform via client hints override.
+            clientHints = Objects.isNull(clientHints) ? new ClientHintsMetadata() : clientHints;
+            clientHints.setPlatform(platform);
         }
+        this.frame.browsingContext.setClientHintsOverride(clientHints);
     }
 
     @Override

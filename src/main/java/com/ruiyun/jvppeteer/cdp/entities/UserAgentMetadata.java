@@ -103,19 +103,5 @@ public class UserAgentMetadata {
         this.fullVersion = fullVersion;
     }
 
-    @Override
-    public String toString() {
-        return "UserAgentMetadata{" +
-                "brands=" + brands +
-                ", fullVersionList=" + fullVersionList +
-                ", fullVersion='" + fullVersion + '\'' +
-                ", platform='" + platform + '\'' +
-                ", platformVersion='" + platformVersion + '\'' +
-                ", architecture='" + architecture + '\'' +
-                ", model='" + model + '\'' +
-                ", mobile=" + mobile +
-                ", bitness='" + bitness + '\'' +
-                ", wow64=" + wow64 +
-                '}';
-    }
+
 }

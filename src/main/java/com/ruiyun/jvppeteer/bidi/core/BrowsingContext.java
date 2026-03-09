@@ -12,6 +12,7 @@ import com.ruiyun.jvppeteer.bidi.entities.AddPreloadScriptOptions;
 import com.ruiyun.jvppeteer.bidi.entities.BaseParameters;
 import com.ruiyun.jvppeteer.bidi.entities.BeforeRequestSentParameters;
 import com.ruiyun.jvppeteer.bidi.entities.CaptureScreenshotOptions;
+import com.ruiyun.jvppeteer.bidi.entities.ClientHintsMetadata;
 import com.ruiyun.jvppeteer.bidi.entities.CookieFilter;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.HandleUserPromptOptions;
@@ -53,6 +54,8 @@ import java.util.stream.Collectors;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 
 public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContextEvents> {
+    // Indicated whether client hints have been set to non-default.
+    private volatile boolean clientHintsAreSet;
     private volatile String url;
     UserContext userContext;
     private final String originalOpener;
@@ -560,6 +563,19 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         params.put("userAgent", userAgent);
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("emulation.setUserAgentOverride", params);
+    }
+
+    public void setClientHintsOverride(ClientHintsMetadata clientHints){
+        if (Objects.isNull(clientHints) && !this.clientHintsAreSet) {
+            // Ignore the call, as the client hints are not supposed to be changed. Required to
+            // avoid breakage with browsers that don't support client hints emulation.
+            return;
+        }
+        this.clientHintsAreSet = true;
+        Map<String, Object> params = ParamsFactory.create();
+        params.put("clientHints",clientHints);
+        params.put("contexts",Collections.singletonList(this.id));
+        this.session().send("userAgentClientHints.setClientHintsOverride",params);
     }
 
     public void setExtraHTTPHeaders(Map<String, String> headers) {
