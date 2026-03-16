@@ -173,8 +173,11 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             this.emit(TargetManagerEvent.TargetAvailable, target);
             return;
         }
-        boolean isExistingTarget = this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId());
-        CdpTarget target = isExistingTarget ? this.attachedTargetsByTargetId.get(targetInfo.getTargetId()) : this.targetFactory.create(targetInfo, session, null);
+        CdpTarget target = this.attachedTargetsByTargetId.get(targetInfo.getTargetId());
+        boolean isExistingTarget = Objects.nonNull(target);
+        if(!isExistingTarget){
+            target =  this.targetFactory.create(targetInfo, session, null);
+        }
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
             silentDetach(parentConnection, session);
@@ -186,7 +189,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         this.setupAttachmentListeners(session);
         if (isExistingTarget) {
             ((CdpCDPSession) session).setTarget(target);
-            this.attachedTargetsBySessionId.put(session.id(), this.attachedTargetsByTargetId.get(targetInfo.getTargetId()));
+            this.attachedTargetsBySessionId.put(session.id(), target);
         } else {
             target.initialize();
             this.attachedTargetsByTargetId.put(targetInfo.getTargetId(), target);
@@ -233,8 +236,11 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             this.emit(TargetManagerEvent.TargetAvailable, target);
             return;
         }
-        boolean isExistingTarget = this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId());
-        CdpTarget target = isExistingTarget ? this.attachedTargetsByTargetId.get(targetInfo.getTargetId()) : this.targetFactory.create(targetInfo, session, parentSession);
+        CdpTarget target = this.attachedTargetsByTargetId.get(targetInfo.getTargetId());
+        boolean isExistingTarget = Objects.nonNull(target);
+        if(!isExistingTarget){
+            target = this.targetFactory.create(targetInfo, session, parentSession);
+        }
         CdpTarget parentTarget = ((CdpCDPSession) parentSession).getTarget();
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
@@ -250,7 +256,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         this.setupAttachmentListeners(session);
         if (isExistingTarget) {
             ((CdpCDPSession) session).setTarget(target);
-            this.attachedTargetsBySessionId.put(session.id(), this.attachedTargetsByTargetId.get(targetInfo.getTargetId()));
+            this.attachedTargetsBySessionId.put(session.id(), target);
         } else {
             target.initialize();
             this.attachedTargetsByTargetId.put(targetInfo.getTargetId(), target);
@@ -336,10 +342,12 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         TargetInfo targetInfo = this.discoveredTargetsByTargetId.get(event.getTargetId());
         this.discoveredTargetsByTargetId.remove(event.getTargetId());
         this.finishInitializationIfReady(event.getTargetId());
-        if (targetInfo != null) {
-            if ("service_worker".equals(targetInfo.getType()) && this.attachedTargetsByTargetId.containsKey(event.getTargetId())) {
+        if (Objects.nonNull(targetInfo)) {
+            if ("service_worker".equals(targetInfo.getType())) {
+                // Special case for service workers: report TargetGone event when
+                // the worker is destroyed.
                 CdpTarget target = this.attachedTargetsByTargetId.get(event.getTargetId());
-                if (target != null) {
+                if (Objects.nonNull(target)) {
                     this.emit(TargetManagerEvent.TargetGone, target);
                     this.attachedTargetsByTargetId.remove(event.getTargetId());
                 }
@@ -349,7 +357,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
 
     private void onTargetInfoChanged(TargetInfoChangedEvent event) {
         this.discoveredTargetsByTargetId.put(event.getTargetInfo().getTargetId(), event.getTargetInfo());
-        if (this.ignoredTargets.contains(event.getTargetInfo().getTargetId()) || !this.attachedTargetsByTargetId.containsKey(event.getTargetInfo().getTargetId()) || !event.getTargetInfo().getAttached()) {
+        if (this.ignoredTargets.contains(event.getTargetInfo().getTargetId()) || !event.getTargetInfo().getAttached()) {
             return;
         }
         CdpTarget target = this.attachedTargetsByTargetId.get(event.getTargetInfo().getTargetId());
@@ -361,7 +369,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         if (isPageTargetBecomingPrimary(target, event.getTargetInfo())) {
             CDPSession session = target.session();
             Objects.requireNonNull(session, "Target that is being activated is missing a CDPSession.");
-            if (session.parentSession() != null) {
+            if (Objects.nonNull(session.parentSession())) {
                 session.parentSession().emit(ConnectionEvents.CDPSession_Swapped, session);
             }
         }
@@ -385,8 +393,9 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             session.off(ConnectionEvents.Target_attachedToTarget, listener);
             this.attachedToTargetListenersBySession.remove(session);
         }
-        if (this.detachedFromTargetListenersBySession.containsKey(session)) {
-            session.off(ConnectionEvents.Target_detachedFromTarget, this.detachedFromTargetListenersBySession.get(session));
+        Consumer<DetachedFromTargetEvent> detachedListener = this.detachedFromTargetListenersBySession.get(session);
+        if (Objects.nonNull(detachedListener)) {
+            session.off(ConnectionEvents.Target_detachedFromTarget, detachedListener);
             this.detachedFromTargetListenersBySession.remove(session);
         }
     }
@@ -397,8 +406,9 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             connection.off(ConnectionEvents.Target_attachedToTarget, listener);
             this.attachedToTargetListenersByConnection.remove(connection);
         }
-        if (this.detachedFromTargetListenersByConnection.containsKey(connection)) {
-            connection.off(ConnectionEvents.Target_detachedFromTarget, this.detachedFromTargetListenersByConnection.get(connection));
+        Consumer<DetachedFromTargetEvent> detachedListener = this.detachedFromTargetListenersByConnection.get(connection);
+        if (Objects.nonNull(detachedListener)) {
+            connection.off(ConnectionEvents.Target_detachedFromTarget, detachedListener);
             this.detachedFromTargetListenersByConnection.remove(connection);
         }
     }
