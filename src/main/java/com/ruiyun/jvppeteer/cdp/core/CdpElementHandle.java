@@ -59,7 +59,7 @@ public class CdpElementHandle extends ElementHandle {
 
     @Override
     public CdpFrame frame() {
-        return this.realm().toIsolatedWorld().getFrame();
+        return this.realm().toIsolatedWorld().frame();
     }
 
     @Override
