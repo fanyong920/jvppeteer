@@ -853,7 +853,7 @@ public class CdpPage extends Page {
         this.frameManager.networkManager().setCacheEnabled(enabled);
     }
 
-    protected String _screenshot(ScreenshotOptions options) {
+    protected String _screenshot(ScreenshotOptions options) throws IOException {
         Map<String, Object> params = ParamsFactory.create();
         try {
             if (options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
@@ -886,14 +886,11 @@ public class CdpPage extends Page {
                 Files.write(Paths.get(options.getPath()), buffer, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             }
             return data;
-        } catch (Exception var) {
-            LOGGER.error("_screenshot error: ", var);
         } finally {
             if (options.getOmitBackground() && (ImageType.PNG.equals(options.getType()) || ImageType.WEBP.equals(options.getType()))) {
                 this.emulationManager.resetDefaultBackgroundColor();
             }
         }
-        return null;
     }
 
     @Override

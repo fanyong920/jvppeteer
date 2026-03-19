@@ -1311,7 +1311,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param options 截图选项
      * @return 图片base64的字节
      */
-    public String screenshot(ScreenshotOptions options) throws ExecutionException, InterruptedException {
+    public String screenshot(ScreenshotOptions options) throws ExecutionException, InterruptedException, IOException {
         synchronized (this.browserContext()) {//一个上下文只能有一个截图操作
             if (StringUtil.isNotEmpty(options.getPath())) {
                 String filePath = options.getPath();
@@ -1351,14 +1351,15 @@ public abstract class Page extends EventEmitter<PageEvents> {
                     }
                 }
                 return this._screenshot(options);
-            } catch (Exception e) {
-                LOGGER.error("_screenshot error: ", e);
             } finally {
                 if (fullViewport != null) {
-                    this.setViewport(this.viewport());
+                    try {
+                        this.setViewport(this.viewport());
+                    } catch (Exception e) {
+                        LOGGER.error("Error while restoring viewport", e);
+                    }
                 }
             }
-            return "";
         }
 
     }
@@ -1369,7 +1370,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @param path 截图文件全路径
      * @return base64编码后的图片数据
      */
-    public String screenshot(String path) throws ExecutionException, InterruptedException {
+    public String screenshot(String path) throws ExecutionException, InterruptedException, IOException {
         return this.screenshot(new ScreenshotOptions(path));
     }
 
