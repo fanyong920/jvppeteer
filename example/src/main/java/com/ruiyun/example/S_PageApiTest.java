@@ -1,6 +1,8 @@
 package com.ruiyun.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
@@ -45,6 +47,10 @@ import com.ruiyun.jvppeteer.common.ReloadOptions;
 import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -60,6 +66,7 @@ import org.junit.Test;
 
 import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
+import static org.junit.Assert.assertTrue;
 
 public class S_PageApiTest {
     /**
@@ -1290,6 +1297,33 @@ public class S_PageApiTest {
                 "      }");
         //innerSize.width = 500;innerSize.height = 400;
         System.out.println(innerSize);
+    }
+
+    /**
+     * Page.captureHeapSnapshot
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test37() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        Page page = browser.newPage();
+        String filePath = "C:\\Users\\fanyong\\Desktop\\2023-02\\heap.heapsnapshot";
+        page.captureHeapSnapshot(filePath);
+        // 检查文件是否存在
+        assertTrue("Heap snapshot file should exist", Files.exists(Paths.get(filePath)));
+
+        // 读取文件内容
+        String content = Files.readString(Paths.get(filePath));
+
+        // 解析JSON内容
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode snapshot = objectMapper.readTree(content);
+
+        // 验证JSON结构包含预期字段
+        assertTrue("Snapshot should contain 'snapshot' field", snapshot.has("snapshot"));
+        assertTrue("Snapshot should contain 'nodes' field", snapshot.has("nodes"));
+        assertTrue("Snapshot should contain 'edges' field", snapshot.has("edges"));
     }
 
 }

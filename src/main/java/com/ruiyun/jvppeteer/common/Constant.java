@@ -21,6 +21,7 @@ import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.events.ContextCreatedEvent;
 import com.ruiyun.jvppeteer.bidi.events.FileDialogInfo;
 import com.ruiyun.jvppeteer.bidi.events.NavigationInfoEvent;
+import com.ruiyun.jvppeteer.cdp.entities.AddHeapSnapshotChunkEvent;
 import com.ruiyun.jvppeteer.cdp.entities.DragInterceptedEvent;
 import com.ruiyun.jvppeteer.cdp.entities.RequestWillBeSentExtraInfoEvent;
 import com.ruiyun.jvppeteer.cdp.events.AttachedToTargetEvent;
@@ -393,6 +394,9 @@ public interface Constant {
                         break;
                     case "Browser.downloadWillBegin":
                         put(event.getEventName(), DownloadWillBeginEvent.class);
+                        break;
+                    case "HeapProfiler.addHeapSnapshotChunk":
+                        put(event.getEventName(), AddHeapSnapshotChunkEvent.class);
                         break;
                     //bidi
                     case "browsingContext.contextCreated":

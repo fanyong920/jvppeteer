@@ -1,5 +1,8 @@
 package com.ruiyun.jvppeteer.api.events;
 
+/**
+ * 监听事件，在这里新添加事件后需要在Constants.java中的LISTENER_CLASSES添加case
+ */
 public enum ConnectionEvents {
     //cdp
     CDPSession_Disconnected("CDPSession.Disconnected"),
@@ -59,6 +62,7 @@ public enum ConnectionEvents {
      * 当页面准备开始下载时促发
      */
     Browser_downloadWillBegin("Browser.downloadWillBegin"),
+    HeapProfiler_addHeapSnapshotChunk("HeapProfiler.addHeapSnapshotChunk"),
 
     //bidi
     browsingContext_contextCreated("browsingContext.contextCreated"),

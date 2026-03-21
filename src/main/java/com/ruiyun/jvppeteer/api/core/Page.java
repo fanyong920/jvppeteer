@@ -56,6 +56,7 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -584,6 +585,11 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * @throws JsonProcessingException 处理JSON时抛出异常
      */
     public abstract Metrics metrics() throws JsonProcessingException;
+
+    /**
+     * Captures a snapshot of the JavaScript heap and writes it to a file.
+     */
+    public abstract void captureHeapSnapshot(String path) throws FileNotFoundException;
 
     /**
      * 返回页面的地址

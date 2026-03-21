@@ -15,6 +15,7 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.cdp.entities.AddHeapSnapshotChunkEvent;
 import com.ruiyun.jvppeteer.cdp.entities.Binding;
 import com.ruiyun.jvppeteer.cdp.entities.BindingPayload;
 import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
@@ -70,11 +71,15 @@ import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.exception.TargetCloseException;
 import com.ruiyun.jvppeteer.transport.CdpCDPSession;
 import com.ruiyun.jvppeteer.util.Helper;
+import com.ruiyun.jvppeteer.util.StreamUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -604,6 +609,34 @@ public class CdpPage extends Page {
     public Metrics metrics() throws JsonProcessingException {
         GetMetricsResponse response = OBJECTMAPPER.treeToValue(this.primaryTargetClient.send("Performance.getMetrics"), GetMetricsResponse.class);
         return this.buildMetricsObject(response.getMetrics());
+    }
+
+    @Override
+    public void captureHeapSnapshot(String path) throws FileNotFoundException {
+        this.primaryTargetClient.send("HeapProfiler.enable");
+        this.primaryTargetClient.send("HeapProfiler.collectGarbage");
+        AwaitableResult<Object> awaitableResult = AwaitableResult.create();
+        FileOutputStream stream = new FileOutputStream(path);
+        Consumer<AddHeapSnapshotChunkEvent> handler = event -> {
+            try {
+                stream.write(event.getChunk().getBytes(StandardCharsets.UTF_8));
+                stream.flush();
+            } catch (IOException e) {
+                LOGGER.error("captureHeapSnapshot error", e);
+            }
+            awaitableResult.complete();
+        };
+        this.primaryTargetClient.on(ConnectionEvents.HeapProfiler_addHeapSnapshotChunk, handler);
+        try {
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("reportProgress", false);
+            this.primaryTargetClient.send("HeapProfiler.takeHeapSnapshot", params);
+        } finally {
+            this.primaryTargetClient.send("HeapProfiler.disable");
+            this.primaryTargetClient.off(ConnectionEvents.HeapProfiler_addHeapSnapshotChunk, handler);
+            StreamUtil.closeQuietly(stream);
+        }
+        awaitableResult.waiting();
     }
 
     private void emitMetrics(MetricsEvent event) {

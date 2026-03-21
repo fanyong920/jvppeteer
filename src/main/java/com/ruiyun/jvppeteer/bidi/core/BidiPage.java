@@ -893,6 +893,11 @@ public class BidiPage extends Page {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void captureHeapSnapshot(String path) {
+        throw new UnsupportedOperationException();
+    }
+
     private String toggleInterception(List<String> phases, String interception, boolean expected) {
         if (expected && StringUtil.isEmpty(interception)) {
             return this.frame.browsingContext.addIntercept(new AddInterceptOptions(phases));
