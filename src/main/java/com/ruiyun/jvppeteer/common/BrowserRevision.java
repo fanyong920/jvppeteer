@@ -2,7 +2,7 @@ package com.ruiyun.jvppeteer.common;
 
 public class BrowserRevision {
 
-    private final static String CHROME_VERSION = "142.0.7444.175";
+    private final static String CHROME_VERSION = "146.0.7680.80";
     private final static String FIREFOX_VERSION = "stable_145.0.1";
 
     /**

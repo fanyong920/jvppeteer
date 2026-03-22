@@ -5,12 +5,13 @@ import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
+import com.ruiyun.jvppeteer.common.Permission;
 import com.ruiyun.jvppeteer.common.WebPermission;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
 
 import static com.ruiyun.jvppeteer.util.Helper.filter;
 import static com.ruiyun.jvppeteer.util.Helper.waitForCondition;
@@ -64,17 +65,22 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
      * 获取此 浏览器上下文 内所有打开的 pages 的列表。
      * <p>
      * 不可见的 pages，例如 "background_page"，这里不会列出。你可以使用 Target.page() 找到它们。
+     *
      * @param includeAll 是否包含所有类型的页面
      * @return 所有打开的 pages
      */
     public abstract List<Page> pages(boolean includeAll);
+
 
     /**
      * 授予指定页面的权限设置
      *
      * @param origin         权限来源，通常是一个URL
      * @param webPermissions 权限列表，表示要授予的权限，没有授予的权限默认是拒绝
+     *                       <p>
+     *                       in favor of {@link BrowserContext#setPermission(String, List)}.
      */
+    @Deprecated
     public abstract void overridePermissions(String origin, WebPermission... webPermissions);
 
     /**
@@ -155,4 +161,14 @@ public abstract class BrowserContext extends EventEmitter<BrowserContextEvents> 
      * @return 当前对象的ID
      */
     public abstract String id();
+
+    /**
+     * Sets the permission for a specific origin.
+     *
+     * @param origin      - The origin to set the permission for.
+     * @param permissions - The permission descriptor.The state of the permission.
+     *
+     */
+    public abstract void setPermission(String origin, List<Permission> permissions);
+
 }

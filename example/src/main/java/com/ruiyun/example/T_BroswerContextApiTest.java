@@ -13,13 +13,18 @@ import com.ruiyun.jvppeteer.cdp.entities.CookiePriority;
 import com.ruiyun.jvppeteer.cdp.entities.CookieSameSite;
 import com.ruiyun.jvppeteer.cdp.entities.CookieSourceScheme;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.Permission;
+import com.ruiyun.jvppeteer.common.PermissionDescriptor;
+import com.ruiyun.jvppeteer.common.PermissionState;
 import com.ruiyun.jvppeteer.common.WebPermission;
-import java.util.Collections;
-import java.util.List;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static org.junit.Assert.assertEquals;
 
 public class T_BroswerContextApiTest {
 
@@ -151,6 +156,137 @@ public class T_BroswerContextApiTest {
         page.evaluate("localStorage.setItem(\"1\", \"2\")");
         Object evaluate = page.evaluate("localStorage.getItem(\"1\")");
         System.out.println(evaluate);
+    }
+
+    /**
+     * 测试 setPermission
+     *
+     * @throws Exception 异常
+     */
+    @Test
+    public void test8() throws Exception {
+        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
+        BrowserContext context = browser.createBrowserContext();
+        Page page = context.newPage();
+
+        // 测试使用 * 作为源站授予地理位置权限
+        PermissionDescriptor descriptor = new PermissionDescriptor();
+        descriptor.setName("geolocation");
+        Permission permission = new Permission();
+        permission.setPermission(descriptor);
+        permission.setState(PermissionState.Granted);
+        context.setPermission("*", Arrays.asList(permission));
+        assertEquals("granted", getPermission(page, "geolocation"));
+
+        // 测试使用 * 作为源站拒绝地理位置权限
+        PermissionDescriptor descriptor2 = new PermissionDescriptor();
+        descriptor2.setName("geolocation");
+        Permission permission2 = new Permission();
+        permission2.setPermission(descriptor2);
+        permission2.setState(PermissionState.Denied);
+        context.setPermission("*", Arrays.asList(permission2));
+        assertEquals("denied", getPermission(page, "geolocation"));
+
+
+        // 测试使用 * 作为源站提示地理位置权限
+        PermissionDescriptor descriptor3 = new PermissionDescriptor();
+        descriptor3.setName("geolocation");
+        Permission permission3 = new Permission();
+        permission3.setPermission(descriptor3);
+        permission3.setState(PermissionState.Prompt);
+        context.setPermission("*", Arrays.asList(permission3));
+        assertEquals("prompt", getPermission(page, "geolocation"));
+
+
+
+        Page page2 = context.newPage();
+        page2.goTo("https://www.baidu.com");
+        PermissionDescriptor descriptor4 = new PermissionDescriptor();
+        descriptor4.setName("geolocation");
+        Permission permission4 = new Permission();
+        permission4.setPermission(descriptor4);
+        permission4.setState(PermissionState.Granted);
+        context.setPermission(page2.url(), Arrays.asList(permission4));
+        assertEquals("granted", getPermission(page2, "geolocation"));
+
+        PermissionDescriptor descriptor5 = new PermissionDescriptor();
+        descriptor5.setName("geolocation");
+        Permission permission5 = new Permission();
+        permission5.setPermission(descriptor5);
+        permission5.setState(PermissionState.Denied);
+        context.setPermission(page2.url(), Arrays.asList(permission5));
+        assertEquals("denied", getPermission(page2, "geolocation"));
+
+
+        PermissionDescriptor descriptor6 = new PermissionDescriptor();
+        descriptor6.setName("geolocation");
+        Permission permission6 = new Permission();
+        permission6.setPermission(descriptor6);
+        permission6.setState(PermissionState.Prompt);
+        context.setPermission(page2.url(), Arrays.asList(permission6));
+        assertEquals("prompt", getPermission(page2, "geolocation"));
+
+        // 测试同时设置多个权限为允许状态
+        PermissionDescriptor descriptor7 = new PermissionDescriptor();
+        descriptor7.setName("geolocation");
+        Permission permission7 = new Permission();
+        permission7.setPermission(descriptor7);
+        permission7.setState(PermissionState.Granted);
+        PermissionDescriptor descriptor8 = new PermissionDescriptor();
+        descriptor8.setName("midi");
+        Permission permission8 = new Permission();
+        permission8.setPermission(descriptor8);
+        permission8.setState(PermissionState.Granted);
+        context.setPermission(page2.url(), Arrays.asList(permission7, permission8));
+        assertEquals("granted", getPermission(page2, "geolocation"));
+        assertEquals("granted", getPermission(page2, "midi"));
+
+        // 测试同时设置多个权限为拒绝状态
+        PermissionDescriptor descriptor9 = new PermissionDescriptor();
+        descriptor9.setName("geolocation");
+        Permission permission9 = new Permission();
+        permission9.setPermission(descriptor9);
+        permission9.setState(PermissionState.Denied);
+        PermissionDescriptor descriptor10 = new PermissionDescriptor();
+        descriptor10.setName("midi");
+        Permission permission10 = new Permission();
+        permission10.setPermission(descriptor10);
+        permission10.setState(PermissionState.Denied);
+        context.setPermission(page2.url(), Arrays.asList(permission9, permission10));
+        assertEquals("denied", getPermission(page2, "geolocation"));
+        assertEquals("denied", getPermission(page2, "midi"));
+
+        // 测试同时设置多个权限为提示状态
+        PermissionDescriptor descriptor11 = new PermissionDescriptor();
+        descriptor11.setName("geolocation");
+        Permission permission11 = new Permission();
+        permission11.setPermission(descriptor11);
+        permission11.setState(PermissionState.Prompt);
+        PermissionDescriptor descriptor12 = new PermissionDescriptor();
+        descriptor12.setName("midi");
+        Permission permission12 = new Permission();
+        permission12.setPermission(descriptor12);
+        permission12.setState(PermissionState.Prompt);
+        context.setPermission(page2.url(), Arrays.asList(permission11, permission12));
+        assertEquals("prompt", getPermission(page2, "geolocation"));
+        assertEquals("prompt", getPermission(page2, "midi"));
+    }
+
+
+    /**
+     * 模拟获取权限状态的函数
+     */
+    private Object getPermission(Page page, String name) {
+        try {
+            // 模拟JavaScript执行：navigator.permissions.query({name}).then(result => result.state)
+            return page.evaluate("name => {\n" +
+                    "    return navigator.permissions.query({name}).then(result => {\n" +
+                    "      return result.state;\n" +
+                    "    });\n" +
+                    "  }", name);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

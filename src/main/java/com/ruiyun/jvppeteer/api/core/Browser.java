@@ -2,30 +2,32 @@ package com.ruiyun.jvppeteer.api.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
-import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.DebugInfo;
 import com.ruiyun.jvppeteer.cdp.entities.DownloadOptions;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
+import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
+import com.ruiyun.jvppeteer.common.Permission;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.common.WindowBounds;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.util.Helper.filter;
 import static com.ruiyun.jvppeteer.util.Helper.waitForCondition;
 
 public abstract class Browser extends EventEmitter<BrowserEvents> implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Browser.class);
+
     /**
      * 获取关联的 Process。
      *
@@ -225,6 +227,21 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      */
     public void setCookie(CookieData... cookies) {
         this.defaultBrowserContext().setCookie(cookies);
+    }
+
+    /**
+     * Sets the permission for a specific origin in the default
+     * {@link BrowserContext}.
+     * <p>
+     * Shortcut for
+     * {@link BrowserContext#setPermission(String, List)}
+     *  or {@link Browser#defaultBrowserContext()#setPermission()}.
+     *
+     * @param origin     - The origin to set the permission for.
+     * @param permissions - The permission descriptor.The state of the permission.
+     */
+    public void setPermission(String origin, List<Permission> permissions) {
+        this.defaultBrowserContext().setPermission(origin, permissions);
     }
 
     /**

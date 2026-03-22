@@ -13,15 +13,20 @@ import com.ruiyun.jvppeteer.bidi.entities.CreateBrowsingContextOptions;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PartialCookie;
 import com.ruiyun.jvppeteer.bidi.entities.PermissionOverride;
-import com.ruiyun.jvppeteer.bidi.entities.PermissionState;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.CreateType;
+import com.ruiyun.jvppeteer.common.Permission;
+import com.ruiyun.jvppeteer.common.PermissionDescriptor;
+import com.ruiyun.jvppeteer.common.PermissionState;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,9 +36,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.WEB_PERMISSION_TO_PROTOCOL_PERMISSION;
 import static com.ruiyun.jvppeteer.util.Helper.bidiToPuppeteerCookie;
@@ -178,7 +180,9 @@ public class BidiBrowserContext extends BrowserContext {
         }
         WEB_PERMISSION_TO_PROTOCOL_PERMISSION.keySet().forEach(permission -> {
             try {
-                this.userContext.setPermissions(origin, permission.getPermission(), permissions.contains(permission.getPermission()) ? PermissionState.Granted : PermissionState.Denied);
+                PermissionDescriptor descriptor = new PermissionDescriptor();
+                descriptor.setName(permission.getPermission());
+                this.userContext.setPermissions(origin, descriptor, permissions.contains(permission.getPermission()) ? PermissionState.Granted : PermissionState.Denied);
                 this.overrides.add(new PermissionOverride(origin, permission));
             } catch (Exception e) {
                 LOGGER.error("jvppeteer error", e);
@@ -190,7 +194,9 @@ public class BidiBrowserContext extends BrowserContext {
     public void clearPermissionOverrides() {
         for (PermissionOverride override : this.overrides) {
             try {
-                this.userContext.setPermissions(override.getOrigin(), override.getPermission().getPermission(), PermissionState.Prompt);
+                PermissionDescriptor descriptor = new PermissionDescriptor();
+                descriptor.setName(override.getPermission().getPermission());
+                this.userContext.setPermissions(override.getOrigin(), descriptor, PermissionState.Prompt);
             } catch (Exception e) {
                 LOGGER.error("jvppeteer error", e);
             }
@@ -207,9 +213,9 @@ public class BidiBrowserContext extends BrowserContext {
             } else {
                 type = CreateType.Tab;
             }
-            CreateBrowsingContextOptions createBrowsingContextOptions =  new CreateBrowsingContextOptions();
+            CreateBrowsingContextOptions createBrowsingContextOptions = new CreateBrowsingContextOptions();
             createBrowsingContextOptions.setBackground(options.getBackground());
-            BrowsingContext context = this.userContext.createBrowsingContext(type,createBrowsingContextOptions);
+            BrowsingContext context = this.userContext.createBrowsingContext(type, createBrowsingContextOptions);
             Page page = this.pages.get(context);
             Objects.requireNonNull(page, "Page is not found");
             if (Objects.nonNull(this.defaultViewport)) {
@@ -279,6 +285,30 @@ public class BidiBrowserContext extends BrowserContext {
             return null;
         }
         return this.userContext.id();
+    }
+
+    @Override
+    public void setPermission(String origin, List<Permission> permissions) {
+        if ("*".equals(origin)) {
+            throw new UnsupportedOperationException("Origin (*) is not supported by WebDriver BiDi");
+        }
+
+        for (Permission permission : permissions) {
+            // 检查不被WebDriver BiDi支持的选项
+            if (Objects.nonNull(permission.getPermission().getAllowWithoutSanitization()) && permission.getPermission().getAllowWithoutSanitization()) {
+                throw new UnsupportedOperationException("allowWithoutSanitization is not supported by WebDriver BiDi");
+            }
+            if (Objects.nonNull(permission.getPermission().getPanTiltZoom()) && permission.getPermission().getPanTiltZoom()) {
+                throw new UnsupportedOperationException("panTiltZoom is not supported by WebDriver BiDi");
+            }
+            if (Objects.nonNull(permission.getPermission().getUserVisibleOnly()) && permission.getPermission().getUserVisibleOnly()) {
+                throw new UnsupportedOperationException("userVisibleOnly is not supported by WebDriver BiDi");
+            }
+            // 调用用户上下文设置权限
+            PermissionDescriptor descriptor = new PermissionDescriptor();
+            descriptor.setName(permission.getPermission().getName());
+            this.userContext.setPermissions(origin, descriptor, permission.getState());
+        }
     }
 
     EventEmitter<BrowserContextEvents> trustedEmitter() {

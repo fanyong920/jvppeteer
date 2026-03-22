@@ -10,6 +10,7 @@ import com.ruiyun.jvppeteer.cdp.entities.CookieData;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.Permission;
 import com.ruiyun.jvppeteer.common.WebPermission;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
@@ -161,6 +162,21 @@ public class CdpBrowserContext extends BrowserContext {
 
     public String id() {
         return this.id;
+    }
+
+    @Override
+    public void setPermission(String origin, List<Permission> permissions) {
+        for (Permission permission : permissions) {
+            // 准备发送给浏览器的参数
+            Map<String, Object> params = ParamsFactory.create();
+            params.put("origin", "*".equals(origin) ? null : origin);
+            params.put("browserContextId", StringUtil.isEmpty(this.id) ? null : this.id);
+            params.put("permission", permission.getPermission());
+            params.put("setting", permission.getState());
+
+            // 同步发送协议命令
+            this.connection.send("Browser.setPermission", params);
+        }
     }
 
 

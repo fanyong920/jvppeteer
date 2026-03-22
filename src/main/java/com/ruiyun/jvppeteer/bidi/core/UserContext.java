@@ -7,12 +7,13 @@ import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.CreateBrowsingContextOptions;
 import com.ruiyun.jvppeteer.bidi.entities.GetCookiesOptions;
 import com.ruiyun.jvppeteer.bidi.entities.PartialCookie;
-import com.ruiyun.jvppeteer.bidi.entities.PermissionState;
 import com.ruiyun.jvppeteer.bidi.events.ClosedEvent;
 import com.ruiyun.jvppeteer.bidi.events.ContextCreatedEvent;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.CreateType;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.PermissionDescriptor;
+import com.ruiyun.jvppeteer.common.PermissionState;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -173,10 +174,8 @@ public class UserContext extends EventEmitter<UserContext.UserContextEvent> {
         this.session().send("storage.setCookie", params);
     }
 
-    public void setPermissions(String origin, String name, PermissionState state) {
+    public void setPermissions(String origin, PermissionDescriptor descriptor, PermissionState state) {
         Map<String, Object> params = ParamsFactory.create();
-        ObjectNode descriptor = Constant.OBJECTMAPPER.createObjectNode();
-        descriptor.put("name", name);
         params.put("origin", origin);
         params.put("descriptor", descriptor);
         params.put("state", state);
