@@ -86,9 +86,11 @@ public class ChromeLauncher extends BrowserLauncher {
         disabledFeatures.add("AcceptCHFrame");
         disabledFeatures.add("MediaRouter");
         disabledFeatures.add("OptimizationHints");
+        disabledFeatures.add("RenderDocument");// https://crbug.com/444150315
+        disabledFeatures.add("PartitionAllocSchedulerLoopQuarantineTaskControlledPurge");// https://crbug.com/489314676
         if (!turnOnExperimentalFeaturesForTesting) {
-            disabledFeatures.add("ProcessPerSiteUpToMainFrameThreshold");
-            disabledFeatures.add("IsolateSandboxedIframes");
+            disabledFeatures.add("ProcessPerSiteUpToMainFrameThreshold");// https://crbug.com/1492053
+            disabledFeatures.add("IsolateSandboxedIframes");// https://github.com/puppeteer/puppeteer/issues/10715
         }
         disabledFeatures.addAll(userDisabledFeatures);
         disabledFeatures = disabledFeatures.stream().filter(feature -> !"".equals(feature)).collect(Collectors.toList());
