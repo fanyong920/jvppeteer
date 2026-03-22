@@ -1037,7 +1037,7 @@ public class CdpPage extends Page {
 
     @Override
     public void resize(int contentWidth, int contentHeight) {
-        int windowId = windowId();
+        String windowId = windowId();
         Map<String, Object> params = ParamsFactory.create();
         params.put("windowId", windowId);
         params.put("width", contentWidth);
@@ -1046,8 +1046,8 @@ public class CdpPage extends Page {
     }
 
     @Override
-    public int windowId() {
-        return this.primaryTargetClient.send("Browser.getWindowForTarget").get("windowId").asInt();
+    public String windowId() {
+        return this.primaryTargetClient.send("Browser.getWindowForTarget").get("windowId").asText();
     }
 
     @Override

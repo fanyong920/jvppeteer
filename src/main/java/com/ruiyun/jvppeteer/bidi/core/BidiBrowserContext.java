@@ -208,13 +208,13 @@ public class BidiBrowserContext extends BrowserContext {
     public Page newPage(CreatePageOptions options) {
         synchronized (this) {
             CreateType type;
-            if (options != null && CreateType.Window.equals(options.getType())) {
+            if (Objects.nonNull(options) && CreateType.Window.equals(options.getType())) {
                 type = CreateType.Window;
             } else {
                 type = CreateType.Tab;
             }
             CreateBrowsingContextOptions createBrowsingContextOptions = new CreateBrowsingContextOptions();
-            if(options != null){
+            if (Objects.nonNull(options)) {
                 createBrowsingContextOptions.setBackground(options.getBackground());
             }
             BrowsingContext context = this.userContext.createBrowsingContext(type, createBrowsingContextOptions);
@@ -224,10 +224,19 @@ public class BidiBrowserContext extends BrowserContext {
                 try {
                     page.setViewport(this.defaultViewport);
                 } catch (Exception e) {
-                    // No support for setViewport in Firefox.
+                    // Tolerate not supporting `browsingContext.setViewport`. Only log it.
+                    LOGGER.error("Error while restoring viewport", e);
                 }
             }
-            return page;
+            if (Objects.nonNull(options) && Objects.equals(CreateType.Window, options.getType()) && Objects.nonNull(options.getWindowBounds())){
+                try {
+                    this.browser.setWindowBounds(context.id(), options.getWindowBounds());
+                } catch (Exception e) {
+                    // Tolerate not supporting `browser.setClientWindowState`. Only log it.
+                    LOGGER.error("Error while restoring window bounds", e);
+                }
+            }
+                return page;
         }
     }
 

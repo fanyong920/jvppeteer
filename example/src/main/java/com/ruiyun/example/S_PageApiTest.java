@@ -48,6 +48,7 @@ import com.ruiyun.jvppeteer.common.ScreenRecorder;
 import com.ruiyun.jvppeteer.common.UserAgentOptions;
 import com.ruiyun.jvppeteer.common.WebPermission;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1314,7 +1315,7 @@ public class S_PageApiTest {
         assertTrue("Heap snapshot file should exist", Files.exists(Paths.get(filePath)));
 
         // 读取文件内容
-        String content = Files.readString(Paths.get(filePath));
+        String content =  new String(Files.readAllBytes(Paths.get(filePath)), StandardCharsets.UTF_8);
 
         // 解析JSON内容
         ObjectMapper objectMapper = new ObjectMapper();

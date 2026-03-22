@@ -10,6 +10,8 @@ import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
 import com.ruiyun.jvppeteer.api.events.BrowserEvents;
 import com.ruiyun.jvppeteer.api.events.TrustedEmitter;
+import com.ruiyun.jvppeteer.bidi.entities.ClientWindowInfo;
+import com.ruiyun.jvppeteer.bidi.entities.SetClientWindowStateParameters;
 import com.ruiyun.jvppeteer.bidi.entities.SupportedWebDriverCapabilities;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandler;
 import com.ruiyun.jvppeteer.bidi.entities.UserPromptHandlerType;
@@ -23,6 +25,7 @@ import com.ruiyun.jvppeteer.common.CreatePageOptions;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.ScreenInfo;
 import com.ruiyun.jvppeteer.common.WindowBounds;
+import com.ruiyun.jvppeteer.common.WindowState;
 import com.ruiyun.jvppeteer.exception.ProtocolException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.StringUtil;
@@ -212,13 +215,37 @@ public class BidiBrowser extends Browser {
     }
 
     @Override
-    public WindowBounds getWindowBounds(int windowId) {
-       throw new UnsupportedOperationException();
+    public WindowBounds getWindowBounds(String windowId) {
+        ClientWindowInfo clientWindowInfo = this.browserCore.getClientWindowInfo(windowId);
+        WindowBounds windowBounds = new WindowBounds();
+        windowBounds.setLeft(clientWindowInfo.getX());
+        windowBounds.setTop(clientWindowInfo.getY());
+        windowBounds.setWidth(clientWindowInfo.getWidth());
+        windowBounds.setHeight(clientWindowInfo.getHeight());
+        windowBounds.setWindowState(clientWindowInfo.getState());
+        return windowBounds;
     }
 
     @Override
-    public void setWindowBounds(int windowId, WindowBounds windowBounds) {
-        throw new UnsupportedOperationException();
+    public void setWindowBounds(String windowId, WindowBounds windowBounds) {
+        // 获取窗口状态，如果没有指定则默认为 'normal'
+        WindowState windowState = Objects.nonNull(windowBounds.getWindowState()) ? windowBounds.getWindowState() : WindowState.Normal;
+        SetClientWindowStateParameters params;
+        if (WindowState.Normal.equals(windowState)) {
+            // 创建矩形状态参数
+            params = new SetClientWindowStateParameters(
+                    windowId,
+                    windowBounds.getWidth(),
+                    windowBounds.getHeight(),
+                    windowBounds.getLeft(),
+                    windowBounds.getTop()
+            );
+        } else {
+            // 创建命名状态参数
+            params = new SetClientWindowStateParameters(windowId, windowState);
+        }
+        // 调用核心方法设置窗口状态
+        this.browserCore.setClientWindowState(params);
     }
 
     @Override

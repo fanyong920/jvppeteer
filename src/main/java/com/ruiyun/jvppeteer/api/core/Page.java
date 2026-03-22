@@ -1623,7 +1623,7 @@ public abstract class Page extends EventEmitter<PageEvents> {
      *
      * @return windowId
      */
-    public abstract int windowId();
+    public abstract String windowId();
 
     /**
      * 此方法通常与从 API（例如 WebBluetooth）触发设备请求的操作结合使用。<p>

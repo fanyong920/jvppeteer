@@ -60,7 +60,7 @@ public class UserContext extends EventEmitter<UserContext.UserContextEvent> {
             if (!Objects.equals(info.getUserContext(), this.id)) {
                 return;
             }
-            BrowsingContext browsingContext = BrowsingContext.from(this, null, info.getContext(), info.getUrl(), info.getOriginalOpener());
+            BrowsingContext browsingContext = BrowsingContext.from(this, null, info.getContext(), info.getUrl(), info.getOriginalOpener(),info.getClientWindow());
             if (Objects.isNull(info.getContext())) {
                 this.browsingContexts.put("null", browsingContext);
             } else {

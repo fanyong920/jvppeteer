@@ -59,6 +59,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     private volatile String url;
     UserContext userContext;
     private final String originalOpener;
+    private final String windowId;
     private final String id;
     private final WindowRealm defaultRealm;
     private volatile String reason;
@@ -71,20 +72,21 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
     private final BidiDeviceRequestPromptManager deviceRequestPromptManager;
     private boolean javaScriptEnabled = true;
 
-    private BrowsingContext(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
+    private BrowsingContext(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener, String clientWindow) {
         super();
         this.url = url;
         this.id = id;
         this.parent = parent;
         this.userContext = userContext;
         this.originalOpener = originalOpener;
+        this.windowId = clientWindow;
         this.defaultRealm = this.createWindowRealm(null);
         this.bluetoothEmulation = new BidiBluetoothEmulation(this.id, this.session());
         this.deviceRequestPromptManager = new BidiDeviceRequestPromptManager(this.session(), this.id);
     }
 
-    public static BrowsingContext from(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener) {
-        BrowsingContext browsingContext = new BrowsingContext(userContext, parent, id, url, originalOpener);
+    public static BrowsingContext from(UserContext userContext, BrowsingContext parent, String id, String url, String originalOpener, String clientWindow) {
+        BrowsingContext browsingContext = new BrowsingContext(userContext, parent, id, url, originalOpener, clientWindow);
         browsingContext.initialize();
         return browsingContext;
     }
@@ -109,7 +111,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
             if (!Objects.equals(info.getParent(), this.id)) {
                 return;
             }
-            BrowsingContext browsingContext = BrowsingContext.from(this.userContext, this, info.getContext(), info.getUrl(), info.getOriginalOpener());
+            BrowsingContext browsingContext = BrowsingContext.from(this.userContext, this, info.getContext(), info.getUrl(), info.getOriginalOpener(),info.getClientWindow());
             if (Objects.isNull(info.getContext())) {
                 this.children.put("null", browsingContext);
             } else {
@@ -610,6 +612,9 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         params.put("contexts", Collections.singletonList(this.id));
         this.session().send("emulation.setScriptingEnabled", params);
         this.javaScriptEnabled = enabled;
+    }
+    public String windowId(){
+        return this.windowId;
     }
 
     public boolean isJavaScriptEnabled() {

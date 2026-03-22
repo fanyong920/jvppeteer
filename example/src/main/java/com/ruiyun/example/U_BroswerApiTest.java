@@ -399,7 +399,7 @@ public class U_BroswerApiTest {
         createPageOptions.setType(CreateType.Window);
         createPageOptions.setWindowBounds(initialBounds);
         Page page = context.newPage(createPageOptions);
-        int windowId = page.windowId();
+        String windowId = page.windowId();
         WindowBounds bounds1 = browser.getWindowBounds(windowId);
         System.out.println("bounds1: " + Constant.OBJECTMAPPER.writeValueAsString(bounds1));
 

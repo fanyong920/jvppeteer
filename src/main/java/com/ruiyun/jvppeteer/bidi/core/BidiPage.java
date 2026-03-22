@@ -950,8 +950,8 @@ public class BidiPage extends Page {
     }
 
     @Override
-    public int windowId() {
-        throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
+    public String windowId() {
+        return this.frame.browsingContext.windowId();
     }
 
 

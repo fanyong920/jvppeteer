@@ -236,7 +236,7 @@ public class CdpBrowser extends Browser {
     }
 
     @Override
-    public WindowBounds getWindowBounds(int windowId) {
+    public WindowBounds getWindowBounds(String windowId) {
         Map<String, Object> params = ParamsFactory.create();
         params.put("windowId", windowId);
         JsonNode response = this.connection.send("Browser.getWindowBounds", params).get("bounds");
@@ -244,7 +244,7 @@ public class CdpBrowser extends Browser {
     }
 
     @Override
-    public void setWindowBounds(int windowId, WindowBounds windowBounds) {
+    public void setWindowBounds(String windowId, WindowBounds windowBounds) {
         Map<String, Object> params = ParamsFactory.create();
         params.put("windowId", windowId);
         params.put("bounds", windowBounds);

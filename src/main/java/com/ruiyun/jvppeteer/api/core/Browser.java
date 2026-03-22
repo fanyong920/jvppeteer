@@ -90,12 +90,12 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
     /**
      * Gets the specified window {@link WindowBounds | bounds}.
      */
-    public abstract WindowBounds getWindowBounds(int windowId);
+    public abstract WindowBounds getWindowBounds(String windowId);
 
     /**
      * Sets the specified window {@link WindowBounds | bounds}.
      */
-    public abstract void setWindowBounds(int windowId, WindowBounds windowBounds);
+    public abstract void setWindowBounds(String windowId, WindowBounds windowBounds);
 
     /**
      * 在 默认浏览器上下文 中创建新的 page。

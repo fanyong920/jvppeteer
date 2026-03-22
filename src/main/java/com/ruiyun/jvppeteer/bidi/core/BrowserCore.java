@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.bidi.entities.AddPreloadScriptOptions;
+import com.ruiyun.jvppeteer.bidi.entities.ClientWindowInfo;
+import com.ruiyun.jvppeteer.bidi.entities.SetClientWindowStateParameters;
 import com.ruiyun.jvppeteer.common.ProxyConfiguration;
 import com.ruiyun.jvppeteer.bidi.entities.RealmInfo;
 import com.ruiyun.jvppeteer.bidi.entities.RealmType;
@@ -25,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -242,9 +245,47 @@ public class BrowserCore extends EventEmitter<BrowserCore.BrowserCoreEvent> {
     }
 
     public void uninstallExtension(String id) {
+        throwIfDisposed("Browser has been disposed");
         Map<String, Object> params = ParamsFactory.create();
         params.put("extension", id);
         this.session.send("webExtension.uninstall", params);
+    }
+
+    public void setClientWindowState(SetClientWindowStateParameters params){
+        throwIfDisposed("Browser has been disposed");
+        this.session.send("browser.setClientWindowState", params);
+    }
+
+    public ClientWindowInfo getClientWindowInfo(String windowId){
+        throwIfDisposed("Browser has been disposed");
+        ClientWindowsResult result = Constant.OBJECTMAPPER.convertValue(this.session.send("browser.getClientWindows", new HashMap<>()).get("result"), ClientWindowsResult.class);
+        List<ClientWindowInfo> clientWindows = result.getClientWindows();
+
+        // 查找具有指定 windowId 的窗口
+        Optional<ClientWindowInfo> windowOpt = clientWindows.stream()
+                .filter(window -> window.getClientWindow().equals(windowId))
+                .findFirst();
+
+        if (windowOpt.isPresent()) {
+            return windowOpt.get();
+        } else {
+            throw new JvppeteerException("Window not found"); // 抛出异常，对应原代码中的错误
+        }
+    }
+
+    // 需要的辅助类定义
+    static class ClientWindowsResult {
+        private List<ClientWindowInfo> clientWindows;
+
+        public ClientWindowsResult() {}
+
+        public List<ClientWindowInfo> getClientWindows() {
+            return clientWindows;
+        }
+
+        public void setClientWindows(List<ClientWindowInfo> clientWindows) {
+            this.clientWindows = clientWindows;
+        }
     }
 
     public enum BrowserCoreEvent {
