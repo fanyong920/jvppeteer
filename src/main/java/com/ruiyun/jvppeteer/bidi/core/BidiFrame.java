@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
+import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Response;
@@ -22,18 +23,22 @@ import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
-import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.common.BindingFunction;
 import com.ruiyun.jvppeteer.common.Constant;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
+import com.ruiyun.jvppeteer.common.WaitForOptions;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.CdpConnection;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,9 +52,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
@@ -115,7 +117,7 @@ public class BidiFrame extends Frame {
             this.page().trustedEmitter().emit(PageEvents.FrameDetached, this);
         });
         this.browsingContext.on(BrowsingContext.BrowsingContextEvents.request, (Consumer<RequestCore>) request -> {
-            BidiRequest httpRequest = BidiRequest.from(request, this, this.page().isNetworkInterceptionEnabled(),null);
+            BidiRequest httpRequest = BidiRequest.from(request, this, this.page().isNetworkInterceptionEnabled(), null);
             request.once(RequestCore.RequestCoreEvents.success, (Consumer<ResponseData>) ignored -> {
                 this.page().trustedEmitter().emit(PageEvents.RequestFinished, httpRequest);
             });
@@ -169,7 +171,7 @@ public class BidiFrame extends Frame {
                     text.deleteCharAt(text.length() - 1);
                     this.page().trustedEmitter().emit(
                             PageEvents.Console,
-                            new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), this,null,null));
+                            new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), this, null, null));
                 }
             } else if (isJavaScriptLogEntry(entry)) {
                 StringBuilder stackLines = new StringBuilder();
@@ -245,7 +247,7 @@ public class BidiFrame extends Frame {
     }
 
     @Override
-    public Frame parentFrame() {
+    public BidiFrame parentFrame() {
         if (Objects.nonNull(this.bidiFrame)) {
             return this.bidiFrame;
         }
@@ -356,6 +358,22 @@ public class BidiFrame extends Frame {
             }
         }
         return navigation;
+    }
+
+    @Override
+    public ElementHandle frameElement() throws EvaluateException {
+        BidiFrame parentFrame = this.parentFrame();
+        if (parentFrame == null) {
+            return null;
+        }
+        Map<String, Object> value = ParamsFactory.create();
+        value.put("context", this.id);
+
+        List<RemoteValue> nodes = parentFrame.browsingContext.locateNodes(OBJECTMAPPER.createObjectNode().put("type", "context").putPOJO("value", value), Collections.EMPTY_LIST);
+        if (ValidateUtil.isEmpty(nodes)) {
+            return null;
+        }
+        return BidiElementHandle.from(nodes.get(0), parentFrame.mainRealm()).asElement();
     }
 
     @Override

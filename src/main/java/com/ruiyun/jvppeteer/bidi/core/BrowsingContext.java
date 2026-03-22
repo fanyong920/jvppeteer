@@ -489,7 +489,7 @@ public class BrowsingContext extends EventEmitter<BrowsingContext.BrowsingContex
         Map<String, Object> params = ParamsFactory.create();
         params.put("context", this.id);
         params.put("locator", locator);
-        params.put("startNodes", ValidateUtil.isNotEmpty(startNodes) ? startNodes.size() : null);
+        params.put("startNodes", ValidateUtil.isNotEmpty(startNodes) ? startNodes : null);
         JsonNode nodes = this.session().send("browsingContext.locateNodes", params).at("/result/nodes");
         Iterator<JsonNode> elements = nodes.elements();
         List<RemoteValue> result = new ArrayList<>();
