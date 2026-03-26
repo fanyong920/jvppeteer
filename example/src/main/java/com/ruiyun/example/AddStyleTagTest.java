@@ -8,9 +8,9 @@ import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class P_AddStyleTagTest {
+public class AddStyleTagTest {
 
     @Test
     public void test4() throws Exception {

@@ -10,9 +10,9 @@ import java.util.Collections;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class I_PageMouseTest {
+public class PageMouseTest {
     @Test
     public void test2() throws Exception {
         //隐身模式启动浏览器

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
-public class X_WorkingWithExtension {
+public class WorkingWithExtension {
 
     @Test
     public void test2() throws Exception {

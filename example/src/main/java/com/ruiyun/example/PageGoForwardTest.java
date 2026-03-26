@@ -7,9 +7,9 @@ import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class D_PageGoForwardTest {
+public class PageGoForwardTest {
 
     @Test
     public void test3() throws Exception {

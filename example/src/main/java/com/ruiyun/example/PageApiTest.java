@@ -50,7 +50,6 @@ import com.ruiyun.jvppeteer.common.WebPermission;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,11 +64,11 @@ import java.util.function.Predicate;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
 import static org.junit.Assert.assertTrue;
 
-public class S_PageApiTest {
+public class PageApiTest {
     /**
      * goto的几种方式
      */

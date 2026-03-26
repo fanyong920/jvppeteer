@@ -10,9 +10,9 @@ import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class F_PageViewPortTest {
+public class PageViewPortTest {
 
     @Test
     public void test2() throws Exception {

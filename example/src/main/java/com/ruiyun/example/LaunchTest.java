@@ -15,15 +15,16 @@ import java.util.List;
 import java.util.Objects;
 import org.junit.Test;
 
-public class A_LaunchTest {
+public class LaunchTest {
     public static final LaunchOptions LAUNCHOPTIONS = LaunchOptions.builder().
             executablePath("D:\\jvppeteer\\chrome-win32\\chrome-win32\\chrome.exe").
 
 //            executablePath("C:\\Users\\fanyong\\Desktop\\typescriptPri\\.local-browser\\chrome-win32\\chrome-win32\\chrome.exe").product(Product.Chrome).
-//        executablePath("C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe").
-//            product(Product.Firefox).
+        executablePath("C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe").
+            product(Product.Firefox).
             headless(false).
-//            protocol(Protocol.WebDriverBiDi).
+//            pipe(true).
+            protocol(Protocol.WebDriverBiDi).
             //不设置窗口大小
 //                    devtools(true).
             defaultViewport(null).
@@ -66,7 +67,10 @@ public class A_LaunchTest {
                 }
             }
             System.out.println("浏览器版本：" + browser.version());
+            Thread.sleep(10000);
+            System.out.println("浏览器版本2：" + browser.version());
         }
+
     }
 
     /**

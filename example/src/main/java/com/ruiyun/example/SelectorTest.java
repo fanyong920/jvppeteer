@@ -10,9 +10,9 @@ import java.util.List;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.getBrowser;
+import static com.ruiyun.example.LaunchTest.getBrowser;
 
-public class Z_SelectorTest {
+public class SelectorTest {
     /**
      * xpath选择器
      */

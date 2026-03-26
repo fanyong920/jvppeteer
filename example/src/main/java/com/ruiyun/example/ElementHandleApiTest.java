@@ -25,9 +25,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class R_ElementHandleApiTest {
+public class ElementHandleApiTest {
     /**
      * 获取元素信息
      */

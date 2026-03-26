@@ -3,17 +3,14 @@ package com.ruiyun.example;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
-import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.ClickOptions;
-import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
-import java.util.function.Consumer;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class Z_InputApiTest {
+public class InputApiTest {
     /**
      * 双击按钮测试
      */

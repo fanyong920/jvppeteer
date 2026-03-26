@@ -13,9 +13,9 @@ import java.util.Collections;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class K_PDFTest {
+public class PDFTest {
     /**
      * 要打印成什么样子的pdf，自己手动在浏览器按Ctrl+p，弹出的窗口就是pdf样式，，再把各个选项点一下，看一下预览效果
      * 然后再回来写代码

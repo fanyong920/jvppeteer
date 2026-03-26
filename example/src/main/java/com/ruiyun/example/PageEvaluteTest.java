@@ -10,9 +10,9 @@ import java.util.function.Consumer;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class H_PageEvaluteTest {
+public class PageEvaluteTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器

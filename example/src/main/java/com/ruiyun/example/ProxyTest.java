@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class Z_ProxyTest {
+public class ProxyTest {
     @Test
     public void test1() throws Exception {
         ArrayList<String> args = new ArrayList<>();//添加一些额外的启动参数

@@ -18,9 +18,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class N_ExposeFunctionTest {
+public class ExposeFunctionTest {
 
     @Test
     public void test4() throws Exception {

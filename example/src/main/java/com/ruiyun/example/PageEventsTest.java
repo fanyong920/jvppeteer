@@ -18,9 +18,9 @@ import java.util.function.Consumer;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class E_PageEventsTest {
+public class PageEventsTest {
 
     @Test
     public void test3() throws Exception {

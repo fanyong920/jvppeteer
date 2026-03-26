@@ -6,13 +6,12 @@ import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import com.ruiyun.jvppeteer.cdp.entities.SerializedAXNode;
 import com.ruiyun.jvppeteer.cdp.entities.SnapshotOptions;
-import com.ruiyun.jvppeteer.common.Constant;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class W_AccessibilityApiTest {
+public class AccessibilityApiTest {
 
     @Test
     public void test3() throws Exception {

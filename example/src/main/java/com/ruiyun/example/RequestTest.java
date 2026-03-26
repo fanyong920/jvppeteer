@@ -1,6 +1,5 @@
 package com.ruiyun.example;
 
-import com.fasterxml.jackson.databind.util.BeanUtil;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Request;
@@ -23,9 +22,9 @@ import java.util.function.Consumer;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class J_RequestTest {
+public class RequestTest {
     @Test
     public void test2() throws Exception {
         //启动浏览器

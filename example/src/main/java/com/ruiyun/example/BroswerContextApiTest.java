@@ -23,10 +23,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 import static org.junit.Assert.assertEquals;
 
-public class T_BroswerContextApiTest {
+public class BroswerContextApiTest {
 
     @Test
     public void test3() throws Exception {

@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class M_ResponseTest {
+public class ResponseTest {
 
     /**
      * 拦截请求

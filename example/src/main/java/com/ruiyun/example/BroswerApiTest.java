@@ -41,9 +41,9 @@ import org.java_websocket.drafts.Draft_6455;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class U_BroswerApiTest {
+public class BroswerApiTest {
 
     @Test
     public void test3() throws Exception {

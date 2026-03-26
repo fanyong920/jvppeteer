@@ -6,7 +6,7 @@ import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.cdp.core.Puppeteer;
 import org.junit.Test;
 
-public class C_PageGoBackTest extends A_LaunchTest {
+public class PageGoBackTest extends LaunchTest {
 
     @Test
     public void test3() throws Exception {

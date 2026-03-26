@@ -11,9 +11,9 @@ import java.util.List;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class B_PageGotoTest {
+public class PageGotoTest {
     /**
      * 新建一个页面，并打开网址
      */

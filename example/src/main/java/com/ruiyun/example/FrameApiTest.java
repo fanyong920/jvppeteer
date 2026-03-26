@@ -9,9 +9,9 @@ import java.util.Collections;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.getBrowser;
+import static com.ruiyun.example.LaunchTest.getBrowser;
 
-public class Z_FrameApiTest {
+public class FrameApiTest {
 
     @Test
     public void test() throws Exception {

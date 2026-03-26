@@ -9,9 +9,9 @@ import com.ruiyun.jvppeteer.common.WaitForOptions;
 import org.junit.Test;
 
 
-import static com.ruiyun.example.A_LaunchTest.LAUNCHOPTIONS;
+import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
 
-public class O_WaitForNavigationTest {
+public class WaitForNavigationTest {
 
     @Test
     public void test4() throws Exception {
