@@ -558,6 +558,8 @@ public class CdpPage extends Page {
             if (StringUtil.isNotEmpty(cookie.getUrl())) {
                 ValidateUtil.assertArg(!cookie.getUrl().startsWith("data:"), "Data URL page can not have cookie " + cookie.getName());
             }
+            cookie.setPartitionKey(convertCookiesPartitionKeyFromPuppeteerToCdp(cookie.getPartitionKey()));
+            cookie.setSameSite(Helper.convertSameSiteFromPuppeteerToCdp(cookie.getSameSite()));
             return cookie;
         });
         List<DeleteCookiesRequest> deleteCookiesParameters = new ArrayList<>();

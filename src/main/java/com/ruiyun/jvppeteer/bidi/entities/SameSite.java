@@ -8,5 +8,7 @@ public enum SameSite {
     @JsonProperty("lax")
     Lax,
     @JsonProperty("none")
-    None
+    None,
+    @JsonProperty("default")
+    Default
 }

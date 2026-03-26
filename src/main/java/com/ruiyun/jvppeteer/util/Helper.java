@@ -368,6 +368,7 @@ public class Helper {
         Matcher matcher = pattern.matcher(s);
         return matcher.matches();
     }
+
     public static void releaseObject(CDPSession client, RemoteObject remoteObject) {
         if (StringUtil.isEmpty(remoteObject.getObjectId()))
             return;
@@ -594,7 +595,7 @@ public class Helper {
             cookie.setPriority(CookiePriority.valueOf(priority.asText()));
         }
         JsonNode partitionKey = bidiCookie.path(CDP_SPECIFIC_PREFIX + "partitionKey");
-        if(!cookie.getSameParty()){
+        if (!cookie.getSameParty()) {
             cookie.setSameParty(false);
         }
         if (!partitionKey.isMissingNode()) {
@@ -610,11 +611,23 @@ public class Helper {
     }
 
     public static CookieSameSite convertCookiesSameSiteBiDiToCdp(JsonNode sameSite) {
-        return Objects.equals("strict", sameSite.asText()) ? CookieSameSite.Strict : Objects.equals("lax", sameSite.asText()) ? CookieSameSite.Lax : CookieSameSite.None;
+        return Objects.equals("strict", sameSite.asText()) ? CookieSameSite.Strict : Objects.equals("lax", sameSite.asText()) ? CookieSameSite.Lax : Objects.equals("none", sameSite.asText()) ? CookieSameSite.None : CookieSameSite.Default;
     }
 
     public static SameSite convertCookiesSameSiteCdpToBiDi(CookieSameSite sameSite) {
-        return Objects.equals(sameSite, CookieSameSite.Strict) ? SameSite.Strict : Objects.equals(sameSite, CookieSameSite.Lax) ? SameSite.Lax : SameSite.None;
+        return Objects.equals(sameSite, CookieSameSite.Strict) ? SameSite.Strict : Objects.equals(sameSite, CookieSameSite.Lax) ? SameSite.Lax : Objects.equals(sameSite, CookieSameSite.None) ? SameSite.None : SameSite.Default;
+    }
+
+    public static CookieSameSite convertSameSiteFromPuppeteerToCdp(CookieSameSite sameSite) {
+        switch (sameSite) {
+            case Lax:
+            case None:
+            case Strict:
+                return sameSite;
+            default:
+                return null;
+        }
+
     }
 
     public static String convertCookiesPartitionKeyFromPuppeteerToBiDi(JsonNode partitionKey) {

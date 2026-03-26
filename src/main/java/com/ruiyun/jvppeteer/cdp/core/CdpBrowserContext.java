@@ -147,7 +147,9 @@ public class CdpBrowserContext extends BrowserContext {
         }
         for (CookieData cookie : cookies) {
             cookie.setPartitionKey(Helper.convertCookiesPartitionKeyFromPuppeteerToCdp(cookie.getPartitionKey()));
+            cookie.setSameSite(Helper.convertSameSiteFromPuppeteerToCdp(cookie.getSameSite()));
         }
+
         Map<String, Object> params = ParamsFactory.create();
         params.put("cookies", cookies);
         if(StringUtil.isNotEmpty(this.id)){
