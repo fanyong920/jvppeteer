@@ -8,6 +8,7 @@ import com.ruiyun.jvppeteer.cdp.entities.ContinueRequestOverrides;
 import com.ruiyun.jvppeteer.cdp.entities.ErrorReasons;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
 import com.ruiyun.jvppeteer.cdp.entities.Initiator;
+import com.ruiyun.jvppeteer.cdp.entities.PostDataEntry;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
 import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
@@ -22,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.ruiyun.jvppeteer.util.Helper.mergeByteArrays;
 
 public class CdpRequest extends Request {
 
@@ -54,7 +57,25 @@ public class CdpRequest extends Request {
         this.urlFragment = event.getRequest().getUrlFragment();
         this.resourceType = StringUtil.isEmpty(event.getType()) ? ResourceType.Other : ResourceType.valueOf(event.getType());
         this.method = event.getRequest().getMethod();
-        this.postData = event.getRequest().getPostData();
+        List<PostDataEntry> postDataEntries = event.getRequest().getPostDataEntries();
+        if(ValidateUtil.isNotEmpty(postDataEntries)){
+            List<byte[]> byteArrays = new ArrayList<>();
+            for (PostDataEntry entry : postDataEntries) {
+                if (Objects.nonNull(entry.getBytes())) {
+                    // 将字符串（假设为Base64编码）转换为字节数组
+                    byte[] decodedBytes = Base64Util.decode(entry.getBytes().getBytes());
+                    byteArrays.add(decodedBytes);
+                }
+            }
+
+            // 合并所有字节数组
+            byte[] mergedBytes = mergeByteArrays(byteArrays);
+
+            // 使用UTF-8解码字节数组
+            this.postData = new String(mergedBytes, StandardCharsets.UTF_8);
+        }else {
+            this.postData = event.getRequest().getPostData();
+        }
         this.hasPostData = event.getRequest().getHasPostData();
         this.frame = frame;
         this.redirectChain = redirectChain;

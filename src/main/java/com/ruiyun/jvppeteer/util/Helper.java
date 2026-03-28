@@ -726,4 +726,25 @@ public class Helper {
         }
         return remoteObject.getValue();
     }
+
+    // 合并多个字节数组的辅助方法
+    public static byte[] mergeByteArrays(List<byte[]> arrays) {
+        int totalLength = 0;
+
+        // 计算总长度
+        for (byte[] array : arrays) {
+            totalLength += array.length;
+        }
+
+        byte[] result = new byte[totalLength];
+        int offset = 0;
+
+        // 复制每个数组到结果数组
+        for (byte[] array : arrays) {
+            System.arraycopy(array, 0, result, offset, array.length);
+            offset += array.length;
+        }
+
+        return result;
+    }
 }

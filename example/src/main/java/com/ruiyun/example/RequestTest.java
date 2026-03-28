@@ -1,6 +1,8 @@
 package com.ruiyun.example;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
+import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Request;
 import com.ruiyun.jvppeteer.api.core.Response;
@@ -12,17 +14,23 @@ import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
 import com.ruiyun.jvppeteer.cdp.entities.HeaderEntry;
+import com.ruiyun.jvppeteer.cdp.entities.PostDataEntry;
+import com.ruiyun.jvppeteer.cdp.entities.RequestPayload;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceTiming;
 import com.ruiyun.jvppeteer.cdp.entities.ResourceType;
 import com.ruiyun.jvppeteer.cdp.entities.ResponseForRequest;
+import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
 import com.ruiyun.jvppeteer.common.PuppeteerLifeCycle;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import org.junit.Test;
-
 
 import static com.ruiyun.example.LaunchTest.LAUNCHOPTIONS;
+import static org.junit.Assert.assertTrue;
 
 public class RequestTest {
     @Test
@@ -185,14 +193,62 @@ public class RequestTest {
         CookieParam cookieParam = new CookieParam();
         cookieParam.setName("username");
         cookieParam.setValue("John Doe");
-        cookieParam.setHttpOnly( true);
+        cookieParam.setHttpOnly(true);
         cookieParam.setUrl("https://www.baidu.com/");
         page.setCookie(cookieParam);
 
         Response response = page.goTo("https://www.baidu.com/");
-         response.request().headers().forEach(headerEntry -> {
-             System.out.println("header:" + headerEntry);
+        response.request().headers().forEach(headerEntry -> {
+            System.out.println("header:" + headerEntry);
         });
         browser.close();
+    }
+
+    @Test
+    public void test14() throws Exception {
+        // 测试用例1: 应该从postDataEntries重建postData
+        CDPSession client = null; // 模拟CDPSession对象
+        Frame frame = null; // 模拟Frame对象
+
+        // 创建请求数据
+        RequestWillBeSentEvent requestData1 = new RequestWillBeSentEvent();
+        requestData1.setRequestId("requestId");
+
+        RequestPayload requestInfo1 = new RequestPayload();
+        requestInfo1.setUrl("http://example.com");
+        requestInfo1.setMethod("POST");
+        requestInfo1.setHeaders(new java.util.HashMap<>());
+
+        List<PostDataEntry> entries1 = new ArrayList<>();
+        PostDataEntry entry1 = new PostDataEntry();
+        entry1.setBytes(Base64.getEncoder().encodeToString("part1".getBytes())); // 相当于btoa('part1')
+        entries1.add(entry1);
+
+        PostDataEntry entry2 = new PostDataEntry();
+        entry2.setBytes(Base64.getEncoder().encodeToString("part2".getBytes())); // 相当于btoa('part2')
+        entries1.add(entry2);
+
+        requestInfo1.setPostDataEntries(entries1);
+        requestData1.setRequest(requestInfo1);
+
+        CdpRequest request1 = new CdpRequest(client, frame, "interceptionId", true, requestData1, new ArrayList<>());
+        assertTrue("should be part1part2", request1.postData().equals("part1part2"));
+
+
+        // 测试用例2: 如果postDataEntries缺失，则回退到postData
+        RequestWillBeSentEvent requestData2 = new RequestWillBeSentEvent();
+        requestData2.setRequestId("requestId");
+
+        RequestPayload requestInfo2 = new RequestPayload();
+        requestInfo2.setUrl("http://example.com");
+        requestInfo2.setMethod("POST");
+        requestInfo2.setHeaders(new java.util.HashMap<>());
+        requestInfo2.setPostData("originalData"); // 设置postData而不是postDataEntries
+
+        requestData2.setRequest(requestInfo2);
+
+        CdpRequest request2 = new CdpRequest(client, frame, "interceptionId", true, requestData2, new ArrayList<>());
+
+        assertTrue("should be originalData", "originalData".equals(request2.postData()));
     }
 }
