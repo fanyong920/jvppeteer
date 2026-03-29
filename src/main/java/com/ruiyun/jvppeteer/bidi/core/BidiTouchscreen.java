@@ -19,7 +19,6 @@ public class BidiTouchscreen extends Touchscreen {
         properties.setWidth(1L);
         properties.setHeight(1L);
         properties.setPressure(0.5);
-        properties.setAltitudeAngle(Math.PI/2);
         BidiTouchHandle touch = new BidiTouchHandle(this.page, this, String.valueOf(id), x, y, properties);
          touch.start(origin);
         this.touches.add(touch);
