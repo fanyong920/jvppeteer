@@ -3,7 +3,7 @@ package com.ruiyun.jvppeteer.common;
 public class BrowserRevision {
 
     private final static String CHROME_VERSION = "146.0.7680.80";
-    private final static String FIREFOX_VERSION = "stable_145.0.1";
+    private final static String FIREFOX_VERSION = "stable_149.0";
 
     /**
      * 获取默认浏览器版本，最好使用默认指定的版本，否则有些cdp api参数会失效
