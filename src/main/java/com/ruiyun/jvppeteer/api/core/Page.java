@@ -1668,6 +1668,13 @@ public abstract class Page extends EventEmitter<PageEvents> {
      */
     public abstract Page openDevTools();
 
+    /**
+     * Returns true if DevTools is attached to the current page.
+     * Use {@link Page#openDevTools} to get the DevTools page.
+     *
+     */
+    public abstract boolean hasDevTools();
+
     private static final Map<String, Double> unitToPixels = new HashMap<String, Double>() {
         private static final long serialVersionUID = -4861220887908575532L;
 

@@ -280,6 +280,11 @@ public class BidiPage extends Page {
     }
 
     @Override
+    public boolean hasDevTools() {
+        throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
+    }
+
+    @Override
     public BidiResponse reload(ReloadOptions options) {
         Runnable navigationRunner = () -> {
             try {

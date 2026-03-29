@@ -30,6 +30,7 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.SessionFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +39,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 
 import static com.ruiyun.jvppeteer.util.Helper.getVersion;
 
@@ -422,6 +422,11 @@ public class CdpBrowser extends Browser {
     @Override
     public boolean isNetworkEnabled() {
         return this.networkEnabled;
+    }
+
+    public String hasDevToolsTarget(String pageTargetId) {
+        JsonNode targetId = this.connection.send("Target.getDevToolsTarget", Constant.OBJECTMAPPER.createObjectNode().put("targetId", pageTargetId)).get("targetId");
+        return Objects.nonNull(targetId) && !targetId.isNull() ? targetId.asText() : null;
     }
 
     @Override

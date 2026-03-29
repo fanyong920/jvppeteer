@@ -1196,25 +1196,6 @@ public class PageApiTest {
     }
 
     /**
-     * Page.openDevTools()
-     *
-     * @throws Exception 异常
-     */
-    @Test
-    public void test33() throws Exception {
-        Browser browser = Puppeteer.launch(LAUNCHOPTIONS);
-        Page page = browser.newPage();
-        page.goTo("about:blank");
-        Page openDevTools = page.openDevTools();
-        openDevTools.waitForFunction("() => {\n" +
-                "      // @ts-expect-error wrong context.\n" +
-                "      return Boolean(window.DevToolsAPI);\n" +
-                "    }");
-        Thread.sleep(5000);
-        browser.close();
-    }
-
-    /**
      * Page.reload() 还不能跑通，可能缺少对应的环境
      *
      * @throws Exception 异常

@@ -4,14 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
-import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Response;
-import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
@@ -347,11 +345,11 @@ public class CdpPage extends Page {
         this.emulationManager.setGeolocation(options);
     }
 
-    public Target target() {
+    public CdpTarget target() {
         return this.primaryTarget;
     }
 
-    public Browser browser() {
+    public CdpBrowser browser() {
         return this.primaryTarget.browser();
     }
 
@@ -1177,6 +1175,11 @@ public class CdpPage extends Page {
         String pageTargetId = cdpTarget.getTargetId();
         CdpBrowser browser = (CdpBrowser) this.browser();
         return browser.createDevToolsPage(pageTargetId);
+    }
+
+    @Override
+    public boolean hasDevTools() {
+        return StringUtil.isNotEmpty(this.browser().hasDevToolsTarget(this.target().getTargetId()));
     }
 
     public Accessibility accessibility() {
