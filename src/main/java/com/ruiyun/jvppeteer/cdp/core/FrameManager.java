@@ -296,7 +296,11 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
             frame.updateClient(target.session());
         }
         this.setupEventListeners(target.session());
-        this.initialize(target.session(), frame);
+        try {
+            this.initialize(target.session(), frame);
+        } catch (Exception e) {
+            LOGGER.error("onAttachedToTarget error", e);
+        }
     }
 
     public DeviceRequestPromptManager deviceRequestPromptManager(CDPSession client) {
