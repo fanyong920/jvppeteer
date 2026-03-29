@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 
 import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES;
+import static com.ruiyun.jvppeteer.common.Constant.SESSION;
 
 public class ChromeLauncher extends BrowserLauncher {
 
@@ -115,6 +116,10 @@ public class ChromeLauncher extends BrowserLauncher {
             if (ValidateUtil.isNotEmpty(ignoreDefaultArgs = options.getIgnoreDefaultArgs())) {
                 chromeArguments.removeAll(ignoreDefaultArgs);
             }
+        }
+
+        if("true".equals(System.getProperty("PUPPETEER_DANGEROUS_NO_SANDBOX")) && !options.getArgs().contains("--no-sandbox")){
+            chromeArguments.add("--no-sandbox");
         }
 
         if (StringUtil.isNotEmpty(options.getUserDataDir())) {
