@@ -74,6 +74,7 @@ public enum ConnectionEvents {
     browsingContext_navigationAborted("browsingContext.navigationAborted"),
     browsingContext_domContentLoaded("browsingContext.domContentLoaded"),
     browsingContext_load("browsingContext.load"),
+    browsingContext_navigationCommitted("browsingContext.navigationCommitted"),
     network_beforeRequestSent("network.beforeRequestSent"),
     network_authRequired("network.authRequired"),
     network_fetchError("network.fetchError"),

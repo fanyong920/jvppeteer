@@ -61,6 +61,7 @@ import com.ruiyun.jvppeteer.cdp.events.TargetDestroyedEvent;
 import com.ruiyun.jvppeteer.cdp.events.TargetInfoChangedEvent;
 import com.ruiyun.jvppeteer.cdp.events.TracingCompleteEvent;
 import com.ruiyun.jvppeteer.transport.CdpCDPSession;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -420,6 +421,7 @@ public interface Constant {
                         break;
                     case "browsingContext.load":
                     case "browsingContext.domContentLoaded":
+                    case "browsingContext.navigationCommitted":
                         put(event.getEventName(), NavigationInfoEvent.class);
                         break;
                     case "network.authRequired":

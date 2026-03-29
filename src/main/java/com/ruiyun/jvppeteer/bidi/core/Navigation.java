@@ -83,6 +83,15 @@ public class Navigation extends EventEmitter<Navigation.NavigationEvents> {
         this.session().on(ConnectionEvents.browsingContext_load, domConsumer);
         this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.browsingContext_load, domConsumer));
 
+        Consumer<NavigationInfoEvent> navigationCommittedConsumer = info -> {
+            if (!Objects.equals(info.getContext(), this.browsingContext.id()) || Objects.isNull(info.getNavigation()) || !this.matches(info.getNavigation())) {
+                return;
+            }
+            this.dispose();
+        };
+        this.session().on(ConnectionEvents.browsingContext_navigationCommitted, navigationCommittedConsumer);
+        this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.browsingContext_navigationCommitted, navigationCommittedConsumer));
+
         Consumer<NavigationInfoEvent> fragmentNavigatedConsumer = info -> {
             if (!Objects.equals(info.getContext(), this.browsingContext.id()) || !this.matches(info.getNavigation())) {
                 return;
