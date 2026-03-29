@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.cdp.entities.AXProperty;
 import com.ruiyun.jvppeteer.cdp.entities.SerializedAXNode;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -19,20 +20,30 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+
 public class AXNode {
 
     private com.ruiyun.jvppeteer.cdp.entities.AXNode payload;
     private List<AXNode> children = new ArrayList<>();
+    private SerializedAXNode iframeSnapshot;
+
     private boolean richlyEditable = false;
     private boolean editable = false;
     private boolean focusable = false;
     private boolean hidden = false;
+    private boolean busy = false;
+    private boolean modal = false;
+    private boolean hasErrormessage = false;
+    private boolean hasDetails = false;
     private String name;
     private String role;
+    private String description;
+    private String roledescription;
+    private String live;
     private boolean ignored = false;
     private Boolean cachedHasFocusableChild;
     private Realm realm;
-    private SerializedAXNode iframeSnapshot;
+
     private static final String[] userStringProperties = new String[]{
             "name",
             "value",
@@ -51,7 +62,9 @@ public class AXNode {
             "multiselectable",
             "readonly",
             "required",
-            "selected"
+            "selected",
+            "busy",
+            "atomic",
     };
 
     public static final String[] tristateProperties = new String[]{
@@ -62,7 +75,11 @@ public class AXNode {
             "autocomplete",
             "haspopup",
             "invalid",
-            "orientation"
+            "orientation",
+            "live",
+            "relevant",
+            "errormessage",
+            "details",
     };
 
     public static final String[] numericalProperties = new String[]{
@@ -76,9 +93,10 @@ public class AXNode {
 
     public AXNode(Realm realm, com.ruiyun.jvppeteer.cdp.entities.AXNode payload) {
         this.payload = payload;
-        this.name = this.payload.getName() != null ? String.valueOf(this.payload.getName().getValue()) : "";
         this.role = this.payload.getRole() != null ? String.valueOf(this.payload.getRole().getValue()) : "Unknown";
         this.ignored = payload.getIgnored();
+        this.name = Objects.nonNull(this.payload.getName()) ? String.valueOf(this.payload.getName().getValue()) : "";
+        this.description = Objects.nonNull(this.payload.getDescription()) ? String.valueOf(this.payload.getDescription().getValue()) : null;
         this.realm = realm;
         List<AXProperty> properties = this.payload.getProperties();
         if (ValidateUtil.isNotEmpty(properties)) {
@@ -92,6 +110,39 @@ public class AXNode {
                 }
                 if ("hidden".equals(property.getName())) {
                     this.hidden = (Boolean) property.getValue().getValue();
+                }
+                if ("busy".equals(property.getName())) {
+                    Object busyValue = property.getValue().getValue();
+
+                    if (busyValue instanceof Boolean) {
+                        this.busy = (Boolean) busyValue;
+                    } else if (busyValue instanceof String) {
+                        String strValue = ((String) busyValue).toLowerCase().trim();
+                        // 根据ARIA规范，只有"true"才表示忙碌状态
+                        this.busy = "true".equals(strValue);
+                    } else if (busyValue instanceof Number) {
+                        // 在Chrome DevTools Protocol中，1通常表示true，0表示false
+                        this.busy = ((Number) busyValue).intValue() != 0;
+                    } else {
+                        // 对于其他类型，转换为字符串再处理
+                        this.busy = "true".equalsIgnoreCase(busyValue.toString());
+                    }
+
+                }
+                if ("live".equals(property.getName())) {
+                    this.live = (String) property.getValue().getValue();
+                }
+                if ("modal".equals(property.getName())) {
+                    this.modal = (Boolean) property.getValue().getValue();
+                }
+                if ("roledescription".equals(property.getName())) {
+                    this.roledescription = (String) property.getValue().getValue();
+                }
+                if ("errormessage".equals(property.getName())) {
+                    this.hasErrormessage = true;
+                }
+                if ("details".equals(property.getName())) {
+                    this.hasDetails = true;
                 }
             }
         }
@@ -197,6 +248,7 @@ public class AXNode {
                 return false;
         }
     }
+
     public boolean isLandmark() {
         switch (this.role) {
             case "banner":
@@ -220,7 +272,16 @@ public class AXNode {
         if (this.isLandmark())
             return true;
 
-        if (this.focusable || this.richlyEditable)
+        if (
+                this.focusable ||
+                        this.richlyEditable ||
+                        this.busy ||
+                        (StringUtil.isNotEmpty(this.live) && !"off".equals(this.live)) ||
+                        this.modal ||
+                        this.hasErrormessage ||
+                        this.hasDetails ||
+                        StringUtil.isNotEmpty(this.roledescription)
+        )
             return true;
 
         // If it"s not focusable but has a control role, then it"s interesting.
@@ -231,7 +292,7 @@ public class AXNode {
         if (insideControl)
             return false;
 
-        return this.isLeafNode() && StringUtil.isNotEmpty(this.name);
+        return this.isLeafNode() && (StringUtil.isNotEmpty(this.name) || StringUtil.isNotEmpty(this.description));
     }
 
     public SerializedAXNode serialize() throws IntrospectionException, InvocationTargetException, IllegalAccessException, JsonProcessingException {
@@ -275,25 +336,25 @@ public class AXNode {
             // not whether focus is specifically on the root node.
             if ("focused".equals(booleanProperty) && "RootWebArea".equals(this.role))
                 continue;
-            Object value = properties.get(booleanProperty);
-            if (value == null || Boolean.FALSE.equals(value))
+            boolean containsProperty = properties.containsKey(booleanProperty);
+            if (!containsProperty)
                 continue;
             PropertyDescriptor propDesc = new PropertyDescriptor(booleanProperty, SerializedAXNode.class);
-            propDesc.getWriteMethod().invoke(node, value);
+            propDesc.getWriteMethod().invoke(node, containsProperty);
         }
 
         for (String tristateProperty : tristateProperties) {
             if (!properties.containsKey(tristateProperty))
                 continue;
             Object value = properties.get(tristateProperty);
-            if("mixed".equals( value)){
+            if ("mixed".equals(value)) {
                 PropertyDescriptor propDesc = new PropertyDescriptor(tristateProperty, SerializedAXNode.class);
                 propDesc.getWriteMethod().invoke(node, value);
-            }else {
-                if("true".equals( value)){
+            } else {
+                if ("true".equals(value)) {
                     PropertyDescriptor propDesc = new PropertyDescriptor(tristateProperty, SerializedAXNode.class);
                     propDesc.getWriteMethod().invoke(node, true);
-                }else {
+                } else {
                     PropertyDescriptor propDesc = new PropertyDescriptor(tristateProperty, SerializedAXNode.class);
                     propDesc.getWriteMethod().invoke(node, false);
                 }
