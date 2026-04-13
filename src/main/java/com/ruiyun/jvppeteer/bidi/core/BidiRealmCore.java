@@ -2,15 +2,18 @@ package com.ruiyun.jvppeteer.bidi.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
+import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.bidi.entities.CallFunctionOptions;
 import com.ruiyun.jvppeteer.bidi.entities.EvaluateOptions;
 import com.ruiyun.jvppeteer.bidi.entities.EvaluateResult;
+import com.ruiyun.jvppeteer.bidi.entities.LogEntry;
 import com.ruiyun.jvppeteer.bidi.entities.Target;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.DisposableStack;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +110,7 @@ public abstract class BidiRealmCore extends EventEmitter<BidiRealmCore.RealmCore
     public enum RealmCoreEvents {
         /**
          * 当领域更新时发出。
-         * Realm.class
+         * {@link Realm}
          */
         updated,
         /**
@@ -117,13 +120,18 @@ public abstract class BidiRealmCore extends EventEmitter<BidiRealmCore.RealmCore
         destroyed,
         /**
          * 当领域中创建了一个专用工作线程时发出。
-         * DedicatedWorkerRealm.class
+         * {@link DedicatedWorkerRealm}
          */
         worker,
         /**
          * 当领域中创建了一个共享工作线程时发出。
-         * SharedWorkerRealm.class
+         * {@link SharedWorkerRealm}
          */
-        sharedworker
+        sharedworker,
+        /**
+         * Emitted whenever a log entry is added to the realm.
+         * {@link LogEntry}
+         */
+        log
     }
 }

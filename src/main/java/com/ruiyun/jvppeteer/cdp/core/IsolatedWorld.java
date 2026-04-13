@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Realm;
+import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.common.ChromeEnvironment;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
@@ -171,7 +172,7 @@ public class IsolatedWorld extends Realm {
         params.put("backendNodeId", backendNodeId);
         params.put("executionContextId", executionContext.getId());
         JsonNode result = this.client().send("DOM.resolveNode", params);
-        return this.createJSHandle(OBJECTMAPPER.treeToValue(result.get("object"), RemoteObject.class));
+        return this.createCdpHandle(OBJECTMAPPER.treeToValue(result.get("object"), RemoteObject.class));
     }
 
     @SuppressWarnings("unchecked")
@@ -206,7 +207,7 @@ public class IsolatedWorld extends Realm {
     }
 
 
-    public JSHandle createJSHandle(RemoteObject remoteObject) {
+    public JSHandle createCdpHandle(RemoteObject remoteObject) {
         if ("node".equals(remoteObject.getSubtype())) {
             return new CdpElementHandle(this, remoteObject);
         }
@@ -222,6 +223,10 @@ public class IsolatedWorld extends Realm {
 
     public CdpFrame frame() {
         return this.frame;
+    }
+
+    public WebWorker webWorker() {
+        return this.webWorker;
     }
 
 }

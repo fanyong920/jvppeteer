@@ -28,7 +28,7 @@ public class TimeoutSettings implements Constant {
     }
 
     public int getDefaultNavigationTimeout() {
-        return defaultNavigationTimeout;
+        return   defaultNavigationTimeout;
     }
 
     public void setDefaultNavigationTimeout(int defaultNavigationTimeout) {

@@ -1,15 +1,16 @@
 package com.ruiyun.jvppeteer.api.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruiyun.jvppeteer.api.events.WebWorkerEvent;
 import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
-import java.util.List;
 
+import java.util.List;
 
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
 
-public abstract class WebWorker {
+public abstract class WebWorker extends EventEmitter<WebWorkerEvent> {
 
     public TimeoutSettings timeoutSettings = new TimeoutSettings();
 

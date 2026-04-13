@@ -5,9 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
+import com.ruiyun.jvppeteer.bidi.core.BidiDeserializer;
+import com.ruiyun.jvppeteer.bidi.core.BidiElementHandle;
+import com.ruiyun.jvppeteer.bidi.core.BidiJSHandle;
+import com.ruiyun.jvppeteer.bidi.entities.LogEntry;
 import com.ruiyun.jvppeteer.bidi.entities.SameSite;
 import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageLocation;
+import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageType;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookiePriority;
 import com.ruiyun.jvppeteer.cdp.entities.CookieSameSite;
@@ -16,6 +24,7 @@ import com.ruiyun.jvppeteer.cdp.entities.ExceptionDetails;
 import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
 import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
+import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.ParamsFactory;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
@@ -746,5 +755,83 @@ public class Helper {
         }
 
         return result;
+    }
+
+
+    public static boolean isConsoleLogEntry(LogEntry entry) {
+        return "console".equals(entry.getType());
+    }
+
+    public static boolean isJavaScriptLogEntry(LogEntry entry) {
+        return "javascript".equals(entry.getType());
+    }
+
+    public static List<ConsoleMessageLocation> getStackTraceLocations(StackTrace stackTrace) {
+        List<ConsoleMessageLocation> stackTraceLocations = new ArrayList<>();
+        if (Objects.nonNull(stackTrace) && ValidateUtil.isNotEmpty(stackTrace.getCallFrames())) {
+            for (CallFrame callFrame : stackTrace.getCallFrames()) {
+                stackTraceLocations.add(new ConsoleMessageLocation(callFrame.getUrl(), callFrame.getLineNumber(), callFrame.getColumnNumber()));
+            }
+        }
+        return stackTraceLocations;
+    }
+
+    public static ConsoleMessage getConsoleMessage(LogEntry entry, List<JSHandle> args, Frame frame, String targetId) {
+        StringBuilder text = new StringBuilder();
+        for (Object arg : args) {
+            Object parsedValue;
+            if (arg instanceof BidiJSHandle) {
+                BidiJSHandle jsHandle = (BidiJSHandle) arg;
+                if (jsHandle.isPrimitiveValue()) {
+                    parsedValue = BidiDeserializer.deserialize(jsHandle.remoteValue());
+                } else {
+                    parsedValue = jsHandle.toString();
+                }
+            } else {
+                BidiElementHandle elementHandle = (BidiElementHandle) arg;
+                parsedValue = elementHandle.toString();
+            }
+            text.append(parsedValue).append(" ");
+        }
+        if (text.length() > 0) {
+            text.deleteCharAt(text.length() - 1);
+            return new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), frame, null, targetId);
+        }
+        return new ConsoleMessage();
+    }
+
+    public static ConsoleMessageType convertConsoleMessageLevel(String method) {
+        switch (method) {
+            case "group":
+                return ConsoleMessageType.startGroup;
+            case "groupCollapsed":
+                return ConsoleMessageType.startGroupCollapsed;
+            case "groupEnd":
+                return ConsoleMessageType.endGroup;
+            case "assert":
+                return ConsoleMessageType.Assert;
+            case "warning":
+                return ConsoleMessageType.warn;
+            default:
+                return ConsoleMessageType.valueOf(method);
+        }
+    }
+
+    public static ConsoleMessage createConsoleMessage(ConsoleAPICalledEvent event, List<JSHandle> values, String targetId) {
+        List<String> textTokens = new ArrayList<>();
+        for (JSHandle arg : values) {
+            Object value = valueFromJSHandle(arg);
+            if (value instanceof String) {
+                textTokens.add((String) value);
+            } else {
+                try {
+                    textTokens.add(OBJECTMAPPER.writeValueAsString(value));
+                } catch (JsonProcessingException e) {
+                    LOGGER.error("jvppeteer error", e);
+                }
+            }
+        }
+
+        return new ConsoleMessage(convertConsoleMessageLevel(event.getType()), String.join(" ", textTokens), values, getStackTraceLocations(event.getStackTrace()), null, event.getStackTrace(), targetId);
     }
 }

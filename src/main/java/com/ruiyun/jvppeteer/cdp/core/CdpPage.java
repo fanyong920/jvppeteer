@@ -13,10 +13,10 @@ import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
+import com.ruiyun.jvppeteer.api.events.WebWorkerEvent;
 import com.ruiyun.jvppeteer.cdp.entities.AddHeapSnapshotChunkEvent;
 import com.ruiyun.jvppeteer.cdp.entities.Binding;
 import com.ruiyun.jvppeteer.cdp.entities.BindingPayload;
-import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageLocation;
 import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageType;
@@ -103,8 +103,8 @@ import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.common.Constant.STREAM;
 import static com.ruiyun.jvppeteer.common.Constant.supportedMetrics;
 import static com.ruiyun.jvppeteer.util.Helper.convertCookiesPartitionKeyFromPuppeteerToCdp;
+import static com.ruiyun.jvppeteer.util.Helper.createConsoleMessage;
 import static com.ruiyun.jvppeteer.util.Helper.throwError;
-import static com.ruiyun.jvppeteer.util.Helper.valueFromJSHandle;
 
 public class CdpPage extends Page {
 
@@ -264,9 +264,29 @@ public class CdpPage extends Page {
     private final Consumer<CdpCDPSession> onAttachedToTarget = (session) -> {
         this.frameManager.onAttachedToTarget(session.getTarget());
         if ("worker".equals(session.getTarget().getTargetInfo().getType())) {
-            CdpWebWorker webWorker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::onConsoleAPI, CdpPage.this::handleException, this.frameManager.networkManager());
-            this.workers.put(session.id(), webWorker);
-            this.emit(PageEvents.WorkerCreated, webWorker);
+            CdpWebWorker worker = new CdpWebWorker(session, session.getTarget().url(), session.getTarget().getTargetId(), session.getTarget().type(), CdpPage.this::handleException, this.frameManager.networkManager());
+            this.workers.put(session.id(), worker);
+            worker.internalEmitter().on(WebWorkerEvent.Console, (Consumer<ConsoleMessage>) message -> {
+                boolean noListenersForConsoleOnPage = this.listenerCount(PageEvents.Console) == 0;
+                boolean noListenersForConsoleOnWorker = worker.listenerCount(WebWorkerEvent.Console) == 0;
+
+                if (noListenersForConsoleOnPage && noListenersForConsoleOnWorker) {
+                    // eslint-disable-next-line max-len -- The comment is long.
+                    // eslint-disable-next-line @puppeteer/use-using -- These are not owned by this function.
+                    for (JSHandle arg : message.args()) {
+                        try {
+                            arg.dispose();
+                        } catch (Exception e) {
+                            LOGGER.error("dispose error: ", e);
+                        }
+                    }
+                    return;
+                }
+                if (!noListenersForConsoleOnPage) {
+                    this.emit(PageEvents.Console, message);
+                }
+            });
+            this.emit(PageEvents.WorkerCreated, worker);
         }
         session.on(ConnectionEvents.CDPSession_Ready, this.onAttachedToTarget);
     };
@@ -461,7 +481,7 @@ public class CdpPage extends Page {
         Map<String, Object> params = new HashMap<>();
         params.put("prototypeObjectId", prototypeHandle.remoteObject().getObjectId());
         JsonNode response = this.mainFrame().client().send("Runtime.queryObjects", params);
-        return this.mainFrame().mainRealm().createJSHandle(OBJECTMAPPER.treeToValue(response.get("objects"), RemoteObject.class));
+        return this.mainFrame().mainRealm().createCdpHandle(OBJECTMAPPER.treeToValue(response.get("objects"), RemoteObject.class));
     }
 
     /**
@@ -708,42 +728,32 @@ public class CdpPage extends Page {
         if (ValidateUtil.isNotEmpty(event.getArgs())) {
             for (int i = 0; i < event.getArgs().size(); i++) {
                 RemoteObject arg = event.getArgs().get(i);
-                values.add(world.createJSHandle(arg));
+                values.add(world.createCdpHandle(arg));
             }
         }
-        if (this.listenerCount(PageEvents.Console) == 0) {
-            values.forEach(JSHandle::dispose);
-            return;
-        }
-        List<String> textTokens = new ArrayList<>();
-        for (JSHandle arg : values) {
-            Object value = valueFromJSHandle(arg);
-            if (value instanceof String) {
-                textTokens.add((String) value);
-            } else {
-                try {
-                    textTokens.add(OBJECTMAPPER.writeValueAsString(arg));
-                } catch (JsonProcessingException e) {
-                    LOGGER.error("jvppeteer error", e);
+        boolean hasPageConsoleListeners = this.listenerCount(PageEvents.Console) > 0;
+        boolean hasWorkerConsoleListeners =
+                Objects.nonNull(world.webWorker()) && world.webWorker().listenerCount(WebWorkerEvent.Console) > 0;
+
+        if (!hasPageConsoleListeners) {
+            if (!hasWorkerConsoleListeners) {
+                // eslint-disable-next-line max-len -- The comment is long.
+                // eslint-disable-next-line @puppeteer/use-using -- These are not owned by this function.
+                for (JSHandle value : values) {
+                    try {
+                        value.dispose();
+                    } catch (Exception e) {
+                        LOGGER.error("jvppeteer error: ", e);
+                    }
                 }
             }
-        }
-        List<ConsoleMessageLocation> stackTraceLocations = new ArrayList<>();
-        if (Objects.nonNull(event.getStackTrace()) && ValidateUtil.isNotEmpty(event.getStackTrace().getCallFrames())) {
-            for (CallFrame callFrame : event.getStackTrace().getCallFrames()) {
-                ConsoleMessageLocation location = new ConsoleMessageLocation();
-                location.setUrl(callFrame.getUrl());
-                location.setLineNumber(callFrame.getLineNumber());
-                location.setColumnNumber(callFrame.getColumnNumber());
-                stackTraceLocations.add(location);
-            }
+            return;
         }
         String targetId = null;
         if (world.environment().client() instanceof CdpCDPSession) {
             targetId = ((CdpCDPSession) world.environment().client()).getTarget().getTargetId();
         }
-        ConsoleMessage message = new ConsoleMessage(convertConsoleMessageLevel(event.getType()), String.join(" ", textTokens), values, stackTraceLocations, null, event.getStackTrace(), targetId);
-        this.emit(PageEvents.Console, message);
+        this.emit(PageEvents.Console, createConsoleMessage(event, values, targetId));
     }
 
     @Override

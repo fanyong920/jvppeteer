@@ -16,11 +16,7 @@ import com.ruiyun.jvppeteer.bidi.entities.ResponseData;
 import com.ruiyun.jvppeteer.bidi.entities.SharedReference;
 import com.ruiyun.jvppeteer.cdp.core.Accessibility;
 import com.ruiyun.jvppeteer.cdp.entities.CallFrame;
-import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessage;
-import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageLocation;
-import com.ruiyun.jvppeteer.cdp.entities.ConsoleMessageType;
 import com.ruiyun.jvppeteer.cdp.entities.GoToOptions;
-import com.ruiyun.jvppeteer.cdp.entities.StackTrace;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.WaitForNetworkIdleOptions;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
@@ -39,7 +35,6 @@ import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,6 +50,9 @@ import java.util.stream.Collectors;
 
 import static com.ruiyun.jvppeteer.common.Constant.NETWORK_IDLE_TIME;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.util.Helper.getConsoleMessage;
+import static com.ruiyun.jvppeteer.util.Helper.isConsoleLogEntry;
+import static com.ruiyun.jvppeteer.util.Helper.isJavaScriptLogEntry;
 
 public class BidiFrame extends Frame {
     protected static final Logger LOGGER = LoggerFactory.getLogger(BidiFrame.class);
@@ -150,29 +148,11 @@ public class BidiFrame extends Frame {
                 return;
             }
             if (isConsoleLogEntry(entry)) {
+                if (this.page().listenerCount(PageEvents.Console) <= 0) {
+                    return;
+                }
                 List<JSHandle> args = entry.getArgs().stream().map(arg -> this.mainRealm().createHandle(arg)).collect(Collectors.toList());
-                StringBuilder text = new StringBuilder();
-                for (Object arg : args) {
-                    Object parsedValue;
-                    if (arg instanceof BidiJSHandle) {
-                        BidiJSHandle jsHandle = (BidiJSHandle) arg;
-                        if (jsHandle.isPrimitiveValue()) {
-                            parsedValue = BidiDeserializer.deserialize(jsHandle.remoteValue());
-                        } else {
-                            parsedValue = jsHandle.toString();
-                        }
-                    } else {
-                        BidiElementHandle elementHandle = (BidiElementHandle) arg;
-                        parsedValue = elementHandle.toString();
-                    }
-                    text.append(parsedValue).append(" ");
-                }
-                if (text.length() > 0) {
-                    text.deleteCharAt(text.length() - 1);
-                    this.page().trustedEmitter().emit(
-                            PageEvents.Console,
-                            new ConsoleMessage(convertConsoleMessageLevel(entry.getMethod()), text.toString(), args, getStackTraceLocations(entry.getStackTrace()), this, null, null));
-                }
+                this.page().trustedEmitter().emit(PageEvents.Console, getConsoleMessage(entry, args, this,null));
             } else if (isJavaScriptLogEntry(entry)) {
                 StringBuilder stackLines = new StringBuilder();
                 if (Objects.nonNull(entry.getStackTrace())) {
@@ -510,39 +490,6 @@ public class BidiFrame extends Frame {
         ValidateUtil.assertArg(!this.detached(), "Attempted to use detached Frame " + this.id);
         SharedReference reference = OBJECTMAPPER.readValue(OBJECTMAPPER.writeValueAsString(elementHandle.remoteValue()), SharedReference.class);
         return this.browsingContext.locateNodes(locator, Collections.singletonList(reference));
-    }
-
-    private boolean isConsoleLogEntry(LogEntry entry) {
-        return "console".equals(entry.getType());
-    }
-
-    private boolean isJavaScriptLogEntry(LogEntry entry) {
-        return "javascript".equals(entry.getType());
-    }
-
-    private List<ConsoleMessageLocation> getStackTraceLocations(StackTrace stackTrace) {
-        List<ConsoleMessageLocation> stackTraceLocations = new ArrayList<>();
-        if (Objects.nonNull(stackTrace)) {
-            for (CallFrame callFrame : stackTrace.getCallFrames()) {
-                stackTraceLocations.add(new ConsoleMessageLocation(callFrame.getUrl(), callFrame.getLineNumber(), callFrame.getColumnNumber()));
-            }
-        }
-        return stackTraceLocations;
-    }
-
-    private ConsoleMessageType convertConsoleMessageLevel(String method) {
-        switch (method) {
-            case "group":
-                return ConsoleMessageType.startGroup;
-            case "groupCollapsed":
-                return ConsoleMessageType.startGroupCollapsed;
-            case "groupEnd":
-                return ConsoleMessageType.endGroup;
-            case "assert":
-                return ConsoleMessageType.Assert;
-            default:
-                return ConsoleMessageType.valueOf(method);
-        }
     }
 
 }

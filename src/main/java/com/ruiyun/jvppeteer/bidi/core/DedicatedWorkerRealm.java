@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.bidi.core;
 
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
+import com.ruiyun.jvppeteer.bidi.entities.LogEntry;
 import com.ruiyun.jvppeteer.bidi.entities.RealmDestroyedParameters;
 import com.ruiyun.jvppeteer.bidi.entities.RealmInfo;
 import com.ruiyun.jvppeteer.bidi.entities.RealmType;
@@ -37,6 +38,7 @@ public class DedicatedWorkerRealm extends BidiRealmCore {
         };
         this.session().on(ConnectionEvents.script_realmDestroyed, realmDestroyedParametersConsumer);
         this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.script_realmDestroyed, realmDestroyedParametersConsumer));
+
         Consumer<RealmInfo> realmCreatedEventConsumer = info -> {
             if (!Objects.equals(RealmType.DedicatedWorker, info.getType()) || !info.getOwners().contains(this.id)) {
                 return;
@@ -52,6 +54,15 @@ public class DedicatedWorkerRealm extends BidiRealmCore {
         };
         this.session().on(ConnectionEvents.script_realmCreated, realmCreatedEventConsumer);
         this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.script_realmCreated, realmCreatedEventConsumer));
+
+        Consumer<LogEntry> entryAddedConsumer = info -> {
+            if (!Objects.equals(info.getSource().getRealm(), this.id)){
+                return;
+            }
+            this.emit(RealmCoreEvents.log, info);
+        };
+        this.session().on(ConnectionEvents.log_entryAdded, entryAddedConsumer);
+        this.disposables.add(new DisposableStack<>(this.session(), ConnectionEvents.log_entryAdded, entryAddedConsumer));
     }
 
     public Session session() {

@@ -105,12 +105,14 @@ public enum PageEvents {
      * 当页面生成专用 WebWorker 时触发。
      * <p>
      * <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">了解WebWorker</a>
+     * {@link com.ruiyun.jvppeteer.api.core.WebWorker}.代表一个worker事件相关信息
      */
     WorkerCreated,
     /**
      * 当页面生成专用 WebWorker 时触发。
      * <p>
      * <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API">了解WebWorker</a>
+     * {@link com.ruiyun.jvppeteer.api.core.WebWorker}.代表一个worker事件相关信息
      */
     WorkerDestroyed
 

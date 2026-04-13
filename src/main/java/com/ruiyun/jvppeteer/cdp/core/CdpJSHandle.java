@@ -12,6 +12,7 @@ import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -51,7 +52,7 @@ public class CdpJSHandle extends JSHandle {
             if (!property.get("enumerable").asBoolean() || !property.hasNonNull("value")) {
                 continue;
             }
-            result.put(property.get("name").asText(), this.world.createJSHandle(Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
+            result.put(property.get("name").asText(), this.world.createCdpHandle(Constant.OBJECTMAPPER.treeToValue(property.get("value"), RemoteObject.class)));
         }
         return result;
     }
