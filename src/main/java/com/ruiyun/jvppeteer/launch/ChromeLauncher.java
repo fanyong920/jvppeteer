@@ -87,7 +87,6 @@ public class ChromeLauncher extends BrowserLauncher {
         disabledFeatures.add("AcceptCHFrame");
         disabledFeatures.add("MediaRouter");
         disabledFeatures.add("OptimizationHints");
-        disabledFeatures.add("RenderDocument");// https://crbug.com/444150315
         disabledFeatures.add("PartitionAllocSchedulerLoopQuarantineTaskControlledPurge");// https://crbug.com/489314676
         if (!turnOnExperimentalFeaturesForTesting) {
             disabledFeatures.add("ProcessPerSiteUpToMainFrameThreshold");// https://crbug.com/1492053
@@ -166,7 +165,7 @@ public class ChromeLauncher extends BrowserLauncher {
         return options.stream()
                 .filter(s -> s.startsWith(prefix))
                 .map(s -> {
-                    String[] splitArray = s.split(flag + "\\s*");
+                    String[] splitArray = s.split(prefix + "\\s*");
                     if (splitArray.length > 1) {
                         if (StringUtil.isNotEmpty(splitArray[1])) {
                             return splitArray[1].trim();
