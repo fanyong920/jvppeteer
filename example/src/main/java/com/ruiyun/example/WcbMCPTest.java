@@ -95,9 +95,7 @@ public class WcbMCPTest {
         webmcp = page.webmcp();
         Assert.assertNotNull(webmcp);
         AwaitableResult<List<WebMCPTool>> imperativeToolAdded = AwaitableResult.create();
-        webmcp.once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> {
-            imperativeToolAdded.complete(event.getTools());
-        });
+        webmcp.once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> imperativeToolAdded.complete(event.getTools()));
 
         // Register an imperative WebMCP tool.
         page.evaluate("() => {\n" +
@@ -116,8 +114,8 @@ public class WcbMCPTest {
                 "    }");
         List<WebMCPTool> addedTools = imperativeToolAdded.waitingGetResult();
         assertEquals(1, addedTools.size());
-        assertEquals(addedTools.get(0).name(), "test-tool-1");
-        assertEquals(addedTools.get(0).description(), "A test tool 1");
+        assertEquals("test-tool-1", addedTools.get(0).name());
+        assertEquals("A test tool 1", addedTools.get(0).description());
         System.out.println(tools.get(0).inputSchema());
         assertNull(addedTools.get(0).annotations());
         assertEquals(page.mainFrame(), addedTools.get(0).frame());
@@ -157,9 +155,7 @@ public class WcbMCPTest {
                 "      window.document.body.appendChild(form);\n" +
                 "    }");
         AwaitableResult<List<WebMCPTool>> imperativeToolRemoved = AwaitableResult.create();
-        webmcp.once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> {
-            imperativeToolRemoved.complete(event.getTools());
-        });
+        webmcp.once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> imperativeToolRemoved.complete(event.getTools()));
         // Unregister imperative WebMCP tool.
         controllerHandle.evaluate("el => {\n" +
                 "      window.navigator.modelContext.unregisterTool?.('test-tool-1');\n" +
@@ -167,24 +163,22 @@ public class WcbMCPTest {
                 "    }");
         List<WebMCPTool> removedTools = imperativeToolRemoved.waitingGetResult();
         assertEquals(1, removedTools.size());
-        assertEquals(removedTools.get(0).name(), "test-tool-1");
-        assertEquals(removedTools.get(0).description(), "A test tool 1");
+        assertEquals("test-tool-1", removedTools.get(0).name());
+        assertEquals("A test tool 1", removedTools.get(0).description());
         System.out.println(removedTools.get(0).inputSchema());
         assertNull(removedTools.get(0).annotations());
         assertEquals(page.mainFrame(), removedTools.get(0).frame());
         assertNull(removedTools.get(0).formElement());
         assertNotNull(removedTools.get(0).location());
         AwaitableResult<List<WebMCPTool>> declarativeToolRemoved = AwaitableResult.create();
-        webmcp.once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> {
-            declarativeToolRemoved.complete(event.getTools());
-        });
+        webmcp.once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> declarativeToolRemoved.complete(event.getTools()));
         page.evaluate("() => {\n" +
                 "      document.querySelector('form').remove();\n" +
                 "    }");
         removedTools = declarativeToolRemoved.waitingGetResult();
         assertEquals(1, removedTools.size());
-        assertEquals(removedTools.get(0).name(), "declarative tool name");
-        assertEquals(removedTools.get(0).description(), "tool description");
+        assertEquals("declarative tool name", removedTools.get(0).name());
+        assertEquals("tool description", removedTools.get(0).description());
         System.out.println(removedTools.get(0).inputSchema());
         assertNull(removedTools.get(0).annotations());
         assertEquals(page.mainFrame(), removedTools.get(0).frame());
@@ -196,9 +190,7 @@ public class WcbMCPTest {
         page = browser.newPage();
         page.goTo("https://www.example.com");
         AwaitableResult<List<WebMCPTool>> toolsAddedPromise = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> {
-            toolsAddedPromise.onSuccess(event.getTools());
-        });
+        page.webmcp().once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> toolsAddedPromise.onSuccess(event.getTools()));
 
         // Register an imperative WebMCP tool.
         page.evaluate("() => {\n" +
@@ -210,15 +202,13 @@ public class WcbMCPTest {
 
         toolsAddedPromise.waiting();
         AwaitableResult<List<WebMCPTool>> toolsRemovedPromise = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> {
-            toolsRemovedPromise.complete(event.getTools());
-        });
+        page.webmcp().once(WebMCPEvents.toolsremoved, (Consumer<WebMCPToolsRemovedEvent>) event -> toolsRemovedPromise.complete(event.getTools()));
         // Reload page forces frame navigation.
         page.goTo("https://www.example.com");
         removedTools = toolsRemovedPromise.waitingGetResult();
         assertEquals(1, removedTools.size());
         assertEquals(0, page.webmcp().tools().size());
-        assertEquals(removedTools.get(0).name(), "declarative tool name");
+        assertEquals("declarative tool name", removedTools.get(0).name());
         page.close();
 
         //should fire toolinvoked events
@@ -227,9 +217,7 @@ public class WcbMCPTest {
         webmcp = page.webmcp();
         Assert.assertNotNull(webmcp);
         AwaitableResult<List<WebMCPTool>> toolAdded = AwaitableResult.create();
-        webmcp.once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> {
-            toolAdded.complete(event.getTools());
-        });
+        webmcp.once(WebMCPEvents.toolsadded, (Consumer<WebMCPToolsAddedEvent>) event -> toolAdded.complete(event.getTools()));
 
         // Register an imperative WebMCP tool.
         page.evaluate("() => {\n" +
@@ -248,13 +236,9 @@ public class WcbMCPTest {
                 "    }");
         WebMCPTool addedTool = toolAdded.waitingGetResult().get(0);
         AwaitableResult<WebMCPToolCall> addedToolCalled = AwaitableResult.create();
-        addedTool.once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) event -> {
-            addedToolCalled.complete(event);
-        });
+        addedTool.once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) addedToolCalled::complete);
         AwaitableResult<WebMCPToolCall> toolCalled = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) event -> {
-            toolCalled.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) toolCalled::complete);
         // Execute WebMCP tool.
         page.evaluate("() => {\n" +
                 "      window.navigator.modelContextTesting.executeTool(\n" +
@@ -266,8 +250,8 @@ public class WcbMCPTest {
         WebMCPToolCall toolCall = toolCalled.waitingGetResult();
         assertNotNull(addedToolCall.id());
         assertNotNull(addedToolCall.tool());
-        assertEquals(addedToolCall.tool().name(), "test-tool-1");
-        assertEquals(addedToolCall.tool().description(), "A test tool 1");
+        assertEquals("test-tool-1", addedToolCall.tool().name());
+        assertEquals("A test tool 1", addedToolCall.tool().description());
         System.out.println(addedToolCall.tool().inputSchema());
         assertEquals(page.mainFrame(), addedToolCall.tool().frame());
         assertNull(addedToolCall.tool().formElement());
@@ -276,8 +260,8 @@ public class WcbMCPTest {
 
         assertNotNull(toolCall.id());
         assertNotNull(toolCall.tool());
-        assertEquals(toolCall.tool().name(), "test-tool-1");
-        assertEquals(toolCall.tool().description(), "A test tool 1");
+        assertEquals("test-tool-1", toolCall.tool().name());
+        assertEquals("A test tool 1", toolCall.tool().description());
         System.out.println(toolCall.tool().inputSchema());
         assertEquals(page.mainFrame(), toolCall.tool().frame());
         assertNull(toolCall.tool().formElement());
@@ -309,13 +293,9 @@ public class WcbMCPTest {
                 "    }");
 
         AwaitableResult<WebMCPToolCall> toolCalled2 = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) event -> {
-            toolCalled2.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) toolCalled2::complete);
         AwaitableResult<WebMCPToolCallResult> toolResponded2 = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) event -> {
-            toolResponded2.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) toolResponded2::complete);
 
         page.evaluate("() => {\n" +
                 "      window.navigator.modelContextTesting.executeTool(\n" +
@@ -327,8 +307,8 @@ public class WcbMCPTest {
         WebMCPToolCallResult response2 = toolResponded2.waitingGetResult();
         assertEquals(response2.getId(), call2.id());
         assertEquals(response2.getCall(), call2);
-        assertEquals(response2.getStatus(), WebMCPInvocationStatus.Completed);
-        assertEquals(response2.getOutput(), "hello world");
+        assertEquals(WebMCPInvocationStatus.Completed, response2.getStatus());
+        assertEquals("hello world", response2.getOutput());
         assertNull(response2.getErrorText());
         assertNull(response2.getException());
         page.close();
@@ -349,13 +329,9 @@ public class WcbMCPTest {
                 "      });\n" +
                 "    }");
         AwaitableResult<WebMCPToolCall> toolCalled3 = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) event -> {
-            toolCalled3.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolinvoked, (Consumer<WebMCPToolCall>) toolCalled3::complete);
         AwaitableResult<WebMCPToolCallResult> toolResponded3 = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) event -> {
-            toolResponded3.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) event -> toolResponded3.complete(event));
         // Execute WebMCP tool.
         page.evaluate("() => {\n" +
                 "      window.navigator.modelContextTesting.executeTool(\n" +
@@ -367,10 +343,10 @@ public class WcbMCPTest {
         WebMCPToolCallResult response3 = toolResponded3.waitingGetResult();
         assertEquals(response3.getId(), call3.id());
         assertEquals(response3.getCall(), call3);
-        assertEquals(response3.getStatus(), WebMCPInvocationStatus.Error);
+        assertEquals(WebMCPInvocationStatus.Error, response3.getStatus());
 
         assertNull(response3.getOutput());
-        assertEquals(response3.getErrorText(), "");
+        assertEquals("", response3.getErrorText());
         assertNotNull(response3.getException());
         assertTrue(response3.getException().getDescription().contains("sorry"));
         page.close();
@@ -396,9 +372,7 @@ public class WcbMCPTest {
                 "      });\n" +
                 "    }");
         AwaitableResult<WebMCPToolCallResult> toolResponded4 = AwaitableResult.create();
-        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) event -> {
-            toolResponded4.complete(event);
-        });
+        page.webmcp().once(WebMCPEvents.toolresponded, (Consumer<WebMCPToolCallResult>) toolResponded4::complete);
         // Execute unknown WebMCP tool.
         page.evaluate("() => {\n" +
                 "      window.navigator.modelContextTesting.executeTool(\n" +
@@ -409,9 +383,9 @@ public class WcbMCPTest {
         WebMCPToolCallResult response4 = toolResponded4.waitingGetResult();
         assertNotNull(response4.getId());
         assertNull(response4.getCall());
-        assertEquals(response4.getStatus(), WebMCPInvocationStatus.Error);
+        assertEquals(WebMCPInvocationStatus.Error, response4.getStatus());
         assertNull(response4.getOutput());
-        assertEquals(response4.getErrorText(), "Tool not found: unknown-tool-name");
+        assertEquals("Tool not found: unknown-tool-name", response4.getErrorText());
         assertNull(response4.getException());
         System.out.println("测试完成");
     }
