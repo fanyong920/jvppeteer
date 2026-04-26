@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * List<WebMCPTool> tools = page.webmcp.tools();
  * for (WebMCPTool tool : tools) {
  *   System.out.println("Tool found: " + tool.name + "-" + tool.description);
- * }</pre>
+ * }}</pre>
  *
  *
  */

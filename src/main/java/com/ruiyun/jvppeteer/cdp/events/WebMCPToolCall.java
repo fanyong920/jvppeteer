@@ -23,9 +23,6 @@ public class WebMCPToolCall {
      */
     private Object input;
 
-    /**
-     * @internal
-     */
     public WebMCPToolCall(String invocationId, WebMCPTool tool, String input) {
         this.id = invocationId;
         this.tool = tool;
