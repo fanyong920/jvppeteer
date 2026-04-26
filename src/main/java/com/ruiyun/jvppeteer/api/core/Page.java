@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.cdp.core.Accessibility;
 import com.ruiyun.jvppeteer.cdp.core.Coverage;
 import com.ruiyun.jvppeteer.cdp.core.FileChooser;
 import com.ruiyun.jvppeteer.cdp.core.Tracing;
+import com.ruiyun.jvppeteer.cdp.core.WebMCP;
 import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
 import com.ruiyun.jvppeteer.cdp.entities.ClickOptions;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
@@ -218,6 +219,15 @@ public abstract class Page extends EventEmitter<PageEvents> {
     public abstract Coverage coverage();
 
     public abstract Tracing tracing();
+
+    /**
+     * Experimental API for <a href="https://github.com/webmachinelearning/webmcp">WebMCP</a>
+     * Requires Chrome 148+ with the
+     * `--enable-features=WebMCPTesting,DevToolsWebMCPSupport` flags enabled.
+     * Supports tool discovery only; invocation is currently unsupported.
+     *
+     */
+    public abstract WebMCP webmcp();
 
     public abstract Accessibility accessibility();
 

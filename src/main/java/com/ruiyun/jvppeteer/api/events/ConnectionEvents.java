@@ -63,6 +63,10 @@ public enum ConnectionEvents {
      */
     Browser_downloadWillBegin("Browser.downloadWillBegin"),
     HeapProfiler_addHeapSnapshotChunk("HeapProfiler.addHeapSnapshotChunk"),
+    WebMCP_toolsAdded("WebMCP.toolsAdded"),
+    WebMCP_toolsRemoved("WebMCP.toolsRemoved"),
+    WebMCP_toolInvoked("WebMCP.toolInvoked"),
+    WebMCP_toolResponded("WebMCP.toolResponded"),
 
     //bidi
     browsingContext_contextCreated("browsingContext.contextCreated"),

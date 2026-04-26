@@ -47,6 +47,7 @@ import com.ruiyun.jvppeteer.cdp.core.Coverage;
 import com.ruiyun.jvppeteer.cdp.core.EmulationManager;
 import com.ruiyun.jvppeteer.cdp.core.FileChooser;
 import com.ruiyun.jvppeteer.cdp.core.Tracing;
+import com.ruiyun.jvppeteer.cdp.core.WebMCP;
 import com.ruiyun.jvppeteer.cdp.entities.BoundingBox;
 import com.ruiyun.jvppeteer.cdp.entities.Cookie;
 import com.ruiyun.jvppeteer.cdp.entities.CookieParam;
@@ -67,7 +68,6 @@ import com.ruiyun.jvppeteer.cdp.entities.PDFMargin;
 import com.ruiyun.jvppeteer.cdp.entities.PDFOptions;
 import com.ruiyun.jvppeteer.cdp.entities.PaperFormats;
 import com.ruiyun.jvppeteer.cdp.entities.ScreenshotOptions;
-import com.ruiyun.jvppeteer.cdp.entities.UserAgentMetadata;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
 import com.ruiyun.jvppeteer.cdp.entities.VisionDeficiency;
 import com.ruiyun.jvppeteer.common.AwaitableResult;
@@ -83,6 +83,7 @@ import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -103,7 +104,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
 import static com.ruiyun.jvppeteer.util.Helper.bidiToPuppeteerCookie;
@@ -167,16 +167,16 @@ public class BidiPage extends Page {
     @Override
     public void setUserAgent(UserAgentOptions options) {
         String userAgent = options.getUserAgent();
-        String platform = Objects.equals("",options.getPlatform()) ? null : options.getPlatform();
+        String platform = Objects.equals("", options.getPlatform()) ? null : options.getPlatform();
         ClientHintsMetadata clientHints = ClientHintsMetadata.fromUserAgentMetadata(options.getUserAgentMetadata());
 
-        if (Objects.equals("",userAgent)) {
+        if (Objects.equals("", userAgent)) {
             // In WebDriver BiDi null is used to restore the original user agent.
             userAgent = null;
         }
         this.frame.browsingContext.setUserAgent(userAgent);
 
-        if(Objects.nonNull(platform) && !Objects.equals("",platform)){
+        if (Objects.nonNull(platform) && !Objects.equals("", platform)) {
             // Work-around until https://github.com/w3c/webdriver-bidi/issues/1065 is resolved.
             // Set platform via client hints override.
             clientHints = Objects.isNull(clientHints) ? new ClientHintsMetadata() : clientHints;
@@ -414,7 +414,7 @@ public class BidiPage extends Page {
                     }
                 }
             }
-        }else {
+        } else {
             needsReload = this.cdpEmulationManager.emulateViewport(viewport);
         }
         this.viewport = viewport;
@@ -932,6 +932,11 @@ public class BidiPage extends Page {
     @Override
     public Tracing tracing() {
         return this.tracing;
+    }
+
+    @Override
+    public WebMCP webmcp() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

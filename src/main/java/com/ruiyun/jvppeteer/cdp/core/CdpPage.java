@@ -121,6 +121,7 @@ public class CdpPage extends Page {
     private FrameManager frameManager;
     private final EmulationManager emulationManager;
     private final Tracing tracing;
+    private final WebMCP webmcp;
     private final Map<String, Binding> bindings = new HashMap<>();
     private final Map<String, String> exposedFunctions = new HashMap<>();
     private final Coverage coverage;
@@ -147,6 +148,7 @@ public class CdpPage extends Page {
         this.frameManager = new FrameManager(client, this, this._timeoutSettings);
         this.emulationManager = new EmulationManager(client);
         this.tracing = new Tracing(client);
+        this.webmcp = new WebMCP(client, this.frameManager);
         this.coverage = new Coverage(client);
         this.viewport = null;
         this.cdpBluetoothEmulation = new CdpBluetoothEmulation(this.primaryTargetClient.connection());
@@ -218,6 +220,7 @@ public class CdpPage extends Page {
         this.touchscreen.updateClient(newSession);
         this.emulationManager.updateClient(newSession);
         this.tracing.updateClient(newSession);
+        this.webmcp.updateClient(newSession);
         this.coverage.updateClient(newSession);
         this.frameManager.swapFrameTree(newSession);
         this.setupPrimaryTargetListeners();
@@ -297,6 +300,7 @@ public class CdpPage extends Page {
             Map<String, Object> params = new HashMap<>();
             this.primaryTargetClient.send("Performance.enable", params);
             this.primaryTargetClient.send("Log.enable", params);
+            this.webmcp.initialize();
         } catch (Exception e) {
             if (e instanceof ProtocolException) {
                 LOGGER.error("initialize error: ", e);
@@ -409,6 +413,11 @@ public class CdpPage extends Page {
 
     public Tracing tracing() {
         return this.tracing;
+    }
+
+    @Override
+    public WebMCP webmcp() {
+        return this.webmcp;
     }
 
     public List<CdpFrame> frames() {

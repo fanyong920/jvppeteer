@@ -48,6 +48,10 @@ import com.ruiyun.jvppeteer.cdp.events.LoadingFailedEvent;
 import com.ruiyun.jvppeteer.cdp.events.LoadingFinishedEvent;
 import com.ruiyun.jvppeteer.cdp.events.MetricsEvent;
 import com.ruiyun.jvppeteer.cdp.events.NavigatedWithinDocumentEvent;
+import com.ruiyun.jvppeteer.cdp.events.ProtocolWebMCPToolInvokedEvent;
+import com.ruiyun.jvppeteer.cdp.events.ProtocolWebMCPToolRespondedEvent;
+import com.ruiyun.jvppeteer.cdp.events.ProtocolWebMCPToolsAddedEvent;
+import com.ruiyun.jvppeteer.cdp.events.ProtocolWebMCPToolsRemovedEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestPausedEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestServedFromCacheEvent;
 import com.ruiyun.jvppeteer.cdp.events.RequestWillBeSentEvent;
@@ -398,6 +402,18 @@ public interface Constant {
                         break;
                     case "HeapProfiler.addHeapSnapshotChunk":
                         put(event.getEventName(), AddHeapSnapshotChunkEvent.class);
+                        break;
+                    case "WebMCP.toolsAdded":
+                        put(event.getEventName(), ProtocolWebMCPToolsAddedEvent.class);
+                        break;
+                    case "WebMCP.toolsRemoved":
+                        put(event.getEventName(), ProtocolWebMCPToolsRemovedEvent.class);
+                        break;
+                    case "WebMCP.toolInvoked":
+                        put(event.getEventName(), ProtocolWebMCPToolInvokedEvent.class);
+                        break;
+                    case "WebMCP.toolResponded":
+                        put(event.getEventName(), ProtocolWebMCPToolRespondedEvent.class);
                         break;
                     //bidi
                     case "browsingContext.contextCreated":
