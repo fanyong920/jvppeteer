@@ -235,7 +235,7 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * <p>
      * Shortcut for
      * {@link BrowserContext#setPermission(String, List)}
-     *  or {@link Browser#defaultBrowserContext()#setPermission()}.
+     *  or {@link Browser#defaultBrowserContext()#setPermission(String, List)}.
      *
      * @param origin     - The origin to set the permission for.
      * @param permissions - The permission descriptor.The state of the permission.
