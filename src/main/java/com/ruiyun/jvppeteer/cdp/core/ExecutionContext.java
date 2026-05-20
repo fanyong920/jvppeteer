@@ -28,6 +28,9 @@ import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,9 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.CDP_BINDING_PREFIX;
 import static com.ruiyun.jvppeteer.common.Constant.Infinity;
@@ -243,14 +243,14 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
     }
 
     private EvaluateResponse rewriteError(Exception e) {
-        if (e.getMessage() != null && e.getMessage().contains("Object reference chain is too long")) {
+        if (Objects.nonNull(e.getMessage()) && e.getMessage().contains("Object reference chain is too long")) {
             RemoteObject remoteObject = new RemoteObject();
             remoteObject.setType("undefined");
             EvaluateResponse response = new EvaluateResponse();
             response.setResult(remoteObject);
             return response;
         }
-        if (e.getMessage() != null && e.getMessage().contains("Object couldn't be returned by value")) {
+        if (Objects.nonNull(e.getMessage()) && e.getMessage().contains("Object couldn't be returned by value")) {
             RemoteObject remoteObject = new RemoteObject();
             remoteObject.setType("undefined");
             EvaluateResponse response = new EvaluateResponse();
@@ -258,7 +258,7 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
             return response;
         }
 
-        if (e.getMessage() != null && (e.getMessage().endsWith("Cannot find context with specified id") || e.getMessage().endsWith("Inspected target navigated or closed"))) {
+        if (Objects.nonNull(e.getMessage()) && (e.getMessage().endsWith("Cannot find context with specified id") || e.getMessage().endsWith("Inspected target navigated or closed"))) {
             throw new JvppeteerException("Execution context was destroyed, most likely because of a navigation.");
         }
         throwError(e);
@@ -285,8 +285,8 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
             } catch (Exception e) {
                 result = rewriteError(e);
             }
-            ExceptionDetails exceptionDetails = result.getExceptionDetails();
-            if (exceptionDetails != null) {
+            if (Objects.nonNull(result) && Objects.nonNull(result.getExceptionDetails())) {
+                ExceptionDetails exceptionDetails = result.getExceptionDetails();
                 Object evaluationError = Helper.createCdpEvaluationError(exceptionDetails);
                 if (evaluationError instanceof EvaluateException) {
                     throw (EvaluateException) evaluationError;
@@ -365,9 +365,9 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
                         ARIAQueryHandler ariaQueryHandler = new ARIAQueryHandler();
                         try {
                             List<ElementHandle> results = ariaQueryHandler.queryAll(element, selector);
-                           return element.realm().evaluateHandle("(...elements) => {\n" +
+                            return element.realm().evaluateHandle("(...elements) => {\n" +
                                     "        return elements;\n" +
-                                    "      }",new ArrayList<>(results));
+                                    "      }", new ArrayList<>(results));
                         } catch (JsonProcessingException e) {
                             return null;
                         }
