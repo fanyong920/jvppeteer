@@ -261,8 +261,10 @@ public class ExecutionContext extends EventEmitter<ExecutionContext.ExecutionCon
         if (Objects.nonNull(e.getMessage()) && (e.getMessage().endsWith("Cannot find context with specified id") || e.getMessage().endsWith("Inspected target navigated or closed"))) {
             throw new JvppeteerException("Execution context was destroyed, most likely because of a navigation.");
         }
-        throwError(e);
-        return null;
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
+        }
+        throw new JvppeteerException(e);
     }
 
     /**
