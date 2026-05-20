@@ -15,6 +15,7 @@ import com.ruiyun.jvppeteer.cdp.events.WebMCPToolCall;
 import com.ruiyun.jvppeteer.cdp.events.WebMCPToolCallResult;
 import com.ruiyun.jvppeteer.cdp.events.WebMCPToolsAddedEvent;
 import com.ruiyun.jvppeteer.cdp.events.WebMCPToolsRemovedEvent;
+import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
  *
  */
 public class WebMCP extends EventEmitter<WebMCPEvents> {
-    private static final Logger logger = LoggerFactory.getLogger(WebMCP.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebMCP.class);
 
     private CDPSession client;
     private FrameManager frameManager;
@@ -100,7 +101,7 @@ public class WebMCP extends EventEmitter<WebMCPEvents> {
             Map<String, WebMCPTool> frameTools = this.tools.computeIfAbsent(frameId, k -> new ConcurrentHashMap<>());
 
             // 创建新工具
-            WebMCPTool addedTool = new WebMCPTool(tool, frame);
+            WebMCPTool addedTool = new WebMCPTool(this,tool, frame);
             frameTools.put(tool.getName(), addedTool);
             addedTools.add(addedTool);
         }
@@ -197,6 +198,10 @@ public class WebMCP extends EventEmitter<WebMCPEvents> {
         } catch (Exception e) {
             LOGGER.error("jvppeteer error", e);
         }
+    }
+
+    public String invokeTool(WebMCPTool tool, Object input){
+        return this.client.send("WebMCP.invokeTool", Constant.OBJECTMAPPER.createObjectNode().put("toolName", tool.name()).putPOJO("input", input).put("frameId", tool.frame().id())).get("invocationId").asText();
     }
 
     /**

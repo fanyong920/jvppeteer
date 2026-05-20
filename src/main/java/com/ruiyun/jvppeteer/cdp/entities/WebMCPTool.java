@@ -6,12 +6,16 @@ import com.ruiyun.jvppeteer.api.core.EventEmitter;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.cdp.core.CdpFrame;
 import com.ruiyun.jvppeteer.cdp.core.IsolatedWorld;
+import com.ruiyun.jvppeteer.cdp.core.WebMCP;
 import com.ruiyun.jvppeteer.cdp.events.ProtocolWebMCPTool;
 import com.ruiyun.jvppeteer.cdp.events.WebMCPAnnotation;
 import com.ruiyun.jvppeteer.cdp.events.WebMCPEvents;
+import com.ruiyun.jvppeteer.cdp.events.WebMCPToolCallResult;
+import com.ruiyun.jvppeteer.common.AwaitableResult;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 
@@ -19,6 +23,7 @@ import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
  * Represents a registered WebMCP tool available on the page.
  */
 public class WebMCPTool extends EventEmitter<WebMCPEvents> {
+    private WebMCP webmcp;
     private Integer backendNodeId;
     private ElementHandle formElement;
 
@@ -86,8 +91,9 @@ public class WebMCPTool extends EventEmitter<WebMCPEvents> {
         return rawStackTrace;
     }
 
-    public WebMCPTool(ProtocolWebMCPTool tool, Frame frame) {
+    public WebMCPTool(WebMCP webmcp, ProtocolWebMCPTool tool, Frame frame) {
         super();
+        this.webmcp = webmcp;
         this.name = tool.getName();
         this.description = tool.getDescription();
         this.inputSchema = tool.getInputSchema();
@@ -124,5 +130,22 @@ public class WebMCPTool extends EventEmitter<WebMCPEvents> {
         // This would need to be implemented based on the specific Java implementation
         this.formElement = (ElementHandle) mainWorld.adoptBackendNode(this.backendNodeId);
         return this.formElement;
+    }
+
+    /**
+     * Executes tool with input parameters, matching tool's `inputSchema`.
+     */
+    public WebMCPToolCallResult execute(Object input) {
+        String invocationId = this.webmcp.invokeTool(this, input);
+        AwaitableResult<WebMCPToolCallResult> awaitableResult = AwaitableResult.create();
+        Consumer<WebMCPToolCallResult> callResultConsumer = event -> {
+            if (event.getId() == invocationId) {
+                awaitableResult.onSuccess(event);
+            }
+        };
+        this.webmcp.on(WebMCPEvents.toolresponded, callResultConsumer);
+        WebMCPToolCallResult result = awaitableResult.waitingGetResult();
+        this.webmcp.off(WebMCPEvents.toolresponded, callResultConsumer);
+        return result;
     }
 }
