@@ -453,3 +453,6 @@
 - [feat: Add null safety check for options parameter in BidiBrowserContext](https://github.com/fanyong920/jvppeteer/commit/47c2ba15b46217d08a79d6861c8882fb300c4643)
 - [feat: add BrowserContext.setPermission API](https://github.com/fanyong920/jvppeteer/commit/cf00be14aa8a797421001748a4fec25d21aae458)
 - [feat: expose heap snapshot getter](https://github.com/fanyong920/jvppeteer/commit/48e5d3727fe20902a3b8191b426bfbe31eebeb64)
+
+### Version Release 3.6.4(2026/5/20)
+- [fix(cdp): 添加对 result 和 exceptionDetails 的空值保护检查](https://github.com/fanyong920/jvppeteer/commit/a6fea136957147b29410e8e655dee48723611bea)
