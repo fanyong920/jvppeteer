@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
+import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_CHROME_WEBMCP;
 import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES;
 import static com.ruiyun.jvppeteer.common.Constant.SESSION;
 
@@ -29,6 +30,13 @@ public class ChromeLauncher extends BrowserLauncher {
     public Browser launch(LaunchOptions options) throws IOException {
         if (options.getArgs() == null) {
             options.setArgs(new ArrayList<>());
+        }
+
+        //检查 args 是否包含 --enable-features=WebMCPTesting,DevToolsWebMCPSupport 这两个参数
+        List<String> args = options.getArgs();
+            if (args.stream().anyMatch(arg -> arg.contains("WebMCPTesting") && arg.contains("DevToolsWebMCPSupport"))) {
+                //如果包含 WebMCPTesting 或者 DevToolsWebMCPSupport 就在环境变量中添加标志
+                System.setProperty(JVPPETEER_CHROME_WEBMCP, "true");
         }
         this.executablePath = this.computeExecutablePath(options.getExecutablePath(), options.getPreferredRevision());
 

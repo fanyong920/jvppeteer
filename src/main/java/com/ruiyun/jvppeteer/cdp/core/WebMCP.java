@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.ruiyun.jvppeteer.common.Constant.JVPPETEER_CHROME_WEBMCP;
+
 /**
  * The experimental WebMCP class provides an API for the WebMCP API.
  * <p>
@@ -101,7 +103,7 @@ public class WebMCP extends EventEmitter<WebMCPEvents> {
             Map<String, WebMCPTool> frameTools = this.tools.computeIfAbsent(frameId, k -> new ConcurrentHashMap<>());
 
             // 创建新工具
-            WebMCPTool addedTool = new WebMCPTool(this,tool, frame);
+            WebMCPTool addedTool = new WebMCPTool(this, tool, frame);
             frameTools.put(tool.getName(), addedTool);
             addedTools.add(addedTool);
         }
@@ -191,16 +193,20 @@ public class WebMCP extends EventEmitter<WebMCPEvents> {
     };
 
     public void initialize() {
-        // Send enable command to WebMCP
+
+        //如果环境变量中存在 WebMCP 标志 就不处理
+        if (!Objects.equals(System.getProperty(JVPPETEER_CHROME_WEBMCP), "true")) {
+            return;
+        }
         try {
-            // @ts-expect-error WebMCP is not yet in the Protocol types.
+            // Send enable command to WebMCP
             this.client.send("WebMCP.enable");
         } catch (Exception e) {
             LOGGER.error("jvppeteer error", e);
         }
     }
 
-    public String invokeTool(WebMCPTool tool, Object input){
+    public String invokeTool(WebMCPTool tool, Object input) {
         return this.client.send("WebMCP.invokeTool", Constant.OBJECTMAPPER.createObjectNode().put("toolName", tool.name()).putPOJO("input", input).put("frameId", tool.frame().id())).get("invocationId").asText();
     }
 

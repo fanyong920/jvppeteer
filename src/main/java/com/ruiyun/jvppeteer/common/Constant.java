@@ -103,6 +103,10 @@ public interface Constant {
 
     String JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES = "JVPPETEER_TEST_EXPERIMENTAL_CHROME_FEATURES";
     /**
+     * 存放chrome webmcp的配置字段
+     */
+    String JVPPETEER_CHROME_WEBMCP = "JVPPETEER_CHROME_WEBMCP";
+    /**
      * 把浏览器版本存放到环境变量的字段
      */
     String JVPPETEER_PRODUCT_REVISION_ENV = "JVPPETEER_PRODUCT_REVISION";
