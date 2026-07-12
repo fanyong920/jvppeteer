@@ -3,29 +3,33 @@ package com.ruiyun.jvppeteer.cdp.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
-import com.ruiyun.jvppeteer.common.ChromeEnvironment;
-import com.ruiyun.jvppeteer.common.ParamsFactory;
-import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
 import com.ruiyun.jvppeteer.cdp.entities.RemoteObject;
 import com.ruiyun.jvppeteer.cdp.events.BindingCalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.ConsoleAPICalledEvent;
 import com.ruiyun.jvppeteer.cdp.events.IsolatedWorldEmitter;
+import com.ruiyun.jvppeteer.common.ChromeEnvironment;
+import com.ruiyun.jvppeteer.common.ParamsFactory;
+import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.EvaluateException;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-
+import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 import static com.ruiyun.jvppeteer.common.Constant.OBJECTMAPPER;
+import static com.ruiyun.jvppeteer.common.Constant.PUPPETEER_WORLD;
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
 
 
@@ -36,11 +40,14 @@ public class IsolatedWorld extends Realm {
     private final CdpFrame frame;
     private final CdpWebWorker webWorker;
     private ChromeEnvironment chromeEnvironment;
+    private String worldId;
+    private String origin;
 
-    public IsolatedWorld(CdpFrame frame, CdpWebWorker webWorker, TimeoutSettings timeoutSettings) {
+    public IsolatedWorld(CdpFrame frame, CdpWebWorker webWorker, TimeoutSettings timeoutSettings, String worldId) {
         super(timeoutSettings);
         this.frame = frame;
         this.webWorker = webWorker;
+        this.worldId = worldId;
     }
 
     @Override
@@ -159,7 +166,6 @@ public class IsolatedWorld extends Realm {
     }
 
 
-
     public JSHandle adoptBackendNode(int backendNodeId) throws JsonProcessingException {
         // This code needs to schedule resolveNode call synchronously (at
         // least when the context is there) so we cannot unconditionally
@@ -176,7 +182,7 @@ public class IsolatedWorld extends Realm {
     }
 
     @SuppressWarnings("unchecked")
-    public  <T extends JSHandle> T adoptHandle(T handle) throws JsonProcessingException {
+    public <T extends JSHandle> T adoptHandle(T handle) throws JsonProcessingException {
         if (handle.realm() == this) {
             // If the context has already adopted this handle, clone it so downstream
             // disposal doesn't become an issue.
@@ -229,4 +235,26 @@ public class IsolatedWorld extends Realm {
         return this.webWorker;
     }
 
+    public String getOrigin() {
+        return this.origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public void setWorldId(String worldId) {
+        this.worldId = worldId;
+    }
+
+    public Extension extension() {
+        if (this.frame == null) {
+            throw new JvppeteerException("Unable to get extension from Realm");
+        }
+        if (Objects.equals(this.worldId, MAIN_WORLD) || Objects.equals(this.worldId, PUPPETEER_WORLD)) {
+            return null;
+        }
+        Map<String, Extension> extensions = this.frame.frameManager().page().browser().extensions();
+        return extensions.get(this.worldId);
+    }
 }

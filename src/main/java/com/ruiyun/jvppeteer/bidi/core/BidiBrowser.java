@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
@@ -383,5 +384,10 @@ public ScreenInfo addScreen(AddScreenParams params) {
 public void removeScreen(String screenId) {
     throw new UnsupportedOperationException();
 }
+
+    @Override
+    public Map<String, Extension> extensions() {
+        throw  new UnsupportedOperationException();
+    }
 
 }

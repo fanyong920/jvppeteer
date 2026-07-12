@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.Connection;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.Page;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.events.BrowserContextEvents;
@@ -18,6 +19,7 @@ import com.ruiyun.jvppeteer.cdp.entities.GetVersionResponse;
 import com.ruiyun.jvppeteer.cdp.entities.TargetInfo;
 import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.cdp.entities.Viewport;
+import com.ruiyun.jvppeteer.cdp.events.TargetDestroyedEvent;
 import com.ruiyun.jvppeteer.common.AddScreenParams;
 import com.ruiyun.jvppeteer.common.BrowserContextOptions;
 import com.ruiyun.jvppeteer.common.Constant;
@@ -32,6 +34,7 @@ import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +57,7 @@ import static com.ruiyun.jvppeteer.util.Helper.getVersion;
 public class CdpBrowser extends Browser {
     private final Viewport defaultViewport;
     private final Process process;
-    private final Connection connection;
+    final Connection connection;
     private final Runnable closeCallback;
     private Function<Target, Boolean> isPageTargetCallback;
     private final CdpBrowserContext defaultContext;
@@ -64,6 +67,7 @@ public class CdpBrowser extends Browser {
     private List<String> defaultArgs;
     private final boolean networkEnabled;
     private final boolean handleDevToolsAsPage;
+    private Map<String, Extension> extensions = Collections.synchronizedMap(new HashMap<>());
 
     protected CdpBrowser(Connection connection, List<String> contextIds, Viewport viewport, Process process, Runnable closeCallback, Function<Target, Boolean> targetFilterCallback, Function<Target, Boolean> isPageTargetCallback, boolean waitForInitiallyDiscoveredTargets, boolean networkEnabled, boolean handleDevToolsAsPage) {
         super();
@@ -433,7 +437,10 @@ public class CdpBrowser extends Browser {
     public String installExtension(String path) {
         Map<String, Object> params = ParamsFactory.create();
         params.put("path", path);
-        return this.connection.send("Extensions.loadUnpacked", params).asText();
+        JsonNode response = this.connection.send("Extensions.loadUnpacked", params);
+        String id = response.get("id").asText();
+        this.extensions.remove(id);
+        return id;
     }
 
     @Override
@@ -441,6 +448,22 @@ public class CdpBrowser extends Browser {
         Map<String, Object> params = ParamsFactory.create();
         params.put("id", id);
         this.connection.send("Extensions.uninstall", params);
+        // Currently sending the Extensions.uninstall command does not trigger
+        // the Target.targetDestroyed event for service workers. This causes
+        // flakiness in the extension tests.
+        // TODO(nroscino): Remove this once the event is correctly emitted.
+        for (Map.Entry<String, TargetInfo> entry :
+                this.targetManager.getDiscoveredTargetInfos().entrySet()) {
+            String targetId = entry.getKey();
+            TargetInfo targetInfo = entry.getValue();
+            if (targetInfo.getUrl().contains(id) && "service_worker".equals(targetInfo.getType())) {
+                this.targetManager.addToIgnoreTarget(targetId);
+                TargetDestroyedEvent targetDestroyedEvent = new TargetDestroyedEvent();
+                targetDestroyedEvent.setTargetId(targetId);
+                this.connection.emit(ConnectionEvents.Target_targetDestroyed, targetDestroyedEvent);
+            }
+        }
+        this.extensions.remove(id);
     }
 
     @Override
@@ -459,6 +482,30 @@ public class CdpBrowser extends Browser {
         Map<String, Object> params = ParamsFactory.create();
         params.put("screenId", screenId);
         this.connection.send("Emulation.removeScreen", params);
+    }
+
+    @Override
+    public Map<String, Extension> extensions() {
+        JsonNode response = connection.send("Extensions.getExtensions");
+        Map<String, Extension> extensionsMap = Collections.synchronizedMap(new HashMap<>());
+        response.get("extensions").elements().forEachRemaining(currExtension -> {
+            String id = currExtension.get("id").asText();
+            if (this.extensions.containsKey(id)) {
+                extensionsMap.put(id, this.extensions.get(id));
+            } else {
+                CdpExtension newExtension = new CdpExtension(
+                        id,
+                        currExtension.get("version").asText(),
+                        currExtension.get("name").asText(),
+                        currExtension.get("path").asText(),
+                        currExtension.get("enabled").asBoolean(),
+                        this);
+                extensionsMap.put(id, newExtension);
+            }
+        });
+        this.extensions = extensionsMap;
+        return this.extensions;
+
     }
 
     public Page createDevToolsPage(String pageTargetId) {

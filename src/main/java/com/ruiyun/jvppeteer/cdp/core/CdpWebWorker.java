@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 import static com.ruiyun.jvppeteer.util.Helper.createConsoleMessage;
 
 /**
@@ -47,7 +48,7 @@ public class CdpWebWorker extends WebWorker {
         this.id = targetId;
         this.client = client;
         this.targetType = targetType;
-        this.world = new IsolatedWorld(null, this, new TimeoutSettings());
+        this.world = new IsolatedWorld(null, this, new TimeoutSettings(),MAIN_WORLD);
         this.client.once(ConnectionEvents.Runtime_executionContextCreated, (Consumer<ExecutionContextCreatedEvent>) event -> this.world.setContext(new ExecutionContext(client, event.getContext(), world)));
         this.world.emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Consoleapicalled, (Consumer<ConsoleAPICalledEvent>) event -> {
             try {
@@ -79,7 +80,9 @@ public class CdpWebWorker extends WebWorker {
         this.client.once(ConnectionEvents.CDPSession_Disconnected, (ignored) -> this.world.dispose());
         // This might fail if the target is closed before we receive all execution contexts.
         try {
-            Optional.of(networkManager).ifPresent(manager -> manager.addClient(this.client));
+            if(Objects.nonNull(networkManager)) {
+                networkManager.addClient(this.client);
+            }
             this.client.send("Runtime.enable");
         } catch (Exception e) {
             LOGGER.error("jvppeteer error", e);

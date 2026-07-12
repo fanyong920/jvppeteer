@@ -6,10 +6,12 @@ import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.EventEmitter;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Keyboard;
 import com.ruiyun.jvppeteer.api.core.Mouse;
 import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.api.core.Touchscreen;
@@ -281,6 +283,16 @@ public class BidiPage extends Page {
 
     @Override
     public boolean hasDevTools() {
+        throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
+    }
+
+    @Override
+    public void triggerExtensionAction(Extension extension) {
+        throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
+    }
+
+    @Override
+    public List<Realm> extensionRealms() {
         throw new UnsupportedOperationException("Method not implemented for WebDriver BiDi yet.");
     }
 

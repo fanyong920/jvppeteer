@@ -6,6 +6,7 @@ import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.api.events.FrameEvents;
 import com.ruiyun.jvppeteer.cdp.entities.Binding;
 import com.ruiyun.jvppeteer.cdp.entities.EvaluateType;
@@ -49,10 +50,14 @@ public class CdpFrame extends Frame {
     private CDPSession client;
     private final FrameManager frameManager;
     private volatile String loaderId;
-
     private final Set<String> lifecycleEvents = new HashSet<>();
-
     private final Map<String, IsolatedWorld> worlds = new HashMap<>();
+
+    public Map<String, IsolatedWorld> getExtensionWorlds() {
+        return extensionWorlds;
+    }
+
+    private final Map<String, IsolatedWorld> extensionWorlds = new HashMap<>();
 
     public Map<String, IsolatedWorld> worlds() {
         return worlds;
@@ -67,16 +72,21 @@ public class CdpFrame extends Frame {
         this.client = client;
         this.detached = false;
         this.loaderId = "";
-        this.worlds.put(MAIN_WORLD, new IsolatedWorld(this, null, this.frameManager.timeoutSettings()));
-        this.worlds.put(PUPPETEER_WORLD, new IsolatedWorld(this, null, this.frameManager.timeoutSettings()));
+        this.worlds.put(MAIN_WORLD, new IsolatedWorld(this, null, this.frameManager.timeoutSettings(),MAIN_WORLD));
+        this.worlds.put(PUPPETEER_WORLD, new IsolatedWorld(this, null, this.frameManager.timeoutSettings(),PUPPETEER_WORLD));
         this.accessibility = new Accessibility(this.worlds.get(MAIN_WORLD), frameId);
         this.on(FrameEvents.FrameSwappedByActivation, (ignore) -> {
             this.onLoadingStarted();
             this.onLoadingStopped();
         });
-        this.worlds.get(MAIN_WORLD).emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Consoleapicalled, (event) -> this.onMainWorldConsoleApiCalled((ConsoleAPICalledEvent) event));
-        this.worlds.get(MAIN_WORLD).emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Bindingcalled, (event) -> this.onMainWorldBindingCalled((BindingCalledEvent) event));
+        registerWorldListeners(this.worlds.get(MAIN_WORLD));
     }
+
+    public void registerWorldListeners(IsolatedWorld world) {
+        world.emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Consoleapicalled, (event) -> this.onMainWorldConsoleApiCalled((ConsoleAPICalledEvent) event));
+        world.emitter().on(IsolatedWorldEmitter.IsolatedWorldEventType.Bindingcalled, (event) -> this.onMainWorldBindingCalled((BindingCalledEvent) event));
+    }
+
 
     private void onMainWorldBindingCalled(BindingCalledEvent event) {
         List<Object> args = new ArrayList<>();
@@ -330,6 +340,11 @@ public class CdpFrame extends Frame {
         return this.deviceRequestPromptManager().waitForDevicePrompt(timeout);
     }
 
+    @Override
+    public List<Realm> extensionRealms() {
+        return new ArrayList<>(this.extensionWorlds.values());
+    }
+
     public void navigated(FramePayload framePayload) {
         this.name = framePayload.getName();
         this.url = framePayload.getUrl() + (framePayload.getUrlFragment() == null ? "" : framePayload.getUrlFragment());
@@ -367,6 +382,7 @@ public class CdpFrame extends Frame {
         this.detached = true;
         this.worlds.get(MAIN_WORLD).dispose();
         this.worlds.get(PUPPETEER_WORLD).dispose();
+        this.extensionWorlds.values().forEach(world -> world.dispose());
     }
 
     @Override

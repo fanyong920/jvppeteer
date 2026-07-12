@@ -1,6 +1,7 @@
 package com.ruiyun.jvppeteer.bidi.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.bidi.entities.CallFunctionOptions;
@@ -18,15 +19,15 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.Source;
 import static com.ruiyun.jvppeteer.util.Helper.createBidiEvaluationError;
@@ -40,6 +41,16 @@ public abstract class BidiRealm extends Realm {
     public BidiRealm(BidiRealmCore realm, TimeoutSettings timeoutSettings) {
         super(timeoutSettings);
         this.realm = realm;
+    }
+
+    @Override
+    public String getOrigin() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Extension extension() {
+        throw new UnsupportedOperationException();
     }
 
     protected void initialize() {

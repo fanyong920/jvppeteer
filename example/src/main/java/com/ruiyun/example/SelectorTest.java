@@ -14,7 +14,7 @@ import static com.ruiyun.example.LaunchTest.getBrowser;
 
 public class SelectorTest {
     /**
-     * xpath选择器
+     * XPath
      */
     @Test
     public void test1() throws Exception {

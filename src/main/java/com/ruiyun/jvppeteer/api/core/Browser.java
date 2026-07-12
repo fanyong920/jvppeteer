@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -235,9 +236,9 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
      * <p>
      * Shortcut for
      * {@link BrowserContext#setPermission(String, List)}
-     *  or {@link Browser#defaultBrowserContext()#setPermission(String, List)}.
+     * or {@link Browser#defaultBrowserContext()#setPermission(String, List)}.
      *
-     * @param origin     - The origin to set the permission for.
+     * @param origin      - The origin to set the permission for.
      * @param permissions - The permission descriptor.The state of the permission.
      */
     public void setPermission(String origin, List<Permission> permissions) {
@@ -304,8 +305,16 @@ public abstract class Browser extends EventEmitter<BrowserEvents> implements Aut
     public abstract ScreenInfo addScreen(AddScreenParams params) throws JsonProcessingException;
 
     /**
-     * Removes a screen.
-     * Only supported in headless mode. Fails if the primary screen id is specified.
+     * Retrieves a map of all extensions installed in the browser, where the keys
+     * are extension IDs and the values are the corresponding {@link Extension} instances.
+     *
      */
     public abstract void removeScreen(String screenId);
+
+    /**
+     * Retrieves a map of all extensions installed in the browser, where the keys
+     * are extension IDs and the values are the corresponding {@link Extension} instances.
+     *
+     */
+    public abstract Map<String, Extension> extensions();
 }

@@ -7,6 +7,7 @@ import com.ruiyun.jvppeteer.api.core.DeviceRequestPrompt;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
 import com.ruiyun.jvppeteer.api.core.Frame;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
+import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.api.events.PageEvents;
 import com.ruiyun.jvppeteer.bidi.entities.LogEntry;
@@ -375,6 +376,11 @@ public class BidiFrame extends Frame {
     @Override
     public DeviceRequestPrompt waitForDevicePrompt(int timeout) {
         return this.browsingContext.waitForDevicePrompt(timeout);
+    }
+
+    @Override
+    public List<Realm> extensionRealms() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

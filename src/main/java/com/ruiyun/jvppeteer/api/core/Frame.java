@@ -16,6 +16,7 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.GetQueryHandler;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
 
 import static com.ruiyun.jvppeteer.common.Constant.DEFAULT_BATCH_SIZE;
 import static com.ruiyun.jvppeteer.util.Helper.withSourcePuppeteerURLIfNone;
@@ -677,4 +677,12 @@ public abstract class Frame extends EventEmitter<FrameEvents> {
     public String parentId() {
         return this.parentId;
     }
+
+    /**
+     * Retrieves the list of extension execution realms associated with this frame.
+     * Extension execution realms are created by extension content scripts injected
+     * into the frame.
+     *
+     */
+    public abstract List<Realm> extensionRealms();
 }

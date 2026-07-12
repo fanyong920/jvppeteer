@@ -21,6 +21,7 @@ import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.transport.CdpCDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,10 +37,10 @@ import java.util.function.Function;
 
 public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent> {
     private final Connection connection;
-    private final Map<String, TargetInfo> discoveredTargetsByTargetId = new HashMap<>();
+    private final Map<String, TargetInfo> discoveredTargetsByTargetId = new ConcurrentHashMap<>();
     private final Map<String, CdpTarget> attachedTargetsByTargetId = new ConcurrentHashMap<>();
     private final Map<String, CdpTarget> attachedTargetsBySessionId = new HashMap<>();
-    private final Set<String> ignoredTargets = new HashSet<>();
+    private final Set<String> ignoredTargets = Collections.synchronizedSet(new HashSet<>());
     private final Function<Target, Boolean> targetFilterCallback;
     private final TargetFactory targetFactory;
     private final Map<CDPSession, Consumer<AttachedToTargetEvent>> attachedToTargetListenersBySession = new WeakHashMap<>();
@@ -118,6 +119,10 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         return this.attachedTargetsByTargetId;
     }
 
+    public void addToIgnoreTarget(String targetId) {
+        this.ignoredTargets.add(targetId);
+    }
+
     public List<CdpTarget> getChildTargets(CdpTarget target) {
         return target.childTargets();
     }
@@ -164,7 +169,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         }
         if ("service_worker".equals(targetInfo.getType())) {
             silentDetach(parentConnection, session);
-            if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId())) {
+            if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId()) || this.ignoredTargets.contains(targetInfo.getTargetId())) {
                 return;
             }
             CdpTarget target = this.targetFactory.create(targetInfo, null, null);
@@ -175,8 +180,8 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         }
         CdpTarget target = this.attachedTargetsByTargetId.get(targetInfo.getTargetId());
         boolean isExistingTarget = Objects.nonNull(target);
-        if(!isExistingTarget){
-            target =  this.targetFactory.create(targetInfo, session, null);
+        if (!isExistingTarget) {
+            target = this.targetFactory.create(targetInfo, session, null);
         }
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
@@ -225,9 +230,16 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         if (!this.connection.isAutoAttached(targetInfo.getTargetId())) {
             return;
         }
+
+        // If we connect to a browser that is already open,
+        // immediately detach from any tab that is on the blocklist.
+//        if (!this.initialAttachDone  /*!this.isUrlAllowed(targetInfo.getUrl())*/) {
+//             this.silentDetach(session, parentSession);
+//            return;
+//        }
         if ("service_worker".equals(targetInfo.getType())) {
             silentDetach(parentSession, session);
-            if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId())) {
+            if (this.attachedTargetsByTargetId.containsKey(targetInfo.getTargetId()) || this.ignoredTargets.contains(targetInfo.getTargetId())) {
                 return;
             }
             CdpTarget target = this.targetFactory.create(targetInfo, null, null);
@@ -238,13 +250,13 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         }
         CdpTarget target = this.attachedTargetsByTargetId.get(targetInfo.getTargetId());
         boolean isExistingTarget = Objects.nonNull(target);
-        if(!isExistingTarget){
+        if (!isExistingTarget) {
             target = this.targetFactory.create(targetInfo, session, parentSession);
         }
         CdpTarget parentTarget = ((CdpCDPSession) parentSession).getTarget();
         if (this.targetFilterCallback != null && !this.targetFilterCallback.apply(target)) {
             this.ignoredTargets.add(targetInfo.getTargetId());
-            if(Objects.nonNull(parentTarget) && Objects.equals(TargetType.TAB,parentTarget.type())){
+            if (Objects.nonNull(parentTarget) && Objects.equals(TargetType.TAB, parentTarget.type())) {
                 this.finishInitializationIfReady(targetInfo.getTargetId());
             }
             silentDetach(parentSession, session);
@@ -267,7 +279,7 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         if (!isExistingTarget) {
             this.emit(TargetManagerEvent.TargetAvailable, target);
         }
-        if(Objects.equals(TargetType.TAB,parentTarget.type())){
+        if (Objects.equals(TargetType.TAB, parentTarget.type())) {
             this.finishInitializationIfReady(parentTarget.getTargetId());
         }
         Map<String, Object> params = ParamsFactory.create();
@@ -303,7 +315,6 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
         }
     }
 
-    //WebSocketConnectReadThread
     private void silentDetach(CDPSession parentSession, CDPSession session) {
         runIfWaitingForDebugger(session);
         try {
@@ -312,6 +323,10 @@ public class TargetManager extends EventEmitter<TargetManager.TargetManagerEvent
             parentSession.send("Target.detachFromTarget", params, null, true);
         } catch (Exception ignore) {
         }
+    }
+
+    public Map<String, TargetInfo> getDiscoveredTargetInfos() {
+        return this.discoveredTargetsByTargetId;
     }
 
     private void setupAttachmentListeners(CDPSession session) {

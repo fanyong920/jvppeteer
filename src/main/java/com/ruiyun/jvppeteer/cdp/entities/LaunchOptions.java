@@ -4,6 +4,7 @@ package com.ruiyun.jvppeteer.cdp.entities;
 import com.ruiyun.jvppeteer.api.core.Target;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,8 @@ public class LaunchOptions extends ConnectOptions {
         this.executablePath = builder.executablePath;
         this.ignoreAllDefaultArgs = builder.ignoreAllDefaultArgs;
         this.ignoreDefaultArgs = builder.ignoreDefaultArgs;
+        this.enableExtensions = builder.enableExtensions;
+        this.extensions = builder.extensions;
         this.dumpio = builder.dumpio;
         this.env = builder.env;
         this.pipe = builder.pipe;
@@ -60,6 +63,17 @@ public class LaunchOptions extends ConnectOptions {
      * 忽略指定的默认启动参数
      */
     private List<String> ignoreDefaultArgs;
+
+    /**
+     * If `true`, avoids passing default arguments to the browser that would
+     * prevent extensions from being enabled.
+     */
+    private boolean enableExtensions;
+    /**
+     * Passing a list of strings will
+     * * load the provided paths as unpacked extensions.
+     */
+    private List<String> extensions;
     /**
      * 最大导航时间是30000ms,0表示无限等待
      * <br/>
@@ -80,7 +94,7 @@ public class LaunchOptions extends ConnectOptions {
     /**
      * Specify environment variables that will be visible to Chromium.
      */
-    private Map<String,String> env;
+    private Map<String, String> env;
 
     /**
      * ͨfalse代表使用websocket通讯，true代表使用websocket通讯
@@ -214,7 +228,7 @@ public class LaunchOptions extends ConnectOptions {
         private boolean ignoreAllDefaultArgs;
         private List<String> ignoreDefaultArgs;
         private boolean dumpio = false;
-        private Map<String,String> env;
+        private Map<String, String> env;
         private boolean pipe;
         private Product product = Product.Chrome;
         private boolean waitForInitialPage = true;
@@ -223,6 +237,10 @@ public class LaunchOptions extends ConnectOptions {
         private Map<String, Object> extraPrefsFirefox;
         private Protocol protocol;
         private boolean networkEnabled = true;
+        private boolean enableExtensions = false;
+        private List<String> extensions;
+
+
 
         private Builder() {
         }
@@ -247,7 +265,7 @@ public class LaunchOptions extends ConnectOptions {
             return this;
         }
 
-        public Builder env(Map<String,String> env) {
+        public Builder env(Map<String, String> env) {
             this.env = env;
             return this;
         }
@@ -352,6 +370,17 @@ public class LaunchOptions extends ConnectOptions {
             return this;
         }
 
+        public Builder enableExtensions(boolean enableExtensions) {
+            this.enableExtensions = enableExtensions;
+            return this;
+        }
+
+        public Builder extensions(List<String> extensions) {
+            this.extensions = extensions;
+            return this;
+        }
+
+
         public LaunchOptions build() {
             return new LaunchOptions(this);
         }
@@ -443,5 +472,21 @@ public class LaunchOptions extends ConnectOptions {
 
     public void setExtraPrefsFirefox(Map<String, Object> extraPrefsFirefox) {
         this.extraPrefsFirefox = extraPrefsFirefox;
+    }
+
+    public boolean getEnableExtensions() {
+        return enableExtensions;
+    }
+
+    public void setEnableExtensions(boolean enableExtensions) {
+        this.enableExtensions = enableExtensions;
+    }
+
+    public List<String> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(List<String> extensions) {
+        this.extensions = extensions;
     }
 }

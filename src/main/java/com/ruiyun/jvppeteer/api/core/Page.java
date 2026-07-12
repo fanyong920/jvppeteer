@@ -1685,6 +1685,24 @@ public abstract class Page extends EventEmitter<PageEvents> {
      */
     public abstract boolean hasDevTools();
 
+    /**
+     * Triggers the default action of the specified extension for this page.
+     * This simulates clicking the extension's icon in the browser's toolbar.
+     *
+     * @param extension - The {@link Extension} whose action to trigger.
+     */
+    public abstract void triggerExtensionAction(Extension extension);
+
+    /**
+     * Retrieves the list of extension execution realms in the main frame of the page.
+     * These realms correspond to extension content scripts running on the page.
+     * <p>
+     * Shortcut for {@link Frame#extensionRealms()} or {@link Page#mainFrame()#extensionRealms()}.
+     *
+     * @public
+     */
+    public abstract List<Realm> extensionRealms();
+
     private static final Map<String, Double> unitToPixels = new HashMap<String, Double>() {
         private static final long serialVersionUID = -4861220887908575532L;
 

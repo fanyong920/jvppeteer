@@ -2,8 +2,10 @@ package com.ruiyun.jvppeteer.launch;
 
 import com.ruiyun.jvppeteer.api.core.Browser;
 import com.ruiyun.jvppeteer.cdp.entities.LaunchOptions;
+import com.ruiyun.jvppeteer.cdp.entities.TargetType;
 import com.ruiyun.jvppeteer.common.Constant;
 import com.ruiyun.jvppeteer.common.Product;
+import com.ruiyun.jvppeteer.exception.LaunchException;
 import com.ruiyun.jvppeteer.util.FileUtil;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
@@ -68,11 +70,21 @@ public class ChromeLauncher extends BrowserLauncher {
             } else {
                 chromeArguments.add("--remote-debugging-port=" + options.getDebuggingPort());
             }
-
         }
         boolean usePipe = chromeArguments.contains("--remote-debugging-pipe");
         LOGGER.trace("Calling {} {}", this.executablePath, String.join(" ", chromeArguments));
         Browser browser = createBrowser(options, chromeArguments, temporaryUserDataDir, usePipe, defaultArgs, customizedUserDataDir);
+        List<String> extensions = options.getExtensions();
+
+        if(ValidateUtil.isNotEmpty(extensions)){
+            if(Product.Chrome.equals(options.getProduct()) && !usePipe){
+                throw new LaunchException("To use `enableExtensions` with a list of paths in Chrome, you must be connected with `--remote-debugging-pipe` (`pipe: true`).");
+            }
+            extensions.forEach(browser::installExtension);
+        }
+        if (options.getWaitForInitialPage()) {
+            browser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
+        }
         LOGGER.info("Browser started successfully, executablePath is {}, protocol is {}({}),version is {}", this.executablePath, options.getProtocol(), usePipe ? "pipe" : "websocket", browser.version());
         return browser;
     }
@@ -147,6 +159,11 @@ public class ChromeLauncher extends BrowserLauncher {
                 chromeArguments.add("--hide-scrollbars");
                 chromeArguments.add("--mute-audio");
             }
+        }
+        if(options.getEnableExtensions() || ValidateUtil.isNotEmpty(options.getExtensions())) {
+            chromeArguments.add("--enable-unsafe-extension-debugging");
+        }else {
+            chromeArguments.add("--disable-extensions");
         }
         List<String> args;
         if (ValidateUtil.isNotEmpty(args = options.getArgs())) {

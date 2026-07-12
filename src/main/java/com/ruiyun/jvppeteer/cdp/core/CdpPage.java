@@ -7,8 +7,10 @@ import com.ruiyun.jvppeteer.api.core.BluetoothEmulation;
 import com.ruiyun.jvppeteer.api.core.BrowserContext;
 import com.ruiyun.jvppeteer.api.core.CDPSession;
 import com.ruiyun.jvppeteer.api.core.ElementHandle;
+import com.ruiyun.jvppeteer.api.core.Extension;
 import com.ruiyun.jvppeteer.api.core.JSHandle;
 import com.ruiyun.jvppeteer.api.core.Page;
+import com.ruiyun.jvppeteer.api.core.Realm;
 import com.ruiyun.jvppeteer.api.core.Response;
 import com.ruiyun.jvppeteer.api.core.WebWorker;
 import com.ruiyun.jvppeteer.api.events.ConnectionEvents;
@@ -1199,6 +1201,16 @@ public class CdpPage extends Page {
     @Override
     public boolean hasDevTools() {
         return StringUtil.isNotEmpty(this.browser().hasDevToolsTarget(this.target().getTargetId()));
+    }
+
+    @Override
+    public void triggerExtensionAction(Extension extension) {
+        extension.triggerAction(this);
+    }
+
+    @Override
+    public List<Realm> extensionRealms() {
+        return this.mainFrame().extensionRealms();
     }
 
     public Accessibility accessibility() {

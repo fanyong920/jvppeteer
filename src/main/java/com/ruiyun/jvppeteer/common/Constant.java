@@ -165,7 +165,6 @@ public interface Constant {
                     "--disable-component-extensions-with-background-pages",
                     "--disable-default-apps",
                     "--disable-dev-shm-usage",
-                    "--disable-extensions",
                     "--disable-hang-monitor",
                     "--disable-infobars",
                     "--disable-ipc-flooding-protection",
@@ -550,4 +549,6 @@ public interface Constant {
      * 当pipe连接时，nodejs和launch-browser-pipe.js所在的目录
      */
     String JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR = "JVPPETEER_PIPE_LAUNCH_RESOURCE_DIR";
+
+    String CHROME_EXTENSION_PREFIX = "chrome-extension://";
 }

@@ -18,6 +18,7 @@ import com.ruiyun.jvppeteer.common.TimeoutSettings;
 import com.ruiyun.jvppeteer.exception.JvppeteerException;
 import com.ruiyun.jvppeteer.util.Helper;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -34,12 +35,56 @@ public abstract class Realm {
         this.timeoutSettings = timeoutSettings;
     }
 
+    /**
+     * Returns the origin that created the Realm.
+     * For example, if the realm was created by an extension content script,
+     * this will return the origin of the extension
+     * (e.g., `chrome-extension://<extension-id>`).
+     * <p>
+     * `chrome-extension://<chrome-extension-id>`
+     */
+    public abstract String getOrigin();
+
+    /**
+     * Returns the {@link Extension} that created this realm, if applicable.
+     * This is typically populated when the realm was created by an extension
+     * content script injected into a page.
+     * <p>
+     *
+     * @returns The {@link Extension} or `null` if not created by an extension.
+     *
+     */
+    public abstract Extension extension();
+
     public abstract ChromeEnvironment environment();
 
     public abstract <T extends JSHandle> T adoptHandle(T handle) throws JsonProcessingException;
 
     public abstract <T extends JSHandle> T transferHandle(T handle) throws JsonProcessingException;
 
+    /**
+     * Evaluates a function in the realm's context and returns a
+     * {@link JSHandle} to the result.
+     * <p>
+     * If the function passed to `realm.evaluateHandle` returns a Promise,
+     * the method will wait for the promise to resolve and return its value.
+     * <p>
+     * {@link JSHandle} instances can be passed as arguments to the function.
+     * <p>
+     * <p>
+     * ```ts
+     * const aHandle = await realm.evaluateHandle(() => document.body);
+     * const resultHandle = await realm.evaluateHandle(
+     * body => body.innerHTML,
+     * aHandle,
+     * );
+     * ```
+     *
+     * @param pptrFunction - A function to be evaluated in the realm.
+     * @param args         - Arguments to be passed to the `pageFunction`.
+     * @returns A {@link JSHandle} containing the result.
+     *
+     */
     public abstract JSHandle evaluateHandle(String pptrFunction, List<Object> args) throws JsonProcessingException;
 
     public Object evaluate(String pptrFunction) throws JsonProcessingException {
@@ -52,6 +97,26 @@ public abstract class Realm {
 
     public abstract Object evaluate(String pptrFunction, EvaluateType type, List<Object> args) throws JsonProcessingException;
 
+    /**
+     * Waits for a function to return a truthy value when evaluated in
+     * the realm's context.
+     * <p>
+     * Arguments can be passed from Node.js to `pageFunction`.
+     *
+     * @param pptrFunction - A function to evaluate in the realm.
+     * @param options      - Options for polling and timeouts.
+     * @param args         - Arguments to pass to the function.
+     * @example ```ts
+     * const selector = '.foo';
+     * await realm.waitForFunction(
+     * selector => !!document.querySelector(selector),
+     * {},
+     * selector,
+     * );
+     * ```
+     * @returns A promise that resolves when the function returns a truthy value.
+     *
+     */
     public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
         String polling = "raf";
         int timeout = Objects.isNull(options.getTimeout()) ? this.timeoutSettings.timeout() : options.getTimeout();

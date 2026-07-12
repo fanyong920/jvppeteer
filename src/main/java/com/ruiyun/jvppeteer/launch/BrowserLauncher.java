@@ -184,7 +184,7 @@ public abstract class BrowserLauncher {
                         Runnable closeCallback = runner::closeBrowser;
                         return createBiDiBrowser((BidiConnection) connection, closeCallback, runner.getProcess(), options);
                     } else {
-                        throw new LaunchException("Chrome dont not support protocol: " + options.getProtocol() + " yet");
+                        throw new LaunchException("Chrome don't not support protocol: " + options.getProtocol() + " yet");
                     }
                 }
             }
@@ -261,9 +261,6 @@ public abstract class BrowserLauncher {
         CdpBrowser cdpBrowser = CdpBrowser.create(connection, new ArrayList<>(), options.getAcceptInsecureCerts(), options.getDefaultViewport(), runner.getProcess(), closeCallback, options.getTargetFilter(), null, true, options.getNetworkEnabled(), options.getHandleDevToolsAsPage());
         cdpBrowser.setExecutablePath(this.executablePath);
         cdpBrowser.setDefaultArgs(defaultArgs);
-        if (options.getWaitForInitialPage()) {
-            cdpBrowser.waitForTarget(t -> TargetType.PAGE.equals(t.type()), options.getTimeout());
-        }
         connection.setCloseRunner(() -> {
             //专门用于浏览器意外关闭的逻辑
             try {

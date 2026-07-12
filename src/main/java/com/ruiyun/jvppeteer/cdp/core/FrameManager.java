@@ -31,6 +31,9 @@ import com.ruiyun.jvppeteer.exception.TargetCloseException;
 import com.ruiyun.jvppeteer.transport.CdpCDPSession;
 import com.ruiyun.jvppeteer.util.StringUtil;
 import com.ruiyun.jvppeteer.util.ValidateUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,10 +45,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-
+import static com.ruiyun.jvppeteer.common.Constant.CHROME_EXTENSION_PREFIX;
 import static com.ruiyun.jvppeteer.common.Constant.INTERNAL_URL;
 import static com.ruiyun.jvppeteer.common.Constant.MAIN_WORLD;
 import static com.ruiyun.jvppeteer.common.Constant.PUPPETEER_WORLD;
@@ -73,7 +74,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         super();
         this.client = client;
         this.page = page;
-        this.networkManager = new NetworkManager(this,page.browser().isNetworkEnabled());
+        this.networkManager = new NetworkManager(this, page.browser().isNetworkEnabled());
         this.timeoutSettings = timeoutSettings;
         setupEventListeners(this.client);
         client.once(ConnectionEvents.CDPSession_Disconnected, (ignored) -> {
@@ -94,7 +95,7 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         if (mainFrame == null) {
             return;
         }
-        if(!this.page().browser().connected()){
+        if (!this.page().browser().connected()) {
             // If the browser is not connected we know
             // that activation will not happen
             this.removeFramesRecursively(mainFrame);
@@ -456,7 +457,24 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
         }
     }
 
+    private boolean isExtensionOrigin(String origin) {
+        return Objects.nonNull(origin) && origin.startsWith(CHROME_EXTENSION_PREFIX);
+    }
+
+    private String extractExtensionId(String origin) {
+        if (origin == null || origin.isEmpty() || !isExtensionOrigin(origin)) {
+            return null;
+        }
+
+        String pathPart = origin.substring(CHROME_EXTENSION_PREFIX.length());
+        int slashIndex = pathPart.indexOf('/');
+
+        // 无斜杠时 pathPart 本身就是扩展 ID，否则取第一个斜杠前的部分
+        return slashIndex == -1 ? pathPart : pathPart.substring(0, slashIndex);
+    }
+
     private void onExecutionContextCreated(ExecutionContextDescription contextPayload, CDPSession session) {
+        String origin = contextPayload.getOrigin();
         String frameId = contextPayload.getAuxData() != null ? contextPayload.getAuxData().getFrameId() : null;
         CdpFrame frame = this.frame(frameId);
         IsolatedWorld world = null;
@@ -471,6 +489,23 @@ public class FrameManager extends EventEmitter<FrameManager.FrameManagerEvent> i
                 // connections so we might end up creating multiple isolated worlds.
                 // We can use either.
                 world = frame.worlds().get(PUPPETEER_WORLD);
+            } else if (this.isExtensionOrigin(origin)) {
+                String extId = this.extractExtensionId(origin);
+
+                if (StringUtil.isEmpty(extId)) {
+                    LOGGER.error("Error while parsing extension id");
+                    return;
+                }
+                IsolatedWorld isolatedWorld = frame.getExtensionWorlds().get(extId);
+                if (isolatedWorld != null) {
+                    world = isolatedWorld;
+                } else {
+                    world = new IsolatedWorld(frame,null, this.timeoutSettings, extId);
+                    frame.getExtensionWorlds().put(extId,world) ;
+                    frame.registerWorldListeners(world);
+                    world.setOrigin(origin);
+                    world.setWorldId(extId);
+                }
             }
         }
         if (Objects.isNull(world)) {
