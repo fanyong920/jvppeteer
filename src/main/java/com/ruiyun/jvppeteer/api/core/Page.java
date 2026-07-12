@@ -1698,8 +1698,6 @@ public abstract class Page extends EventEmitter<PageEvents> {
      * These realms correspond to extension content scripts running on the page.
      * <p>
      * Shortcut for {@link Frame#extensionRealms()} or {@link Page#mainFrame()#extensionRealms()}.
-     *
-     * @public
      */
     public abstract List<Realm> extensionRealms();
 

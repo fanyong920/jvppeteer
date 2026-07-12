@@ -258,7 +258,7 @@ public interface Constant {
 //            add("disabled-by-default-v8.cpu_profiler.hires");
         }
     };
-    String JVPPETEER_VERSION = "3.6.4";
+    String JVPPETEER_VERSION = "3.6.5";
 
     String UTILITY_WORLD_NAME = "__puppeteer_utility_world__" + JVPPETEER_VERSION;
 

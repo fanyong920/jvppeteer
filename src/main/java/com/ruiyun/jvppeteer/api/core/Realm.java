@@ -51,7 +51,7 @@ public abstract class Realm {
      * content script injected into a page.
      * <p>
      *
-     * @returns The {@link Extension} or `null` if not created by an extension.
+     * @return The {@link Extension} or `null` if not created by an extension.
      *
      */
     public abstract Extension extension();
@@ -71,18 +71,10 @@ public abstract class Realm {
      * <p>
      * {@link JSHandle} instances can be passed as arguments to the function.
      * <p>
-     * <p>
-     * ```ts
-     * const aHandle = await realm.evaluateHandle(() => document.body);
-     * const resultHandle = await realm.evaluateHandle(
-     * body => body.innerHTML,
-     * aHandle,
-     * );
-     * ```
      *
      * @param pptrFunction - A function to be evaluated in the realm.
      * @param args         - Arguments to be passed to the `pageFunction`.
-     * @returns A {@link JSHandle} containing the result.
+     * @return A {@link JSHandle} containing the result.
      *
      */
     public abstract JSHandle evaluateHandle(String pptrFunction, List<Object> args) throws JsonProcessingException;
@@ -106,18 +98,10 @@ public abstract class Realm {
      * @param pptrFunction - A function to evaluate in the realm.
      * @param options      - Options for polling and timeouts.
      * @param args         - Arguments to pass to the function.
-     * @example ```ts
-     * const selector = '.foo';
-     * await realm.waitForFunction(
-     * selector => !!document.querySelector(selector),
-     * {},
-     * selector,
-     * );
-     * ```
-     * @returns A promise that resolves when the function returns a truthy value.
+     * @return when the function returns a truthy value.
      *
      */
-    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) throws ExecutionException, InterruptedException, TimeoutException {
+    public JSHandle waitForFunction(String pptrFunction, WaitForSelectorOptions options, EvaluateType type, Object... args) {
         String polling = "raf";
         int timeout = Objects.isNull(options.getTimeout()) ? this.timeoutSettings.timeout() : options.getTimeout();
         if (Objects.nonNull(options.getPolling())) {

@@ -456,3 +456,13 @@
 
 ### Version Release 3.6.4(2026/5/20)
 - [fix(cdp): 添加对 result 和 exceptionDetails 的空值保护检查](https://github.com/fanyong920/jvppeteer/commit/a6fea136957147b29410e8e655dee48723611bea)
+
+### Version Release 3.6.5(2026/7/12)
+
+- [fix(cdp): 修复执行上下文异常处理逻辑](https://github.com/fanyong920/jvppeteer/commit/bcf2682c5fdc4743b906b3883e834c17547437af)
+
+- [feat(cdp): 如果没有开启 webMCP 就不输出错误](https://github.com/fanyong920/jvppeteer/commit/09933ce239ee5bbb372a5ce237369ff28dda3cc7)
+
+- [Merge pull request](https://github.com/fanyong920/jvppeteer/commit/8ef3b7293ae1b5a2981f26f3e91189aa29b019aa) [#221](https://github.com/fanyong920/jvppeteer/pull/221) [from fanyong920/dependabot/maven/com.fasterxml.jackson.core-jackson-databind-2.22.0](https://github.com/fanyong920/jvppeteer/commit/8ef3b7293ae1b5a2981f26f3e91189aa29b019aa)
+
+- [feat: adds extension realms api](https://github.com/fanyong920/jvppeteer/commit/c7efba78729c1a9901cca66d756e1de30dd021e7)
